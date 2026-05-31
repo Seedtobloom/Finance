@@ -2,20 +2,22 @@
    VARIABLES & RESET
    =========================== */
 :root {
-  --bg:          #1a1a1a;
+  --bg:          #F8F8F6;
   --sidebar:     #141414;
   --surface:     #051833;
   --surface-alt: #412F21;
   --cream:       #EFE1B0;
   --blue:        #BAD1FD;
   --violet:      #E4D1FE;
+  --text:        #1a1a1a;
   --muted:       rgba(255,255,255,0.35);
-  --border:      rgba(255,255,255,0.08);
-  --red:         rgba(255,100,100,0.8);
-  --red-bg:      rgba(255,100,100,0.15);
-  --blue-bg:     rgba(186,209,253,0.15);
-  --violet-bg:   rgba(228,209,254,0.15);
-  --muted-bg:    rgba(255,255,255,0.04);
+  --muted-dark:  rgba(0,0,0,0.45);
+  --border:      rgba(0,0,0,0.08);
+  --red:         rgba(220,60,60,0.9);
+  --red-bg:      rgba(220,60,60,0.12);
+  --blue-bg:     rgba(186,209,253,0.2);
+  --violet-bg:   rgba(228,209,254,0.2);
+  --muted-bg:    rgba(0,0,0,0.04);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,13 +27,13 @@ html, body {
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   background: var(--bg);
-  color: var(--cream);
+  color: var(--text);
   overflow: hidden;
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
 
 /* ===========================
    LOGIN SCREEN
@@ -155,12 +157,12 @@ html, body {
   font-family: 'Cormorant Garamond', serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--cream);
+  color: var(--text);
 }
 
 .page-subtitle {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-dark);
   margin-top: 2px;
 }
 
@@ -512,42 +514,7 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; background: v
 
 #toast.show { opacity: 1; transform: translateY(0); }
 
-/* ===========================
-   PRINT — PDF FACTURE
-   =========================== */
-@media print {
-  body > *:not(#print-zone) { display: none !important; }
-  #print-zone { display: block !important; }
-}
-
-#print-zone {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: white;
-  z-index: 9999;
-  padding: 60px;
-  font-family: 'DM Sans', sans-serif;
-  color: #111;
-}
-
-.print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid #ddd; }
-.print-company-name { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; color: #412F21; line-height: 1; }
-.print-company-info { font-size: 12px; color: #666; margin-top: 6px; line-height: 1.7; }
-.print-doc-info { text-align: right; font-size: 13px; color: #333; }
-.print-doc-num { font-size: 20px; font-weight: 700; color: #412F21; font-family: 'Cormorant Garamond', serif; }
-.print-client-block { margin-bottom: 40px; background: #f8f5ef; padding: 16px 20px; border-radius: 6px; }
-.print-client-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
-.print-client-name { font-size: 18px; font-weight: 600; color: #222; font-family: 'Cormorant Garamond', serif; }
-.print-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-.print-table thead th { background: #412F21; color: #EFE1B0; padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
-.print-table tbody td { padding: 12px 14px; border-bottom: 1px solid #eee; font-size: 13px; color: #333; vertical-align: top; }
-.print-table tbody td.amount { text-align: right; font-weight: 600; }
-.print-total-row { display: flex; justify-content: flex-end; margin-top: 16px; }
-.print-total-box { background: #412F21; color: #EFE1B0; padding: 14px 20px; border-radius: 6px; min-width: 200px; }
-.print-total-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
-.print-total-amount { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; }
-.print-mentions { margin-top: 48px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #999; line-height: 1.7; }
+/* PDFs fournis par Indy — pas de styles print */
 
 /* ===========================
    RESPONSIVE

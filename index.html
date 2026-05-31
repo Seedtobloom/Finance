@@ -14,20 +14,22 @@
    VARIABLES & RESET
    =========================== */
 :root {
-  --bg:          #1a1a1a;
+  --bg:          #F8F8F6;
   --sidebar:     #141414;
   --surface:     #051833;
   --surface-alt: #412F21;
   --cream:       #EFE1B0;
   --blue:        #BAD1FD;
   --violet:      #E4D1FE;
+  --text:        #1a1a1a;
   --muted:       rgba(255,255,255,0.35);
-  --border:      rgba(255,255,255,0.08);
-  --red:         rgba(255,100,100,0.8);
-  --red-bg:      rgba(255,100,100,0.15);
-  --blue-bg:     rgba(186,209,253,0.15);
-  --violet-bg:   rgba(228,209,254,0.15);
-  --muted-bg:    rgba(255,255,255,0.04);
+  --muted-dark:  rgba(0,0,0,0.45);
+  --border:      rgba(0,0,0,0.08);
+  --red:         rgba(220,60,60,0.9);
+  --red-bg:      rgba(220,60,60,0.12);
+  --blue-bg:     rgba(186,209,253,0.2);
+  --violet-bg:   rgba(228,209,254,0.2);
+  --muted-bg:    rgba(0,0,0,0.04);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,14 +39,14 @@ html, body {
   font-family: 'DM Sans', sans-serif;
   font-size: 14px;
   background: var(--bg);
-  color: var(--cream);
+  color: var(--text);
   overflow: hidden;
 }
 
 /* Scrollbar fine */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
 
 /* ===========================
    LAYOUT
@@ -156,12 +158,12 @@ html, body {
   font-family: 'Cormorant Garamond', serif;
   font-size: 32px;
   font-weight: 600;
-  color: var(--cream);
+  color: var(--text);
 }
 
 .page-subtitle {
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-dark);
   margin-top: 2px;
 }
 
@@ -837,150 +839,7 @@ input[type="range"]::-moz-range-thumb {
 .mb-20 { margin-bottom: 20px; }
 .mb-28 { margin-bottom: 28px; }
 
-/* ===========================
-   PRINT STYLES — PDF FACTURE
-   =========================== */
-@media print {
-  #app { display: none; }
-  #print-zone { display: block !important; }
-}
-
-#print-zone {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: white;
-  z-index: 9999;
-  padding: 60px;
-  font-family: 'DM Sans', sans-serif;
-  color: #111;
-}
-
-.print-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 48px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid #ddd;
-}
-
-.print-company-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 36px;
-  font-weight: 600;
-  color: #412F21;
-  line-height: 1;
-}
-
-.print-company-info {
-  font-size: 12px;
-  color: #666;
-  margin-top: 6px;
-  line-height: 1.7;
-}
-
-.print-doc-info {
-  text-align: right;
-  font-size: 13px;
-  color: #333;
-}
-
-.print-doc-num {
-  font-size: 20px;
-  font-weight: 700;
-  color: #412F21;
-  font-family: 'Cormorant Garamond', serif;
-}
-
-.print-client-block {
-  margin-bottom: 40px;
-  background: #f8f5ef;
-  padding: 16px 20px;
-  border-radius: 6px;
-}
-
-.print-client-label {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #999;
-  margin-bottom: 4px;
-}
-
-.print-client-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #222;
-  font-family: 'Cormorant Garamond', serif;
-}
-
-.print-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 24px;
-}
-
-.print-table thead th {
-  background: #412F21;
-  color: #EFE1B0;
-  padding: 10px 14px;
-  text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.print-table tbody td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #eee;
-  font-size: 13px;
-  color: #333;
-  vertical-align: top;
-}
-
-.print-table tbody td.amount {
-  text-align: right;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.print-total-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-}
-
-.print-total-box {
-  background: #412F21;
-  color: #EFE1B0;
-  padding: 14px 20px;
-  border-radius: 6px;
-  min-width: 200px;
-}
-
-.print-total-label {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.7;
-  margin-bottom: 4px;
-}
-
-.print-total-amount {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.print-mentions {
-  margin-top: 48px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-  font-size: 11px;
-  color: #999;
-  line-height: 1.7;
-}
+/* Les PDFs sont fournis par Indy — pas de styles print */
 
 /* ===========================
    RESPONSIVE ADJUSTMENTS
@@ -992,9 +851,6 @@ input[type="range"]::-moz-range-thumb {
 </style>
 </head>
 <body>
-
-<!-- Zone d'impression PDF -->
-<div id="print-zone"></div>
 
 <!-- Toast notification -->
 <div id="toast"></div>
@@ -2038,7 +1894,6 @@ function renderFactures() {
       <td>
         <div style="display:flex;gap:4px;align-items:center">
           <button class="btn btn-ghost btn-xs" onclick="editFacture('${f.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
-          <button class="btn btn-ghost btn-xs" onclick="imprimerFacture('${f.id}')" title="Télécharger PDF"><i class="ti ti-download"></i></button>
           <button class="btn btn-danger btn-xs" onclick="supprimerFacture('${f.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
         </div>
       </td>
@@ -2083,7 +1938,6 @@ function renderDevis() {
         <div style="display:flex;gap:4px;align-items:center">
           <button class="btn btn-ghost btn-xs" onclick="editDevis('${d.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
           ${d.statut === 'accepte' ? `<button class="btn btn-xs" style="background:var(--blue-bg);color:var(--blue);border:0.5px solid rgba(186,209,253,0.3)" onclick="convertirEnFacture('${d.id}')" title="Convertir en facture"><i class="ti ti-transform"></i></button>` : ''}
-          <button class="btn btn-ghost btn-xs" onclick="imprimerDevis('${d.id}')" title="Télécharger PDF"><i class="ti ti-download"></i></button>
           <button class="btn btn-danger btn-xs" onclick="supprimerDevis('${d.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
         </div>
       </td>
@@ -2367,109 +2221,6 @@ function majDatalistClients() {
   ])].sort();
   const dl = document.getElementById('clients-list');
   if (dl) dl.innerHTML = clients.map(c => `<option value="${c}">`).join('');
-}
-
-/* ===========================
-   PDF / IMPRESSION
-   =========================== */
-// Génère et imprime une facture
-function imprimerFacture(id) {
-  const f = window.state.factures.find(f => f.id === id);
-  if (!f) return;
-  genererPDF({
-    type:       'Facture',
-    numero:     f.numero,
-    client:     f.client,
-    date:       f.date,
-    prestation: f.prestation,
-    montant:    f.montant
-  });
-}
-
-// Génère et imprime un devis
-function imprimerDevis(id) {
-  const d = window.state.devis.find(d => d.id === id);
-  if (!d) return;
-  genererPDF({
-    type:       'Devis',
-    numero:     d.numero,
-    client:     d.client,
-    date:       d.date,
-    prestation: d.prestation,
-    montant:    d.montant
-  });
-}
-
-// Génère la zone d'impression et déclenche window.print()
-function genererPDF(doc) {
-  const dateEmission = datesFr(doc.date);
-  const echeance = (() => {
-    if (!doc.date) return '—';
-    const d = new Date(doc.date);
-    d.setDate(d.getDate() + 30);
-    return datesFr(d.toISOString().split('T')[0]);
-  })();
-
-  const zone = document.getElementById('print-zone');
-  zone.innerHTML = `
-    <div class="print-header">
-      <div>
-        <div class="print-company-name">Seed to Bloom</div>
-        <div class="print-company-info">
-          seedtobloom.fr<br>
-          contact@seedtobloom.fr<br>
-          Marquette-lez-Lille<br>
-          Entreprise individuelle — BNC
-        </div>
-      </div>
-      <div class="print-doc-info">
-        <div class="print-doc-num">${doc.numero}</div>
-        <div style="margin-top:6px;color:#555;font-size:12px">
-          Date : ${dateEmission}<br>
-          ${doc.type === 'Facture' ? `Échéance : ${echeance}` : ''}
-        </div>
-      </div>
-    </div>
-
-    <div class="print-client-block">
-      <div class="print-client-label">Facturé à</div>
-      <div class="print-client-name">${doc.client}</div>
-    </div>
-
-    <table class="print-table">
-      <thead>
-        <tr>
-          <th style="width:70%">Prestation</th>
-          <th style="text-align:right">Montant HT</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>${doc.prestation.replace(/\n/g, '<br>')}</td>
-          <td class="amount">${euros(doc.montant)}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="print-total-row">
-      <div class="print-total-box">
-        <div class="print-total-label">Total HT</div>
-        <div class="print-total-amount">${euros(doc.montant)}</div>
-      </div>
-    </div>
-
-    <div class="print-mentions">
-      <strong>TVA non applicable, art. 293B du CGI</strong><br>
-      ${doc.type === 'Facture' ? 'Règlement à 30 jours à réception de la présente facture.<br>' : ''}
-      Seed to Bloom — Cindy Flageu — Marquette-lez-Lille — contact@seedtobloom.fr — seedtobloom.fr<br>
-      Entreprise individuelle — Régime BNC — Sans TVA
-    </div>
-  `;
-
-  window.print();
-
-  // Nettoie la zone après impression
-  setTimeout(() => { zone.innerHTML = ''; }, 1000);
 }
 
 /* ===========================

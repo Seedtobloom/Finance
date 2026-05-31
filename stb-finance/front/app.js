@@ -354,7 +354,6 @@ const Factures = {
         <td>
           <div style="display:flex;gap:4px">
             <button class="btn btn-ghost btn-xs" onclick="ModalFacture.ouvrir('${f.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
-            <button class="btn btn-ghost btn-xs" onclick="imprimerDoc(${JSON.stringify(f).replace(/"/g, '&quot;')},'Facture')" title="PDF"><i class="ti ti-download"></i></button>
             <button class="btn btn-danger btn-xs" onclick="Factures.supprimer('${f.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
           </div>
         </td>
@@ -486,7 +485,6 @@ const Devis = {
           <div style="display:flex;gap:4px">
             <button class="btn btn-ghost btn-xs" onclick="ModalDevis.ouvrir('${d.id}')" title="Modifier"><i class="ti ti-pencil"></i></button>
             ${d.statut === 'accepte' ? `<button class="btn btn-xs" style="background:var(--blue-bg);color:var(--blue);border:0.5px solid rgba(186,209,253,0.3)" onclick="Devis.convertir('${d.id}')" title="Convertir en facture"><i class="ti ti-transform"></i></button>` : ''}
-            <button class="btn btn-ghost btn-xs" onclick="imprimerDoc(${JSON.stringify(d).replace(/"/g, '&quot;')},'Devis')" title="PDF"><i class="ti ti-download"></i></button>
             <button class="btn btn-danger btn-xs" onclick="Devis.supprimer('${d.id}')" title="Supprimer"><i class="ti ti-trash"></i></button>
           </div>
         </td>
@@ -798,56 +796,6 @@ const Chart = {
     });
   }
 };
-
-/* ===========================
-   PDF / IMPRESSION
-   =========================== */
-function imprimerDoc(doc, type) {
-  const echeance = (() => {
-    if (!doc.date || type !== 'Facture') return null;
-    const d = new Date(doc.date);
-    d.setDate(d.getDate() + 30);
-    return datesFr(d.toISOString().split('T')[0]);
-  })();
-
-  document.getElementById('print-zone').innerHTML = `
-    <div class="print-header">
-      <div>
-        <div class="print-company-name">Seed to Bloom</div>
-        <div class="print-company-info">seedtobloom.fr<br>contact@seedtobloom.fr<br>Marquette-lez-Lille<br>Entreprise individuelle — BNC</div>
-      </div>
-      <div class="print-doc-info">
-        <div class="print-doc-num">${doc.numero}</div>
-        <div style="margin-top:6px;color:#555;font-size:12px">
-          Date : ${datesFr(doc.date)}<br>
-          ${echeance ? `Échéance : ${echeance}` : ''}
-        </div>
-      </div>
-    </div>
-    <div class="print-client-block">
-      <div class="print-client-label">Facturé à</div>
-      <div class="print-client-name">${echapper(doc.client)}</div>
-    </div>
-    <table class="print-table">
-      <thead><tr><th style="width:70%">Prestation</th><th style="text-align:right">Montant HT</th></tr></thead>
-      <tbody><tr><td>${echapper(doc.prestation).replace(/\n/g, '<br>')}</td><td class="amount">${euros(doc.montant)}</td></tr></tbody>
-    </table>
-    <div class="print-total-row">
-      <div class="print-total-box">
-        <div class="print-total-label">Total HT</div>
-        <div class="print-total-amount">${euros(doc.montant)}</div>
-      </div>
-    </div>
-    <div class="print-mentions">
-      <strong>TVA non applicable, art. 293B du CGI</strong><br>
-      ${type === 'Facture' ? 'Règlement à 30 jours à réception de la présente facture.<br>' : ''}
-      Seed to Bloom — Marquette-lez-Lille — contact@seedtobloom.fr — seedtobloom.fr<br>
-      Entreprise individuelle — Régime BNC — Sans TVA
-    </div>`;
-
-  window.print();
-  setTimeout(() => { document.getElementById('print-zone').innerHTML = ''; }, 1000);
-}
 
 /* ===========================
    DATALIST CLIENTS
