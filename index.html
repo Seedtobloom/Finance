@@ -14,19 +14,20 @@
    VARIABLES & RESET
    =========================== */
 :root {
-  --bg:      #412F21;
-  --surface: #051833;
-  --cream:   #EFE1B0;
-  --blue:    #BAD1FD;
-  --violet:  #E4D1FE;
-  --muted:   rgba(239,225,176,0.45);
-  --border:  rgba(239,225,176,0.12);
-  --sidebar: #352619;
-  --red:     rgba(255,100,100,0.8);
-  --red-bg:  rgba(255,100,100,0.15);
-  --blue-bg: rgba(186,209,253,0.15);
-  --violet-bg: rgba(228,209,254,0.15);
-  --muted-bg: rgba(239,225,176,0.08);
+  --bg:          #1a1a1a;
+  --sidebar:     #141414;
+  --surface:     #051833;
+  --surface-alt: #412F21;
+  --cream:       #EFE1B0;
+  --blue:        #BAD1FD;
+  --violet:      #E4D1FE;
+  --muted:       rgba(255,255,255,0.35);
+  --border:      rgba(255,255,255,0.08);
+  --red:         rgba(255,100,100,0.8);
+  --red-bg:      rgba(255,100,100,0.15);
+  --blue-bg:     rgba(186,209,253,0.15);
+  --violet-bg:   rgba(228,209,254,0.15);
+  --muted-bg:    rgba(255,255,255,0.04);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -231,6 +232,10 @@ html, body {
   color: var(--muted);
   margin-top: 4px;
 }
+
+/* Alternance navy / brun sur les KPI cards */
+.kpi-card:nth-child(odd)  { background: var(--surface); }
+.kpi-card:nth-child(even) { background: var(--surface-alt); }
 
 /* ===========================
    GRID LAYOUTS

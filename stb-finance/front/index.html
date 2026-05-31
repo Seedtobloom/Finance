@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seed to Bloom — Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ============================
+     ÉCRAN DE CONNEXION
+     ============================ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="logo-name">Seed to Bloom</span>
+      <span class="logo-sub">finance</span>
+    </div>
+    <div id="login-error" class="login-error" style="display:none"></div>
+    <form id="login-form" onsubmit="Auth.login(event)">
+      <div class="form-group">
+        <label class="form-label">Identifiant</label>
+        <input type="text" class="form-input" id="login-username" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input type="password" class="form-input" id="login-password" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center" id="login-btn">
+        <i class="ti ti-login"></i> Se connecter
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ============================
+     APPLICATION PRINCIPALE
+     ============================ -->
+<div id="app" style="display:none">
+
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-name">Seed to Bloom</span>
+      <span class="logo-sub">finance</span>
+    </div>
+
+    <a class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
+      <i class="ti ti-layout-dashboard"></i>Tableau de bord
+    </a>
+    <a class="nav-item" data-section="factures" onclick="navigate('factures')">
+      <i class="ti ti-file-invoice"></i>Factures
+    </a>
+    <a class="nav-item" data-section="devis" onclick="navigate('devis')">
+      <i class="ti ti-file-description"></i>Devis
+    </a>
+    <a class="nav-item" data-section="depenses" onclick="navigate('depenses')">
+      <i class="ti ti-receipt"></i>Dépenses
+    </a>
+    <a class="nav-item" data-section="simulateur" onclick="navigate('simulateur')">
+      <i class="ti ti-calculator"></i>Simulateur
+    </a>
+
+    <div style="flex:1"></div>
+    <div style="padding:0 12px 8px">
+      <button class="btn btn-secondary" style="width:100%;justify-content:center;font-size:12px" onclick="Auth.logout()">
+        <i class="ti ti-logout"></i> Déconnexion
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <main id="main">
+
+    <!-- ============================
+         SECTION : TABLEAU DE BORD
+         ============================ -->
+    <section id="section-dashboard" class="section active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Tableau de bord</div>
+          <div class="page-subtitle" id="dash-subtitle"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="Dashboard.charger()">
+          <i class="ti ti-refresh"></i> Actualiser
+        </button>
+      </div>
+
+      <div class="kpi-grid mb-20" id="dash-kpis">
+        <div class="kpi-card">
+          <div class="kpi-label">CA encaissé</div>
+          <div class="kpi-value" id="kpi-ca-encaisse"><span class="skeleton-text">—</span></div>
+          <div class="kpi-sub">factures payées</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">En attente</div>
+          <div class="kpi-value violet" id="kpi-ca-attente"><span class="skeleton-text">—</span></div>
+          <div class="kpi-sub">à encaisser</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Charges totales</div>
+          <div class="kpi-value red" id="kpi-charges"><span class="skeleton-text">—</span></div>
+          <div class="kpi-sub">URSSAF + dépenses</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Versement estimé</div>
+          <div class="kpi-value cream" id="kpi-versement"><span class="skeleton-text">—</span></div>
+          <div class="kpi-sub">65% résultat net</div>
+        </div>
+      </div>
+
+      <div class="grid-main mb-20">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> CA mensuel — 6 derniers mois</div>
+          <div class="chart-wrap"><canvas id="chart-ca" height="180"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-users"></i> Répartition par client</div>
+          <div id="dash-clients"><div class="skeleton-block"></div></div>
+        </div>
+      </div>
+
+      <div class="grid-3 mb-20">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-clock"></i> Factures en attente</div>
+          <div id="dash-pending"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-coin"></i> Charges du mois</div>
+          <div id="dash-charges"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-piggy-bank"></i> Répartition conseillée</div>
+          <div class="epargne-grid">
+            <div class="epargne-item">
+              <div class="epargne-pct">Versement</div>
+              <div class="epargne-val blue" id="ep-versement">—</div>
+              <div class="epargne-sub">65%</div>
+            </div>
+            <div class="epargne-item">
+              <div class="epargne-pct">Épargne</div>
+              <div class="epargne-val violet" id="ep-epargne">—</div>
+              <div class="epargne-sub">15%</div>
+            </div>
+            <div class="epargne-item">
+              <div class="epargne-pct">Trésorerie</div>
+              <div class="epargne-val cream" id="ep-tresorerie">—</div>
+              <div class="epargne-sub">20%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION : FACTURES
+         ============================ -->
+    <section id="section-factures" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Factures</div>
+          <div class="page-subtitle" id="fact-count"></div>
+        </div>
+        <button class="btn btn-primary" onclick="ModalFacture.ouvrir()">
+          <i class="ti ti-plus"></i> Nouvelle facture
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th><th>Client</th><th>Prestation</th>
+                <th>Montant HT</th><th>Date</th><th>Statut</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-factures"></tbody>
+          </table>
+        </div>
+        <div id="empty-factures" class="empty-state" style="display:none">
+          <i class="ti ti-file-invoice"></i>
+          <p>Aucune facture. Créez votre première facture.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION : DEVIS
+         ============================ -->
+    <section id="section-devis" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Devis</div>
+          <div class="page-subtitle" id="devis-count"></div>
+        </div>
+        <button class="btn btn-primary" onclick="ModalDevis.ouvrir()">
+          <i class="ti ti-plus"></i> Nouveau devis
+        </button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th><th>Client</th><th>Prestation</th>
+                <th>Montant HT</th><th>Date</th><th>Statut</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-devis"></tbody>
+          </table>
+        </div>
+        <div id="empty-devis" class="empty-state" style="display:none">
+          <i class="ti ti-file-description"></i>
+          <p>Aucun devis. Créez votre premier devis.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION : DÉPENSES
+         ============================ -->
+    <section id="section-depenses" class="section">
+      <div class="page-header">
+        <div><div class="page-title">Dépenses professionnelles</div></div>
+        <button class="btn btn-primary" onclick="ModalDepense.ouvrir()">
+          <i class="ti ti-plus"></i> Ajouter
+        </button>
+      </div>
+      <div class="kpi-grid kpi-grid-3 mb-20">
+        <div class="kpi-card">
+          <div class="kpi-label">Total annuel</div>
+          <div class="kpi-value red" id="dep-annuel">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Mois en cours</div>
+          <div class="kpi-value violet" id="dep-mois">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Catégorie principale</div>
+          <div class="kpi-value cream" id="dep-cat" style="font-size:18px">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Montant</th><th></th></tr>
+            </thead>
+            <tbody id="tbody-depenses"></tbody>
+          </table>
+        </div>
+        <div id="empty-depenses" class="empty-state" style="display:none">
+          <i class="ti ti-receipt"></i>
+          <p>Aucune dépense enregistrée.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================
+         SECTION : SIMULATEUR
+         ============================ -->
+    <section id="section-simulateur" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Simulateur de versement</div>
+          <div class="page-subtitle">Calculez votre résultat net mensuel</div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-briefcase"></i> Activité</div>
+            <div class="form-grid-2">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">CA du mois (€)</label>
+                <input type="number" class="form-input" id="sim-ca" placeholder="0" min="0" oninput="Simulateur.calculer()">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Dépenses pro (€)</label>
+                <input type="number" class="form-input" id="sim-dep" placeholder="0" min="0" oninput="Simulateur.calculer()">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;margin-top:14px">
+              <label class="form-label">CFE annuelle (€) — divisée par 12</label>
+              <input type="number" class="form-input" id="sim-cfe" placeholder="0" min="0" oninput="Simulateur.calculer()">
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-home"></i> Budget personnel (optionnel)</div>
+            <div class="form-grid-2">
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Revenus perso (€)</label>
+                <input type="number" class="form-input" id="sim-rev-perso" placeholder="CAF, prime…" min="0" oninput="Simulateur.calculer()">
+              </div>
+              <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Dépenses perso (€)</label>
+                <input type="number" class="form-input" id="sim-dep-perso" placeholder="Loyer, vie…" min="0" oninput="Simulateur.calculer()">
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="slider-wrap">
+              <div class="slider-header">
+                <span class="form-label">% que je me verse</span>
+                <span class="slider-value" id="sim-slider-label">65%</span>
+              </div>
+              <input type="range" id="sim-slider" min="30" max="100" value="65"
+                     oninput="document.getElementById('sim-slider-label').textContent=this.value+'%';Simulateur.calculer()">
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)">
+                <span>30%</span><span>100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="sim-result">
+            <div class="sim-section-title">Détail du calcul</div>
+            <div class="sim-line"><span class="sim-line-label">CA HT</span><span class="sim-line-amount" id="sim-r-ca">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">− URSSAF (25,6%)</span><span class="sim-line-amount neg" id="sim-r-urssaf">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">− CFP (0,2%)</span><span class="sim-line-amount neg" id="sim-r-cfp">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">− Dépenses pro</span><span class="sim-line-amount neg" id="sim-r-dep">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">− CFE mensuelle</span><span class="sim-line-amount neg" id="sim-r-cfe">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">− PAS fixe</span><span class="sim-line-amount neg" id="sim-r-pas">40 €</span></div>
+            <div class="sim-line sim-total">
+              <span class="sim-line-label dark">Résultat net Qonto</span>
+              <span class="sim-line-amount blue" id="sim-r-net">0 €</span>
+            </div>
+            <div class="sim-section-title">Répartition</div>
+            <div class="sim-line"><span class="sim-line-label" id="sim-r-verse-label">Je me verse (65%)</span><span class="sim-line-amount blue" id="sim-r-verse">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">Épargne (15%)</span><span class="sim-line-amount" style="color:var(--violet)" id="sim-r-epargne">0 €</span></div>
+            <div class="sim-line"><span class="sim-line-label">Trésorerie (20%)</span><span class="sim-line-amount" id="sim-r-treso">0 €</span></div>
+            <div id="sim-budget-perso" style="display:none">
+              <div class="sim-section-title">Budget global du mois</div>
+              <div class="sim-line"><span class="sim-line-label">Revenus perso</span><span class="sim-line-amount" id="sim-r-rev-perso">0 €</span></div>
+              <div class="sim-line"><span class="sim-line-label">+ Ce que je me verse</span><span class="sim-line-amount" id="sim-r-verse2">0 €</span></div>
+              <div class="sim-line"><span class="sim-line-label">− Dépenses perso</span><span class="sim-line-amount neg" id="sim-r-dep-perso">0 €</span></div>
+              <div class="sim-line sim-total">
+                <span class="sim-line-label dark">Solde mensuel</span>
+                <span class="sim-line-amount" id="sim-r-solde">0 €</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================
+     MODAL : FACTURE
+     ============================ -->
+<div class="modal-overlay" id="modal-facture">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-facture-title">Nouvelle facture</div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-facture')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="fact-edit-id">
+    <div class="form-group">
+      <label class="form-label">Client</label>
+      <input type="text" class="form-input" id="fact-client" placeholder="Nom du client" list="clients-list">
+      <datalist id="clients-list"></datalist>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="fact-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Montant HT (€)</label>
+        <input type="number" class="form-input" id="fact-montant" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prestation</label>
+      <textarea class="form-textarea" id="fact-prestation" placeholder="Description de la prestation…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Statut</label>
+      <select class="form-select" id="fact-statut">
+        <option value="attente">En attente</option>
+        <option value="payee">Payée</option>
+        <option value="retard">En retard</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-facture')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-facture" onclick="ModalFacture.sauvegarder()">
+        <i class="ti ti-check"></i> Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     MODAL : DEVIS
+     ============================ -->
+<div class="modal-overlay" id="modal-devis">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-devis-title">Nouveau devis</div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-devis')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="devis-edit-id">
+    <div class="form-group">
+      <label class="form-label">Client</label>
+      <input type="text" class="form-input" id="devis-client" placeholder="Nom du client" list="clients-list">
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="devis-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Montant HT (€)</label>
+        <input type="number" class="form-input" id="devis-montant" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prestation</label>
+      <textarea class="form-textarea" id="devis-prestation" placeholder="Description de la prestation…"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Statut</label>
+      <select class="form-select" id="devis-statut">
+        <option value="brouillon">Brouillon</option>
+        <option value="envoye">Envoyé</option>
+        <option value="accepte">Accepté</option>
+        <option value="refuse">Refusé</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-devis')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-devis" onclick="ModalDevis.sauvegarder()">
+        <i class="ti ti-check"></i> Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     MODAL : DÉPENSE
+     ============================ -->
+<div class="modal-overlay" id="modal-depense">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Ajouter une dépense</div>
+      <button class="btn btn-ghost" onclick="closeModal('modal-depense')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-input" id="dep-date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Montant (€)</label>
+        <input type="number" class="form-input" id="dep-montant" placeholder="0.00" min="0" step="0.01">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-input" id="dep-description" placeholder="Description…">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <select class="form-select" id="dep-categorie">
+        <option>Logiciels &amp; abonnements</option>
+        <option>Matériel</option>
+        <option>Formation</option>
+        <option>Communication</option>
+        <option>Déplacement</option>
+        <option>Comptabilité</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-depense')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-depense" onclick="ModalDepense.sauvegarder()">
+        <i class="ti ti-check"></i> Enregistrer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Zone d'impression PDF -->
+<div id="print-zone"></div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
