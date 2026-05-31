@@ -1,34 +1,31 @@
 /**
- * stb-finance-api — Worker Cloudflare (back/worker.js)
+ * stb-finance — back/worker.js
+ * API REST complète · Cloudflare Workers + KV + R2
  *
  * Routes :
- *   POST   /api/auth/login          → Authentification, retourne JWT
- *   POST   /api/auth/logout         → Révoque le token en KV
- *   POST   /api/auth/change-password
- *
- *   GET    /api/factures            → Liste toutes les factures
- *   POST   /api/factures            → Crée une facture
- *   PUT    /api/factures/:id        → Met à jour une facture
- *   DELETE /api/factures/:id        → Supprime une facture
- *
- *   GET    /api/devis
- *   POST   /api/devis
- *   PUT    /api/devis/:id
- *   DELETE /api/devis/:id
- *   POST   /api/devis/:id/convert   → Convertit un devis accepté en facture
- *
- *   GET    /api/depenses
- *   POST   /api/depenses
+ *   POST /api/auth/login|logout|change-password
+ *   GET|PUT /api/settings
+ *   GET /api/dashboard
+ *   GET|POST /api/factures
+ *   GET|PUT|DELETE /api/factures/:id
+ *   POST /api/factures/:id/pdf          → upload PDF dans R2
+ *   GET  /api/factures/:id/pdf          → télécharge PDF depuis R2
+ *   GET|POST /api/depenses
  *   DELETE /api/depenses/:id
- *
- *   GET    /api/dashboard           → Agrégats pour le tableau de bord
- *
- *   POST   /api/pdf/facture/:id     → Génère un PDF et le stocke dans R2
- *   GET    /api/pdf/facture/:id     → URL présignée R2 du PDF
- *
- * Auth : JWT HMAC-SHA256 signé avec JWT_SECRET (Workers secret)
- * KV_AUTH : { "cindy:credentials" : { login, passwordHash, salt } }
- * KV_DATA : { "cindy:factures" : [...], "cindy:devis": [...], ... }
+ *   GET|POST|PUT|DELETE /api/abonnements
+ *   GET|POST|PUT /api/comptes
+ *   POST /api/comptes/:id/historique
+ *   GET|POST|DELETE /api/transactions
+ *   GET|PUT /api/urssaf/:cle            → ex: T1-2026
+ *   GET|PUT /api/objectifs/ca
+ *   GET|POST|PUT|DELETE /api/objectifs/epargne/:id
+ *   GET|PUT /api/repartition
+ *   GET /api/rapport/mensuel?annee=&mois=
+ *   GET /api/rapport/annuel?annee=
+ *   GET /api/rapport/fiscal?annee=
+ *   POST /api/import/factures           → import CSV
+ *   POST /api/import/depenses
+ *   GET /api/export/:ressource          → export CSV
  */
 
 /* ===========================
@@ -37,758 +34,948 @@
 const URSSAF_TAUX = 0.256;
 const CFP_TAUX    = 0.002;
 const PAS_FIXE    = 40;
-const USER_ID     = 'cindy'; // compte unique, extensible plus tard
+const USER_ID     = 'cindy';
+const PLAFOND_BNC = 77700;
+
+/* Échéances URSSAF trimestrielles 2026 */
+const ECHEANCES_URSSAF = {
+  'T1-2026': { label: 'T1 (jan–mar)', echeance: '2026-04-30', mois: [1,2,3] },
+  'T2-2026': { label: 'T2 (avr–jun)', echeance: '2026-07-31', mois: [4,5,6] },
+  'T3-2026': { label: 'T3 (jul–sep)', echeance: '2026-10-31', mois: [7,8,9] },
+  'T4-2026': { label: 'T4 (oct–déc)', echeance: '2027-01-31', mois: [10,11,12] },
+};
 
 /* ===========================
-   POINT D'ENTRÉE PRINCIPAL
+   POINT D'ENTRÉE
    =========================== */
 export default {
-  async fetch(request, env, ctx) {
-    // Gestion CORS preflight
-    if (request.method === 'OPTIONS') {
-      return corsHeaders(new Response(null, { status: 204 }), env);
-    }
-
+  async fetch(request, env) {
+    if (request.method === 'OPTIONS') return cors(new Response(null, { status: 204 }), env);
     try {
-      const response = await router(request, env, ctx);
-      return corsHeaders(response, env);
-    } catch (err) {
-      return corsHeaders(jsonError(500, 'Erreur interne du serveur.'), env);
+      return cors(await router(request, env), env);
+    } catch (e) {
+      return cors(jsonErr(500, 'Erreur interne.'), env);
     }
   }
 };
 
 /* ===========================
-   ROUTEUR PRINCIPAL
+   ROUTEUR
    =========================== */
-async function router(request, env, ctx) {
+async function router(request, env) {
   const url    = new URL(request.url);
-  const path   = url.pathname.replace(/\/$/, ''); // supprime le slash final
+  const path   = url.pathname.replace(/\/$/, '');
   const method = request.method;
 
-  // Routes publiques (sans JWT)
-  if (method === 'POST' && path === '/api/auth/login') {
-    return handleLogin(request, env);
-  }
+  // Routes publiques
+  if (method === 'POST' && path === '/api/auth/login')  return authLogin(request, env);
 
-  // Toutes les autres routes nécessitent un JWT valide
-  const authResult = await verifierJWT(request, env);
-  if (!authResult.ok) {
-    return jsonError(401, authResult.message);
-  }
-  const userId = authResult.userId;
+  // Vérification JWT
+  const auth = await verifierJWT(request, env);
+  if (!auth.ok) return jsonErr(401, auth.message);
+  const uid = auth.userId;
 
   // Auth
-  if (method === 'POST' && path === '/api/auth/logout') {
-    return handleLogout(request, env, authResult.jti);
-  }
-  if (method === 'POST' && path === '/api/auth/change-password') {
-    return handleChangePassword(request, env, userId);
-  }
+  if (method === 'POST' && path === '/api/auth/logout')           return authLogout(request, env, auth.jti);
+  if (method === 'POST' && path === '/api/auth/change-password')  return authChangePwd(request, env, uid);
+
+  // Settings
+  if (method === 'GET' && path === '/api/settings') return settingsGet(env, uid);
+  if (method === 'PUT' && path === '/api/settings') return settingsPut(request, env, uid);
 
   // Dashboard
-  if (method === 'GET' && path === '/api/dashboard') {
-    return handleDashboard(env, userId);
-  }
+  if (method === 'GET' && path === '/api/dashboard') return dashboard(env, uid);
 
   // Factures
-  if (method === 'GET'    && path === '/api/factures')       return handleListFactures(env, userId);
-  if (method === 'POST'   && path === '/api/factures')       return handleCreateFacture(request, env, userId);
-  const matchFacture = path.match(/^\/api\/factures\/([^/]+)$/);
-  if (matchFacture) {
-    const id = matchFacture[1];
-    if (method === 'PUT')    return handleUpdateFacture(request, env, userId, id);
-    if (method === 'DELETE') return handleDeleteFacture(env, userId, id);
+  if (method === 'GET'  && path === '/api/factures') return listFactures(env, uid);
+  if (method === 'POST' && path === '/api/factures') return createFacture(request, env, uid);
+  const mF = path.match(/^\/api\/factures\/([^/]+)$/);
+  if (mF) {
+    if (method === 'GET')    return getFacture(env, uid, mF[1]);
+    if (method === 'PUT')    return updateFacture(request, env, uid, mF[1]);
+    if (method === 'DELETE') return deleteFacture(env, uid, mF[1]);
   }
-
-  // Devis
-  if (method === 'GET'  && path === '/api/devis')           return handleListDevis(env, userId);
-  if (method === 'POST' && path === '/api/devis')           return handleCreateDevis(request, env, userId);
-  const matchDevis = path.match(/^\/api\/devis\/([^/]+)$/);
-  if (matchDevis) {
-    const id = matchDevis[1];
-    if (method === 'PUT')    return handleUpdateDevis(request, env, userId, id);
-    if (method === 'DELETE') return handleDeleteDevis(env, userId, id);
+  const mFPDF = path.match(/^\/api\/factures\/([^/]+)\/pdf$/);
+  if (mFPDF) {
+    if (method === 'POST') return uploadPDF(request, env, uid, mFPDF[1]);
+    if (method === 'GET')  return downloadPDF(env, uid, mFPDF[1]);
   }
-  const matchDevisConvert = path.match(/^\/api\/devis\/([^/]+)\/convert$/);
-  if (matchDevisConvert && method === 'POST') {
-    return handleConvertDevis(env, userId, matchDevisConvert[1]);
-  }
+  const mFConvert = path.match(/^\/api\/factures\/([^/]+)\/convert$/);
+  if (mFConvert && method === 'POST') return convertDevis(env, uid, mFConvert[1]);
 
   // Dépenses
-  if (method === 'GET'  && path === '/api/depenses')        return handleListDepenses(env, userId);
-  if (method === 'POST' && path === '/api/depenses')        return handleCreateDepense(request, env, userId);
-  const matchDep = path.match(/^\/api\/depenses\/([^/]+)$/);
-  if (matchDep && method === 'DELETE') {
-    return handleDeleteDepense(env, userId, matchDep[1]);
+  if (method === 'GET'  && path === '/api/depenses') return listDepenses(env, uid);
+  if (method === 'POST' && path === '/api/depenses') return createDepense(request, env, uid);
+  const mD = path.match(/^\/api\/depenses\/([^/]+)$/);
+  if (mD && method === 'DELETE') return deleteDepense(env, uid, mD[1]);
+
+  // Abonnements
+  if (method === 'GET'  && path === '/api/abonnements') return listAbo(env, uid);
+  if (method === 'POST' && path === '/api/abonnements') return createAbo(request, env, uid);
+  const mA = path.match(/^\/api\/abonnements\/([^/]+)$/);
+  if (mA) {
+    if (method === 'PUT')    return updateAbo(request, env, uid, mA[1]);
+    if (method === 'DELETE') return deleteAbo(env, uid, mA[1]);
   }
 
-  // PDF
-  const matchPdfGet = path.match(/^\/api\/pdf\/facture\/([^/]+)$/);
-  if (matchPdfGet && method === 'GET') {
-    return handleGetPDF(env, userId, matchPdfGet[1]);
-  }
-  const matchPdfPost = path.match(/^\/api\/pdf\/facture\/([^/]+)$/);
-  if (matchPdfPost && method === 'POST') {
-    return handleStorePDF(request, env, userId, matchPdfPost[1]);
+  // Comptes
+  if (method === 'GET'  && path === '/api/comptes') return listComptes(env, uid);
+  if (method === 'POST' && path === '/api/comptes') return createCompte(request, env, uid);
+  const mC = path.match(/^\/api\/comptes\/([^/]+)$/);
+  if (mC && method === 'PUT') return updateCompte(request, env, uid, mC[1]);
+  const mCH = path.match(/^\/api\/comptes\/([^/]+)\/historique$/);
+  if (mCH && method === 'POST') return addHistoriqueCompte(request, env, uid, mCH[1]);
+
+  // Transactions
+  if (method === 'GET'  && path === '/api/transactions') return listTransactions(env, uid, url);
+  if (method === 'POST' && path === '/api/transactions') return createTransaction(request, env, uid);
+  const mT = path.match(/^\/api\/transactions\/([^/]+)$/);
+  if (mT && method === 'DELETE') return deleteTransaction(env, uid, mT[1]);
+
+  // URSSAF
+  if (method === 'GET' && path === '/api/urssaf') return listURSSAF(env, uid);
+  const mU = path.match(/^\/api\/urssaf\/([^/]+)$/);
+  if (mU) {
+    if (method === 'GET') return getURSSAF(env, uid, mU[1]);
+    if (method === 'PUT') return updateURSSAF(request, env, uid, mU[1]);
   }
 
-  return jsonError(404, 'Route non trouvée.');
+  // Objectifs CA
+  if (method === 'GET' && path === '/api/objectifs/ca') return getObjectifCA(env, uid);
+  if (method === 'PUT' && path === '/api/objectifs/ca') return putObjectifCA(request, env, uid);
+
+  // Objectifs épargne
+  if (method === 'GET'  && path === '/api/objectifs/epargne') return listObjectifsEpargne(env, uid);
+  if (method === 'POST' && path === '/api/objectifs/epargne') return createObjectifEpargne(request, env, uid);
+  const mOE = path.match(/^\/api\/objectifs\/epargne\/([^/]+)$/);
+  if (mOE) {
+    if (method === 'PUT')    return updateObjectifEpargne(request, env, uid, mOE[1]);
+    if (method === 'DELETE') return deleteObjectifEpargne(env, uid, mOE[1]);
+  }
+
+  // Répartition
+  if (method === 'GET' && path === '/api/repartition') return getRepartition(env, uid);
+  if (method === 'PUT' && path === '/api/repartition') return putRepartition(request, env, uid);
+
+  // Trésorerie Qonto
+  if (method === 'GET' && path === '/api/tresorerie') return getTresorerie(env, uid);
+  if (method === 'PUT' && path === '/api/tresorerie') return putTresorerie(request, env, uid);
+
+  // Rapports
+  if (method === 'GET' && path === '/api/rapport/mensuel') return rapportMensuel(env, uid, url);
+  if (method === 'GET' && path === '/api/rapport/annuel')  return rapportAnnuel(env, uid, url);
+  if (method === 'GET' && path === '/api/rapport/fiscal')  return rapportFiscal(env, uid, url);
+
+  // Import / Export
+  if (method === 'POST' && path === '/api/import/factures') return importFactures(request, env, uid);
+  if (method === 'POST' && path === '/api/import/depenses') return importDepenses(request, env, uid);
+  if (method === 'GET'  && path.startsWith('/api/export/')) {
+    const res = path.split('/').pop();
+    return exportCSV(env, uid, res);
+  }
+
+  return jsonErr(404, 'Route inconnue.');
 }
 
 /* ===========================
-   AUTHENTIFICATION — JWT WebCrypto
+   AUTHENTIFICATION
    =========================== */
-
-/**
- * Importe la clé HMAC-SHA256 depuis le secret JWT_SECRET.
- * La clé est dérivée via PBKDF2 pour renforcer un secret court.
- */
-async function importerCleJWT(secret) {
-  const enc     = new TextEncoder();
-  const keyMat  = await crypto.subtle.importKey(
-    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
-  );
-  return keyMat;
-}
-
-/**
- * Signe et retourne un JWT compact (header.payload.signature en base64url).
- * Payload : { sub, jti (identifiant unique pour révocation), exp, iat }
- */
-async function signerJWT(userId, env) {
-  const now    = Math.floor(Date.now() / 1000);
-  const ttl    = parseInt(env.JWT_TTL || '28800');
-  const jti    = crypto.randomUUID();
-
-  const header  = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = b64url(JSON.stringify({ sub: userId, jti, iat: now, exp: now + ttl }));
-
-  const cle       = await importerCleJWT(env.JWT_SECRET);
-  const signature = await crypto.subtle.sign(
-    'HMAC',
-    cle,
-    new TextEncoder().encode(`${header}.${payload}`)
-  );
-
-  return `${header}.${payload}.${b64urlBytes(new Uint8Array(signature))}`;
-}
-
-/**
- * Vérifie un JWT : signature, expiration et révocation KV.
- * Retourne { ok, userId, jti, message }
- */
-async function verifierJWT(request, env) {
-  const authHeader = request.headers.get('Authorization') || '';
-  if (!authHeader.startsWith('Bearer ')) {
-    return { ok: false, message: 'Token manquant.' };
-  }
-
-  const token  = authHeader.slice(7);
-  const parts  = token.split('.');
-  if (parts.length !== 3) return { ok: false, message: 'Token malformé.' };
-
-  const [header, payload, sig] = parts;
-
-  // Vérification signature
-  let cle;
-  try {
-    cle = await importerCleJWT(env.JWT_SECRET);
-  } catch {
-    return { ok: false, message: 'Erreur clé.' };
-  }
-
-  const valide = await crypto.subtle.verify(
-    'HMAC',
-    cle,
-    b64urlDecode(sig),
-    new TextEncoder().encode(`${header}.${payload}`)
-  );
-  if (!valide) return { ok: false, message: 'Signature invalide.' };
-
-  // Décode le payload
-  let claims;
-  try {
-    claims = JSON.parse(new TextDecoder().decode(b64urlDecode(payload)));
-  } catch {
-    return { ok: false, message: 'Payload illisible.' };
-  }
-
-  // Vérification expiration
-  const now = Math.floor(Date.now() / 1000);
-  if (claims.exp < now) return { ok: false, message: 'Token expiré.' };
-
-  // Vérification révocation (logout)
-  const revoque = await env.KV_AUTH.get(`revoked:${claims.jti}`);
-  if (revoque !== null) return { ok: false, message: 'Token révoqué.' };
-
-  return { ok: true, userId: claims.sub, jti: claims.jti };
-}
-
-/* ===========================
-   HASH DE MOT DE PASSE — PBKDF2
-   =========================== */
-
-/**
- * Dérive un hash PBKDF2-SHA256 du mot de passe avec un sel aléatoire.
- * Retourne { hash: hex, salt: hex }
- */
-async function hasherMotDePasse(motDePasse) {
-  const enc  = new TextEncoder();
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-
-  const keyMat = await crypto.subtle.importKey(
-    'raw', enc.encode(motDePasse), 'PBKDF2', false, ['deriveBits']
-  );
-
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 },
-    keyMat,
-    256
-  );
-
-  return {
-    hash: hexEncode(new Uint8Array(bits)),
-    salt: hexEncode(salt)
-  };
-}
-
-/**
- * Vérifie un mot de passe contre un hash+salt PBKDF2 stocké.
- */
-async function verifierMotDePasse(motDePasse, saltHex, hashHex) {
-  const enc    = new TextEncoder();
-  const salt   = hexDecode(saltHex);
-
-  const keyMat = await crypto.subtle.importKey(
-    'raw', enc.encode(motDePasse), 'PBKDF2', false, ['deriveBits']
-  );
-
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 100000 },
-    keyMat,
-    256
-  );
-
-  return hexEncode(new Uint8Array(bits)) === hashHex;
-}
-
-/* ===========================
-   HANDLERS AUTH
-   =========================== */
-
-/** POST /api/auth/login — vérifie login/mdp, retourne JWT */
-async function handleLogin(request, env) {
+async function authLogin(request, env) {
   const body = await parseJSON(request);
-  if (!body || !body.login || !body.password) {
-    return jsonError(400, 'Champs login et password requis.');
-  }
-
+  if (!body?.login || !body?.password) return jsonErr(400, 'Champs requis.');
   const stored = await env.KV_AUTH.get(`${USER_ID}:credentials`, 'json');
-
-  // Premier lancement : pas encore de credentials en KV
-  // → initialisation avec les valeurs de démarrage
-  if (!stored) {
-    return jsonError(401, 'Aucun compte configuré. Utilisez l\'initialisation.');
-  }
-
-  if (body.login !== stored.login) {
-    return jsonError(401, 'Identifiants incorrects.');
-  }
-
-  const ok = await verifierMotDePasse(body.password, stored.salt, stored.hash);
-  if (!ok) return jsonError(401, 'Identifiants incorrects.');
-
+  if (!stored) return jsonErr(401, 'Compte non configuré.');
+  if (body.login !== stored.login) return jsonErr(401, 'Identifiants incorrects.');
+  const ok = await verifierMDP(body.password, stored.salt, stored.hash);
+  if (!ok) return jsonErr(401, 'Identifiants incorrects.');
   const token = await signerJWT(USER_ID, env);
   return jsonOk({ token });
 }
 
-/** POST /api/auth/logout — révoque le JWT courant en KV */
-async function handleLogout(request, env, jti) {
-  const ttl = parseInt(env.JWT_TTL || '28800');
-  await env.KV_AUTH.put(`revoked:${jti}`, '1', { expirationTtl: ttl });
-  return jsonOk({ message: 'Déconnecté.' });
+async function authLogout(request, env, jti) {
+  await env.KV_AUTH.put(`revoked:${jti}`, '1', { expirationTtl: parseInt(env.JWT_TTL || '28800') });
+  return jsonOk({ ok: true });
 }
 
-/** POST /api/auth/change-password */
-async function handleChangePassword(request, env, userId) {
+async function authChangePwd(request, env, uid) {
   const body = await parseJSON(request);
-  if (!body || !body.currentPassword || !body.newPassword) {
-    return jsonError(400, 'Champs currentPassword et newPassword requis.');
-  }
-  if (body.newPassword.length < 8) {
-    return jsonError(400, 'Le nouveau mot de passe doit faire au moins 8 caractères.');
-  }
-
-  const stored = await env.KV_AUTH.get(`${userId}:credentials`, 'json');
-  if (!stored) return jsonError(404, 'Credentials non trouvés.');
-
-  const ok = await verifierMotDePasse(body.currentPassword, stored.salt, stored.hash);
-  if (!ok) return jsonError(401, 'Mot de passe actuel incorrect.');
-
-  const { hash, salt } = await hasherMotDePasse(body.newPassword);
-  await env.KV_AUTH.put(`${userId}:credentials`, JSON.stringify({
-    login: stored.login,
-    hash,
-    salt
-  }));
-
-  return jsonOk({ message: 'Mot de passe mis à jour.' });
+  if (!body?.currentPassword || !body?.newPassword) return jsonErr(400, 'Champs requis.');
+  if (body.newPassword.length < 8) return jsonErr(400, 'Minimum 8 caractères.');
+  const stored = await env.KV_AUTH.get(`${uid}:credentials`, 'json');
+  if (!stored) return jsonErr(404, 'Compte introuvable.');
+  if (!await verifierMDP(body.currentPassword, stored.salt, stored.hash)) return jsonErr(401, 'Mot de passe actuel incorrect.');
+  const { hash, salt } = await hasherMDP(body.newPassword);
+  await env.KV_AUTH.put(`${uid}:credentials`, JSON.stringify({ login: stored.login, hash, salt }));
+  return jsonOk({ ok: true });
 }
 
 /* ===========================
-   HELPERS KV DATA
+   SETTINGS
    =========================== */
+const SETTINGS_DEFAUT = {
+  nom: 'Cindy', entreprise: 'Seed to Bloom',
+  email: 'contact@seedtobloom.fr',
+  tauxUrssaf: 25.6, tauxCfp: 0.2, pasFixe: 40,
+  cfeAnnuelle: 0, objectifCA: 60000,
+  pctVersement: 65, pctEpargne: 15, pctTresorerie: 20,
+};
 
-/** Lit un tableau JSON depuis KV, retourne [] si absent */
-async function kvLire(env, cle) {
-  const raw = await env.KV_DATA.get(cle, 'json');
-  return Array.isArray(raw) ? raw : [];
+async function settingsGet(env, uid) {
+  const s = await kvLire(env, `${uid}:settings`);
+  return jsonOk(s && typeof s === 'object' && !Array.isArray(s) ? { ...SETTINGS_DEFAUT, ...s } : SETTINGS_DEFAUT);
 }
 
-/** Écrit un tableau JSON dans KV */
-async function kvEcrire(env, cle, data) {
-  await env.KV_DATA.put(cle, JSON.stringify(data));
-}
-
-/** Retourne la clé KV pour une ressource d'un utilisateur */
-function cleKV(userId, ressource) {
-  return `${userId}:${ressource}`;
-}
-
-/** Génère un ID unique */
-function genId() {
-  return crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-}
-
-/* ===========================
-   NUMÉROTATION AUTO
-   =========================== */
-
-/** Calcule le prochain numéro de facture F2026-XXX */
-function prochainNumeroFacture(factures) {
-  const nums = factures
-    .map(f => parseInt((f.numero || '').split('-')[1]) || 0)
-    .filter(n => !isNaN(n));
-  const max = nums.length ? Math.max(...nums) : 0;
-  return `F2026-${String(max + 1).padStart(3, '0')}`;
-}
-
-/** Calcule le prochain numéro de devis D2026-XXX */
-function prochainNumeroDevis(devis) {
-  const nums = devis
-    .map(d => parseInt((d.numero || '').split('-')[1]) || 0)
-    .filter(n => !isNaN(n));
-  const max = nums.length ? Math.max(...nums) : 0;
-  return `D2026-${String(max + 1).padStart(3, '0')}`;
-}
-
-/* ===========================
-   HANDLERS FACTURES
-   =========================== */
-
-async function handleListFactures(env, userId) {
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  return jsonOk(factures.sort((a, b) => b.numero.localeCompare(a.numero)));
-}
-
-async function handleCreateFacture(request, env, userId) {
+async function settingsPut(request, env, uid) {
   const body = await parseJSON(request);
-  if (!validerFacture(body)) return jsonError(400, 'Données invalides.');
-
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const nouvelle = {
-    id:         genId(),
-    numero:     prochainNumeroFacture(factures),
-    client:     body.client.trim(),
-    prestation: body.prestation.trim(),
-    montant:    parseFloat(body.montant),
-    date:       body.date,
-    statut:     body.statut || 'attente',
-    createdAt:  new Date().toISOString()
-  };
-
-  factures.push(nouvelle);
-  await kvEcrire(env, cleKV(userId, 'factures'), factures);
-  return jsonOk(nouvelle, 201);
-}
-
-async function handleUpdateFacture(request, env, userId, id) {
-  const body     = await parseJSON(request);
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const idx      = factures.findIndex(f => f.id === id);
-  if (idx === -1) return jsonError(404, 'Facture non trouvée.');
-
-  // Champs modifiables (le numéro et l'id ne changent pas)
-  const champs = ['client', 'prestation', 'montant', 'date', 'statut'];
-  champs.forEach(c => {
-    if (body[c] !== undefined) factures[idx][c] = c === 'montant' ? parseFloat(body[c]) : body[c];
-  });
-  factures[idx].updatedAt = new Date().toISOString();
-
-  await kvEcrire(env, cleKV(userId, 'factures'), factures);
-  return jsonOk(factures[idx]);
-}
-
-async function handleDeleteFacture(env, userId, id) {
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const filtered = factures.filter(f => f.id !== id);
-  if (filtered.length === factures.length) return jsonError(404, 'Facture non trouvée.');
-  await kvEcrire(env, cleKV(userId, 'factures'), filtered);
-  return jsonOk({ deleted: id });
+  if (!body) return jsonErr(400, 'Body invalide.');
+  const existing = await kvLire(env, `${uid}:settings`) || {};
+  const updated = { ...SETTINGS_DEFAUT, ...(Array.isArray(existing) ? {} : existing), ...body };
+  await env.KV_DATA.put(`${uid}:settings`, JSON.stringify(updated));
+  return jsonOk(updated);
 }
 
 /* ===========================
-   HANDLERS DEVIS
+   DASHBOARD
    =========================== */
+async function dashboard(env, uid) {
+  const today  = new Date();
+  const annee  = today.getFullYear();
+  const mois   = today.getMonth() + 1;
+  const settings = await settingsGet(env, uid).then(r => r.json());
 
-async function handleListDevis(env, userId) {
-  const devis = await kvLire(env, cleKV(userId, 'devis'));
-  return jsonOk(devis.sort((a, b) => b.numero.localeCompare(a.numero)));
-}
-
-async function handleCreateDevis(request, env, userId) {
-  const body = await parseJSON(request);
-  if (!validerFacture(body)) return jsonError(400, 'Données invalides.');
-
-  const devis    = await kvLire(env, cleKV(userId, 'devis'));
-  const nouveau  = {
-    id:         genId(),
-    numero:     prochainNumeroDevis(devis),
-    client:     body.client.trim(),
-    prestation: body.prestation.trim(),
-    montant:    parseFloat(body.montant),
-    date:       body.date,
-    statut:     body.statut || 'brouillon',
-    createdAt:  new Date().toISOString()
-  };
-
-  devis.push(nouveau);
-  await kvEcrire(env, cleKV(userId, 'devis'), devis);
-  return jsonOk(nouveau, 201);
-}
-
-async function handleUpdateDevis(request, env, userId, id) {
-  const body  = await parseJSON(request);
-  const devis = await kvLire(env, cleKV(userId, 'devis'));
-  const idx   = devis.findIndex(d => d.id === id);
-  if (idx === -1) return jsonError(404, 'Devis non trouvé.');
-
-  const champs = ['client', 'prestation', 'montant', 'date', 'statut'];
-  champs.forEach(c => {
-    if (body[c] !== undefined) devis[idx][c] = c === 'montant' ? parseFloat(body[c]) : body[c];
-  });
-  devis[idx].updatedAt = new Date().toISOString();
-
-  await kvEcrire(env, cleKV(userId, 'devis'), devis);
-  return jsonOk(devis[idx]);
-}
-
-async function handleDeleteDevis(env, userId, id) {
-  const devis    = await kvLire(env, cleKV(userId, 'devis'));
-  const filtered = devis.filter(d => d.id !== id);
-  if (filtered.length === devis.length) return jsonError(404, 'Devis non trouvé.');
-  await kvEcrire(env, cleKV(userId, 'devis'), filtered);
-  return jsonOk({ deleted: id });
-}
-
-/**
- * POST /api/devis/:id/convert
- * Convertit un devis accepté en facture (statut → attente).
- */
-async function handleConvertDevis(env, userId, id) {
-  const devis    = await kvLire(env, cleKV(userId, 'devis'));
-  const devisItem = devis.find(d => d.id === id);
-  if (!devisItem) return jsonError(404, 'Devis non trouvé.');
-  if (devisItem.statut !== 'accepte') {
-    return jsonError(400, 'Seul un devis accepté peut être converti en facture.');
-  }
-
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const nouvelle = {
-    id:          genId(),
-    numero:      prochainNumeroFacture(factures),
-    client:      devisItem.client,
-    prestation:  devisItem.prestation,
-    montant:     devisItem.montant,
-    date:        new Date().toISOString().split('T')[0],
-    statut:      'attente',
-    devisSource: devisItem.numero,
-    createdAt:   new Date().toISOString()
-  };
-
-  factures.push(nouvelle);
-  await kvEcrire(env, cleKV(userId, 'factures'), factures);
-
-  return jsonOk({ facture: nouvelle, devis: devisItem });
-}
-
-/* ===========================
-   HANDLERS DÉPENSES
-   =========================== */
-
-async function handleListDepenses(env, userId) {
-  const depenses = await kvLire(env, cleKV(userId, 'depenses'));
-  return jsonOk(depenses.sort((a, b) => (a.date < b.date ? 1 : -1)));
-}
-
-async function handleCreateDepense(request, env, userId) {
-  const body = await parseJSON(request);
-  if (!body || !body.date || !body.montant || !body.description || !body.categorie) {
-    return jsonError(400, 'Champs date, montant, description, categorie requis.');
-  }
-
-  const CATEGORIES = [
-    'Logiciels & abonnements', 'Matériel', 'Formation',
-    'Communication', 'Déplacement', 'Comptabilité', 'Autre'
-  ];
-  if (!CATEGORIES.includes(body.categorie)) {
-    return jsonError(400, `Catégorie invalide. Valeurs : ${CATEGORIES.join(', ')}`);
-  }
-
-  const depenses = await kvLire(env, cleKV(userId, 'depenses'));
-  const nouvelle = {
-    id:          genId(),
-    date:        body.date,
-    description: body.description.trim(),
-    categorie:   body.categorie,
-    montant:     parseFloat(body.montant),
-    createdAt:   new Date().toISOString()
-  };
-
-  depenses.push(nouvelle);
-  await kvEcrire(env, cleKV(userId, 'depenses'), depenses);
-  return jsonOk(nouvelle, 201);
-}
-
-async function handleDeleteDepense(env, userId, id) {
-  const depenses = await kvLire(env, cleKV(userId, 'depenses'));
-  const filtered = depenses.filter(d => d.id !== id);
-  if (filtered.length === depenses.length) return jsonError(404, 'Dépense non trouvée.');
-  await kvEcrire(env, cleKV(userId, 'depenses'), filtered);
-  return jsonOk({ deleted: id });
-}
-
-/* ===========================
-   HANDLER DASHBOARD
-   =========================== */
-
-/**
- * GET /api/dashboard
- * Retourne tous les agrégats nécessaires au tableau de bord
- * en une seule requête (évite les round-trips multiples).
- */
-async function handleDashboard(env, userId) {
-  const [factures, devis, depenses] = await Promise.all([
-    kvLire(env, cleKV(userId, 'factures')),
-    kvLire(env, cleKV(userId, 'devis')),
-    kvLire(env, cleKV(userId, 'depenses'))
+  const [factures, depenses, abonnements, treso] = await Promise.all([
+    kvTableau(env, `${uid}:factures`),
+    kvTableau(env, `${uid}:depenses`),
+    kvTableau(env, `${uid}:abonnements`),
+    env.KV_DATA.get(`${uid}:tresorerie`, 'json'),
   ]);
 
-  const today    = new Date();
-  const annee    = today.getFullYear();
-  const moisNum  = today.getMonth() + 1;
-
-  // CA encaissé et en attente
   const payees   = factures.filter(f => f.statut === 'payee');
   const attentes = factures.filter(f => ['attente', 'retard'].includes(f.statut));
-  const caEncaisse = round(payees.reduce((s, f) => s + f.montant, 0));
-  const caAttente  = round(attentes.reduce((s, f) => s + f.montant, 0));
 
-  // Factures du mois courant (payées)
-  const factMois = payees.filter(f => {
-    const [y, m] = (f.date || '').split('-').map(Number);
-    return y === annee && m === moisNum;
-  });
-  const caMois = round(factMois.reduce((s, f) => s + f.montant, 0));
+  // CA et charges du mois
+  const factMois = payees.filter(f => memeMA(f.date, annee, mois));
+  const caMois   = round(factMois.reduce((s, f) => s + f.montant, 0));
+  const depMois  = depenses.filter(d => memeMA(d.date, annee, mois)).reduce((s, d) => s + d.montant, 0);
+  const aboMois  = abonnements.filter(a => a.statut === 'actif').reduce((s, a) => s + a.montantMensuel, 0);
+  const tauxU    = (settings.tauxUrssaf || 25.6) / 100;
+  const tauxC    = (settings.tauxCfp    ||  0.2) / 100;
+  const urssafM  = round(caMois * tauxU);
+  const cfpM     = round(caMois * tauxC);
+  const chargesTotal = round(urssafM + cfpM + depMois + aboMois + settings.pasFixe);
+  const netMois  = round(Math.max(0, caMois - chargesTotal));
 
-  // Dépenses du mois courant
-  const depMois = depenses.filter(d => {
-    const [y, m] = (d.date || '').split('-').map(Number);
-    return y === annee && m === moisNum;
-  });
-  const totalDepMois = round(depMois.reduce((s, d) => s + d.montant, 0));
+  // CA YTD
+  const caYTD    = round(payees.filter(f => { const [y] = (f.date||'').split('-').map(Number); return y === annee; }).reduce((s,f) => s+f.montant, 0));
 
-  // Charges sur le mois
-  const urssaf = round(caMois * URSSAF_TAUX);
-  const cfp    = round(caMois * CFP_TAUX);
-  const chargesTotal = round(urssaf + cfp + totalDepMois + PAS_FIXE);
+  // Objectif CA
+  const objCA = await env.KV_DATA.get(`${uid}:objectif_ca`, 'json');
+  const montantCible = objCA?.montant || settings.objectifCA || 60000;
+  const progressionCA = montantCible > 0 ? Math.min(100, Math.round(caYTD / montantCible * 100)) : 0;
 
-  // Résultat net et versement estimé
-  const net       = round(Math.max(0, caMois - urssaf - cfp - totalDepMois - PAS_FIXE));
-  const versement = round(net * 0.65);
-
-  // CA des 6 derniers mois
-  const caMensuel = [];
-  for (let i = 5; i >= 0; i--) {
+  // 12 derniers mois — revenus vs charges
+  const hist = [];
+  for (let i = 11; i >= 0; i--) {
     const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
-    const ca = round(payees
-      .filter(f => { const [fy, fm] = (f.date || '').split('-').map(Number); return fy === y && fm === m; })
-      .reduce((s, f) => s + f.montant, 0));
-    caMensuel.push({ annee: y, mois: m, label: d.toLocaleString('fr-FR', { month: 'short' }), ca });
+    const y = d.getFullYear(), m = d.getMonth() + 1;
+    const caM  = round(payees.filter(f => memeMA(f.date, y, m)).reduce((s,f)=>s+f.montant,0));
+    const dM   = round(depenses.filter(f => memeMA(f.date, y, m)).reduce((s,f)=>s+f.montant,0));
+    const aM   = round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
+    const chM  = round(caM * (tauxU + tauxC) + dM + aM + settings.pasFixe);
+    hist.push({ annee: y, mois: m, label: d.toLocaleString('fr-FR',{month:'short'}), ca: caM, charges: chM, net: round(Math.max(0, caM-chM)) });
   }
 
-  // Répartition CA par client (factures payées)
-  const clientMap = {};
-  payees.forEach(f => { clientMap[f.client] = round((clientMap[f.client] || 0) + f.montant); });
-  const caParClient = Object.entries(clientMap)
-    .map(([client, ca]) => ({ client, ca }))
-    .sort((a, b) => b.ca - a.ca);
+  // Prochaine échéance URSSAF
+  const prochaineEcheance = prochainEcheanceURSSAF(today);
 
-  // Factures en attente (pour le widget)
-  const facturesAttente = attentes
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 5);
+  // Dernières transactions (5)
+  const allTx = await kvTableau(env, `${uid}:transactions`);
+  const dernieresTx = allTx.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+
+  // Abonnements à venir (3 prochains)
+  const prochAbo = prochainsPrelev(abonnements, today);
 
   return jsonOk({
     kpis: {
-      caEncaisse,
-      caAttente,
-      chargesTotal,
-      versementEstime: versement
+      caMois, chargesTotal, netMois,
+      versementEstime: round(netMois * (settings.pctVersement||65) / 100),
+      caYTD, progressionCA, montantCible,
+      tresoQonto: treso?.solde || 0,
+      tresoUpdatedAt: treso?.updatedAt || null,
+      prochaineEcheance,
     },
-    charges: { urssaf, cfp, depensesPro: totalDepMois, pas: PAS_FIXE, total: chargesTotal },
-    epargne: { net, versement: round(net * 0.65), epargne: round(net * 0.15), tresorerie: round(net * 0.20) },
-    caMensuel,
-    caParClient,
-    facturesAttente
+    hist,
+    dernieresTx,
+    prochAbo,
+    facturesAttente: attentes.sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5),
+    caParClient: aggregParClient(payees),
   });
 }
 
 /* ===========================
-   HANDLERS PDF (R2)
+   FACTURES
    =========================== */
-
-/**
- * POST /api/pdf/facture/:id
- * Reçoit un Blob PDF (généré côté front via print-to-PDF ou html2canvas),
- * le stocke dans R2 sous la clé userId/pdf/facture-{numero}.pdf
- */
-async function handleStorePDF(request, env, userId, id) {
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const facture  = factures.find(f => f.id === id);
-  if (!facture) return jsonError(404, 'Facture non trouvée.');
-
-  const pdfBytes = await request.arrayBuffer();
-  const cle      = `${userId}/pdf/${facture.numero}.pdf`;
-
-  await env.R2_FINANCE.put(cle, pdfBytes, {
-    httpMetadata: { contentType: 'application/pdf' },
-    customMetadata: { numero: facture.numero, client: facture.client }
-  });
-
-  return jsonOk({ stored: cle, numero: facture.numero });
+async function listFactures(env, uid) {
+  const list = await kvTableau(env, `${uid}:factures`);
+  return jsonOk(list.sort((a,b) => b.numero.localeCompare(a.numero)));
 }
 
-/**
- * GET /api/pdf/facture/:id
- * Retourne directement le PDF depuis R2.
- */
-async function handleGetPDF(env, userId, id) {
-  const factures = await kvLire(env, cleKV(userId, 'factures'));
-  const facture  = factures.find(f => f.id === id);
-  if (!facture) return jsonError(404, 'Facture non trouvée.');
+async function getFacture(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:factures`);
+  const f = list.find(x => x.id === id);
+  return f ? jsonOk(f) : jsonErr(404, 'Facture introuvable.');
+}
 
-  const cle    = `${userId}/pdf/${facture.numero}.pdf`;
-  const object = await env.R2_FINANCE.get(cle);
+async function createFacture(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!validerDoc(body)) return jsonErr(400, 'Données invalides.');
+  const list = await kvTableau(env, `${uid}:factures`);
+  const f = { id: uid4(), numero: prochNumF(list), client: body.client.trim(),
+    description: body.description?.trim() || '', montant: parseFloat(body.montant),
+    date: body.date, statut: body.statut || 'attente', pdfKey: null,
+    createdAt: iso() };
+  list.push(f);
+  await kvEcrire(env, `${uid}:factures`, list);
+  return jsonOk(f, 201);
+}
 
-  if (!object) return jsonError(404, 'PDF non encore généré.');
+async function updateFacture(request, env, uid, id) {
+  const body = await parseJSON(request);
+  const list = await kvTableau(env, `${uid}:factures`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Facture introuvable.');
+  const champs = ['client','description','montant','date','statut'];
+  champs.forEach(c => { if (body[c] !== undefined) list[idx][c] = c==='montant' ? parseFloat(body[c]) : body[c]; });
+  list[idx].updatedAt = iso();
+  await kvEcrire(env, `${uid}:factures`, list);
+  return jsonOk(list[idx]);
+}
 
-  return new Response(object.body, {
-    headers: {
-      'Content-Type':        'application/pdf',
-      'Content-Disposition': `attachment; filename="${facture.numero}.pdf"`,
-      'Cache-Control':       'private, max-age=3600'
+async function deleteFacture(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:factures`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Facture introuvable.');
+  await kvEcrire(env, `${uid}:factures`, next);
+  return jsonOk({ deleted: id });
+}
+
+async function uploadPDF(request, env, uid, id) {
+  const list = await kvTableau(env, `${uid}:factures`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Facture introuvable.');
+  const bytes = await request.arrayBuffer();
+  const key   = `${uid}/factures/pdf/${list[idx].numero}.pdf`;
+  await env.R2_FINANCE.put(key, bytes, { httpMetadata: { contentType: 'application/pdf' } });
+  list[idx].pdfKey = key;
+  list[idx].updatedAt = iso();
+  await kvEcrire(env, `${uid}:factures`, list);
+  return jsonOk({ pdfKey: key });
+}
+
+async function downloadPDF(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:factures`);
+  const f    = list.find(x => x.id === id);
+  if (!f?.pdfKey) return jsonErr(404, 'Aucun PDF attaché.');
+  const obj  = await env.R2_FINANCE.get(f.pdfKey);
+  if (!obj) return jsonErr(404, 'Fichier introuvable dans R2.');
+  return new Response(obj.body, {
+    headers: { 'Content-Type': 'application/pdf', 'Content-Disposition': `inline; filename="${f.numero}.pdf"` }
+  });
+}
+
+async function convertDevis(env, uid, id) {
+  const devis = await kvTableau(env, `${uid}:devis`);
+  const d = devis.find(x => x.id === id);
+  if (!d) return jsonErr(404, 'Devis introuvable.');
+  if (d.statut !== 'accepte') return jsonErr(400, 'Seul un devis accepté peut être converti.');
+  const factures = await kvTableau(env, `${uid}:factures`);
+  const f = { id: uid4(), numero: prochNumF(factures), client: d.client,
+    description: d.description, montant: d.montant, date: iso().split('T')[0],
+    statut: 'attente', pdfKey: null, devisSource: d.numero, createdAt: iso() };
+  factures.push(f);
+  await kvEcrire(env, `${uid}:factures`, factures);
+  return jsonOk({ facture: f });
+}
+
+/* ===========================
+   DÉPENSES
+   =========================== */
+async function listDepenses(env, uid) {
+  const list = await kvTableau(env, `${uid}:depenses`);
+  return jsonOk(list.sort((a,b) => b.date.localeCompare(a.date)));
+}
+
+async function createDepense(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!body?.date || !body?.montant || !body?.description || !body?.categorie) return jsonErr(400,'Champs requis.');
+  const list = await kvTableau(env, `${uid}:depenses`);
+  const d = { id: uid4(), date: body.date, description: body.description.trim(),
+    categorie: body.categorie, montant: parseFloat(body.montant), createdAt: iso() };
+  list.push(d);
+  await kvEcrire(env, `${uid}:depenses`, list);
+  return jsonOk(d, 201);
+}
+
+async function deleteDepense(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:depenses`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Dépense introuvable.');
+  await kvEcrire(env, `${uid}:depenses`, next);
+  return jsonOk({ deleted: id });
+}
+
+/* ===========================
+   ABONNEMENTS
+   =========================== */
+async function listAbo(env, uid) {
+  return jsonOk(await kvTableau(env, `${uid}:abonnements`));
+}
+
+async function createAbo(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!body?.nom || !body?.montantMensuel) return jsonErr(400, 'Champs requis.');
+  const list = await kvTableau(env, `${uid}:abonnements`);
+  const a = { id: uid4(), nom: body.nom.trim(), categorie: body.categorie || 'Logiciels & abonnements',
+    montantMensuel: parseFloat(body.montantMensuel), jourPrelevement: parseInt(body.jourPrelevement)||1,
+    statut: body.statut || 'actif', createdAt: iso() };
+  list.push(a);
+  await kvEcrire(env, `${uid}:abonnements`, list);
+  return jsonOk(a, 201);
+}
+
+async function updateAbo(request, env, uid, id) {
+  const body = await parseJSON(request);
+  const list = await kvTableau(env, `${uid}:abonnements`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Abonnement introuvable.');
+  ['nom','categorie','montantMensuel','jourPrelevement','statut'].forEach(c => {
+    if (body[c] !== undefined) list[idx][c] = ['montantMensuel','jourPrelevement'].includes(c) ? parseFloat(body[c]) : body[c];
+  });
+  await kvEcrire(env, `${uid}:abonnements`, list);
+  return jsonOk(list[idx]);
+}
+
+async function deleteAbo(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:abonnements`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Abonnement introuvable.');
+  await kvEcrire(env, `${uid}:abonnements`, next);
+  return jsonOk({ deleted: id });
+}
+
+/* ===========================
+   COMPTES
+   =========================== */
+async function listComptes(env, uid) {
+  const list = await kvTableau(env, `${uid}:comptes`);
+  if (!list.length) {
+    const defaut = [
+      { id: uid4(), nom: 'Qonto Pro', type: 'professionnel', solde: 0, updatedAt: iso(), historique: [] },
+      { id: uid4(), nom: 'Crédit Agricole', type: 'personnel', solde: 0, updatedAt: iso(), historique: [] },
+      { id: uid4(), nom: 'Épargne', type: 'epargne', solde: 0, updatedAt: iso(), historique: [] },
+    ];
+    await kvEcrire(env, `${uid}:comptes`, defaut);
+    return jsonOk(defaut);
+  }
+  return jsonOk(list);
+}
+
+async function createCompte(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!body?.nom) return jsonErr(400, 'Nom requis.');
+  const list = await kvTableau(env, `${uid}:comptes`);
+  const c = { id: uid4(), nom: body.nom, type: body.type || 'autre', solde: parseFloat(body.solde)||0, updatedAt: iso(), historique: [] };
+  list.push(c);
+  await kvEcrire(env, `${uid}:comptes`, list);
+  return jsonOk(c, 201);
+}
+
+async function updateCompte(request, env, uid, id) {
+  const body = await parseJSON(request);
+  const list = await kvTableau(env, `${uid}:comptes`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Compte introuvable.');
+  if (body.solde !== undefined) list[idx].solde = parseFloat(body.solde);
+  if (body.nom)  list[idx].nom  = body.nom;
+  if (body.type) list[idx].type = body.type;
+  list[idx].updatedAt = iso();
+  await kvEcrire(env, `${uid}:comptes`, list);
+  return jsonOk(list[idx]);
+}
+
+async function addHistoriqueCompte(request, env, uid, id) {
+  const body = await parseJSON(request);
+  const list = await kvTableau(env, `${uid}:comptes`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Compte introuvable.');
+  list[idx].historique = list[idx].historique || [];
+  list[idx].historique.unshift({ date: body.date||iso().split('T')[0], montant: parseFloat(body.montant)||0, libelle: body.libelle||'' });
+  list[idx].historique = list[idx].historique.slice(0, 20); // garde les 20 derniers
+  await kvEcrire(env, `${uid}:comptes`, list);
+  return jsonOk(list[idx]);
+}
+
+/* ===========================
+   TRANSACTIONS
+   =========================== */
+async function listTransactions(env, uid, url) {
+  const list = await kvTableau(env, `${uid}:transactions`);
+  let result = list.sort((a,b) => b.date.localeCompare(a.date));
+  const compte   = url.searchParams.get('compte');
+  const mois     = url.searchParams.get('mois');
+  const annee    = url.searchParams.get('annee');
+  const categorie = url.searchParams.get('categorie');
+  const q        = url.searchParams.get('q');
+  const page     = parseInt(url.searchParams.get('page')) || 1;
+  const limit    = 20;
+  if (compte)    result = result.filter(t => t.compte === compte);
+  if (annee && mois) result = result.filter(t => memeMA(t.date, parseInt(annee), parseInt(mois)));
+  else if (annee) result = result.filter(t => t.date?.startsWith(annee));
+  if (categorie) result = result.filter(t => t.categorie === categorie);
+  if (q)         result = result.filter(t => t.libelle?.toLowerCase().includes(q.toLowerCase()));
+  const total = result.length;
+  result = result.slice((page-1)*limit, page*limit);
+  return jsonOk({ transactions: result, total, page, pages: Math.ceil(total/limit) });
+}
+
+async function createTransaction(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!body?.date || !body?.montant || !body?.libelle) return jsonErr(400, 'Champs requis.');
+  const list = await kvTableau(env, `${uid}:transactions`);
+  const t = { id: uid4(), date: body.date, libelle: body.libelle, montant: parseFloat(body.montant),
+    type: body.type || 'sortie', compte: body.compte || '', categorie: body.categorie || '', createdAt: iso() };
+  list.push(t);
+  await kvEcrire(env, `${uid}:transactions`, list);
+  return jsonOk(t, 201);
+}
+
+async function deleteTransaction(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:transactions`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Transaction introuvable.');
+  await kvEcrire(env, `${uid}:transactions`, next);
+  return jsonOk({ deleted: id });
+}
+
+/* ===========================
+   URSSAF TRIMESTRIELLE
+   =========================== */
+async function listURSSAF(env, uid) {
+  const factures = await kvTableau(env, `${uid}:factures`);
+  const settings = await settingsGet(env, uid).then(r=>r.json());
+  const stored   = (await env.KV_DATA.get(`${uid}:urssaf`, 'json')) || {};
+  const tauxU    = (settings.tauxUrssaf||25.6)/100;
+  const tauxC    = (settings.tauxCfp||0.2)/100;
+  const result   = {};
+  for (const [cle, meta] of Object.entries(ECHEANCES_URSSAF)) {
+    const caT = round(factures
+      .filter(f => f.statut==='payee' && meta.mois.includes(parseInt((f.date||'').split('-')[1])))
+      .reduce((s,f)=>s+f.montant,0));
+    const urssafDue = round(caT * tauxU);
+    const cfpDue    = round(caT * tauxC);
+    const data      = stored[cle] || {};
+    result[cle] = { ...meta, cle, ca: caT, urssaf: urssafDue, cfp: cfpDue,
+      total: round(urssafDue + cfpDue), montantPaye: data.montantPaye || 0,
+      statut: data.statut || 'a_venir' };
+  }
+  return jsonOk(result);
+}
+
+async function getURSSAF(env, uid, cle) {
+  const all = await listURSSAF(env, uid).then(r=>r.json());
+  return all[cle] ? jsonOk(all[cle]) : jsonErr(404, 'Trimestre inconnu.');
+}
+
+async function updateURSSAF(request, env, uid, cle) {
+  const body    = await parseJSON(request);
+  const stored  = (await env.KV_DATA.get(`${uid}:urssaf`, 'json')) || {};
+  stored[cle]   = { ...stored[cle], ...body };
+  await env.KV_DATA.put(`${uid}:urssaf`, JSON.stringify(stored));
+  return getURSSAF(env, uid, cle);
+}
+
+/* ===========================
+   OBJECTIFS CA
+   =========================== */
+async function getObjectifCA(env, uid) {
+  const data = await env.KV_DATA.get(`${uid}:objectif_ca`, 'json');
+  return jsonOk(data || { annee: new Date().getFullYear(), montant: 60000 });
+}
+
+async function putObjectifCA(request, env, uid) {
+  const body = await parseJSON(request);
+  await env.KV_DATA.put(`${uid}:objectif_ca`, JSON.stringify(body));
+  return jsonOk(body);
+}
+
+/* ===========================
+   OBJECTIFS ÉPARGNE
+   =========================== */
+async function listObjectifsEpargne(env, uid) {
+  const list = await kvTableau(env, `${uid}:objectifs_epargne`);
+  if (!list.length) {
+    const defaut = [
+      { id: uid4(), nom: 'Trésorerie tampon (3 mois)', montantCible: 9000, montantActuel: 0, dateCible: null },
+      { id: uid4(), nom: 'Épargne retraite', montantCible: 5000, montantActuel: 0, dateCible: null },
+      { id: uid4(), nom: 'Nouvel ordinateur', montantCible: 2500, montantActuel: 0, dateCible: null },
+    ];
+    await kvEcrire(env, `${uid}:objectifs_epargne`, defaut);
+    return jsonOk(defaut);
+  }
+  return jsonOk(list);
+}
+
+async function createObjectifEpargne(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!body?.nom || !body?.montantCible) return jsonErr(400, 'Champs requis.');
+  const list = await kvTableau(env, `${uid}:objectifs_epargne`);
+  const o = { id: uid4(), nom: body.nom, montantCible: parseFloat(body.montantCible),
+    montantActuel: parseFloat(body.montantActuel)||0, dateCible: body.dateCible||null };
+  list.push(o);
+  await kvEcrire(env, `${uid}:objectifs_epargne`, list);
+  return jsonOk(o, 201);
+}
+
+async function updateObjectifEpargne(request, env, uid, id) {
+  const body = await parseJSON(request);
+  const list = await kvTableau(env, `${uid}:objectifs_epargne`);
+  const idx  = list.findIndex(x => x.id === id);
+  if (idx < 0) return jsonErr(404, 'Objectif introuvable.');
+  ['nom','montantCible','montantActuel','dateCible'].forEach(c => { if (body[c]!==undefined) list[idx][c]=body[c]; });
+  await kvEcrire(env, `${uid}:objectifs_epargne`, list);
+  return jsonOk(list[idx]);
+}
+
+async function deleteObjectifEpargne(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:objectifs_epargne`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Objectif introuvable.');
+  await kvEcrire(env, `${uid}:objectifs_epargne`, next);
+  return jsonOk({ deleted: id });
+}
+
+/* ===========================
+   RÉPARTITION
+   =========================== */
+async function getRepartition(env, uid) {
+  const data = await env.KV_DATA.get(`${uid}:repartition`, 'json');
+  return jsonOk(data || { versement: 0, epargne: 0, tresorerie: 0, updatedAt: null });
+}
+
+async function putRepartition(request, env, uid) {
+  const body = await parseJSON(request);
+  const data = { ...body, updatedAt: iso() };
+  await env.KV_DATA.put(`${uid}:repartition`, JSON.stringify(data));
+  return jsonOk(data);
+}
+
+/* ===========================
+   TRÉSORERIE QONTO
+   =========================== */
+async function getTresorerie(env, uid) {
+  const data = await env.KV_DATA.get(`${uid}:tresorerie`, 'json');
+  return jsonOk(data || { solde: 0, updatedAt: null });
+}
+
+async function putTresorerie(request, env, uid) {
+  const body = await parseJSON(request);
+  const data = { solde: parseFloat(body.solde)||0, updatedAt: iso() };
+  await env.KV_DATA.put(`${uid}:tresorerie`, JSON.stringify(data));
+  return jsonOk(data);
+}
+
+/* ===========================
+   RAPPORTS
+   =========================== */
+async function rapportMensuel(env, uid, url) {
+  const annee = parseInt(url.searchParams.get('annee')) || new Date().getFullYear();
+  const mois  = parseInt(url.searchParams.get('mois'))  || new Date().getMonth()+1;
+  const moisPrec = mois === 1 ? 12 : mois-1;
+  const anneePrec = mois === 1 ? annee-1 : annee;
+  const settings  = await settingsGet(env, uid).then(r=>r.json());
+  const [factures, depenses, abonnements, repartition] = await Promise.all([
+    kvTableau(env, `${uid}:factures`),
+    kvTableau(env, `${uid}:depenses`),
+    kvTableau(env, `${uid}:abonnements`),
+    env.KV_DATA.get(`${uid}:repartition`, 'json'),
+  ]);
+  const tauxU = (settings.tauxUrssaf||25.6)/100;
+  const tauxC = (settings.tauxCfp||0.2)/100;
+
+  const calcMois = (y, m) => {
+    const payees  = factures.filter(f => f.statut==='payee' && memeMA(f.date,y,m));
+    const ca      = round(payees.reduce((s,f)=>s+f.montant,0));
+    const dep     = round(depenses.filter(d=>memeMA(d.date,y,m)).reduce((s,d)=>s+d.montant,0));
+    const abo     = round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
+    const urssaf  = round(ca*tauxU);
+    const cfp     = round(ca*tauxC);
+    const charges = round(urssaf+cfp+dep+abo+settings.pasFixe);
+    return { ca, dep, abo, urssaf, cfp, charges, net: round(Math.max(0,ca-charges)) };
+  };
+
+  const actuel = calcMois(annee, mois);
+  const prec   = calcMois(anneePrec, moisPrec);
+  const delta  = prec.ca > 0 ? Math.round((actuel.ca - prec.ca) / prec.ca * 100) : null;
+  const pctV   = settings.pctVersement || 65;
+  const versement = round(actuel.net * pctV / 100);
+
+  return jsonOk({ annee, mois, ...actuel, versement, pctVersement: pctV,
+    comparaisonPrecedent: { ...prec, delta },
+    repartitionReelle: repartition });
+}
+
+async function rapportAnnuel(env, uid, url) {
+  const annee = parseInt(url.searchParams.get('annee')) || new Date().getFullYear();
+  const settings = await settingsGet(env, uid).then(r=>r.json());
+  const [factures, depenses, abonnements] = await Promise.all([
+    kvTableau(env, `${uid}:factures`),
+    kvTableau(env, `${uid}:depenses`),
+    kvTableau(env, `${uid}:abonnements`),
+  ]);
+  const tauxU = (settings.tauxUrssaf||25.6)/100;
+  const tauxC = (settings.tauxCfp||0.2)/100;
+  const moisData = [];
+  let totCA=0, totCharges=0, totNet=0;
+  for (let m = 1; m <= 12; m++) {
+    const payees = factures.filter(f=>f.statut==='payee'&&memeMA(f.date,annee,m));
+    const ca     = round(payees.reduce((s,f)=>s+f.montant,0));
+    const dep    = round(depenses.filter(d=>memeMA(d.date,annee,m)).reduce((s,d)=>s+d.montant,0));
+    const abo    = round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
+    const charges= round(ca*tauxU + ca*tauxC + dep+abo+settings.pasFixe);
+    const net    = round(Math.max(0,ca-charges));
+    moisData.push({ mois:m, ca, charges, net, versement: round(net*(settings.pctVersement||65)/100) });
+    totCA += ca; totCharges += charges; totNet += net;
+  }
+  const meilleur  = moisData.reduce((a,b)=>b.ca>a.ca?b:a);
+  const moinsBon  = moisData.filter(m=>m.ca>0).reduce((a,b)=>b.ca<a.ca?b:a, moisData[0]);
+  return jsonOk({ annee, mois: moisData,
+    totaux: { ca: round(totCA), charges: round(totCharges), net: round(totNet) },
+    meilleur, moinsBon });
+}
+
+async function rapportFiscal(env, uid, url) {
+  const annee = parseInt(url.searchParams.get('annee')) || new Date().getFullYear();
+  const settings = await settingsGet(env, uid).then(r=>r.json());
+  const factures  = await kvTableau(env, `${uid}:factures`);
+  const depenses  = await kvTableau(env, `${uid}:depenses`);
+  const tauxU = (settings.tauxUrssaf||25.6)/100;
+  const tauxC = (settings.tauxCfp||0.2)/100;
+  const caAnnuel  = round(factures.filter(f=>f.statut==='payee'&&f.date?.startsWith(String(annee))).reduce((s,f)=>s+f.montant,0));
+  const depAnnuel = round(depenses.filter(d=>d.date?.startsWith(String(annee))).reduce((s,d)=>s+d.montant,0));
+  const abattement = round(caAnnuel * 0.34);
+  const revenuImposable = round(caAnnuel - abattement);
+  const cotisations = round(caAnnuel * (tauxU + tauxC));
+  const pctPlafond  = caAnnuel > 0 ? Math.min(100, Math.round(caAnnuel/PLAFOND_BNC*100)) : 0;
+  // Estimation impôt simplifié (tranches 2026 approximatives)
+  const impotEstime = estimerImpot(revenuImposable);
+  return jsonOk({ annee, caAnnuel, abattement, revenuImposable, cotisations, depAnnuel,
+    impotEstime, plafondBNC: PLAFOND_BNC, pctPlafond,
+    alertePlafond: pctPlafond >= 80 });
+}
+
+/* ===========================
+   IMPORT / EXPORT
+   =========================== */
+async function importFactures(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!Array.isArray(body?.lignes)) return jsonErr(400, 'Format invalide.');
+  const list = await kvTableau(env, `${uid}:factures`);
+  const nums  = new Set(list.map(f=>f.numero));
+  let importees = 0, doublons = 0;
+  for (const ligne of body.lignes) {
+    if (!validerDoc(ligne)) continue;
+    if (nums.has(ligne.numero)) { doublons++; continue; }
+    const f = { id: uid4(), numero: ligne.numero, client: ligne.client?.trim(),
+      description: ligne.description?.trim()||'', montant: parseFloat(ligne.montant),
+      date: ligne.date, statut: ligne.statut||'attente', pdfKey: null, createdAt: iso() };
+    list.push(f); nums.add(f.numero); importees++;
+  }
+  await kvEcrire(env, `${uid}:factures`, list);
+  return jsonOk({ importees, doublons });
+}
+
+async function importDepenses(request, env, uid) {
+  const body = await parseJSON(request);
+  if (!Array.isArray(body?.lignes)) return jsonErr(400, 'Format invalide.');
+  const list = await kvTableau(env, `${uid}:depenses`);
+  let importees = 0;
+  for (const ligne of body.lignes) {
+    if (!ligne.date||!ligne.montant||!ligne.description) continue;
+    list.push({ id: uid4(), date: ligne.date, description: ligne.description?.trim(),
+      categorie: ligne.categorie||'Autre', montant: parseFloat(ligne.montant), createdAt: iso() });
+    importees++;
+  }
+  await kvEcrire(env, `${uid}:depenses`, list);
+  return jsonOk({ importees });
+}
+
+async function exportCSV(env, uid, ressource) {
+  const ressources = { factures: `${uid}:factures`, depenses: `${uid}:depenses`, transactions: `${uid}:transactions` };
+  const cle = ressources[ressource];
+  if (!cle) return jsonErr(400, 'Ressource inconnue.');
+  const list = await kvTableau(env, cle);
+  const csv  = listToCSV(list);
+  return new Response(csv, { headers: { 'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${ressource}.csv"` } });
+}
+
+/* ===========================
+   HELPERS CALCULS
+   =========================== */
+function aggregParClient(payees) {
+  const map = {};
+  payees.forEach(f => { map[f.client] = round((map[f.client]||0)+f.montant); });
+  return Object.entries(map).map(([client,ca])=>({client,ca})).sort((a,b)=>b.ca-a.ca);
+}
+
+function prochainEcheanceURSSAF(today) {
+  for (const [cle, meta] of Object.entries(ECHEANCES_URSSAF)) {
+    const e = new Date(meta.echeance);
+    if (e >= today) {
+      const jours = Math.ceil((e - today) / 86400000);
+      return { cle, label: meta.label, echeance: meta.echeance, joursRestants: jours };
     }
-  });
+  }
+  return null;
+}
+
+function prochainsPrelev(abonnements, today) {
+  const actifs = abonnements.filter(a => a.statut === 'actif');
+  const mois   = today.getMonth()+1;
+  const annee  = today.getFullYear();
+  return actifs.map(a => {
+    let dateP = new Date(annee, mois-1, a.jourPrelevement);
+    if (dateP < today) dateP = new Date(annee, mois, a.jourPrelevement);
+    return { ...a, prochainPrelevement: dateP.toISOString().split('T')[0], joursAvant: Math.ceil((dateP-today)/86400000) };
+  }).sort((a,b)=>a.joursAvant-b.joursAvant).slice(0,3);
+}
+
+function estimerImpot(revenuImposable) {
+  // Tranches approximatives 2026 pour 1 part
+  const tranches = [[11497,0],[29315,0.11],[83823,0.30],[180294,0.41],[Infinity,0.45]];
+  let impot = 0, prev = 0;
+  for (const [limite,taux] of tranches) {
+    if (revenuImposable <= prev) break;
+    impot += (Math.min(revenuImposable, limite) - prev) * taux;
+    prev = limite;
+  }
+  return round(Math.max(0, impot));
+}
+
+function prochNumF(list) {
+  const nums = list.map(f=>parseInt((f.numero||'').split('-')[1])||0).filter(n=>!isNaN(n));
+  return `F${new Date().getFullYear()}-${String((nums.length?Math.max(...nums):0)+1).padStart(3,'0')}`;
+}
+
+function validerDoc(b) {
+  if (!b?.client?.trim()) return false;
+  if (isNaN(parseFloat(b?.montant)) || parseFloat(b?.montant) <= 0) return false;
+  if (!b?.date || !/^\d{4}-\d{2}-\d{2}$/.test(b.date)) return false;
+  return true;
+}
+
+function memeMA(dateStr, annee, mois) {
+  if (!dateStr) return false;
+  const [y,m] = dateStr.split('-').map(Number);
+  return y===annee && m===mois;
+}
+
+function listToCSV(list) {
+  if (!list.length) return '';
+  const keys = Object.keys(list[0]).filter(k=>k!=='historique');
+  const head = keys.join(',');
+  const rows = list.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','));
+  return [head,...rows].join('\n');
 }
 
 /* ===========================
-   VALIDATION
+   JWT / CRYPTO
    =========================== */
+async function signerJWT(userId, env) {
+  const now=Math.floor(Date.now()/1000), jti=crypto.randomUUID();
+  const ttl=parseInt(env.JWT_TTL||'28800');
+  const h=b64url(JSON.stringify({alg:'HS256',typ:'JWT'}));
+  const p=b64url(JSON.stringify({sub:userId,jti,iat:now,exp:now+ttl}));
+  const cle=await hmacKey(env.JWT_SECRET);
+  const sig=await crypto.subtle.sign('HMAC',cle,enc(`${h}.${p}`));
+  return `${h}.${p}.${b64urlBytes(new Uint8Array(sig))}`;
+}
 
-/** Vérifie les champs obligatoires d'une facture ou d'un devis */
-function validerFacture(body) {
-  if (!body) return false;
-  if (!body.client || typeof body.client !== 'string' || !body.client.trim()) return false;
-  if (!body.prestation || typeof body.prestation !== 'string') return false;
-  if (isNaN(parseFloat(body.montant)) || parseFloat(body.montant) <= 0) return false;
-  if (!body.date || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) return false;
-  return true;
+async function verifierJWT(request, env) {
+  const hdr=request.headers.get('Authorization')||'';
+  if (!hdr.startsWith('Bearer ')) return {ok:false,message:'Token manquant.'};
+  const [h,p,s]=hdr.slice(7).split('.');
+  if (!h||!p||!s) return {ok:false,message:'Token malformé.'};
+  const cle=await hmacKey(env.JWT_SECRET);
+  const ok=await crypto.subtle.verify('HMAC',cle,b64urlDec(s),enc(`${h}.${p}`));
+  if (!ok) return {ok:false,message:'Signature invalide.'};
+  let claims; try { claims=JSON.parse(new TextDecoder().decode(b64urlDec(p))); } catch { return {ok:false,message:'Payload illisible.'}; }
+  if (claims.exp<Math.floor(Date.now()/1000)) return {ok:false,message:'Token expiré.'};
+  if (await env.KV_AUTH.get(`revoked:${claims.jti}`)) return {ok:false,message:'Token révoqué.'};
+  return {ok:true,userId:claims.sub,jti:claims.jti};
+}
+
+async function hasherMDP(mdp) {
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const k=await crypto.subtle.importKey('raw',enc(mdp),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:100000},k,256);
+  return {hash:hexEnc(new Uint8Array(bits)),salt:hexEnc(salt)};
+}
+
+async function verifierMDP(mdp,saltHex,hashHex) {
+  const k=await crypto.subtle.importKey('raw',enc(mdp),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:hexDec(saltHex),iterations:100000},k,256);
+  return hexEnc(new Uint8Array(bits))===hashHex;
+}
+
+async function hmacKey(secret) {
+  return crypto.subtle.importKey('raw',enc(secret),{name:'HMAC',hash:'SHA-256'},false,['sign','verify']);
+}
+
+/* ===========================
+   KV HELPERS
+   =========================== */
+async function kvLire(env, cle) {
+  return env.KV_DATA.get(cle, 'json');
+}
+
+async function kvTableau(env, cle) {
+  const v=await env.KV_DATA.get(cle,'json');
+  return Array.isArray(v)?v:[];
+}
+
+async function kvEcrire(env, cle, data) {
+  await env.KV_DATA.put(cle, JSON.stringify(data));
 }
 
 /* ===========================
    UTILITAIRES
    =========================== */
+const enc     = s => new TextEncoder().encode(s);
+const b64url  = s => btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+const b64urlBytes = b => btoa(String.fromCharCode(...b)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+const b64urlDec   = s => { const pad=s.length%4?'='.repeat(4-s.length%4):''; return Uint8Array.from(atob((s+pad).replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)); };
+const hexEnc  = b => [...b].map(x=>x.toString(16).padStart(2,'0')).join('');
+const hexDec  = h => new Uint8Array(h.match(/.{2}/g).map(b=>parseInt(b,16)));
+const round   = v => Math.round(v*100)/100;
+const iso     = () => new Date().toISOString();
+const uid4    = () => crypto.randomUUID().replace(/-/g,'').slice(0,16);
 
-/** Ajoute les headers CORS à une réponse */
-function corsHeaders(response, env) {
-  const origin = env.CORS_ORIGIN || '*';
-  const headers = new Headers(response.headers);
-  headers.set('Access-Control-Allow-Origin', origin);
-  headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400');
-  return new Response(response.body, { status: response.status, headers });
+async function parseJSON(req) { try { return await req.json(); } catch { return null; } }
+
+function jsonOk(data, status=200) {
+  return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});
 }
 
-/** Retourne une réponse JSON succès */
-function jsonOk(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
+function jsonErr(status, message) {
+  return new Response(JSON.stringify({error:message}),{status,headers:{'Content-Type':'application/json'}});
 }
 
-/** Retourne une réponse JSON erreur */
-function jsonError(status, message) {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}
-
-/** Parse le corps JSON de la requête, retourne null si échec */
-async function parseJSON(request) {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
-}
-
-/** Arrondi à 2 décimales */
-function round(v) {
-  return Math.round(v * 100) / 100;
-}
-
-/** Encode une chaîne en base64url */
-function b64url(str) {
-  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-/** Encode des bytes en base64url */
-function b64urlBytes(bytes) {
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-/** Décode une chaîne base64url en Uint8Array */
-function b64urlDecode(str) {
-  const pad = str.length % 4 === 0 ? '' : '='.repeat(4 - str.length % 4);
-  const b64 = (str + pad).replace(/-/g, '+').replace(/_/g, '/');
-  const bin = atob(b64);
-  return Uint8Array.from(bin, c => c.charCodeAt(0));
-}
-
-/** Encode Uint8Array en hexadécimal */
-function hexEncode(bytes) {
-  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/** Décode une chaîne hex en Uint8Array */
-function hexDecode(hex) {
-  return new Uint8Array(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
+function cors(response, env) {
+  const h=new Headers(response.headers);
+  h.set('Access-Control-Allow-Origin', env.CORS_ORIGIN||'*');
+  h.set('Access-Control-Allow-Methods','GET,POST,PUT,DELETE,OPTIONS');
+  h.set('Access-Control-Allow-Headers','Content-Type,Authorization');
+  h.set('Access-Control-Max-Age','86400');
+  return new Response(response.body,{status:response.status,headers:h});
 }
