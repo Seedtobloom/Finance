@@ -1,0 +1,85 @@
+# =============================================================
+#  Seed to Bloom — Finance
+#  Cloudflare Workers · Workers KV · R2
+#  Domain : finance.seedtobloom.fr
+#
+#  Deux workers dans ce projet :
+#    stb-finance-api   →  back/worker.js   (API REST + auth)
+#    stb-finance-front →  front/worker.js  (assets statiques)
+#
+#  Déploiement :
+#    wrangler deploy --config wrangler.toml --name stb-finance-api
+#    wrangler deploy --config wrangler.toml --name stb-finance-front
+#
+#  Remplacer TOUS les placeholders en MAJUSCULES avant deploy.
+# =============================================================
+
+# ─── Worker API (backend) ────────────────────────────────────
+[[workers]]
+name       = "stb-finance-api"
+main       = "back/worker.js"
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+compatibility_date  = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[workers.vars]
+# Durée de vie du JWT en secondes (8 heures)
+JWT_TTL    = "28800"
+# CORS origin autorisée (le worker front)
+CORS_ORIGIN = "https://finance.seedtobloom.fr"
+
+# Secret HMAC pour signer les JWT — générer avec :
+#   openssl rand -base64 32
+# Stocker comme secret Workers (ne PAS le mettre ici en clair) :
+#   wrangler secret put JWT_SECRET
+
+[[workers.kv_namespaces]]
+# Stocke : credentials (mdp hashé PBKDF2), sessions révoquées
+binding    = "KV_AUTH"
+id         = "YOUR_KV_AUTH_NAMESPACE_ID"
+preview_id = "YOUR_KV_AUTH_PREVIEW_NAMESPACE_ID"
+
+[[workers.kv_namespaces]]
+# Stocke : factures, devis, dépenses (JSON par clé utilisateur)
+binding    = "KV_DATA"
+id         = "YOUR_KV_DATA_NAMESPACE_ID"
+preview_id = "YOUR_KV_DATA_PREVIEW_NAMESPACE_ID"
+
+[[workers.r2_buckets]]
+# Bucket pour les PDF générés et éventuels exports
+binding     = "R2_FINANCE"
+bucket_name = "YOUR_R2_BUCKET_NAME"
+preview_bucket_name = "YOUR_R2_PREVIEW_BUCKET_NAME"
+
+[[workers.routes]]
+pattern = "finance.seedtobloom.fr/api/*"
+zone_name = "seedtobloom.fr"
+
+
+# ─── Worker Front (assets statiques) ─────────────────────────
+[[workers]]
+name       = "stb-finance-front"
+main       = "front/worker.js"
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+compatibility_date = "2024-09-23"
+
+[workers.vars]
+API_BASE_URL = "https://finance.seedtobloom.fr/api"
+
+[[workers.r2_buckets]]
+# Même bucket R2 — le front lit les assets, l'API écrit les PDF
+binding     = "R2_FINANCE"
+bucket_name = "YOUR_R2_BUCKET_NAME"
+preview_bucket_name = "YOUR_R2_PREVIEW_BUCKET_NAME"
+
+[[workers.routes]]
+pattern = "finance.seedtobloom.fr/*"
+zone_name = "seedtobloom.fr"
+
+
+# ─── Configuration partagée (dev local) ──────────────────────
+[dev]
+port = 8787
+local_protocol = "http"
