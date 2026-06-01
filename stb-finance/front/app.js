@@ -42,31 +42,102 @@ function confirmDialog(title,msg){
   });
 }
 
-/* ─── API client ─────────────────────────────────────────────────────── */
-function token(){return sessionStorage.getItem(TOKEN_KEY);}
-async function api(method,path,body,isFormData=false){
-  const headers={Authorization:`Bearer ${token()}`};
-  if(!isFormData&&body)headers['Content-Type']='application/json';
-  const res=await fetch(API+path,{method,headers,body:isFormData?body:body?JSON.stringify(body):undefined});
-  if(res.status===401){logout();return null;}
-  if(!res.ok){const e=await res.json().catch(()=>({error:'Erreur serveur'}));throw new Error(e.error||'Erreur');}
-  if(res.status===204)return null;
-  return res.json();
-}
-const GET=(path)=>api('GET',path);
-const POST=(path,body)=>api('POST',path,body);
-const PUT=(path,body)=>api('PUT',path,body);
-const DEL=(path)=>api('DELETE',path);
+/* ─── localStorage DB ───────────────────────────────────────────────── */
+const LS_KEY = 'stb_finance';
 
-/* ─── Auth ───────────────────────────────────────────────────────────── */
-async function login(password){
-  const res=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:'cindy',password})});
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error||'Mot de passe incorrect');}
-  const{token:t}=await res.json();
-  sessionStorage.setItem(TOKEN_KEY,t);
+function lsGet(resource) {
+  try {
+    const db = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    return db[resource] ?? null;
+  } catch { return null; }
 }
-function logout(){sessionStorage.removeItem(TOKEN_KEY);showLogin();}
-function isLoggedIn(){return!!token();}
+
+function lsSet(resource, value) {
+  try {
+    const db = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    db[resource] = value;
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+  } catch(e) { console.error('lsSet error', e); }
+}
+
+// Paramètres par défaut
+const DEFAULT_SETTINGS = {
+  nom:'Cindy', entreprise:'Seed to Bloom', email:'contact@seedtobloom.fr',
+  tauxUrssaf:25.6, tauxCfp:0.2, pasFixe:40, cfe:0,
+  objectifCA:60000, pctVersement:65, pctEpargne:15, pctTresorerie:20,
+};
+
+// Abonnements pré-remplis
+const DEFAULT_ABONNEMENTS = [
+  {id:uid(),nom:'Adobe Creative Cloud',categorie:'Logiciels',montant:61.99,periodicite:'mensuel',jour:1,statut:'actif'},
+  {id:uid(),nom:'Notion Pro',categorie:'Logiciels',montant:16,periodicite:'mensuel',jour:3,statut:'actif'},
+  {id:uid(),nom:'Infomaniak hosting',categorie:'Hébergement',montant:12,periodicite:'mensuel',jour:1,statut:'actif'},
+  {id:uid(),nom:'n8n cloud',categorie:'Logiciels',montant:20,periodicite:'mensuel',jour:15,statut:'actif'},
+];
+
+// Objectifs épargne pré-remplis
+const DEFAULT_OBJECTIFS_EPARGNE = [
+  {id:uid(),nom:'Trésorerie tampon (3 mois)',cible:3000,actuel:0,dateCible:''},
+  {id:uid(),nom:'Épargne retraite annuelle',cible:2400,actuel:0,dateCible:''},
+  {id:uid(),nom:'Matériel (nouvel ordi)',cible:2000,actuel:0,dateCible:''},
+];
+
+// Comptes par défaut
+const DEFAULT_COMPTES = [
+  {id:uid(),nom:'Qonto Pro',type:'courant',solde:0,iban:'',historique:[]},
+  {id:uid(),nom:'Crédit Agricole',type:'courant',solde:0,iban:'',historique:[]},
+  {id:uid(),nom:'Épargne',type:'epargne',solde:0,iban:'',historique:[]},
+];
+
+function initDB() {
+  if (!lsGet('settings'))    lsSet('settings', DEFAULT_SETTINGS);
+  if (!lsGet('abonnements')) lsSet('abonnements', DEFAULT_ABONNEMENTS);
+  if (!lsGet('objectifs_epargne')) lsSet('objectifs_epargne', DEFAULT_OBJECTIFS_EPARGNE);
+  if (!lsGet('comptes'))     lsSet('comptes', DEFAULT_COMPTES);
+  if (!lsGet('factures'))    lsSet('factures', []);
+  if (!lsGet('depenses'))    lsSet('depenses', []);
+  if (!lsGet('transactions'))lsSet('transactions', []);
+  if (!lsGet('urssaf'))      lsSet('urssaf', {});
+  if (!lsGet('objectif_ca')) lsSet('objectif_ca', {valeur: 60000});
+  if (!lsGet('repartition')) lsSet('repartition', {versement:0,epargne:0,tresorerie:0});
+}
+
+// Simule GET/POST/PUT/DEL sur localStorage
+function GET(resource) { return Promise.resolve(lsGet(resource)); }
+function POST(resource, item) {
+  const list = lsGet(resource) || [];
+  item.id = item.id || uid();
+  list.push(item);
+  lsSet(resource, list);
+  return Promise.resolve(item);
+}
+function PUT(resource, item) {
+  if (Array.isArray(lsGet(resource))) {
+    const list = lsGet(resource) || [];
+    const idx = list.findIndex(x => x.id === item.id);
+    if (idx >= 0) list[idx] = item; else list.push(item);
+    lsSet(resource, list);
+  } else {
+    lsSet(resource, item);
+  }
+  return Promise.resolve(item);
+}
+function DEL(resource, id) {
+  const list = lsGet(resource) || [];
+  lsSet(resource, list.filter(x => x.id !== id));
+  return Promise.resolve();
+}
+
+/* ─── State cache ────────────────────────────────────────────────────── */
+const cache = {};
+function load(key) { if(!cache[key]) cache[key] = lsGet(key); return Promise.resolve(cache[key]||[]); }
+function loadObj(key) { if(!cache[key]) cache[key] = lsGet(key); return Promise.resolve(cache[key]||{}); }
+function invalidate(...keys) { keys.forEach(k => delete cache[k]); }
+
+function showLogin(){}
+function showApp(){}
+function logout(){}
+function isLoggedIn(){ return true; }
 
 /* ─── Router ─────────────────────────────────────────────────────────── */
 let currentSection='dashboard';
@@ -106,10 +177,6 @@ function initModals(){
   });
 }
 
-/* ─── State cache ────────────────────────────────────────────────────── */
-const cache={};
-async function load(key,path){if(!cache[key])cache[key]=await GET(path);return cache[key]||[];}
-function invalidate(...keys){keys.forEach(k=>delete cache[k]);}
 
 /* ─── Charts (Canvas 2D natif) ───────────────────────────────────────── */
 const COLORS={navy:'#051833',blue:'#BAD1FD',violet:'#E4D1FE',success:'#4CAF82',warning:'#E8A838',danger:'#E85454',muted:'#E8E8E4',text2:'#6B6B6B'};
@@ -309,7 +376,7 @@ async function loadDashboard(){
 
 /* ─── Vue d'ensemble ────────────────────────────────────────────────── */
 async function loadVueEnsemble(){
-  const [factures,settings]=await Promise.all([load('factures','/api/factures'),load('settings','/api/settings')]);
+  const [factures,settings]=await Promise.all([load('factures'),load('settings')]);
   const y=new Date().getFullYear();
   const moisActuels=new Date().getMonth()+1;
   const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
@@ -420,7 +487,7 @@ async function loadTransactions(){
   const res=await GET('/api/transactions');
   txnData=(res?.transactions||res)||[];
   cache['transactions']=txnData;
-  const comptes=await load('comptes','/api/comptes');
+  const comptes=await load('comptes');
   [q('#txn-filter-compte'),q('#txn-compte')].forEach(sel=>{
     if(!sel)return;
     const cur=sel.value;
@@ -558,7 +625,7 @@ function handlePdfFacture(id){
 
 /* ─── Objectifs CA ───────────────────────────────────────────────────── */
 async function loadObjectifsCA(){
-  const [settings,factures]=await Promise.all([load('settings','/api/settings'),load('factures','/api/factures')]);
+  const [settings,factures]=await Promise.all([load('settings'),load('factures')]);
   const y=new Date().getFullYear();
   const m=new Date().getMonth()+1;
   const objectif=settings.objectifCA||60000;
@@ -786,8 +853,8 @@ async function deleteAbonnement(id){
 let urssafCurrentCle=null;
 async function loadChargesURSSAF(){
   const [factures,depenses,abonnements,settings]=await Promise.all([
-    load('factures','/api/factures'),load('depenses','/api/depenses'),
-    load('abonnements','/api/abonnements'),load('settings','/api/settings'),
+    load('factures'),load('depenses'),
+    load('abonnements'),load('settings'),
   ]);
   const y=new Date().getFullYear(),m=new Date().getMonth()+1;
   const mKey=`${y}-${String(m).padStart(2,'0')}`;
@@ -863,7 +930,7 @@ async function saveURSSAFPaiement(){
 /* ─── Répartition ────────────────────────────────────────────────────── */
 async function loadRepartition(){
   const [settings,factures,repartition]=await Promise.all([
-    load('settings','/api/settings'),load('factures','/api/factures'),
+    load('settings'),load('factures'),
     GET('/api/repartition'),
   ]);
   const y=new Date().getFullYear(),m=new Date().getMonth()+1;
