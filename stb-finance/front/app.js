@@ -821,11 +821,14 @@ function openObjectifCAModal(){
   q('#obj-ca-val').value=s.objectifCA||60000;
   openModal('modal-objectif-ca');
 }
-function saveObjectifCA(){
+async function saveObjectifCA(){
   const val=parseFloat(q('#obj-ca-val').value)||0;
-  const s=dbGetObj('settings');
-  dbSet('settings',{...s,objectifCA:val});
-  closeModal('modal-objectif-ca');toast('Objectif mis à jour','success');loadObjectifsCA();
+  try{
+    await dbSet('objectif_ca',{annee:new Date().getFullYear(),montant:val});
+    const s=dbGetObj('settings');
+    await dbSet('settings',{...s,objectifCA:val});
+    closeModal('modal-objectif-ca');toast('Objectif mis à jour','success');loadObjectifsCA();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Dépenses --------------------------------------------------------- */
@@ -1080,13 +1083,14 @@ function openURSSAFPaiement(cle){
   q('#urs-date-paye').value=today();q('#urs-montant-paye').value='';
   openModal('modal-urssaf');
 }
-function saveURSSAFPaiement(){
+async function saveURSSAFPaiement(){
   const montantPaye=parseFloat(q('#urs-montant-paye').value)||0;
   const datePaye=q('#urs-date-paye').value;
-  const urssafObj=dbGetObj('urssaf');
-  urssafObj[urssafCurrentCle]={...urssafObj[urssafCurrentCle]||{},statut:'paye',montantPaye,datePaye};
-  dbSet('urssaf',urssafObj);
-  closeModal('modal-urssaf');toast('Paiement enregistré','success');loadChargesURSSAF();
+  try{
+    await api('PUT',`/api/urssaf/${urssafCurrentCle}`,{statut:'paye',montantPaye,datePaye});
+    _cache.urssaf = await api('GET','/api/urssaf');
+    closeModal('modal-urssaf');toast('Paiement enregistré','success');loadChargesURSSAF();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Répartition ------------------------------------------------------ */
@@ -1118,9 +1122,10 @@ function loadRepartition(){
   const c2=q('#chart-rep-bar');
   if(c2)drawBarChart(c2,['Versement','Épargne','Tréso'],[{data:[recommV,recommE,recommT],color:COLORS.muted},{data:[rv,re,rt],color:COLORS.navy}]);
 }
-function saveRepartition(){
+async function saveRepartition(){
   const body={versement:parseFloat(q('#rep-input-versement').value)||0,epargne:parseFloat(q('#rep-input-epargne').value)||0,tresorerie:parseFloat(q('#rep-input-tresorerie').value)||0};
-  dbSet('repartition',body);toast('Répartition enregistrée','success');loadRepartition();
+  try{await dbSet('repartition',body);toast('Répartition enregistrée','success');loadRepartition();}
+  catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Objectifs épargne ------------------------------------------------ */
@@ -1160,19 +1165,25 @@ function openEpargneGoalModal(data={}){
   q('#btn-save-obj-epargne').dataset.id=data.id||'';
   openModal('modal-objectif-epargne');
 }
-function saveEpargneGoal(){
+async function saveEpargneGoal(){
   const id=q('#btn-save-obj-epargne').dataset.id;
-  const body={nom:q('#obj-nom').value.trim(),cible:parseFloat(q('#obj-cible').value)||0,actuel:parseFloat(q('#obj-actuel').value)||0,dateCible:q('#obj-date').value||''};
-  if(!body.nom||!body.cible){toast('Nom et cible requis','error');return;}
-  if(id){body.id=id;dbUpdate('objectifs_epargne',body);}else{dbCreate('objectifs_epargne',body);}
-  epargneGoals=dbGet('objectifs_epargne');
-  closeModal('modal-objectif-epargne');toast('Objectif enregistré','success');renderEpargneGoals();
+  const nom=q('#obj-nom').value.trim();
+  const montantCible=parseFloat(q('#obj-cible').value)||0;
+  const montantActuel=parseFloat(q('#obj-actuel').value)||0;
+  const body={nom,montantCible,montantActuel,dateCible:q('#obj-date').value||''};
+  if(!nom||!montantCible){toast('Nom et cible requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('objectifs_epargne',body);}else{await dbCreate('objectifs_epargne',body);}
+    epargneGoals=dbGet('objectifs_epargne');
+    closeModal('modal-objectif-epargne');toast('Objectif enregistré','success');renderEpargneGoals();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editEpargneGoal(id){const g=epargneGoals.find(x=>x.id===id);if(g)openEpargneGoalModal(g);}
 function deleteEpargneGoal(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('objectifs_epargne',id);epargneGoals=dbGet('objectifs_epargne');toast('Supprimé');renderEpargneGoals();
+    try{await dbDelete('objectifs_epargne',id);epargneGoals=dbGet('objectifs_epargne');toast('Supprimé');renderEpargneGoals();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -1564,7 +1575,7 @@ function updateOptTotal(){
   const alEl=q('#opt-total-alerte');
   if(alEl)alEl.innerHTML=total===100?`<span style="color:var(--success);">✓ Total : 100%</span>`:`<span style="color:var(--danger);">Total : ${total}% (doit être égal à 100%)</span>`;
 }
-function saveOptions(){
+async function saveOptions(){
   const v=parseFloat(q('#opt-versement')?.value)||65;
   const e=parseFloat(q('#opt-epargne-pct')?.value)||15;
   const t=parseFloat(q('#opt-tresorerie-pct')?.value)||20;
@@ -1580,8 +1591,8 @@ function saveOptions(){
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
-  dbSet('settings',body);
-  toast('Options enregistrées','success');
+  try{await dbSet('settings',body);toast('Options enregistrées','success');}
+  catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
