@@ -1510,45 +1510,48 @@ function previewImport(type,rows){
     }).join('');
   if(btn)btn.style.display='inline-flex';
 }
-function doImportFactures(){
+async function doImportFactures(){
   if(!importFacturesParsed)return;
-  const existing=dbGet('factures').map(f=>f.numero);
-  let importees=0,doublons=0;
-  importFacturesParsed.forEach(r=>{
-    const num=r.numero||r['n° facture']||r.number||'';
-    if(num&&existing.includes(num)){doublons++;return;}
-    dbCreate('factures',{numero:num,client:r.client||'',description:r.description||r.objet||'',date:r.date||today(),montant:parseFloat(r.montant)||0,statut:r.statut||'attente'});
-    importees++;
-  });
-  toast(`Importées : ${importees} · Doublons ignorés : ${doublons}`,'success');
-  importFacturesParsed=null;
-  const prev=q('#import-factures-preview');if(prev)prev.style.display='none';
-  const btn=q('#btn-import-factures');if(btn)btn.style.display='none';
+  const lignes=importFacturesParsed.map(r=>({
+    numero:r.numero||r['n° facture']||r.number||'',
+    client:r.client||'',description:r.description||r.objet||'',
+    date:r.date||today(),montant:parseFloat(r.montant)||0,statut:r.statut||'attente'
+  }));
+  try{
+    const res=await api('POST','/api/import/factures',{lignes});
+    _cache.factures=await api('GET','/api/factures');
+    toast(`Importées : ${res.importees} · Doublons ignorés : ${res.doublons}`,'success');
+    importFacturesParsed=null;
+    const prev=q('#import-factures-preview');if(prev)prev.style.display='none';
+    const btn=q('#btn-import-factures');if(btn)btn.style.display='none';
+  }catch(e){toast(e.message||'Erreur','error');}
 }
-function doImportDepenses(){
+async function doImportDepenses(){
   if(!importDepensesParsed)return;
-  let importees=0;
-  importDepensesParsed.forEach(r=>{
-    dbCreate('depenses',{date:r.date||today(),categorie:r.categorie||'Autre',description:r.description||r.libelle||'',montant:parseFloat(r.montant)||0});
-    importees++;
-  });
-  toast(`Importées : ${importees}`,'success');
-  importDepensesParsed=null;
-  const prev=q('#import-depenses-preview');if(prev)prev.style.display='none';
-  const btn=q('#btn-import-depenses');if(btn)btn.style.display='none';
+  const lignes=importDepensesParsed.map(r=>({
+    date:r.date||today(),categorie:r.categorie||'Autre',
+    description:r.description||r.libelle||'',montant:parseFloat(r.montant)||0
+  }));
+  try{
+    const res=await api('POST','/api/import/depenses',{lignes});
+    _cache.depenses=await api('GET','/api/depenses');
+    toast(`Importées : ${res.importees}`,'success');
+    importDepensesParsed=null;
+    const prev=q('#import-depenses-preview');if(prev)prev.style.display='none';
+    const btn=q('#btn-import-depenses');if(btn)btn.style.display='none';
+  }catch(e){toast(e.message||'Erreur','error');}
 }
-function exportCSV(type){
-  const data=dbGet(type);
-  if(!data.length){toast('Aucune donnée à exporter','error');return;}
-  const keys=Object.keys(data[0]).filter(k=>k!=='historique');
-  const header=keys.join(',');
-  const rows=data.map(d=>keys.map(k=>`"${(d[k]??'').toString().replace(/"/g,'""')}"`).join(','));
-  const csv=[header,...rows].join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`${type}-${today()}.csv`;a.click();
-  URL.revokeObjectURL(url);
+async function exportCSV(type){
+  try{
+    const token=sessionStorage.getItem(TOKEN_KEY);
+    const r=await fetch(`${API_BASE}/api/export/${type}`,{headers:{Authorization:`Bearer ${token}`}});
+    if(r.status===401){showLogin();return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`${type}-${today()}.csv`;a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){toast(e.message||'Erreur export','error');}
 }
 
 /* --- Options ---------------------------------------------------------- */
@@ -1596,8 +1599,13 @@ async function saveOptions(){
 }
 
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
-function init(){
-  initDB();
+async function startApp(){
+  try { await loadAll(); } catch(e) { if(e.message==='401')return; toast('Erreur chargement données','error'); }
+  navigate('dashboard');
+}
+
+async function init(){
+  injectLoginOverlay();
   initModals();
 
   // Navigation sidebar
@@ -1679,8 +1687,13 @@ function init(){
   q('#btn-save-options')?.addEventListener('click',saveOptions);
   ['#opt-versement','#opt-epargne-pct','#opt-tresorerie-pct'].forEach(id=>q(id)?.addEventListener('input',updateOptTotal));
 
-  // Démarrage
-  navigate('dashboard');
+  // Démarrage : vérifier si on a déjà un token valide
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  if (token) {
+    await startApp();
+  } else {
+    showLogin();
+  }
 }
 
 document.addEventListener('DOMContentLoaded',init);
