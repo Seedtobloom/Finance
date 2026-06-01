@@ -1,4 +1,121 @@
-/* ─── STB Finance — app.js — localStorage autonome ─────────────────── */
+/* ─── STB Finance — app.js — API Cloudflare Workers ─────────────────── */
+
+/* ─── 0. CONFIG API ──────────────────────────────────────────────────── */
+const API_BASE  = 'https://stb-back.orange-math-be7e.workers.dev';
+const TOKEN_KEY = 'stb_jwt';
+
+/* ─── 0b. LOGIN OVERLAY ──────────────────────────────────────────────── */
+function injectLoginOverlay() {
+  if (q('#login-overlay')) return;
+  const div = document.createElement('div');
+  div.id = 'login-overlay';
+  div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:flex;align-items:center;justify-content:center;z-index:9999;';
+  div.innerHTML = `
+    <div style="background:#fff;border:1px solid #E8E8E4;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#051833;margin-bottom:4px;">STB Finance</div>
+      <div style="font-size:13px;color:#6B6B6B;margin-bottom:32px;">Seed to Bloom</div>
+      <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password"
+        style="width:100%;padding:10px 14px;border:1px solid #E8E8E4;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box;outline:none;">
+      <button id="login-btn"
+        style="width:100%;padding:10px;background:#051833;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;">
+        Se connecter
+      </button>
+      <div id="login-error" style="margin-top:12px;font-size:13px;color:#E85454;min-height:18px;"></div>
+    </div>`;
+  document.body.appendChild(div);
+  q('#login-pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  q('#login-btn').addEventListener('click', doLogin);
+}
+
+function showLogin() {
+  injectLoginOverlay();
+  const o = q('#login-overlay');
+  if (o) { o.style.display = 'flex'; q('#login-pwd').value = ''; q('#login-error').textContent = ''; }
+}
+
+function hideLogin() {
+  const o = q('#login-overlay');
+  if (o) o.style.display = 'none';
+}
+
+async function doLogin() {
+  const pwd = q('#login-pwd')?.value || '';
+  if (!pwd) return;
+  q('#login-btn').textContent = '…';
+  q('#login-error').textContent = '';
+  try {
+    const r = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await r.json();
+    if (!r.ok) { q('#login-error').textContent = data.error || 'Erreur'; q('#login-btn').textContent = 'Se connecter'; return; }
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    hideLogin();
+    await startApp();
+  } catch(e) {
+    q('#login-error').textContent = 'Connexion impossible';
+    q('#login-btn').textContent = 'Se connecter';
+  }
+}
+
+/* ─── 0c. API HELPER ─────────────────────────────────────────────────── */
+async function api(method, path, body) {
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(API_BASE + path, opts);
+  if (r.status === 401) { showLogin(); throw new Error('401'); }
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
+
+/* ─── 0d. CACHE ──────────────────────────────────────────────────────── */
+const _cache = {
+  settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}
+};
+
+async function loadAll() {
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA] = await Promise.all([
+    api('GET', '/api/settings'),
+    api('GET', '/api/factures'),
+    api('GET', '/api/depenses'),
+    api('GET', '/api/abonnements'),
+    api('GET', '/api/comptes'),
+    api('GET', '/api/objectifs/epargne'),
+    api('GET', '/api/urssaf'),
+    api('GET', '/api/repartition'),
+    api('GET', '/api/objectifs/ca'),
+  ]);
+  _cache.settings        = settings || {};
+  _cache.factures        = factures || [];
+  _cache.depenses        = depenses || [];
+  _cache.abonnements     = (abonnements||[]).map(a=>({...a, montant:a.montantMensuel||a.montant||0, jour:a.jourPrelevement||a.jour||1}));
+  _cache.comptes         = comptes  || [];
+  _cache.objectifs_epargne = (oe||[]).map(o=>({...o, cible:o.montantCible||o.cible||0, actuel:o.montantActuel||o.actuel||0}));
+  _cache.urssaf          = urssaf   || {};
+  _cache.repartition     = repartition || {};
+  _cache.objectif_ca     = objCA    || {};
+  // Transactions : on charge jusqu'à 5 pages
+  try {
+    const t1 = await api('GET', '/api/transactions?page=1');
+    const all = [...(t1.transactions||[])];
+    if (t1.pages > 1) {
+      const rest = await Promise.all(
+        Array.from({length: Math.min(t1.pages-1, 4)}, (_,i) =>
+          api('GET', `/api/transactions?page=${i+2}`).then(r=>r.transactions||[]).catch(()=>[])
+        )
+      );
+      rest.forEach(p => all.push(...p));
+    }
+    _cache.transactions = all;
+  } catch { _cache.transactions = []; }
+}
 
 /* ─── 1. CONSTANTES ──────────────────────────────────────────────────── */
 const PLAFOND_BNC = 77700;
