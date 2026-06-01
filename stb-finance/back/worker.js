@@ -122,7 +122,8 @@ async function router(request, env) {
   if (method === 'GET'  && path === '/api/comptes') return listComptes(env, uid);
   if (method === 'POST' && path === '/api/comptes') return createCompte(request, env, uid);
   const mC = path.match(/^\/api\/comptes\/([^/]+)$/);
-  if (mC && method === 'PUT') return updateCompte(request, env, uid, mC[1]);
+  if (mC && method === 'PUT')    return updateCompte(request, env, uid, mC[1]);
+  if (mC && method === 'DELETE') return deleteCompte(env, uid, mC[1]);
   const mCH = path.match(/^\/api\/comptes\/([^/]+)\/historique$/);
   if (mCH && method === 'POST') return addHistoriqueCompte(request, env, uid, mCH[1]);
 
@@ -182,12 +183,16 @@ async function router(request, env) {
    =========================== */
 async function authLogin(request, env) {
   const body = await parseJSON(request);
-  if (!body?.login || !body?.password) return jsonErr(400, 'Champs requis.');
-  const stored = await env.KV_AUTH.get(`${USER_ID}:credentials`, 'json');
+  if (!body?.password) return jsonErr(400, 'Mot de passe requis.');
+  let stored = await env.KV_AUTH.get(`${USER_ID}:credentials`, 'json');
+  if (!stored && env.ADMIN_PASSWORD) {
+    const { hash, salt } = await hasherMDP(env.ADMIN_PASSWORD);
+    stored = { login: USER_ID, hash, salt };
+    await env.KV_AUTH.put(`${USER_ID}:credentials`, JSON.stringify(stored));
+  }
   if (!stored) return jsonErr(401, 'Compte non configuré.');
-  if (body.login !== stored.login) return jsonErr(401, 'Identifiants incorrects.');
   const ok = await verifierMDP(body.password, stored.salt, stored.hash);
-  if (!ok) return jsonErr(401, 'Identifiants incorrects.');
+  if (!ok) return jsonErr(401, 'Mot de passe incorrect.');
   const token = await signerJWT(USER_ID, env);
   return jsonOk({ token });
 }
@@ -501,6 +506,14 @@ async function updateCompte(request, env, uid, id) {
   list[idx].updatedAt = iso();
   await kvEcrire(env, `${uid}:comptes`, list);
   return jsonOk(list[idx]);
+}
+
+async function deleteCompte(env, uid, id) {
+  const list = await kvTableau(env, `${uid}:comptes`);
+  const next = list.filter(x => x.id !== id);
+  if (next.length === list.length) return jsonErr(404, 'Compte introuvable.');
+  await kvEcrire(env, `${uid}:comptes`, next);
+  return jsonOk({ deleted: id });
 }
 
 async function addHistoriqueCompte(request, env, uid, id) {
@@ -973,7 +986,7 @@ function jsonErr(status, message) {
 
 function cors(response, env) {
   const h=new Headers(response.headers);
-  h.set('Access-Control-Allow-Origin', env.CORS_ORIGIN||'*');
+  h.set('Access-Control-Allow-Origin', (env.CORS_ORIGIN||'*').replace(/\/$/, ''));
   h.set('Access-Control-Allow-Methods','GET,POST,PUT,DELETE,OPTIONS');
   h.set('Access-Control-Allow-Headers','Content-Type,Authorization');
   h.set('Access-Control-Max-Age','86400');

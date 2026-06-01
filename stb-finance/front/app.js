@@ -1,4 +1,121 @@
-/* ─── STB Finance — app.js — localStorage autonome ─────────────────── */
+/* ─── STB Finance — app.js — API Cloudflare Workers ─────────────────── */
+
+/* ─── 0. CONFIG API ──────────────────────────────────────────────────── */
+const API_BASE  = 'https://stb-back.orange-math-be7e.workers.dev';
+const TOKEN_KEY = 'stb_jwt';
+
+/* ─── 0b. LOGIN OVERLAY ──────────────────────────────────────────────── */
+function injectLoginOverlay() {
+  if (q('#login-overlay')) return;
+  const div = document.createElement('div');
+  div.id = 'login-overlay';
+  div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:flex;align-items:center;justify-content:center;z-index:9999;';
+  div.innerHTML = `
+    <div style="background:#fff;border:1px solid #E8E8E4;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#051833;margin-bottom:4px;">STB Finance</div>
+      <div style="font-size:13px;color:#6B6B6B;margin-bottom:32px;">Seed to Bloom</div>
+      <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password"
+        style="width:100%;padding:10px 14px;border:1px solid #E8E8E4;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box;outline:none;">
+      <button id="login-btn"
+        style="width:100%;padding:10px;background:#051833;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;">
+        Se connecter
+      </button>
+      <div id="login-error" style="margin-top:12px;font-size:13px;color:#E85454;min-height:18px;"></div>
+    </div>`;
+  document.body.appendChild(div);
+  q('#login-pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  q('#login-btn').addEventListener('click', doLogin);
+}
+
+function showLogin() {
+  injectLoginOverlay();
+  const o = q('#login-overlay');
+  if (o) { o.style.display = 'flex'; q('#login-pwd').value = ''; q('#login-error').textContent = ''; }
+}
+
+function hideLogin() {
+  const o = q('#login-overlay');
+  if (o) o.style.display = 'none';
+}
+
+async function doLogin() {
+  const pwd = q('#login-pwd')?.value || '';
+  if (!pwd) return;
+  q('#login-btn').textContent = '…';
+  q('#login-error').textContent = '';
+  try {
+    const r = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    const data = await r.json();
+    if (!r.ok) { q('#login-error').textContent = data.error || 'Erreur'; q('#login-btn').textContent = 'Se connecter'; return; }
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    hideLogin();
+    await startApp();
+  } catch(e) {
+    q('#login-error').textContent = 'Connexion impossible';
+    q('#login-btn').textContent = 'Se connecter';
+  }
+}
+
+/* ─── 0c. API HELPER ─────────────────────────────────────────────────── */
+async function api(method, path, body) {
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(API_BASE + path, opts);
+  if (r.status === 401) { showLogin(); throw new Error('401'); }
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
+
+/* ─── 0d. CACHE ──────────────────────────────────────────────────────── */
+const _cache = {
+  settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}
+};
+
+async function loadAll() {
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA] = await Promise.all([
+    api('GET', '/api/settings'),
+    api('GET', '/api/factures'),
+    api('GET', '/api/depenses'),
+    api('GET', '/api/abonnements'),
+    api('GET', '/api/comptes'),
+    api('GET', '/api/objectifs/epargne'),
+    api('GET', '/api/urssaf'),
+    api('GET', '/api/repartition'),
+    api('GET', '/api/objectifs/ca'),
+  ]);
+  _cache.settings        = settings || {};
+  _cache.factures        = factures || [];
+  _cache.depenses        = depenses || [];
+  _cache.abonnements     = (abonnements||[]).map(a=>({...a, montant:a.montantMensuel||a.montant||0, jour:a.jourPrelevement||a.jour||1}));
+  _cache.comptes         = comptes  || [];
+  _cache.objectifs_epargne = (oe||[]).map(o=>({...o, cible:o.montantCible||o.cible||0, actuel:o.montantActuel||o.actuel||0}));
+  _cache.urssaf          = urssaf   || {};
+  _cache.repartition     = repartition || {};
+  _cache.objectif_ca     = objCA    || {};
+  // Transactions : on charge jusqu'à 5 pages
+  try {
+    const t1 = await api('GET', '/api/transactions?page=1');
+    const all = [...(t1.transactions||[])];
+    if (t1.pages > 1) {
+      const rest = await Promise.all(
+        Array.from({length: Math.min(t1.pages-1, 4)}, (_,i) =>
+          api('GET', `/api/transactions?page=${i+2}`).then(r=>r.transactions||[]).catch(()=>[])
+        )
+      );
+      rest.forEach(p => all.push(...p));
+    }
+    _cache.transactions = all;
+  } catch { _cache.transactions = []; }
+}
 
 /* ─── 1. CONSTANTES ──────────────────────────────────────────────────── */
 const PLAFOND_BNC = 77700;
@@ -54,62 +171,62 @@ function confirmDialog(title,msg){
   });
 }
 
-/* ─── 5. LOCALSTORAGE DB ─────────────────────────────────────────────── */
-const LS_KEY = 'stb_finance';
+/* ─── 5. DATA LAYER (cache + API) ────────────────────────────────────── */
 
-function db(){return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}
-function saveDB(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
-function dbGet(col){return db()[col]||[];}
-function dbGetObj(col){return db()[col]||{};}
-function dbSet(col,val){const d=db();d[col]=val;saveDB(d);}
+/* Lecture synchrone depuis le cache */
+function dbGet(col){return Array.isArray(_cache[col])?_cache[col]:[];}
+function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array.isArray(_cache[col])?_cache[col]:{};}
 
-function dbCreate(col,item){
-  item.id=item.id||uid();
-  const list=dbGet(col);
-  list.push(item);
-  dbSet(col,list);
-  return item;
-}
-function dbUpdate(col,item){
-  const list=dbGet(col);
-  const i=list.findIndex(x=>x.id===item.id);
-  if(i>=0)list[i]=item;else list.push(item);
-  dbSet(col,list);
-  return item;
-}
-function dbDelete(col,id){
-  dbSet(col,dbGet(col).filter(x=>x.id!==id));
+/* Correspondance colonne → chemin API */
+const _pathCreate = {
+  factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
+  comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne'
+};
+const _pathUpdate = id=>({
+  factures:`/api/factures/${id}`, abonnements:`/api/abonnements/${id}`,
+  comptes:`/api/comptes/${id}`, objectifs_epargne:`/api/objectifs/epargne/${id}`
+});
+const _pathDelete = id=>({
+  factures:`/api/factures/${id}`, depenses:`/api/depenses/${id}`,
+  abonnements:`/api/abonnements/${id}`, comptes:`/api/comptes/${id}`,
+  transactions:`/api/transactions/${id}`, objectifs_epargne:`/api/objectifs/epargne/${id}`
+});
+
+/* Normalisation abonnements (UI ↔ API) */
+function _normAbo(a){return {...a, montant:a.montantMensuel||a.montant||0, jour:a.jourPrelevement||a.jour||1};}
+function _normEpargne(o){return {...o, cible:o.montantCible||o.cible||0, actuel:o.montantActuel||o.actuel||0};}
+
+async function dbCreate(col, item){
+  const path=_pathCreate[col]; if(!path)return item;
+  const r = await api('POST', path, item);
+  const norm = col==='abonnements'?_normAbo(r):col==='objectifs_epargne'?_normEpargne(r):r;
+  _cache[col]=[...(_cache[col]||[]), norm];
+  return norm;
 }
 
-function initDB(){
-  const d=db();
-  if(!d.settings)dbSet('settings',{
-    nom:'Cindy',entreprise:'Seed to Bloom',email:'contact@seedtobloom.fr',
-    tauxUrssaf:25.6,tauxCfp:0.2,pasFixe:40,cfe:0,
-    objectifCA:60000,pctVersement:65,pctEpargne:15,pctTresorerie:20
-  });
-  if(!d.factures)     dbSet('factures',[]);
-  if(!d.depenses)     dbSet('depenses',[]);
-  if(!d.transactions) dbSet('transactions',[]);
-  if(!d.urssaf)       dbSet('urssaf',{});
-  if(!d.repartition)  dbSet('repartition',{versement:0,epargne:0,tresorerie:0});
-  if(!d.objectif_ca)  dbSet('objectif_ca',{valeur:60000});
-  if(!d.abonnements)  dbSet('abonnements',[
-    {id:uid(),nom:'Adobe Creative Cloud',categorie:'Logiciels',montant:61.99,periodicite:'mensuel',jour:1,statut:'actif'},
-    {id:uid(),nom:'Notion Pro',categorie:'Logiciels',montant:16,periodicite:'mensuel',jour:3,statut:'actif'},
-    {id:uid(),nom:'Infomaniak hosting',categorie:'Hébergement',montant:12,periodicite:'mensuel',jour:1,statut:'actif'},
-    {id:uid(),nom:'n8n cloud',categorie:'Logiciels',montant:20,periodicite:'mensuel',jour:15,statut:'actif'},
-  ]);
-  if(!d.comptes) dbSet('comptes',[
-    {id:uid(),nom:'Qonto Pro',type:'courant',solde:0,iban:'',historique:[]},
-    {id:uid(),nom:'Crédit Agricole',type:'courant',solde:0,iban:'',historique:[]},
-    {id:uid(),nom:'Épargne',type:'epargne',solde:0,iban:'',historique:[]},
-  ]);
-  if(!d.objectifs_epargne) dbSet('objectifs_epargne',[
-    {id:uid(),nom:'Trésorerie tampon (3 mois)',cible:3000,actuel:0,dateCible:''},
-    {id:uid(),nom:'Épargne retraite annuelle',cible:2400,actuel:0,dateCible:''},
-    {id:uid(),nom:'Matériel (nouvel ordi)',cible:2000,actuel:0,dateCible:''},
-  ]);
+async function dbUpdate(col, item){
+  const path=_pathUpdate(item.id)[col]; if(!path)return item;
+  const r = await api('PUT', path, item);
+  const norm = col==='abonnements'?_normAbo(r):col==='objectifs_epargne'?_normEpargne(r):r;
+  const list=_cache[col]||[];
+  const idx=list.findIndex(x=>x.id===item.id);
+  if(idx>=0)list[idx]=norm;else list.push(norm);
+  _cache[col]=[...list];
+  return norm;
+}
+
+async function dbDelete(col, id){
+  const path=_pathDelete(id)[col]; if(!path)return;
+  await api('DELETE', path);
+  _cache[col]=(_cache[col]||[]).filter(x=>x.id!==id);
+}
+
+async function dbSet(col, val){
+  if(col==='settings'){_cache.settings=await api('PUT','/api/settings',val);return;}
+  if(col==='repartition'){_cache.repartition=await api('PUT','/api/repartition',val);return;}
+  if(col==='objectif_ca'){_cache.objectif_ca=await api('PUT','/api/objectifs/ca',val);return;}
+  if(col==='urssaf'){_cache.urssaf=val;return;}
+  _cache[col]=val;
 }
 
 /* ─── 6. ROUTER ──────────────────────────────────────────────────────── */
@@ -489,18 +606,14 @@ function openCompteModal(idOuVide=''){
   q('#btn-save-compte').dataset.id=data.id||'';
   openModal('modal-compte');
 }
-function saveCompte(){
+async function saveCompte(){
   const id=q('#btn-save-compte').dataset.id;
-  const body={nom:q('#cpt-nom').value.trim(),type:q('#cpt-type').value,solde:parseFloat(q('#cpt-solde').value)||0,historique:[]};
+  const body={nom:q('#cpt-nom').value.trim(),type:q('#cpt-type').value,solde:parseFloat(q('#cpt-solde').value)||0};
   if(!body.nom){toast('Nom requis','error');return;}
-  if(id){
-    const existing=dbGet('comptes').find(x=>x.id===id);
-    body.id=id;body.historique=existing?.historique||[];
-    dbUpdate('comptes',body);
-  }else{
-    dbCreate('comptes',body);
-  }
-  closeModal('modal-compte');toast('Compte enregistré','success');renderComptes();
+  try{
+    if(id){body.id=id;await dbUpdate('comptes',body);}else{await dbCreate('comptes',body);}
+    closeModal('modal-compte');toast('Compte enregistré','success');renderComptes();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 let _compteUpdateId=null;
 function openCompteUpdateModal(id){
@@ -511,24 +624,23 @@ function openCompteUpdateModal(id){
   q('#cu-libelle').value='';
   openModal('modal-compte-update');
 }
-function saveCompteUpdate(){
+async function saveCompteUpdate(){
   const solde=parseFloat(q('#cu-solde').value);
   const libelle=q('#cu-libelle').value.trim();
   if(isNaN(solde)){toast('Solde invalide','error');return;}
-  const comptes=dbGet('comptes');
-  const idx=comptes.findIndex(x=>x.id===_compteUpdateId);
-  if(idx<0){toast('Compte introuvable','error');return;}
-  comptes[idx].solde=solde;
-  comptes[idx].updatedAt=today();
-  comptes[idx].historique=comptes[idx].historique||[];
-  comptes[idx].historique.push({date:today(),montant:solde,libelle});
-  dbSet('comptes',comptes);
-  closeModal('modal-compte-update');toast('Solde mis à jour','success');renderComptes();
+  try{
+    await api('PUT',`/api/comptes/${_compteUpdateId}`,{solde});
+    await api('POST',`/api/comptes/${_compteUpdateId}/historique`,{date:today(),montant:solde,libelle});
+    // Recharger les comptes depuis l'API
+    _cache.comptes = await api('GET','/api/comptes');
+    closeModal('modal-compte-update');toast('Solde mis à jour','success');renderComptes();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function deleteCompte(id){
-  confirmDialog('Supprimer le compte','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer le compte','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('comptes',id);toast('Compte supprimé');renderComptes();
+    try{await dbDelete('comptes',id);toast('Compte supprimé');renderComptes();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -573,19 +685,23 @@ function openTxnModal(){
   q('#btn-save-txn').dataset.id='';
   openModal('modal-transaction');
 }
-function saveTxn(){
+async function saveTxn(){
   const body={date:q('#txn-date').value,type:q('#txn-type').value,libelle:q('#txn-libelle').value.trim(),compte:q('#txn-compte')?.value||'',montant:parseFloat(q('#txn-montant').value)||0};
   if(!body.libelle){toast('Libellé requis','error');return;}
-  dbCreate('transactions',body);
-  txnData=dbGet('transactions');
-  closeModal('modal-transaction');toast('Transaction enregistrée','success');renderTransactions();
+  try{
+    await dbCreate('transactions',body);
+    txnData=dbGet('transactions');
+    closeModal('modal-transaction');toast('Transaction enregistrée','success');renderTransactions();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function deleteTxn(id){
-  confirmDialog('Supprimer','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('transactions',id);
-    txnData=dbGet('transactions');
-    toast('Transaction supprimée');renderTransactions();
+    try{
+      await dbDelete('transactions',id);
+      txnData=dbGet('transactions');
+      toast('Transaction supprimée');renderTransactions();
+    }catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -643,19 +759,22 @@ function openFactureModal(data={}){
   q('#btn-save-facture').dataset.id=data.id||'';
   openModal('modal-facture');
 }
-function saveFacture(){
+async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
   const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),description:q('#f-description').value.trim(),date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
-  if(id){body.id=id;dbUpdate('factures',body);}else{dbCreate('factures',body);}
-  facturesData=dbGet('factures');
-  closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
+  try{
+    if(id){body.id=id;await dbUpdate('factures',body);}else{await dbCreate('factures',body);}
+    facturesData=dbGet('factures');
+    closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
 function deleteFacture(id){
-  confirmDialog('Supprimer la facture','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer la facture','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('factures',id);facturesData=dbGet('factures');toast('Facture supprimée');loadFactures();
+    try{await dbDelete('factures',id);facturesData=dbGet('factures');toast('Facture supprimée');loadFactures();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -702,11 +821,14 @@ function openObjectifCAModal(){
   q('#obj-ca-val').value=s.objectifCA||60000;
   openModal('modal-objectif-ca');
 }
-function saveObjectifCA(){
+async function saveObjectifCA(){
   const val=parseFloat(q('#obj-ca-val').value)||0;
-  const s=dbGetObj('settings');
-  dbSet('settings',{...s,objectifCA:val});
-  closeModal('modal-objectif-ca');toast('Objectif mis à jour','success');loadObjectifsCA();
+  try{
+    await dbSet('objectif_ca',{annee:new Date().getFullYear(),montant:val});
+    const s=dbGetObj('settings');
+    await dbSet('settings',{...s,objectifCA:val});
+    closeModal('modal-objectif-ca');toast('Objectif mis à jour','success');loadObjectifsCA();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Dépenses --------------------------------------------------------- */
@@ -761,19 +883,22 @@ function openDepenseModal(data={}){
   q('#btn-save-depense').dataset.id=data.id||'';
   openModal('modal-depense');
 }
-function saveDepense(){
+async function saveDepense(){
   const id=q('#btn-save-depense').dataset.id;
   const body={date:q('#d-date').value,categorie:q('#d-categorie').value,description:q('#d-description').value.trim(),montant:parseFloat(q('#d-montant').value)||0};
   if(!body.description){toast('Description requise','error');return;}
-  if(id){body.id=id;dbUpdate('depenses',body);}else{dbCreate('depenses',body);}
-  depensesData=dbGet('depenses');
-  closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+  try{
+    if(id){body.id=id;await dbUpdate('depenses',body);}else{await dbCreate('depenses',body);}
+    depensesData=dbGet('depenses');
+    closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editDepense(id){const d=depensesData.find(x=>x.id===id);if(d)openDepenseModal(d);}
 function deleteDepense(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('depenses',id);depensesData=dbGet('depenses');toast('Dépense supprimée');loadDepenses();
+    try{await dbDelete('depenses',id);depensesData=dbGet('depenses');toast('Dépense supprimée');loadDepenses();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -850,19 +975,25 @@ function openAbonnementModal(data={}){
   q('#btn-save-abonnement').dataset.id=data.id||'';
   openModal('modal-abonnement');
 }
-function saveAbonnement(){
+async function saveAbonnement(){
   const id=q('#btn-save-abonnement').dataset.id;
-  const body={nom:q('#abo-nom').value.trim(),montant:parseFloat(q('#abo-montant').value)||0,jour:parseInt(q('#abo-jour').value)||1,categorie:q('#abo-categorie').value,statut:q('#abo-statut').value,periodicite:'mensuel'};
-  if(!body.nom){toast('Nom requis','error');return;}
-  if(id){body.id=id;dbUpdate('abonnements',body);}else{dbCreate('abonnements',body);}
-  aboData=dbGet('abonnements');
-  closeModal('modal-abonnement');toast('Abonnement enregistré','success');loadAbonnements();
+  const nom=q('#abo-nom').value.trim();
+  const montantMensuel=parseFloat(q('#abo-montant').value)||0;
+  const jourPrelevement=parseInt(q('#abo-jour').value)||1;
+  const body={nom,montantMensuel,jourPrelevement,categorie:q('#abo-categorie').value,statut:q('#abo-statut').value};
+  if(!nom){toast('Nom requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('abonnements',body);}else{await dbCreate('abonnements',body);}
+    aboData=dbGet('abonnements');
+    closeModal('modal-abonnement');toast('Abonnement enregistré','success');loadAbonnements();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editAbonnement(id){const a=aboData.find(x=>x.id===id);if(a)openAbonnementModal(a);}
 function deleteAbonnement(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('abonnements',id);aboData=dbGet('abonnements');toast('Supprimé');loadAbonnements();
+    try{await dbDelete('abonnements',id);aboData=dbGet('abonnements');toast('Supprimé');loadAbonnements();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -952,13 +1083,14 @@ function openURSSAFPaiement(cle){
   q('#urs-date-paye').value=today();q('#urs-montant-paye').value='';
   openModal('modal-urssaf');
 }
-function saveURSSAFPaiement(){
+async function saveURSSAFPaiement(){
   const montantPaye=parseFloat(q('#urs-montant-paye').value)||0;
   const datePaye=q('#urs-date-paye').value;
-  const urssafObj=dbGetObj('urssaf');
-  urssafObj[urssafCurrentCle]={...urssafObj[urssafCurrentCle]||{},statut:'paye',montantPaye,datePaye};
-  dbSet('urssaf',urssafObj);
-  closeModal('modal-urssaf');toast('Paiement enregistré','success');loadChargesURSSAF();
+  try{
+    await api('PUT',`/api/urssaf/${urssafCurrentCle}`,{statut:'paye',montantPaye,datePaye});
+    _cache.urssaf = await api('GET','/api/urssaf');
+    closeModal('modal-urssaf');toast('Paiement enregistré','success');loadChargesURSSAF();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Répartition ------------------------------------------------------ */
@@ -990,9 +1122,10 @@ function loadRepartition(){
   const c2=q('#chart-rep-bar');
   if(c2)drawBarChart(c2,['Versement','Épargne','Tréso'],[{data:[recommV,recommE,recommT],color:COLORS.muted},{data:[rv,re,rt],color:COLORS.navy}]);
 }
-function saveRepartition(){
+async function saveRepartition(){
   const body={versement:parseFloat(q('#rep-input-versement').value)||0,epargne:parseFloat(q('#rep-input-epargne').value)||0,tresorerie:parseFloat(q('#rep-input-tresorerie').value)||0};
-  dbSet('repartition',body);toast('Répartition enregistrée','success');loadRepartition();
+  try{await dbSet('repartition',body);toast('Répartition enregistrée','success');loadRepartition();}
+  catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* --- Objectifs épargne ------------------------------------------------ */
@@ -1032,19 +1165,25 @@ function openEpargneGoalModal(data={}){
   q('#btn-save-obj-epargne').dataset.id=data.id||'';
   openModal('modal-objectif-epargne');
 }
-function saveEpargneGoal(){
+async function saveEpargneGoal(){
   const id=q('#btn-save-obj-epargne').dataset.id;
-  const body={nom:q('#obj-nom').value.trim(),cible:parseFloat(q('#obj-cible').value)||0,actuel:parseFloat(q('#obj-actuel').value)||0,dateCible:q('#obj-date').value||''};
-  if(!body.nom||!body.cible){toast('Nom et cible requis','error');return;}
-  if(id){body.id=id;dbUpdate('objectifs_epargne',body);}else{dbCreate('objectifs_epargne',body);}
-  epargneGoals=dbGet('objectifs_epargne');
-  closeModal('modal-objectif-epargne');toast('Objectif enregistré','success');renderEpargneGoals();
+  const nom=q('#obj-nom').value.trim();
+  const montantCible=parseFloat(q('#obj-cible').value)||0;
+  const montantActuel=parseFloat(q('#obj-actuel').value)||0;
+  const body={nom,montantCible,montantActuel,dateCible:q('#obj-date').value||''};
+  if(!nom||!montantCible){toast('Nom et cible requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('objectifs_epargne',body);}else{await dbCreate('objectifs_epargne',body);}
+    epargneGoals=dbGet('objectifs_epargne');
+    closeModal('modal-objectif-epargne');toast('Objectif enregistré','success');renderEpargneGoals();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editEpargneGoal(id){const g=epargneGoals.find(x=>x.id===id);if(g)openEpargneGoalModal(g);}
 function deleteEpargneGoal(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('objectifs_epargne',id);epargneGoals=dbGet('objectifs_epargne');toast('Supprimé');renderEpargneGoals();
+    try{await dbDelete('objectifs_epargne',id);epargneGoals=dbGet('objectifs_epargne');toast('Supprimé');renderEpargneGoals();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -1371,45 +1510,48 @@ function previewImport(type,rows){
     }).join('');
   if(btn)btn.style.display='inline-flex';
 }
-function doImportFactures(){
+async function doImportFactures(){
   if(!importFacturesParsed)return;
-  const existing=dbGet('factures').map(f=>f.numero);
-  let importees=0,doublons=0;
-  importFacturesParsed.forEach(r=>{
-    const num=r.numero||r['n° facture']||r.number||'';
-    if(num&&existing.includes(num)){doublons++;return;}
-    dbCreate('factures',{numero:num,client:r.client||'',description:r.description||r.objet||'',date:r.date||today(),montant:parseFloat(r.montant)||0,statut:r.statut||'attente'});
-    importees++;
-  });
-  toast(`Importées : ${importees} · Doublons ignorés : ${doublons}`,'success');
-  importFacturesParsed=null;
-  const prev=q('#import-factures-preview');if(prev)prev.style.display='none';
-  const btn=q('#btn-import-factures');if(btn)btn.style.display='none';
+  const lignes=importFacturesParsed.map(r=>({
+    numero:r.numero||r['n° facture']||r.number||'',
+    client:r.client||'',description:r.description||r.objet||'',
+    date:r.date||today(),montant:parseFloat(r.montant)||0,statut:r.statut||'attente'
+  }));
+  try{
+    const res=await api('POST','/api/import/factures',{lignes});
+    _cache.factures=await api('GET','/api/factures');
+    toast(`Importées : ${res.importees} · Doublons ignorés : ${res.doublons}`,'success');
+    importFacturesParsed=null;
+    const prev=q('#import-factures-preview');if(prev)prev.style.display='none';
+    const btn=q('#btn-import-factures');if(btn)btn.style.display='none';
+  }catch(e){toast(e.message||'Erreur','error');}
 }
-function doImportDepenses(){
+async function doImportDepenses(){
   if(!importDepensesParsed)return;
-  let importees=0;
-  importDepensesParsed.forEach(r=>{
-    dbCreate('depenses',{date:r.date||today(),categorie:r.categorie||'Autre',description:r.description||r.libelle||'',montant:parseFloat(r.montant)||0});
-    importees++;
-  });
-  toast(`Importées : ${importees}`,'success');
-  importDepensesParsed=null;
-  const prev=q('#import-depenses-preview');if(prev)prev.style.display='none';
-  const btn=q('#btn-import-depenses');if(btn)btn.style.display='none';
+  const lignes=importDepensesParsed.map(r=>({
+    date:r.date||today(),categorie:r.categorie||'Autre',
+    description:r.description||r.libelle||'',montant:parseFloat(r.montant)||0
+  }));
+  try{
+    const res=await api('POST','/api/import/depenses',{lignes});
+    _cache.depenses=await api('GET','/api/depenses');
+    toast(`Importées : ${res.importees}`,'success');
+    importDepensesParsed=null;
+    const prev=q('#import-depenses-preview');if(prev)prev.style.display='none';
+    const btn=q('#btn-import-depenses');if(btn)btn.style.display='none';
+  }catch(e){toast(e.message||'Erreur','error');}
 }
-function exportCSV(type){
-  const data=dbGet(type);
-  if(!data.length){toast('Aucune donnée à exporter','error');return;}
-  const keys=Object.keys(data[0]).filter(k=>k!=='historique');
-  const header=keys.join(',');
-  const rows=data.map(d=>keys.map(k=>`"${(d[k]??'').toString().replace(/"/g,'""')}"`).join(','));
-  const csv=[header,...rows].join('\n');
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`${type}-${today()}.csv`;a.click();
-  URL.revokeObjectURL(url);
+async function exportCSV(type){
+  try{
+    const token=sessionStorage.getItem(TOKEN_KEY);
+    const r=await fetch(`${API_BASE}/api/export/${type}`,{headers:{Authorization:`Bearer ${token}`}});
+    if(r.status===401){showLogin();return;}
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`${type}-${today()}.csv`;a.click();
+    URL.revokeObjectURL(url);
+  }catch(e){toast(e.message||'Erreur export','error');}
 }
 
 /* --- Options ---------------------------------------------------------- */
@@ -1436,7 +1578,7 @@ function updateOptTotal(){
   const alEl=q('#opt-total-alerte');
   if(alEl)alEl.innerHTML=total===100?`<span style="color:var(--success);">✓ Total : 100%</span>`:`<span style="color:var(--danger);">Total : ${total}% (doit être égal à 100%)</span>`;
 }
-function saveOptions(){
+async function saveOptions(){
   const v=parseFloat(q('#opt-versement')?.value)||65;
   const e=parseFloat(q('#opt-epargne-pct')?.value)||15;
   const t=parseFloat(q('#opt-tresorerie-pct')?.value)||20;
@@ -1452,13 +1594,18 @@ function saveOptions(){
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
-  dbSet('settings',body);
-  toast('Options enregistrées','success');
+  try{await dbSet('settings',body);toast('Options enregistrées','success');}
+  catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
-function init(){
-  initDB();
+async function startApp(){
+  try { await loadAll(); } catch(e) { if(e.message==='401')return; toast('Erreur chargement données','error'); }
+  navigate('dashboard');
+}
+
+async function init(){
+  injectLoginOverlay();
   initModals();
 
   // Navigation sidebar
@@ -1540,8 +1687,13 @@ function init(){
   q('#btn-save-options')?.addEventListener('click',saveOptions);
   ['#opt-versement','#opt-epargne-pct','#opt-tresorerie-pct'].forEach(id=>q(id)?.addEventListener('input',updateOptTotal));
 
-  // Démarrage
-  navigate('dashboard');
+  // Démarrage : vérifier si on a déjà un token valide
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  if (token) {
+    await startApp();
+  } else {
+    showLogin();
+  }
 }
 
 document.addEventListener('DOMContentLoaded',init);
