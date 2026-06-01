@@ -237,14 +237,8 @@ function drawGroupedBarChart(canvas,labels,datasets){
 }
 
 /* ─── Show/Hide ──────────────────────────────────────────────────────── */
-function showLogin(){
-  q('#login-screen').style.display='flex';
-  q('#app').style.display='none';
-}
-function showApp(){
-  q('#login-screen').style.display='none';
-  q('#app').style.display='flex';
-}
+function showLogin(){}
+function showApp(){}
 
 /* ─── Dashboard ──────────────────────────────────────────────────────── */
 async function loadDashboard(){
@@ -1259,22 +1253,6 @@ async function changePassword(){
 function init(){
   initModals();
 
-  // Login
-  q('#login-form').onsubmit=async e=>{
-    e.preventDefault();
-    const btn=q('#login-btn');btn.disabled=true;btn.textContent='Connexion…';
-    try{
-      await login(q('#login-password').value);
-      showApp();
-      await load('settings','/api/settings');
-      navigate('dashboard');
-    }catch(err){
-      const errEl=q('#login-error');errEl.textContent=err.message;errEl.classList.add('show');
-    }finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-login"></i> Se connecter';}
-  };
-
-  // Logout
-  q('#logout-btn').onclick=logout;
 
   // Nav
   document.addEventListener('click',e=>{
@@ -1359,12 +1337,9 @@ function init(){
   q('#btn-change-pwd')?.onclick=changePassword;
   ['#opt-versement','#opt-epargne-pct','#opt-tresorerie-pct'].forEach(id=>q(id)?.addEventListener('input',updateOptTotal));
 
-  // Démarrage
-  if(isLoggedIn()){
-    showApp();
-    load('settings','/api/settings').then(()=>navigate('dashboard'));
-  } else {
-    showLogin();
+  // Démarrage direct sans connexion
+  navigate('dashboard');
+  if(false){
   }
 }
 

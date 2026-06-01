@@ -12,32 +12,8 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     ÉCRAN DE CONNEXION
-     ═══════════════════════════════════════ -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <span class="logo-name">Seed to Bloom</span>
-      <span class="logo-sub">finance</span>
-    </div>
-    <div id="login-error" class="login-error"></div>
-    <form id="login-form">
-      <div class="form-group">
-        <label class="form-label">Mot de passe</label>
-        <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" required />
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" id="login-btn">
-        <i class="ti ti-login"></i> Se connecter
-      </button>
-    </form>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════
-     APP SHELL
-     ═══════════════════════════════════════ -->
-<div id="app" style="display:none;">
+<!-- APP SHELL -->
+<div id="app">
 
   <!-- SIDEBAR -->
   <aside id="sidebar">
@@ -148,9 +124,6 @@
           <div class="user-company">Seed to Bloom</div>
         </div>
       </div>
-      <button class="btn-logout" id="logout-btn">
-        <i class="ti ti-logout"></i> Déconnexion
-      </button>
     </div>
   </aside>
 
