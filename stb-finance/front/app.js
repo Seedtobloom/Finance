@@ -606,18 +606,14 @@ function openCompteModal(idOuVide=''){
   q('#btn-save-compte').dataset.id=data.id||'';
   openModal('modal-compte');
 }
-function saveCompte(){
+async function saveCompte(){
   const id=q('#btn-save-compte').dataset.id;
-  const body={nom:q('#cpt-nom').value.trim(),type:q('#cpt-type').value,solde:parseFloat(q('#cpt-solde').value)||0,historique:[]};
+  const body={nom:q('#cpt-nom').value.trim(),type:q('#cpt-type').value,solde:parseFloat(q('#cpt-solde').value)||0};
   if(!body.nom){toast('Nom requis','error');return;}
-  if(id){
-    const existing=dbGet('comptes').find(x=>x.id===id);
-    body.id=id;body.historique=existing?.historique||[];
-    dbUpdate('comptes',body);
-  }else{
-    dbCreate('comptes',body);
-  }
-  closeModal('modal-compte');toast('Compte enregistré','success');renderComptes();
+  try{
+    if(id){body.id=id;await dbUpdate('comptes',body);}else{await dbCreate('comptes',body);}
+    closeModal('modal-compte');toast('Compte enregistré','success');renderComptes();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 let _compteUpdateId=null;
 function openCompteUpdateModal(id){
@@ -628,24 +624,23 @@ function openCompteUpdateModal(id){
   q('#cu-libelle').value='';
   openModal('modal-compte-update');
 }
-function saveCompteUpdate(){
+async function saveCompteUpdate(){
   const solde=parseFloat(q('#cu-solde').value);
   const libelle=q('#cu-libelle').value.trim();
   if(isNaN(solde)){toast('Solde invalide','error');return;}
-  const comptes=dbGet('comptes');
-  const idx=comptes.findIndex(x=>x.id===_compteUpdateId);
-  if(idx<0){toast('Compte introuvable','error');return;}
-  comptes[idx].solde=solde;
-  comptes[idx].updatedAt=today();
-  comptes[idx].historique=comptes[idx].historique||[];
-  comptes[idx].historique.push({date:today(),montant:solde,libelle});
-  dbSet('comptes',comptes);
-  closeModal('modal-compte-update');toast('Solde mis à jour','success');renderComptes();
+  try{
+    await api('PUT',`/api/comptes/${_compteUpdateId}`,{solde});
+    await api('POST',`/api/comptes/${_compteUpdateId}/historique`,{date:today(),montant:solde,libelle});
+    // Recharger les comptes depuis l'API
+    _cache.comptes = await api('GET','/api/comptes');
+    closeModal('modal-compte-update');toast('Solde mis à jour','success');renderComptes();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function deleteCompte(id){
-  confirmDialog('Supprimer le compte','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer le compte','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('comptes',id);toast('Compte supprimé');renderComptes();
+    try{await dbDelete('comptes',id);toast('Compte supprimé');renderComptes();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -690,19 +685,23 @@ function openTxnModal(){
   q('#btn-save-txn').dataset.id='';
   openModal('modal-transaction');
 }
-function saveTxn(){
+async function saveTxn(){
   const body={date:q('#txn-date').value,type:q('#txn-type').value,libelle:q('#txn-libelle').value.trim(),compte:q('#txn-compte')?.value||'',montant:parseFloat(q('#txn-montant').value)||0};
   if(!body.libelle){toast('Libellé requis','error');return;}
-  dbCreate('transactions',body);
-  txnData=dbGet('transactions');
-  closeModal('modal-transaction');toast('Transaction enregistrée','success');renderTransactions();
+  try{
+    await dbCreate('transactions',body);
+    txnData=dbGet('transactions');
+    closeModal('modal-transaction');toast('Transaction enregistrée','success');renderTransactions();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function deleteTxn(id){
-  confirmDialog('Supprimer','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('transactions',id);
-    txnData=dbGet('transactions');
-    toast('Transaction supprimée');renderTransactions();
+    try{
+      await dbDelete('transactions',id);
+      txnData=dbGet('transactions');
+      toast('Transaction supprimée');renderTransactions();
+    }catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -760,19 +759,22 @@ function openFactureModal(data={}){
   q('#btn-save-facture').dataset.id=data.id||'';
   openModal('modal-facture');
 }
-function saveFacture(){
+async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
   const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),description:q('#f-description').value.trim(),date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
-  if(id){body.id=id;dbUpdate('factures',body);}else{dbCreate('factures',body);}
-  facturesData=dbGet('factures');
-  closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
+  try{
+    if(id){body.id=id;await dbUpdate('factures',body);}else{await dbCreate('factures',body);}
+    facturesData=dbGet('factures');
+    closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
 function deleteFacture(id){
-  confirmDialog('Supprimer la facture','Cette action est irréversible.').then(ok=>{
+  confirmDialog('Supprimer la facture','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('factures',id);facturesData=dbGet('factures');toast('Facture supprimée');loadFactures();
+    try{await dbDelete('factures',id);facturesData=dbGet('factures');toast('Facture supprimée');loadFactures();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -878,19 +880,22 @@ function openDepenseModal(data={}){
   q('#btn-save-depense').dataset.id=data.id||'';
   openModal('modal-depense');
 }
-function saveDepense(){
+async function saveDepense(){
   const id=q('#btn-save-depense').dataset.id;
   const body={date:q('#d-date').value,categorie:q('#d-categorie').value,description:q('#d-description').value.trim(),montant:parseFloat(q('#d-montant').value)||0};
   if(!body.description){toast('Description requise','error');return;}
-  if(id){body.id=id;dbUpdate('depenses',body);}else{dbCreate('depenses',body);}
-  depensesData=dbGet('depenses');
-  closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+  try{
+    if(id){body.id=id;await dbUpdate('depenses',body);}else{await dbCreate('depenses',body);}
+    depensesData=dbGet('depenses');
+    closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editDepense(id){const d=depensesData.find(x=>x.id===id);if(d)openDepenseModal(d);}
 function deleteDepense(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('depenses',id);depensesData=dbGet('depenses');toast('Dépense supprimée');loadDepenses();
+    try{await dbDelete('depenses',id);depensesData=dbGet('depenses');toast('Dépense supprimée');loadDepenses();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
@@ -967,19 +972,25 @@ function openAbonnementModal(data={}){
   q('#btn-save-abonnement').dataset.id=data.id||'';
   openModal('modal-abonnement');
 }
-function saveAbonnement(){
+async function saveAbonnement(){
   const id=q('#btn-save-abonnement').dataset.id;
-  const body={nom:q('#abo-nom').value.trim(),montant:parseFloat(q('#abo-montant').value)||0,jour:parseInt(q('#abo-jour').value)||1,categorie:q('#abo-categorie').value,statut:q('#abo-statut').value,periodicite:'mensuel'};
-  if(!body.nom){toast('Nom requis','error');return;}
-  if(id){body.id=id;dbUpdate('abonnements',body);}else{dbCreate('abonnements',body);}
-  aboData=dbGet('abonnements');
-  closeModal('modal-abonnement');toast('Abonnement enregistré','success');loadAbonnements();
+  const nom=q('#abo-nom').value.trim();
+  const montantMensuel=parseFloat(q('#abo-montant').value)||0;
+  const jourPrelevement=parseInt(q('#abo-jour').value)||1;
+  const body={nom,montantMensuel,jourPrelevement,categorie:q('#abo-categorie').value,statut:q('#abo-statut').value};
+  if(!nom){toast('Nom requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('abonnements',body);}else{await dbCreate('abonnements',body);}
+    aboData=dbGet('abonnements');
+    closeModal('modal-abonnement');toast('Abonnement enregistré','success');loadAbonnements();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 function editAbonnement(id){const a=aboData.find(x=>x.id===id);if(a)openAbonnementModal(a);}
 function deleteAbonnement(id){
-  confirmDialog('Supprimer','Irréversible.').then(ok=>{
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
     if(!ok)return;
-    dbDelete('abonnements',id);aboData=dbGet('abonnements');toast('Supprimé');loadAbonnements();
+    try{await dbDelete('abonnements',id);aboData=dbGet('abonnements');toast('Supprimé');loadAbonnements();}
+    catch(e){toast(e.message||'Erreur','error');}
   });
 }
 
