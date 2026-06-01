@@ -18,7 +18,7 @@
 [[workers]]
 name       = "stb-finance-api"
 main       = "back/worker.js"
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b798e3f19293ab8af47b8891ea3c52ba"
 
 compatibility_date  = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
@@ -37,20 +37,20 @@ CORS_ORIGIN = "https://finance.seedtobloom.fr"
 [[workers.kv_namespaces]]
 # Stocke : credentials (mdp hashé PBKDF2), sessions révoquées
 binding    = "KV_AUTH"
-id         = "YOUR_KV_AUTH_NAMESPACE_ID"
-preview_id = "YOUR_KV_AUTH_PREVIEW_NAMESPACE_ID"
+id         = "28cd6d8c1ad34c40a0afa32a88604df1"
+preview_id = "28cd6d8c1ad34c40a0afa32a88604df1"
 
 [[workers.kv_namespaces]]
 # Stocke : factures, devis, dépenses (JSON par clé utilisateur)
 binding    = "KV_DATA"
-id         = "YOUR_KV_DATA_NAMESPACE_ID"
-preview_id = "YOUR_KV_DATA_PREVIEW_NAMESPACE_ID"
+id         = "f858ddb63cad49439a2dd1ec9d1cb76f"
+preview_id = "f858ddb63cad49439a2dd1ec9d1cb76f"
 
 [[workers.r2_buckets]]
 # Bucket pour les PDF générés et éventuels exports
 binding     = "R2_FINANCE"
-bucket_name = "YOUR_R2_BUCKET_NAME"
-preview_bucket_name = "YOUR_R2_PREVIEW_BUCKET_NAME"
+bucket_name = "finance"
+preview_bucket_name = "finance"
 
 [[workers.routes]]
 pattern = "finance.seedtobloom.fr/api/*"
@@ -61,7 +61,7 @@ zone_name = "seedtobloom.fr"
 [[workers]]
 name       = "stb-finance-front"
 main       = "front/worker.js"
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b798e3f19293ab8af47b8891ea3c52ba"
 
 compatibility_date = "2024-09-23"
 
@@ -71,8 +71,8 @@ API_BASE_URL = "https://finance.seedtobloom.fr/api"
 [[workers.r2_buckets]]
 # Même bucket R2 — le front lit les assets, l'API écrit les PDF
 binding     = "R2_FINANCE"
-bucket_name = "YOUR_R2_BUCKET_NAME"
-preview_bucket_name = "YOUR_R2_PREVIEW_BUCKET_NAME"
+bucket_name = "finance"
+preview_bucket_name = "finance"
 
 [[workers.routes]]
 pattern = "finance.seedtobloom.fr/*"
