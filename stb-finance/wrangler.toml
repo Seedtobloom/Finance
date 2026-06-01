@@ -61,7 +61,7 @@ zone_name = "seedtobloom.fr"
 [[workers]]
 name       = "stb-finance-front"
 main       = "front/worker.js"
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b798e3f19293ab8af47b8891ea3c52ba"
 
 compatibility_date = "2024-09-23"
 
@@ -71,8 +71,8 @@ API_BASE_URL = "https://finance.seedtobloom.fr/api"
 [[workers.r2_buckets]]
 # Même bucket R2 — le front lit les assets, l'API écrit les PDF
 binding     = "R2_FINANCE"
-bucket_name = "YOUR_R2_BUCKET_NAME"
-preview_bucket_name = "YOUR_R2_PREVIEW_BUCKET_NAME"
+bucket_name = "finance"
+preview_bucket_name = "finance"
 
 [[workers.routes]]
 pattern = "finance.seedtobloom.fr/*"
