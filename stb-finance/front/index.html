@@ -3,1022 +3,1570 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>STB Finance</title>
+  <title>Seed to Bloom — Finance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ═══════════════════════════════════════
+     ÉCRAN DE CONNEXION
+     ═══════════════════════════════════════ -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">STB Finance</div>
-    <p class="login-sub">Espace de gestion financière</p>
+    <div class="login-logo">
+      <span class="logo-name">Seed to Bloom</span>
+      <span class="logo-sub">finance</span>
+    </div>
+    <div id="login-error" class="login-error"></div>
     <form id="login-form">
-      <div class="field">
-        <label>Mot de passe</label>
-        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required />
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password" required />
       </div>
-      <button type="submit" class="btn-primary w-full" id="login-btn">Se connecter</button>
-      <p id="login-error" class="form-error hidden"></p>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" id="login-btn">
+        <i class="ti ti-login"></i> Se connecter
+      </button>
     </form>
   </div>
 </div>
 
-<!-- APP SHELL -->
-<div id="app" class="hidden">
+<!-- ═══════════════════════════════════════
+     APP SHELL
+     ═══════════════════════════════════════ -->
+<div id="app" style="display:none;">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <span class="sidebar-logo">STB Finance</span>
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-name">Seed to Bloom</span>
+      <span class="logo-sub">finance</span>
     </div>
-    <nav class="sidebar-nav">
+
+    <nav id="sidebar-nav">
+
+      <!-- TABLEAU DE BORD -->
       <div class="nav-group">
-        <span class="nav-group-label">Vue d'ensemble</span>
-        <a class="nav-item" data-section="dashboard"><i class="ti ti-layout-dashboard"></i> Tableau de bord</a>
-        <a class="nav-item" data-section="tresorerie"><i class="ti ti-wallet"></i> Trésorerie</a>
-        <a class="nav-item" data-section="repartition"><i class="ti ti-chart-pie"></i> Répartition</a>
+        <a class="nav-item" data-section="dashboard">
+          <i class="ti ti-layout-dashboard"></i> Tableau de bord
+        </a>
       </div>
+
+      <!-- MES FINANCES -->
       <div class="nav-group">
-        <span class="nav-group-label">Activité</span>
-        <a class="nav-item" data-section="factures"><i class="ti ti-file-invoice"></i> Factures</a>
-        <a class="nav-item" data-section="depenses"><i class="ti ti-receipt"></i> Dépenses</a>
-        <a class="nav-item" data-section="abonnements"><i class="ti ti-repeat"></i> Abonnements</a>
-        <a class="nav-item" data-section="comptes"><i class="ti ti-building-bank"></i> Comptes</a>
-        <a class="nav-item" data-section="transactions"><i class="ti ti-arrows-exchange"></i> Transactions</a>
+        <span class="nav-group-label">Mes finances</span>
+        <a class="nav-item" data-section="vue-ensemble">
+          <i class="ti ti-chart-area"></i> Vue d'ensemble
+        </a>
+        <a class="nav-item" data-section="comptes">
+          <i class="ti ti-building-bank"></i> Comptes
+        </a>
+        <a class="nav-item" data-section="transactions">
+          <i class="ti ti-arrows-exchange"></i> Transactions
+        </a>
       </div>
+
+      <!-- REVENUS -->
       <div class="nav-group">
-        <span class="nav-group-label">Fiscal</span>
-        <a class="nav-item" data-section="urssaf"><i class="ti ti-calendar-due"></i> URSSAF</a>
-        <a class="nav-item" data-section="objectifs-ca"><i class="ti ti-target"></i> Objectif CA</a>
-        <a class="nav-item" data-section="objectifs-epargne"><i class="ti ti-piggy-bank"></i> Épargne</a>
+        <span class="nav-group-label">Revenus</span>
+        <a class="nav-item" data-section="factures">
+          <i class="ti ti-file-invoice"></i> CA &amp; Factures
+        </a>
+        <a class="nav-item" data-section="objectifs-ca">
+          <i class="ti ti-target"></i> Objectifs de CA
+        </a>
       </div>
+
+      <!-- DÉPENSES -->
       <div class="nav-group">
-        <span class="nav-group-label">Analyses</span>
-        <a class="nav-item" data-section="rapports"><i class="ti ti-report"></i> Rapports</a>
-        <a class="nav-item" data-section="simulateur"><i class="ti ti-calculator"></i> Simulateur</a>
+        <span class="nav-group-label">Dépenses</span>
+        <a class="nav-item" data-section="depenses">
+          <i class="ti ti-receipt"></i> Dépenses pro
+        </a>
+        <a class="nav-item" data-section="abonnements">
+          <i class="ti ti-repeat"></i> Abonnements
+        </a>
+        <a class="nav-item" data-section="charges-urssaf">
+          <i class="ti ti-calendar-due"></i> Charges &amp; URSSAF
+        </a>
       </div>
+
+      <!-- ÉPARGNE & INVESTISSEMENT -->
       <div class="nav-group">
-        <span class="nav-group-label">Données</span>
-        <a class="nav-item" data-section="import-export"><i class="ti ti-database-import"></i> Import / Export</a>
-        <a class="nav-item" data-section="options"><i class="ti ti-settings"></i> Options</a>
+        <span class="nav-group-label">Épargne &amp; Investissement</span>
+        <a class="nav-item" data-section="repartition">
+          <i class="ti ti-chart-pie"></i> Répartition
+        </a>
+        <a class="nav-item" data-section="objectifs-epargne">
+          <i class="ti ti-piggy-bank"></i> Objectifs
+        </a>
       </div>
-    </nav>
+
+      <!-- RAPPORTS -->
+      <div class="nav-group">
+        <span class="nav-group-label">Rapports</span>
+        <a class="nav-item" data-section="rapport-mensuel">
+          <i class="ti ti-report"></i> Mensuel
+        </a>
+        <a class="nav-item" data-section="rapport-annuel">
+          <i class="ti ti-report-analytics"></i> Annuel
+        </a>
+        <a class="nav-item" data-section="rapport-fiscal">
+          <i class="ti ti-report-money"></i> Fiscal BNC
+        </a>
+      </div>
+
+      <!-- OUTILS -->
+      <div class="nav-group">
+        <span class="nav-group-label">Outils</span>
+        <a class="nav-item" data-section="simulateur">
+          <i class="ti ti-calculator"></i> Simulateur de versement
+        </a>
+        <a class="nav-item" data-section="import-export">
+          <i class="ti ti-database-import"></i> Import / Export
+        </a>
+      </div>
+
+      <!-- OPTIONS -->
+      <div class="nav-group">
+        <a class="nav-item" data-section="options">
+          <i class="ti ti-settings"></i> Options
+        </a>
+      </div>
+
+    </nav><!-- /nav -->
+
+    <!-- BAS SIDEBAR -->
     <div class="sidebar-footer">
-      <button class="btn-ghost btn-sm" id="logout-btn"><i class="ti ti-logout"></i> Déconnexion</button>
+      <div class="sidebar-user">
+        <div class="user-avatar">C</div>
+        <div class="user-info">
+          <div class="user-name">Cindy</div>
+          <div class="user-company">Seed to Bloom</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="logout-btn">
+        <i class="ti ti-logout"></i> Déconnexion
+      </button>
     </div>
   </aside>
 
-  <!-- MAIN -->
-  <main class="main">
+  <!-- MAIN CONTENT -->
+  <main id="main">
 
-    <!-- DASHBOARD -->
+    <!-- ═══════════════════════════
+         TABLEAU DE BORD
+         ═══════════════════════════ -->
     <section id="section-dashboard" class="section">
       <div class="page-header">
-        <h1 class="page-title">Tableau de bord</h1>
-        <p class="page-sub" id="dash-period"></p>
-      </div>
-      <div class="kpi-grid" id="dash-kpis">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">CA encaissé (année)</span>
-          <span class="kpi-value" id="kpi-ca">—</span>
-          <span class="kpi-badge" id="kpi-ca-badge"></span>
-          <i class="ti ti-trending-up kpi-icon"></i>
+        <div class="page-header-left">
+          <h1>Tableau de bord</h1>
+          <div class="page-subtitle" id="dash-period"></div>
         </div>
-        <div class="kpi-card kpi-brown">
-          <span class="kpi-label">Factures en attente</span>
-          <span class="kpi-value" id="kpi-attente">—</span>
-          <span class="kpi-badge" id="kpi-attente-badge"></span>
-          <i class="ti ti-clock kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Dépenses (mois)</span>
-          <span class="kpi-value" id="kpi-depenses">—</span>
-          <span class="kpi-badge" id="kpi-depenses-badge"></span>
-          <i class="ti ti-receipt kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Solde trésorerie</span>
-          <span class="kpi-value" id="kpi-tresorerie">—</span>
-          <span class="kpi-badge" id="kpi-tresorerie-badge"></span>
-          <i class="ti ti-wallet kpi-icon"></i>
+        <div class="page-header-right">
+          <button class="btn btn-secondary btn-sm" id="dash-refresh-btn">
+            <i class="ti ti-refresh"></i> Actualiser
+          </button>
         </div>
       </div>
-      <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-header">
-            <span class="chart-title">CA mensuel</span>
-          </div>
-          <canvas id="chart-ca-mensuel" height="200"></canvas>
-        </div>
-        <div class="chart-card chart-card-sm">
-          <div class="chart-header">
-            <span class="chart-title">Répartition charges</span>
-          </div>
-          <canvas id="chart-repartition" height="200"></canvas>
-        </div>
-      </div>
-      <div class="section-row">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Dernières factures</span>
-            <button class="btn-ghost btn-sm" data-section="factures">Voir tout</button>
-          </div>
-          <div id="dash-factures-list"></div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Prochaines échéances URSSAF</span>
-            <button class="btn-ghost btn-sm" data-section="urssaf">Voir tout</button>
-          </div>
-          <div id="dash-urssaf-list"></div>
-        </div>
-      </div>
-    </section>
 
-    <!-- TRESORERIE -->
-    <section id="section-tresorerie" class="section">
+      <!-- Ligne 1 KPIs -->
+      <div class="kpi-grid kpi-grid-4 mb-16">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
+          <span class="kpi-label">CA encaissé ce mois</span>
+          <span class="kpi-value" id="kpi-ca-mois">—</span>
+          <span class="kpi-sub" id="kpi-ca-mois-sub"></span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i class="ti ti-receipt"></i></div>
+          <span class="kpi-label">Charges totales ce mois</span>
+          <span class="kpi-value danger" id="kpi-charges-mois">—</span>
+          <span class="kpi-sub" id="kpi-charges-mois-sub"></span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-wallet"></i></div>
+          <span class="kpi-label">Résultat net ce mois</span>
+          <span class="kpi-value green" id="kpi-net-mois">—</span>
+          <span class="kpi-sub" id="kpi-net-mois-sub"></span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon violet"><i class="ti ti-arrow-right"></i></div>
+          <span class="kpi-label">Versement estimé (65%)</span>
+          <span class="kpi-value violet" id="kpi-versement">—</span>
+          <span class="kpi-sub">du résultat net</span>
+        </div>
+      </div>
+
+      <!-- Ligne 2 KPIs -->
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-chart-bar"></i></div>
+          <span class="kpi-label">CA YTD</span>
+          <span class="kpi-value" id="kpi-ca-ytd">—</span>
+          <span class="kpi-sub">depuis le 1er janvier</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-target"></i></div>
+          <span class="kpi-label">Progression objectif annuel</span>
+          <span class="kpi-value" id="kpi-objectif-pct">—</span>
+          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-objectif-bar" style="width:0%"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon cream"><i class="ti ti-building-bank"></i></div>
+          <span class="kpi-label">Trésorerie Qonto</span>
+          <span class="kpi-value" id="kpi-treso-qonto">—</span>
+          <span class="kpi-sub" id="kpi-treso-upd"></span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-calendar-due"></i></div>
+          <span class="kpi-label">Prochain URSSAF</span>
+          <span class="kpi-value warning" id="kpi-urssaf-next">—</span>
+          <span class="kpi-sub" id="kpi-urssaf-sub"></span>
+        </div>
+      </div>
+
+      <!-- 2 colonnes -->
+      <div class="grid-65-35">
+        <!-- Gauche : graphiques -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-title"><i class="ti ti-chart-bar"></i> Revenus vs charges (12 mois)</div>
+            <div class="chart-wrap"><canvas id="chart-dash-bar" height="200"></canvas></div>
+            <div class="chart-legend" id="chart-dash-bar-legend"></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><i class="ti ti-chart-line"></i> Résultat net (12 mois)</div>
+            <div class="chart-wrap"><canvas id="chart-dash-line" height="140"></canvas></div>
+          </div>
+        </div>
+        <!-- Droite : widgets -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <div class="card-title" style="justify-content:space-between;">
+              <span><i class="ti ti-arrows-exchange"></i> Dernières transactions</span>
+              <button class="btn btn-ghost btn-xs" data-section="transactions">Voir tout</button>
+            </div>
+            <div id="dash-transactions-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="justify-content:space-between;">
+              <span><i class="ti ti-repeat"></i> Prochains abonnements</span>
+              <button class="btn btn-ghost btn-xs" data-section="abonnements">Voir tout</button>
+            </div>
+            <div id="dash-abonnements-list"></div>
+          </div>
+          <div id="dash-urssaf-alert"></div>
+        </div>
+      </div>
+    </section><!-- /dashboard -->
+
+
+    <!-- ═══════════════════════════
+         VUE D'ENSEMBLE
+         ═══════════════════════════ -->
+    <section id="section-vue-ensemble" class="section">
       <div class="page-header">
-        <h1 class="page-title">Trésorerie</h1>
-      </div>
-      <div class="kpi-grid">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">Solde total</span>
-          <span class="kpi-value" id="tres-solde-total">—</span>
-          <i class="ti ti-wallet kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Compte principal</span>
-          <span class="kpi-value" id="tres-principal">—</span>
-          <i class="ti ti-building-bank kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Épargne</span>
-          <span class="kpi-value" id="tres-epargne">—</span>
-          <i class="ti ti-piggy-bank kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-brown">
-          <span class="kpi-label">Encaissements à venir</span>
-          <span class="kpi-value" id="tres-a-encaisser">—</span>
-          <i class="ti ti-clock kpi-icon"></i>
+        <div class="page-header-left">
+          <h1>Vue d'ensemble</h1>
+          <div class="page-subtitle">Évolution de votre activité</div>
         </div>
       </div>
-      <div class="chart-card chart-full">
-        <div class="chart-header">
-          <span class="chart-title">Évolution trésorerie (12 mois)</span>
-        </div>
-        <canvas id="chart-tresorerie" height="220"></canvas>
-      </div>
-    </section>
 
-    <!-- REPARTITION -->
-    <section id="section-repartition" class="section">
-      <div class="page-header">
-        <h1 class="page-title">Répartition du CA</h1>
+      <div class="card mb-16">
+        <div class="card-title"><i class="ti ti-chart-line"></i> Solde Qonto dans le temps</div>
+        <div class="chart-wrap"><canvas id="chart-ve-solde" height="180"></canvas></div>
       </div>
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">Versement immédiat</span>
-          <span class="kpi-value" id="rep-versement">—</span>
-          <span class="kpi-pct" id="rep-versement-pct"></span>
-          <i class="ti ti-cash kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Épargne</span>
-          <span class="kpi-value" id="rep-epargne">—</span>
-          <span class="kpi-pct" id="rep-epargne-pct"></span>
-          <i class="ti ti-piggy-bank kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Trésorerie</span>
-          <span class="kpi-value" id="rep-tresorerie">—</span>
-          <span class="kpi-pct" id="rep-tresorerie-pct"></span>
-          <i class="ti ti-wallet kpi-icon"></i>
-        </div>
-      </div>
-      <div class="charts-row">
-        <div class="chart-card">
-          <div class="chart-header"><span class="chart-title">Répartition actuelle</span></div>
-          <canvas id="chart-rep-donut" height="280"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-header"><span class="chart-title">Décomposition charges annuelles</span></div>
-          <canvas id="chart-rep-charges" height="280"></canvas>
-        </div>
-      </div>
-    </section>
 
-    <!-- FACTURES -->
-    <section id="section-factures" class="section">
-      <div class="page-header">
-        <h1 class="page-title">Factures</h1>
-        <div class="page-actions">
-          <div class="search-bar">
-            <i class="ti ti-search"></i>
-            <input type="text" id="factures-search" placeholder="Rechercher…" />
-          </div>
-          <select id="factures-filter-statut" class="select-sm">
-            <option value="">Tous statuts</option>
-            <option value="brouillon">Brouillon</option>
-            <option value="envoyee">Envoyée</option>
-            <option value="payee">Payée</option>
-            <option value="annulee">Annulée</option>
-          </select>
-          <button class="btn-primary" id="btn-new-facture"><i class="ti ti-plus"></i> Nouvelle facture</button>
+      <div class="card mb-16">
+        <div class="card-title"><i class="ti ti-table"></i> Récapitulatif mensuel</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>CA</th>
+                <th>Charges</th>
+                <th>Résultat</th>
+                <th>Versement</th>
+              </tr>
+            </thead>
+            <tbody id="ve-recap-tbody"></tbody>
+          </table>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table" id="factures-table">
-          <thead>
-            <tr>
-              <th>Numéro</th>
-              <th>Client</th>
-              <th>Date</th>
-              <th>Montant HT</th>
-              <th>Statut</th>
-              <th>PDF</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="factures-tbody"></tbody>
-        </table>
-      </div>
-    </section>
 
-    <!-- DEPENSES -->
-    <section id="section-depenses" class="section">
-      <div class="page-header">
-        <h1 class="page-title">Dépenses</h1>
-        <div class="page-actions">
-          <div class="search-bar">
-            <i class="ti ti-search"></i>
-            <input type="text" id="depenses-search" placeholder="Rechercher…" />
-          </div>
-          <select id="depenses-filter-cat" class="select-sm">
-            <option value="">Toutes catégories</option>
-            <option value="logiciel">Logiciel / SaaS</option>
-            <option value="materiel">Matériel</option>
-            <option value="formation">Formation</option>
-            <option value="deplacement">Déplacement</option>
-            <option value="communication">Communication</option>
-            <option value="autre">Autre</option>
-          </select>
-          <button class="btn-primary" id="btn-new-depense"><i class="ti ti-plus"></i> Nouvelle dépense</button>
-        </div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-trending-up"></i> Projection fin d'année</div>
+        <div id="ve-projection"></div>
       </div>
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">Total (année)</span>
-          <span class="kpi-value" id="dep-total-annee">—</span>
-          <i class="ti ti-receipt kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Déductibles</span>
-          <span class="kpi-value" id="dep-deductibles">—</span>
-          <i class="ti ti-check kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Mois en cours</span>
-          <span class="kpi-value" id="dep-mois">—</span>
-          <i class="ti ti-calendar kpi-icon"></i>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table" id="depenses-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Libellé</th>
-              <th>Catégorie</th>
-              <th>Montant</th>
-              <th>Déductible</th>
-              <th>PDF</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="depenses-tbody"></tbody>
-        </table>
-      </div>
-    </section>
+    </section><!-- /vue-ensemble -->
 
-    <!-- ABONNEMENTS -->
-    <section id="section-abonnements" class="section">
-      <div class="page-header">
-        <h1 class="page-title">Abonnements</h1>
-        <div class="page-actions">
-          <button class="btn-primary" id="btn-new-abonnement"><i class="ti ti-plus"></i> Nouvel abonnement</button>
-        </div>
-      </div>
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">Coût mensuel total</span>
-          <span class="kpi-value" id="abo-mensuel">—</span>
-          <i class="ti ti-repeat kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Coût annuel total</span>
-          <span class="kpi-value" id="abo-annuel">—</span>
-          <i class="ti ti-calendar kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Abonnements actifs</span>
-          <span class="kpi-value" id="abo-count">—</span>
-          <i class="ti ti-check kpi-icon"></i>
-        </div>
-      </div>
-      <div class="abo-calendar" id="abo-calendar"></div>
-      <div class="card mt-lg">
-        <div class="card-header"><span class="card-title">Liste des abonnements</span></div>
-        <div id="abo-list"></div>
-      </div>
-    </section>
 
-    <!-- COMPTES -->
+    <!-- ═══════════════════════════
+         COMPTES
+         ═══════════════════════════ -->
     <section id="section-comptes" class="section">
       <div class="page-header">
-        <h1 class="page-title">Comptes bancaires</h1>
-        <div class="page-actions">
-          <button class="btn-primary" id="btn-new-compte"><i class="ti ti-plus"></i> Nouveau compte</button>
+        <div class="page-header-left">
+          <h1>Comptes</h1>
+          <div class="page-subtitle">Soldes saisis manuellement</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-primary" id="btn-new-compte"><i class="ti ti-plus"></i> Ajouter un compte</button>
         </div>
       </div>
-      <div id="comptes-grid" class="comptes-grid"></div>
-    </section>
+      <div class="comptes-grid" id="comptes-grid"></div>
+    </section><!-- /comptes -->
 
-    <!-- TRANSACTIONS -->
+
+    <!-- ═══════════════════════════
+         TRANSACTIONS
+         ═══════════════════════════ -->
     <section id="section-transactions" class="section">
       <div class="page-header">
-        <h1 class="page-title">Transactions</h1>
-        <div class="page-actions">
-          <div class="search-bar">
-            <i class="ti ti-search"></i>
-            <input type="text" id="txn-search" placeholder="Rechercher…" />
-          </div>
-          <select id="txn-filter-compte" class="select-sm">
+        <div class="page-header-left">
+          <h1>Transactions</h1>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="txn-search" class="form-input" style="width:200px;" placeholder="Rechercher…" />
+          <select id="txn-filter-compte" class="form-select" style="width:160px;">
             <option value="">Tous les comptes</option>
           </select>
-          <select id="txn-filter-type" class="select-sm">
+          <select id="txn-filter-type" class="form-select" style="width:130px;">
             <option value="">Tous types</option>
             <option value="credit">Crédit</option>
             <option value="debit">Débit</option>
             <option value="virement">Virement</option>
           </select>
-          <button class="btn-primary" id="btn-new-txn"><i class="ti ti-plus"></i> Nouvelle transaction</button>
+          <button class="btn btn-primary" id="btn-new-txn"><i class="ti ti-plus"></i> Ajouter</button>
         </div>
       </div>
-      <div class="table-wrap">
-        <table class="data-table" id="txn-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Libellé</th>
-              <th>Compte</th>
-              <th>Type</th>
-              <th>Montant</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="txn-tbody"></tbody>
-        </table>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Libellé</th>
+                <th>Compte</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="txn-tbody"></tbody>
+          </table>
+        </div>
       </div>
-    </section>
+    </section><!-- /transactions -->
 
-    <!-- URSSAF -->
-    <section id="section-urssaf" class="section">
+
+    <!-- ═══════════════════════════
+         CA & FACTURES
+         ═══════════════════════════ -->
+    <section id="section-factures" class="section">
       <div class="page-header">
-        <h1 class="page-title">URSSAF &amp; Cotisations</h1>
-      </div>
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">CA annuel déclaré</span>
-          <span class="kpi-value" id="urs-ca-annuel">—</span>
-          <i class="ti ti-report-money kpi-icon"></i>
+        <div class="page-header-left">
+          <h1>CA &amp; Factures</h1>
+          <div class="page-subtitle">Importées depuis Indy</div>
         </div>
-        <div class="kpi-card kpi-brown">
-          <span class="kpi-label">Cotisations estimées</span>
-          <span class="kpi-value" id="urs-cotisations">—</span>
-          <i class="ti ti-calculator kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Prochain paiement dans</span>
-          <span class="kpi-value" id="urs-prochain">—</span>
-          <i class="ti ti-calendar-due kpi-icon"></i>
+        <div class="page-header-right">
+          <input type="text" id="factures-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
+          <select id="factures-filter-statut" class="form-select" style="width:150px;">
+            <option value="">Tous statuts</option>
+            <option value="payee">Payée</option>
+            <option value="attente">En attente</option>
+            <option value="retard">En retard</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-facture"><i class="ti ti-plus"></i> Nouvelle facture</button>
         </div>
       </div>
-      <div id="urssaf-cards" class="urssaf-grid"></div>
-    </section>
 
-    <!-- OBJECTIFS CA -->
+      <!-- 4 KPIs -->
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
+          <span class="kpi-label">CA total importé</span>
+          <span class="kpi-value" id="fac-kpi-total">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
+          <span class="kpi-label">Montant payé</span>
+          <span class="kpi-value green" id="fac-kpi-paye">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">Montant en attente</span>
+          <span class="kpi-value warning" id="fac-kpi-attente">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon violet"><i class="ti ti-percentage"></i></div>
+          <span class="kpi-label">Taux de recouvrement</span>
+          <span class="kpi-value" id="fac-kpi-taux">—</span>
+        </div>
+      </div>
+
+      <!-- Tableau -->
+      <div class="card mb-16">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>N° Facture</th>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Montant HT</th>
+                <th>Statut</th>
+                <th>PDF</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="factures-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Graphiques -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-donut"></i> CA par client</div>
+          <div class="chart-wrap"><canvas id="chart-fac-client" height="200"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> CA par mois</div>
+          <div class="chart-wrap"><canvas id="chart-fac-mois" height="200"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Input PDF caché -->
+      <input type="file" id="pdf-upload-input" accept=".pdf" style="display:none;" />
+    </section><!-- /factures -->
+
+
+    <!-- ═══════════════════════════
+         OBJECTIFS CA
+         ═══════════════════════════ -->
     <section id="section-objectifs-ca" class="section">
       <div class="page-header">
-        <h1 class="page-title">Objectif CA</h1>
-        <div class="page-actions">
-          <button class="btn-secondary" id="btn-edit-objectif-ca"><i class="ti ti-edit"></i> Modifier l'objectif</button>
+        <div class="page-header-left">
+          <h1>Objectifs de CA</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary" id="btn-edit-objectif-ca"><i class="ti ti-edit"></i> Modifier l'objectif</button>
         </div>
       </div>
-      <div class="kpi-grid kpi-grid-3">
-        <div class="kpi-card kpi-navy">
-          <span class="kpi-label">Objectif annuel</span>
-          <span class="kpi-value" id="obj-ca-objectif">—</span>
-          <i class="ti ti-target kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-blue">
-          <span class="kpi-label">Atteint</span>
-          <span class="kpi-value" id="obj-ca-atteint">—</span>
-          <i class="ti ti-trending-up kpi-icon"></i>
-        </div>
-        <div class="kpi-card kpi-violet">
-          <span class="kpi-label">Reste à faire</span>
-          <span class="kpi-value" id="obj-ca-reste">—</span>
-          <i class="ti ti-clock kpi-icon"></i>
-        </div>
-      </div>
-      <div class="chart-card chart-full">
-        <div class="chart-header"><span class="chart-title">Progression CA mensuel vs objectif</span></div>
-        <canvas id="chart-objectif-ca" height="220"></canvas>
-      </div>
-    </section>
 
-    <!-- OBJECTIFS EPARGNE -->
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-target"></i></div>
+          <span class="kpi-label">Objectif annuel</span>
+          <span class="kpi-value" id="objca-kpi-objectif">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
+          <span class="kpi-label">CA YTD atteint</span>
+          <span class="kpi-value" id="objca-kpi-atteint">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-chart-bar"></i></div>
+          <span class="kpi-label">CA mensuel moyen actuel</span>
+          <span class="kpi-value green" id="objca-kpi-moyen-actuel">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-arrow-up"></i></div>
+          <span class="kpi-label">Nécessaire / mois restant</span>
+          <span class="kpi-value warning" id="objca-kpi-necessaire">—</span>
+        </div>
+      </div>
+
+      <!-- Grande jauge -->
+      <div class="card mb-16" style="text-align:center;padding:32px;">
+        <div class="card-title" style="justify-content:center;">Progression YTD</div>
+        <div id="objca-gauge-wrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:500;color:var(--navy);" id="objca-gauge-pct">0%</div>
+          <div style="width:100%;max-width:600px;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;">
+            <div id="objca-gauge-fill" style="height:100%;background:var(--blue);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
+          </div>
+          <div style="font-size:13px;color:var(--text-2);" id="objca-gauge-label"></div>
+        </div>
+      </div>
+
+      <div class="card mb-16">
+        <div class="card-title"><i class="ti ti-chart-bar"></i> Objectif mensuel (pointillé) vs réel</div>
+        <div class="chart-wrap"><canvas id="chart-objca" height="200"></canvas></div>
+      </div>
+
+      <div id="objca-alert"></div>
+      <div class="card">
+        <div class="card-title"><i class="ti ti-trending-up"></i> Projection fin d'année</div>
+        <div id="objca-projection"></div>
+      </div>
+    </section><!-- /objectifs-ca -->
+
+
+    <!-- ═══════════════════════════
+         DÉPENSES PRO
+         ═══════════════════════════ -->
+    <section id="section-depenses" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Dépenses pro</h1>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="depenses-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
+          <select id="depenses-filter-cat" class="form-select" style="width:170px;">
+            <option value="">Toutes catégories</option>
+            <option value="Logiciels & abonnements">Logiciels &amp; abonnements</option>
+            <option value="Matériel">Matériel</option>
+            <option value="Formation">Formation</option>
+            <option value="Communication">Communication</option>
+            <option value="Déplacement">Déplacement</option>
+            <option value="Comptabilité">Comptabilité</option>
+            <option value="Autre">Autre</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-depense"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i class="ti ti-receipt"></i></div>
+          <span class="kpi-label">Total ce mois</span>
+          <span class="kpi-value danger" id="dep-kpi-mois">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-calendar"></i></div>
+          <span class="kpi-label">Total YTD</span>
+          <span class="kpi-value" id="dep-kpi-ytd">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-chart-bar"></i></div>
+          <span class="kpi-label">Moyenne mensuelle</span>
+          <span class="kpi-value" id="dep-kpi-moyenne">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon violet"><i class="ti ti-tag"></i></div>
+          <span class="kpi-label">Catégorie principale</span>
+          <span class="kpi-value" style="font-size:20px;" id="dep-kpi-cat">—</span>
+        </div>
+      </div>
+
+      <div class="card mb-16">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Catégorie</th>
+                <th>Montant</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="depenses-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-donut"></i> Répartition par catégorie</div>
+          <div class="chart-wrap"><canvas id="chart-dep-cat" height="200"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> Évolution mensuelle</div>
+          <div class="chart-wrap"><canvas id="chart-dep-mois" height="200"></canvas></div>
+        </div>
+      </div>
+    </section><!-- /depenses -->
+
+
+    <!-- ═══════════════════════════
+         ABONNEMENTS
+         ═══════════════════════════ -->
+    <section id="section-abonnements" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Abonnements</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-primary" id="btn-new-abonnement"><i class="ti ti-plus"></i> Nouvel abonnement</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon red"><i class="ti ti-calendar-repeat"></i></div>
+          <span class="kpi-label">Total / mois</span>
+          <span class="kpi-value danger" id="abo-kpi-mensuel">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-calendar"></i></div>
+          <span class="kpi-label">Total / an</span>
+          <span class="kpi-value" id="abo-kpi-annuel">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">Prochain prélèvement dans</span>
+          <span class="kpi-value warning" id="abo-kpi-prochain">—</span>
+          <span class="kpi-sub" id="abo-kpi-prochain-sub"></span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
+          <span class="kpi-label">Abonnements actifs</span>
+          <span class="kpi-value green" id="abo-kpi-count">—</span>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card mb-16">
+        <div class="card-title"><i class="ti ti-timeline"></i> Timeline des prélèvements</div>
+        <div class="abo-timeline">
+          <canvas id="chart-abo-timeline" height="120"></canvas>
+        </div>
+      </div>
+
+      <!-- Tableau -->
+      <div class="card">
+        <div class="card-title"><i class="ti ti-list"></i> Liste des abonnements</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Catégorie</th>
+                <th>Mensuel</th>
+                <th>Annuel</th>
+                <th>Jour prélèvement</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="abonnements-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section><!-- /abonnements -->
+
+
+    <!-- ═══════════════════════════
+         CHARGES & URSSAF
+         ═══════════════════════════ -->
+    <section id="section-charges-urssaf" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Charges &amp; URSSAF</h1>
+          <div class="page-subtitle">Micro-BNC · 25,6% URSSAF + 0,2% CFP · PAS fixe 40€/mois</div>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-bottom:12px;"><i class="ti ti-calendar-due"></i> URSSAF trimestrielle 2026</div>
+      <div class="urssaf-grid mb-24" id="urssaf-cards-grid"></div>
+
+      <!-- Charges mensuelles récap -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-list"></i> Charges ce mois</div>
+          <div class="charges-recap" id="charges-recap-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-receipt"></i> Dépenses pro ce mois</div>
+          <div id="charges-depenses-mois"></div>
+        </div>
+      </div>
+
+      <!-- Card totale -->
+      <div class="result-card mt-lg" id="charges-result-card" style="margin-top:16px;">
+        <div class="result-card-item">
+          <div class="result-card-label">CA ce mois</div>
+          <div class="result-card-value" id="cru-ca">—</div>
+        </div>
+        <div class="result-card-item">
+          <div class="result-card-label">Total charges + dépenses</div>
+          <div class="result-card-value" id="cru-charges">—</div>
+        </div>
+        <div class="result-card-item">
+          <div class="result-card-label">Résultat net</div>
+          <div class="result-card-value" id="cru-net">—</div>
+        </div>
+        <div class="result-card-item">
+          <div class="result-card-label">À verser (65%)</div>
+          <div class="result-card-value" id="cru-versement">—</div>
+        </div>
+      </div>
+    </section><!-- /charges-urssaf -->
+
+
+    <!-- ═══════════════════════════
+         RÉPARTITION
+         ═══════════════════════════ -->
+    <section id="section-repartition" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Répartition</h1>
+          <div class="page-subtitle">Recommandé : 65% versement · 15% épargne · 20% trésorerie</div>
+        </div>
+      </div>
+
+      <div class="repartition-grid mb-24">
+        <!-- Versement -->
+        <div class="rep-card">
+          <div class="rep-card-title"><i class="ti ti-cash" style="margin-right:5px;"></i>Versement (65%)</div>
+          <div class="rep-recommande">Recommandé : <span id="rep-recomm-versement">—</span></div>
+          <div class="rep-actuel-label">Montant réellement alloué</div>
+          <input type="number" id="rep-input-versement" class="form-input" placeholder="0.00" step="1" />
+          <div class="rep-ecart" id="rep-ecart-versement"></div>
+          <div class="progress-bar" style="margin-top:10px;">
+            <div class="fill" id="rep-bar-versement" style="width:0%"></div>
+          </div>
+        </div>
+        <!-- Épargne -->
+        <div class="rep-card">
+          <div class="rep-card-title"><i class="ti ti-piggy-bank" style="margin-right:5px;"></i>Épargne (15%)</div>
+          <div class="rep-recommande">Recommandé : <span id="rep-recomm-epargne">—</span></div>
+          <div class="rep-actuel-label">Montant réellement alloué</div>
+          <input type="number" id="rep-input-epargne" class="form-input" placeholder="0.00" step="1" />
+          <div class="rep-ecart" id="rep-ecart-epargne"></div>
+          <div class="progress-bar" style="margin-top:10px;">
+            <div class="fill green" id="rep-bar-epargne" style="width:0%"></div>
+          </div>
+        </div>
+        <!-- Trésorerie -->
+        <div class="rep-card">
+          <div class="rep-card-title"><i class="ti ti-wallet" style="margin-right:5px;"></i>Trésorerie tampon (20%)</div>
+          <div class="rep-recommande">Recommandé : <span id="rep-recomm-tresorerie">—</span></div>
+          <div class="rep-actuel-label">Montant réellement alloué</div>
+          <input type="number" id="rep-input-tresorerie" class="form-input" placeholder="0.00" step="1" />
+          <div class="rep-ecart" id="rep-ecart-tresorerie"></div>
+          <div class="progress-bar" style="margin-top:10px;">
+            <div class="fill violet" id="rep-bar-tresorerie" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:24px;">
+        <button class="btn btn-primary" id="btn-save-repartition"><i class="ti ti-check"></i> Enregistrer</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-donut"></i> Répartition recommandée vs réelle</div>
+          <div class="chart-wrap"><canvas id="chart-rep-donut" height="220"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> Comparaison montants</div>
+          <div class="chart-wrap"><canvas id="chart-rep-bar" height="220"></canvas></div>
+        </div>
+      </div>
+    </section><!-- /repartition -->
+
+
+    <!-- ═══════════════════════════
+         OBJECTIFS ÉPARGNE
+         ═══════════════════════════ -->
     <section id="section-objectifs-epargne" class="section">
       <div class="page-header">
-        <h1 class="page-title">Objectifs d'épargne</h1>
-        <div class="page-actions">
-          <button class="btn-primary" id="btn-new-objectif-epargne"><i class="ti ti-plus"></i> Nouvel objectif</button>
+        <div class="page-header-left">
+          <h1>Objectifs d'épargne</h1>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-primary" id="btn-new-objectif-epargne"><i class="ti ti-plus"></i> Nouvel objectif</button>
         </div>
       </div>
-      <div id="epargne-goals-grid" class="goals-grid"></div>
-    </section>
+      <div class="goals-grid" id="epargne-goals-grid"></div>
+    </section><!-- /objectifs-epargne -->
 
-    <!-- RAPPORTS -->
-    <section id="section-rapports" class="section">
+
+    <!-- ═══════════════════════════
+         RAPPORT MENSUEL
+         ═══════════════════════════ -->
+    <section id="section-rapport-mensuel" class="section">
       <div class="page-header">
-        <h1 class="page-title">Rapports</h1>
-        <div class="page-actions">
-          <div class="tab-pills" id="rapports-tabs">
-            <button class="tab-pill active" data-tab="mensuel">Mensuel</button>
-            <button class="tab-pill" data-tab="annuel">Annuel</button>
-            <button class="tab-pill" data-tab="fiscal">Fiscal</button>
+        <div class="page-header-left">
+          <h1>Rapport mensuel</h1>
+        </div>
+        <div class="page-header-right">
+          <div class="month-selector">
+            <select id="rm-mois" class="form-select" style="width:140px;">
+              <option value="1">Janvier</option>
+              <option value="2">Février</option>
+              <option value="3">Mars</option>
+              <option value="4">Avril</option>
+              <option value="5">Mai</option>
+              <option value="6">Juin</option>
+              <option value="7">Juillet</option>
+              <option value="8">Août</option>
+              <option value="9">Septembre</option>
+              <option value="10">Octobre</option>
+              <option value="11">Novembre</option>
+              <option value="12">Décembre</option>
+            </select>
+            <select id="rm-annee" class="form-select" style="width:100px;"></select>
+            <button class="btn btn-secondary" id="btn-rm-gen"><i class="ti ti-refresh"></i> Générer</button>
           </div>
         </div>
       </div>
-      <div id="rapport-mensuel" class="rapport-tab active">
-        <div class="rapport-controls">
-          <select id="rapport-mois" class="select-sm"></select>
-          <select id="rapport-annee-m" class="select-sm"></select>
-          <button class="btn-secondary" id="btn-rapport-mensuel"><i class="ti ti-refresh"></i> Générer</button>
-        </div>
-        <div id="rapport-mensuel-content"></div>
-      </div>
-      <div id="rapport-annuel" class="rapport-tab">
-        <div class="rapport-controls">
-          <select id="rapport-annee" class="select-sm"></select>
-          <button class="btn-secondary" id="btn-rapport-annuel"><i class="ti ti-refresh"></i> Générer</button>
-        </div>
-        <div id="rapport-annuel-content"></div>
-      </div>
-      <div id="rapport-fiscal" class="rapport-tab">
-        <div class="rapport-controls">
-          <select id="rapport-annee-f" class="select-sm"></select>
-          <button class="btn-secondary" id="btn-rapport-fiscal"><i class="ti ti-refresh"></i> Générer</button>
-        </div>
-        <div id="rapport-fiscal-content"></div>
-      </div>
-    </section>
+      <div id="rapport-mensuel-content"></div>
+    </section><!-- /rapport-mensuel -->
 
-    <!-- SIMULATEUR -->
+
+    <!-- ═══════════════════════════
+         RAPPORT ANNUEL
+         ═══════════════════════════ -->
+    <section id="section-rapport-annuel" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Rapport annuel</h1>
+        </div>
+        <div class="page-header-right">
+          <select id="ra-annee" class="form-select" style="width:100px;"></select>
+          <button class="btn btn-secondary" id="btn-ra-gen"><i class="ti ti-refresh"></i> Générer</button>
+        </div>
+      </div>
+      <div id="rapport-annuel-content"></div>
+    </section><!-- /rapport-annuel -->
+
+
+    <!-- ═══════════════════════════
+         RAPPORT FISCAL BNC
+         ═══════════════════════════ -->
+    <section id="section-rapport-fiscal" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Rapport fiscal BNC</h1>
+          <div class="page-subtitle">Micro-BNC · Abattement forfaitaire 34% · Plafond 77 700€</div>
+        </div>
+        <div class="page-header-right">
+          <select id="rf-annee" class="form-select" style="width:100px;"></select>
+          <button class="btn btn-secondary" id="btn-rf-gen"><i class="ti ti-refresh"></i> Générer</button>
+        </div>
+      </div>
+      <div id="rapport-fiscal-content"></div>
+    </section><!-- /rapport-fiscal -->
+
+
+    <!-- ═══════════════════════════
+         SIMULATEUR
+         ═══════════════════════════ -->
     <section id="section-simulateur" class="section">
       <div class="page-header">
-        <h1 class="page-title">Simulateur</h1>
+        <div class="page-header-left">
+          <h1>Simulateur de versement</h1>
+          <div class="page-subtitle">Calcul net après cotisations et charges</div>
+        </div>
       </div>
+
       <div class="sim-tabs">
-        <button class="sim-tab active" data-sim="tjm">TJM → Revenu net</button>
-        <button class="sim-tab" data-sim="objectif">Objectif → TJM</button>
-        <button class="sim-tab" data-sim="plafond">Plafond BNC</button>
+        <button class="sim-tab active" data-sim="mensuel">Mensuel</button>
+        <button class="sim-tab" data-sim="trimestriel">Trimestriel</button>
+        <button class="sim-tab" data-sim="annuel">Annuel</button>
       </div>
 
-      <div id="sim-tjm" class="sim-panel active">
-        <div class="sim-form card">
-          <div class="sim-fields">
-            <div class="field">
-              <label>TJM (€)</label>
-              <input type="number" id="sim-tjm-val" value="400" min="0" />
+      <!-- Panneau Mensuel -->
+      <div id="sim-panel-mensuel" class="sim-panel active">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Saisir les données du mois</div>
+            <div class="form-group">
+              <label class="form-label">CA du mois (€)</label>
+              <input type="number" id="sim-ca-mois" class="form-input" value="3000" min="0" step="100" />
             </div>
-            <div class="field">
-              <label>Jours travaillés / an</label>
-              <input type="number" id="sim-jours" value="200" min="0" max="365" />
+            <div class="form-group">
+              <label class="form-label">Dépenses pro (€)</label>
+              <input type="number" id="sim-dep-pro" class="form-input" value="200" min="0" step="10" />
             </div>
-            <div class="field">
-              <label>Congés / jours fériés</label>
-              <input type="number" id="sim-conges" value="30" min="0" />
+            <div class="form-group">
+              <label class="form-label">CFE annuelle (€) — divisée par 12</label>
+              <input type="number" id="sim-cfe" class="form-input" value="0" min="0" />
+            </div>
+            <div class="divider"></div>
+            <div class="card-title" style="margin-bottom:8px;">Budget personnel (optionnel)</div>
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label class="form-label">Aides (CAF, prime)</label>
+                <input type="number" id="sim-aides" class="form-input" value="0" min="0" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dépenses perso (€)</label>
+                <input type="number" id="sim-dep-perso" class="form-input" value="0" min="0" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+              <div class="slider-wrap">
+                <div class="slider-header">
+                  <span class="slider-label">% que je me verse</span>
+                  <span class="slider-value" id="sim-slider-val">65%</span>
+                </div>
+                <input type="range" id="sim-versement-slider" min="30" max="100" value="65" step="1" />
+              </div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:12px;" id="btn-sim-calculer">
+              <i class="ti ti-calculator"></i> Calculer
+            </button>
+          </div>
+
+          <div id="sim-result-mensuel">
+            <div class="sim-result" style="display:none;" id="sim-result-panel-mensuel">
+              <span class="sim-section-label">Calcul</span>
+              <div class="sim-line">
+                <span class="sim-line-label strong">CA HT</span>
+                <span class="sim-line-amount" id="sr-ca">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— URSSAF (25,6%)</span>
+                <span class="sim-line-amount neg" id="sr-urssaf">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— CFP (0,2%)</span>
+                <span class="sim-line-amount neg" id="sr-cfp">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— Dépenses pro</span>
+                <span class="sim-line-amount neg" id="sr-dep">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— CFE mensuelle</span>
+                <span class="sim-line-amount neg" id="sr-cfe">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— PAS fixe (40€)</span>
+                <span class="sim-line-amount neg" id="sr-pas">— 40,00€</span>
+              </div>
+              <div class="sim-line sim-total">
+                <span class="sim-line-label">= Résultat net</span>
+                <span class="sim-line-amount" id="sr-net">—</span>
+              </div>
+              <span class="sim-section-label">Répartition</span>
+              <div class="sim-line">
+                <span class="sim-line-label" id="sr-vers-label">Je me verse (65%)</span>
+                <span class="sim-line-amount pos" id="sr-versement">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">Épargne (15%)</span>
+                <span class="sim-line-amount" id="sr-epargne">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">Trésorerie (20%)</span>
+                <span class="sim-line-amount" id="sr-treso">—</span>
+              </div>
+              <div id="sr-budget-perso" style="display:none;">
+                <span class="sim-section-label">Budget global</span>
+                <div class="sim-line">
+                  <span class="sim-line-label">Versement + aides</span>
+                  <span class="sim-line-amount" id="sr-bg-entrees">—</span>
+                </div>
+                <div class="sim-line">
+                  <span class="sim-line-label">— Dépenses perso</span>
+                  <span class="sim-line-amount neg" id="sr-bg-depenses">—</span>
+                </div>
+                <div class="sim-line sim-total">
+                  <span class="sim-line-label">Reste disponible</span>
+                  <span class="sim-line-amount" id="sr-bg-reste">—</span>
+                </div>
+              </div>
             </div>
           </div>
-          <button class="btn-primary" id="btn-sim-tjm"><i class="ti ti-calculator"></i> Calculer</button>
         </div>
-        <div id="sim-tjm-result" class="sim-result hidden"></div>
       </div>
 
-      <div id="sim-objectif" class="sim-panel">
-        <div class="sim-form card">
-          <div class="sim-fields">
-            <div class="field">
-              <label>Revenu net mensuel souhaité (€)</label>
-              <input type="number" id="sim-revenu-net" value="3000" min="0" />
+      <!-- Panneau Trimestriel -->
+      <div id="sim-panel-trimestriel" class="sim-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Données du trimestre</div>
+            <div class="form-group">
+              <label class="form-label">CA mois 1 (€)</label>
+              <input type="number" id="sim-t-m1" class="form-input" value="3000" min="0" />
             </div>
-            <div class="field">
-              <label>Jours facturables / mois</label>
-              <input type="number" id="sim-jours-mois" value="18" min="0" />
+            <div class="form-group">
+              <label class="form-label">CA mois 2 (€)</label>
+              <input type="number" id="sim-t-m2" class="form-input" value="3500" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">CA mois 3 (€)</label>
+              <input type="number" id="sim-t-m3" class="form-input" value="3200" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dépenses pro du trimestre (€)</label>
+              <input type="number" id="sim-t-dep" class="form-input" value="600" min="0" />
+            </div>
+            <button class="btn btn-primary" style="margin-top:4px;" id="btn-sim-trim">
+              <i class="ti ti-calculator"></i> Calculer
+            </button>
+          </div>
+          <div id="sim-result-trim">
+            <div class="sim-result" style="display:none;" id="sim-result-panel-trim">
+              <div class="sim-line">
+                <span class="sim-line-label strong">CA trimestriel</span>
+                <span class="sim-line-amount" id="srt-ca">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— URSSAF + CFP</span>
+                <span class="sim-line-amount neg" id="srt-cotis">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— Dépenses pro</span>
+                <span class="sim-line-amount neg" id="srt-dep">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">— PAS (3 mois)</span>
+                <span class="sim-line-amount neg" id="srt-pas">—</span>
+              </div>
+              <div class="sim-line sim-total">
+                <span class="sim-line-label">= Résultat net</span>
+                <span class="sim-line-amount" id="srt-net">—</span>
+              </div>
+              <span class="sim-section-label">URSSAF à payer ce trimestre</span>
+              <div class="sim-line">
+                <span class="sim-line-label">Montant URSSAF dû</span>
+                <span class="sim-line-amount neg" id="srt-urssaf-du">—</span>
+              </div>
+              <div class="sim-line">
+                <span class="sim-line-label">Provision mensuelle recommandée</span>
+                <span class="sim-line-amount" id="srt-provision">—</span>
+              </div>
             </div>
           </div>
-          <button class="btn-primary" id="btn-sim-objectif"><i class="ti ti-calculator"></i> Calculer</button>
         </div>
-        <div id="sim-objectif-result" class="sim-result hidden"></div>
       </div>
 
-      <div id="sim-plafond" class="sim-panel">
-        <div class="sim-form card">
-          <div class="sim-fields">
-            <div class="field">
-              <label>CA actuel (€)</label>
-              <input type="number" id="sim-ca-actuel" value="0" min="0" />
+      <!-- Panneau Annuel -->
+      <div id="sim-panel-annuel" class="sim-panel">
+        <div class="card mb-16">
+          <div class="card-title">Données de base</div>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label class="form-label">CA mensuel moyen (€)</label>
+              <input type="number" id="sim-a-ca" class="form-input" value="4000" min="0" />
             </div>
-            <div class="field">
-              <label>CA projeté fin d'année (€)</label>
-              <input type="number" id="sim-ca-projete" value="0" min="0" />
+            <div class="form-group">
+              <label class="form-label">Dépenses mensuelles (€)</label>
+              <input type="number" id="sim-a-dep" class="form-input" value="300" min="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">CFE annuelle (€)</label>
+              <input type="number" id="sim-a-cfe" class="form-input" value="0" min="0" />
             </div>
           </div>
-          <button class="btn-primary" id="btn-sim-plafond"><i class="ti ti-calculator"></i> Analyser</button>
+          <button class="btn btn-primary" id="btn-sim-annuel"><i class="ti ti-calculator"></i> Projeter</button>
         </div>
-        <div id="sim-plafond-result" class="sim-result hidden"></div>
+        <div id="sim-result-annuel"></div>
       </div>
-    </section>
+    </section><!-- /simulateur -->
 
-    <!-- IMPORT / EXPORT -->
+
+    <!-- ═══════════════════════════
+         IMPORT / EXPORT
+         ═══════════════════════════ -->
     <section id="section-import-export" class="section">
       <div class="page-header">
-        <h1 class="page-title">Import / Export</h1>
-      </div>
-      <div class="ie-grid">
-        <div class="card">
-          <div class="card-header"><span class="card-title"><i class="ti ti-upload"></i> Import CSV (Indy)</span></div>
-          <div class="card-body">
-            <p class="text-muted">Importez vos factures ou dépenses depuis un export CSV Indy.</p>
-            <div class="tab-pills mt-md">
-              <button class="tab-pill active" data-ie="factures-import">Factures</button>
-              <button class="tab-pill" data-ie="depenses-import">Dépenses</button>
-            </div>
-            <div id="ie-factures-import" class="ie-panel mt-md active">
-              <div class="file-drop" id="drop-factures">
-                <i class="ti ti-file-upload"></i>
-                <p>Glissez un fichier CSV ou <label class="link" for="file-factures-csv">parcourir</label></p>
-                <input type="file" id="file-factures-csv" accept=".csv" class="hidden" />
-              </div>
-              <div id="import-factures-preview" class="import-preview hidden"></div>
-              <button class="btn-primary hidden" id="btn-import-factures">Importer</button>
-            </div>
-            <div id="ie-depenses-import" class="ie-panel mt-md">
-              <div class="file-drop" id="drop-depenses">
-                <i class="ti ti-file-upload"></i>
-                <p>Glissez un fichier CSV ou <label class="link" for="file-depenses-csv">parcourir</label></p>
-                <input type="file" id="file-depenses-csv" accept=".csv" class="hidden" />
-              </div>
-              <div id="import-depenses-preview" class="import-preview hidden"></div>
-              <button class="btn-primary hidden" id="btn-import-depenses">Importer</button>
-            </div>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title"><i class="ti ti-download"></i> Export CSV</span></div>
-          <div class="card-body">
-            <p class="text-muted">Téléchargez vos données en CSV.</p>
-            <div class="export-list mt-md">
-              <button class="export-btn" data-export="factures"><i class="ti ti-file-spreadsheet"></i> Factures</button>
-              <button class="export-btn" data-export="depenses"><i class="ti ti-file-spreadsheet"></i> Dépenses</button>
-              <button class="export-btn" data-export="transactions"><i class="ti ti-file-spreadsheet"></i> Transactions</button>
-              <button class="export-btn" data-export="abonnements"><i class="ti ti-file-spreadsheet"></i> Abonnements</button>
-            </div>
-          </div>
+        <div class="page-header-left">
+          <h1>Import / Export</h1>
+          <div class="page-subtitle">Format CSV Indy</div>
         </div>
       </div>
-    </section>
 
-    <!-- OPTIONS -->
+      <div class="grid-2">
+        <!-- Import -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-upload"></i> Import CSV</div>
+
+          <div class="sim-tabs" style="margin-bottom:20px;">
+            <button class="sim-tab active" data-ie-tab="factures">Factures</button>
+            <button class="sim-tab" data-ie-tab="depenses">Dépenses</button>
+          </div>
+
+          <!-- Import factures -->
+          <div id="ie-panel-factures" class="sim-panel active">
+            <div class="file-drop" id="drop-factures">
+              <i class="ti ti-file-upload"></i>
+              <p>Glissez un fichier CSV ou
+                <label for="file-factures-csv" style="color:var(--navy);cursor:pointer;text-decoration:underline;">parcourir</label>
+              </p>
+              <p style="font-size:11px;margin-top:6px;opacity:0.6;">Colonnes : date, numero, client, description, montant, statut</p>
+            </div>
+            <input type="file" id="file-factures-csv" accept=".csv" style="display:none;" />
+            <div id="import-factures-preview" style="display:none;margin-top:12px;"></div>
+            <button class="btn btn-primary" id="btn-import-factures" style="display:none;margin-top:10px;">
+              <i class="ti ti-upload"></i> Importer
+            </button>
+          </div>
+
+          <!-- Import dépenses -->
+          <div id="ie-panel-depenses" class="sim-panel">
+            <div class="file-drop" id="drop-depenses">
+              <i class="ti ti-file-upload"></i>
+              <p>Glissez un fichier CSV ou
+                <label for="file-depenses-csv" style="color:var(--navy);cursor:pointer;text-decoration:underline;">parcourir</label>
+              </p>
+              <p style="font-size:11px;margin-top:6px;opacity:0.6;">Colonnes : date, description, categorie, montant</p>
+            </div>
+            <input type="file" id="file-depenses-csv" accept=".csv" style="display:none;" />
+            <div id="import-depenses-preview" style="display:none;margin-top:12px;"></div>
+            <button class="btn btn-primary" id="btn-import-depenses" style="display:none;margin-top:10px;">
+              <i class="ti ti-upload"></i> Importer
+            </button>
+          </div>
+        </div>
+
+        <!-- Export -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-download"></i> Export CSV</div>
+          <p style="font-size:13px;color:var(--text-2);margin-bottom:16px;">Télécharger vos données en CSV.</p>
+          <div class="export-list">
+            <button class="export-btn" data-export="factures">
+              <i class="ti ti-file-spreadsheet"></i> Factures
+            </button>
+            <button class="export-btn" data-export="depenses">
+              <i class="ti ti-file-spreadsheet"></i> Dépenses
+            </button>
+            <button class="export-btn" data-export="transactions">
+              <i class="ti ti-file-spreadsheet"></i> Transactions
+            </button>
+            <button class="export-btn" data-export="rapport-mensuel">
+              <i class="ti ti-file-spreadsheet"></i> Rapport mensuel
+            </button>
+          </div>
+        </div>
+      </div>
+    </section><!-- /import-export -->
+
+
+    <!-- ═══════════════════════════
+         OPTIONS
+         ═══════════════════════════ -->
     <section id="section-options" class="section">
       <div class="page-header">
-        <h1 class="page-title">Options</h1>
-      </div>
-      <div class="options-grid">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Taux de cotisations</span></div>
-          <div class="card-body">
-            <div class="field">
-              <label>Taux URSSAF (%)</label>
-              <input type="number" id="opt-urssaf" step="0.1" />
-            </div>
-            <div class="field">
-              <label>Taux CFP (%)</label>
-              <input type="number" id="opt-cfp" step="0.01" />
-            </div>
-            <div class="field">
-              <label>PAS mensuel fixe (€)</label>
-              <input type="number" id="opt-pas" step="1" />
-            </div>
-          </div>
+        <div class="page-header-left">
+          <h1>Options</h1>
         </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Répartition du CA (%)</span></div>
-          <div class="card-body">
-            <div class="field">
-              <label>Versement immédiat</label>
-              <input type="number" id="opt-versement" step="1" min="0" max="100" />
-            </div>
-            <div class="field">
-              <label>Épargne</label>
-              <input type="number" id="opt-epargne-pct" step="1" min="0" max="100" />
-            </div>
-            <div class="field">
-              <label>Trésorerie</label>
-              <input type="number" id="opt-tresorerie-pct" step="1" min="0" max="100" />
-            </div>
-            <p class="text-muted text-sm" id="opt-total-pct"></p>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Profil</span></div>
-          <div class="card-body">
-            <div class="field">
-              <label>Nom affiché</label>
-              <input type="text" id="opt-nom" placeholder="ex. Cindy F." />
-            </div>
-            <div class="field">
-              <label>Siret</label>
-              <input type="text" id="opt-siret" placeholder="000 000 000 00000" />
-            </div>
-          </div>
+        <div class="page-header-right">
+          <button class="btn btn-primary" id="btn-save-options"><i class="ti ti-check"></i> Enregistrer</button>
         </div>
       </div>
-      <div class="mt-lg">
-        <button class="btn-primary" id="btn-save-options"><i class="ti ti-check"></i> Enregistrer</button>
+
+      <div class="grid-2">
+        <!-- Profil -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-user"></i> Profil</div>
+          <div class="form-group">
+            <label class="form-label">Nom affiché</label>
+            <input type="text" id="opt-nom" class="form-input" value="Cindy" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Entreprise</label>
+            <input type="text" id="opt-entreprise" class="form-input" value="Seed to Bloom" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" id="opt-email" class="form-input" value="contact@seedtobloom.fr" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Objectif CA annuel (€)</label>
+            <input type="number" id="opt-objectif-ca" class="form-input" value="60000" min="0" step="1000" />
+          </div>
+        </div>
+
+        <!-- Taux -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-percentage"></i> Taux &amp; cotisations</div>
+          <div class="form-group">
+            <label class="form-label">Taux URSSAF (%)</label>
+            <input type="number" id="opt-urssaf" class="form-input" value="25.6" step="0.1" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Taux CFP (%)</label>
+            <input type="number" id="opt-cfp" class="form-input" value="0.2" step="0.01" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">PAS mensuel fixe (€)</label>
+            <input type="number" id="opt-pas" class="form-input" value="40" step="1" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">CFE annuelle (€)</label>
+            <input type="number" id="opt-cfe" class="form-input" value="0" step="10" min="0" />
+          </div>
+        </div>
+
+        <!-- Répartition -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-pie"></i> Répartition du résultat net (%)</div>
+          <div class="form-group">
+            <label class="form-label">% versement (défaut 65)</label>
+            <input type="number" id="opt-versement" class="form-input" value="65" min="0" max="100" step="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">% épargne (défaut 15)</label>
+            <input type="number" id="opt-epargne-pct" class="form-input" value="15" min="0" max="100" step="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">% trésorerie (défaut 20)</label>
+            <input type="number" id="opt-tresorerie-pct" class="form-input" value="20" min="0" max="100" step="1" />
+          </div>
+          <div id="opt-total-alerte" style="font-size:13px;"></div>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-lock"></i> Changer le mot de passe</div>
+          <div class="form-group">
+            <label class="form-label">Mot de passe actuel</label>
+            <input type="password" id="opt-pwd-actuel" class="form-input" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nouveau mot de passe</label>
+            <input type="password" id="opt-pwd-nouveau" class="form-input" placeholder="••••••••" autocomplete="new-password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmer le nouveau</label>
+            <input type="password" id="opt-pwd-confirm" class="form-input" placeholder="••••••••" autocomplete="new-password" />
+          </div>
+          <button class="btn btn-secondary" id="btn-change-pwd"><i class="ti ti-lock"></i> Changer le mot de passe</button>
+        </div>
       </div>
-    </section>
+    </section><!-- /options -->
 
   </main>
-</div>
+</div><!-- /app -->
 
-<!-- MODALS -->
+<!-- ═══════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════ -->
 
 <!-- Modal Facture -->
-<div id="modal-facture" class="modal-overlay hidden">
+<div id="modal-facture" class="modal-overlay">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modal-facture-title">Nouvelle facture</h2>
-      <button class="modal-close" data-modal="modal-facture"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-facture-title">Nouvelle facture</span>
+      <button class="modal-close" data-close-modal="modal-facture"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="field">
-          <label>Numéro *</label>
-          <input type="text" id="f-numero" placeholder="FA-2026-001" />
-        </div>
-        <div class="field">
-          <label>Statut</label>
-          <select id="f-statut">
-            <option value="brouillon">Brouillon</option>
-            <option value="envoyee">Envoyée</option>
-            <option value="payee">Payée</option>
-            <option value="annulee">Annulée</option>
-          </select>
-        </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">N° Facture *</label>
+        <input type="text" id="f-numero" class="form-input" placeholder="F2026-001" />
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Client *</label>
-          <input type="text" id="f-client" placeholder="Nom du client" />
-        </div>
-        <div class="field">
-          <label>Date d'émission *</label>
-          <input type="date" id="f-date" />
-        </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select id="f-statut" class="form-select">
+          <option value="attente">En attente</option>
+          <option value="payee">Payée</option>
+          <option value="retard">En retard</option>
+        </select>
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Date d'échéance</label>
-          <input type="date" id="f-echeance" />
-        </div>
-        <div class="field">
-          <label>Montant HT (€) *</label>
-          <input type="number" id="f-montant" step="0.01" min="0" placeholder="0.00" />
-        </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Client *</label>
+      <input type="text" id="f-client" class="form-input" placeholder="Nom du client" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input type="text" id="f-description" class="form-input" placeholder="Prestation graphique…" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" id="f-date" class="form-input" />
       </div>
-      <div class="field">
-        <label>Description / prestations</label>
-        <textarea id="f-description" rows="3" placeholder="Détail des prestations…"></textarea>
+      <div class="form-group">
+        <label class="form-label">Montant HT (€) *</label>
+        <input type="number" id="f-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
       </div>
-      <div class="field">
-        <label>PDF (facture Indy)</label>
-        <div class="pdf-upload-row">
-          <button type="button" class="pdf-btn vide" id="f-pdf-btn"><i class="ti ti-paperclip"></i> Attacher un PDF</button>
-          <span id="f-pdf-name" class="text-muted text-sm"></span>
-        </div>
-        <input type="file" id="f-pdf-file" accept=".pdf" class="hidden" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">PDF (facture Indy)</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button type="button" class="pdf-btn vide" id="f-pdf-btn">
+          <i class="ti ti-paperclip"></i> Attacher un PDF
+        </button>
+        <span id="f-pdf-name" style="font-size:12px;color:var(--text-2);"></span>
       </div>
+      <input type="file" id="f-pdf-file" accept=".pdf" style="display:none;" />
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-facture">Annuler</button>
-      <button class="btn-primary" id="btn-save-facture">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-facture">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-facture">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Dépense -->
-<div id="modal-depense" class="modal-overlay hidden">
+<div id="modal-depense" class="modal-overlay">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modal-depense-title">Nouvelle dépense</h2>
-      <button class="modal-close" data-modal="modal-depense"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-depense-title">Nouvelle dépense</span>
+      <button class="modal-close" data-close-modal="modal-depense"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="field">
-          <label>Date *</label>
-          <input type="date" id="d-date" />
-        </div>
-        <div class="field">
-          <label>Catégorie</label>
-          <select id="d-categorie">
-            <option value="logiciel">Logiciel / SaaS</option>
-            <option value="materiel">Matériel</option>
-            <option value="formation">Formation</option>
-            <option value="deplacement">Déplacement</option>
-            <option value="communication">Communication</option>
-            <option value="autre">Autre</option>
-          </select>
-        </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" id="d-date" class="form-input" />
       </div>
-      <div class="field">
-        <label>Libellé *</label>
-        <input type="text" id="d-libelle" placeholder="Description de la dépense" />
+      <div class="form-group">
+        <label class="form-label">Catégorie</label>
+        <select id="d-categorie" class="form-select">
+          <option>Logiciels &amp; abonnements</option>
+          <option>Matériel</option>
+          <option>Formation</option>
+          <option>Communication</option>
+          <option>Déplacement</option>
+          <option>Comptabilité</option>
+          <option>Autre</option>
+        </select>
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Montant (€) *</label>
-          <input type="number" id="d-montant" step="0.01" min="0" placeholder="0.00" />
-        </div>
-        <div class="field field-checkbox">
-          <label class="checkbox-label">
-            <input type="checkbox" id="d-deductible" checked />
-            Déductible fiscalement
-          </label>
-        </div>
-      </div>
-      <div class="field">
-        <label>PDF justificatif</label>
-        <div class="pdf-upload-row">
-          <button type="button" class="pdf-btn vide" id="d-pdf-btn"><i class="ti ti-paperclip"></i> Attacher un PDF</button>
-          <span id="d-pdf-name" class="text-muted text-sm"></span>
-        </div>
-        <input type="file" id="d-pdf-file" accept=".pdf" class="hidden" />
-      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <input type="text" id="d-description" class="form-input" placeholder="Achat Adobe CC…" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant (€) *</label>
+      <input type="number" id="d-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-depense">Annuler</button>
-      <button class="btn-primary" id="btn-save-depense">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-depense">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-depense">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Abonnement -->
-<div id="modal-abonnement" class="modal-overlay hidden">
-  <div class="modal">
+<div id="modal-abonnement" class="modal-overlay">
+  <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="modal-abonnement-title">Nouvel abonnement</h2>
-      <button class="modal-close" data-modal="modal-abonnement"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-abonnement-title">Nouvel abonnement</span>
+      <button class="modal-close" data-close-modal="modal-abonnement"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="field">
-        <label>Nom *</label>
-        <input type="text" id="abo-nom" placeholder="ex. Figma" />
+    <div class="form-group">
+      <label class="form-label">Nom *</label>
+      <input type="text" id="abo-nom" class="form-input" placeholder="Adobe Creative Cloud" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Montant mensuel (€) *</label>
+        <input type="number" id="abo-montant" class="form-input" step="0.01" min="0" />
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Montant (€) *</label>
-          <input type="number" id="abo-montant" step="0.01" min="0" />
-        </div>
-        <div class="field">
-          <label>Périodicité</label>
-          <select id="abo-periodicite">
-            <option value="mensuel">Mensuel</option>
-            <option value="annuel">Annuel</option>
-            <option value="trimestriel">Trimestriel</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Jour prélèvement</label>
+        <input type="number" id="abo-jour" class="form-input" min="1" max="31" placeholder="1" />
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Jour de prélèvement</label>
-          <input type="number" id="abo-jour" min="1" max="31" placeholder="1–31" />
-        </div>
-        <div class="field">
-          <label>Catégorie</label>
-          <select id="abo-categorie">
-            <option value="logiciel">Logiciel / SaaS</option>
-            <option value="communication">Communication</option>
-            <option value="autre">Autre</option>
-          </select>
-        </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Catégorie</label>
+        <select id="abo-categorie" class="form-select">
+          <option>Logiciels</option>
+          <option>Hébergement</option>
+          <option>Communication</option>
+          <option>Comptabilité</option>
+          <option>Autre</option>
+        </select>
       </div>
-      <div class="field field-checkbox">
-        <label class="checkbox-label">
-          <input type="checkbox" id="abo-actif" checked />
-          Actif
-        </label>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select id="abo-statut" class="form-select">
+          <option value="actif">Actif</option>
+          <option value="pause">Pausé</option>
+          <option value="annule">Annulé</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-abonnement">Annuler</button>
-      <button class="btn-primary" id="btn-save-abonnement">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-abonnement">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-abonnement">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Compte -->
-<div id="modal-compte" class="modal-overlay hidden">
-  <div class="modal">
+<div id="modal-compte" class="modal-overlay">
+  <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="modal-compte-title">Nouveau compte</h2>
-      <button class="modal-close" data-modal="modal-compte"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-compte-title">Nouveau compte</span>
+      <button class="modal-close" data-close-modal="modal-compte"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="field">
-        <label>Nom *</label>
-        <input type="text" id="cpt-nom" placeholder="ex. Compte pro Shine" />
+    <div class="form-group">
+      <label class="form-label">Nom *</label>
+      <input type="text" id="cpt-nom" class="form-input" placeholder="Qonto Pro" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="cpt-type" class="form-select">
+          <option value="professionnel">Professionnel</option>
+          <option value="personnel">Personnel</option>
+          <option value="epargne">Épargne</option>
+        </select>
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Type</label>
-          <select id="cpt-type">
-            <option value="courant">Courant</option>
-            <option value="epargne">Épargne</option>
-            <option value="tresorerie">Trésorerie</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Solde actuel (€)</label>
-          <input type="number" id="cpt-solde" step="0.01" placeholder="0.00" />
-        </div>
-      </div>
-      <div class="field">
-        <label>IBAN (optionnel)</label>
-        <input type="text" id="cpt-iban" placeholder="FR76…" />
+      <div class="form-group">
+        <label class="form-label">Solde (€)</label>
+        <input type="number" id="cpt-solde" class="form-input" step="0.01" placeholder="0.00" />
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-compte">Annuler</button>
-      <button class="btn-primary" id="btn-save-compte">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-compte">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-compte">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Mise à jour solde compte -->
+<div id="modal-compte-update" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-compte-update-title">Mettre à jour le solde</span>
+      <button class="modal-close" data-close-modal="modal-compte-update"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nouveau solde (€)</label>
+      <input type="number" id="cu-solde" class="form-input" step="0.01" placeholder="0.00" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Libellé (optionnel)</label>
+      <input type="text" id="cu-libelle" class="form-input" placeholder="Virement salaire…" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-compte-update">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-compte-update">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Transaction -->
-<div id="modal-transaction" class="modal-overlay hidden">
-  <div class="modal">
+<div id="modal-transaction" class="modal-overlay">
+  <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="modal-txn-title">Nouvelle transaction</h2>
-      <button class="modal-close" data-modal="modal-transaction"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-txn-title">Nouvelle transaction</span>
+      <button class="modal-close" data-close-modal="modal-transaction"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="form-row">
-        <div class="field">
-          <label>Date *</label>
-          <input type="date" id="txn-date" />
-        </div>
-        <div class="field">
-          <label>Type</label>
-          <select id="txn-type">
-            <option value="credit">Crédit</option>
-            <option value="debit">Débit</option>
-            <option value="virement">Virement</option>
-          </select>
-        </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input type="date" id="txn-date" class="form-input" />
       </div>
-      <div class="field">
-        <label>Libellé *</label>
-        <input type="text" id="txn-libelle" />
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="txn-type" class="form-select">
+          <option value="credit">Crédit</option>
+          <option value="debit">Débit</option>
+          <option value="virement">Virement</option>
+        </select>
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Compte *</label>
-          <select id="txn-compte"></select>
-        </div>
-        <div class="field">
-          <label>Montant (€) *</label>
-          <input type="number" id="txn-montant" step="0.01" min="0" />
-        </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Libellé *</label>
+      <input type="text" id="txn-libelle" class="form-input" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Compte</label>
+        <select id="txn-compte" class="form-select"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Montant (€) *</label>
+        <input type="number" id="txn-montant" class="form-input" step="0.01" min="0" />
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-transaction">Annuler</button>
-      <button class="btn-primary" id="btn-save-txn">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-transaction">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-txn">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal URSSAF paiement -->
-<div id="modal-urssaf" class="modal-overlay hidden">
+<div id="modal-urssaf" class="modal-overlay">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="modal-urssaf-title">Marquer comme payé</h2>
-      <button class="modal-close" data-modal="modal-urssaf"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-urssaf-title">Marquer comme payé</span>
+      <button class="modal-close" data-close-modal="modal-urssaf"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <p id="modal-urssaf-detail"></p>
-      <div class="field mt-md">
-        <label>Montant payé (€) *</label>
-        <input type="number" id="urs-montant-paye" step="0.01" min="0" />
-      </div>
-      <div class="field">
-        <label>Date de paiement</label>
-        <input type="date" id="urs-date-paye" />
-      </div>
+    <p id="modal-urssaf-detail" style="font-size:13px;color:var(--text-2);margin-bottom:16px;"></p>
+    <div class="form-group">
+      <label class="form-label">Montant payé (€)</label>
+      <input type="number" id="urs-montant-paye" class="form-input" step="0.01" min="0" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de paiement</label>
+      <input type="date" id="urs-date-paye" class="form-input" />
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-urssaf">Annuler</button>
-      <button class="btn-primary" id="btn-save-urssaf">Confirmer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-urssaf">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-urssaf">Confirmer</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Objectif Épargne -->
-<div id="modal-objectif-epargne" class="modal-overlay hidden">
+<!-- Modal Objectif épargne -->
+<div id="modal-objectif-epargne" class="modal-overlay">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="modal-obj-epargne-title">Nouvel objectif</h2>
-      <button class="modal-close" data-modal="modal-objectif-epargne"><i class="ti ti-x"></i></button>
+      <span class="modal-title" id="modal-obj-epargne-title">Nouvel objectif</span>
+      <button class="modal-close" data-close-modal="modal-objectif-epargne"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="field">
-        <label>Nom *</label>
-        <input type="text" id="obj-nom" placeholder="ex. Fonds d'urgence" />
+    <div class="form-group">
+      <label class="form-label">Nom *</label>
+      <input type="text" id="obj-nom" class="form-input" placeholder="Fonds d'urgence" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Montant cible (€) *</label>
+        <input type="number" id="obj-cible" class="form-input" step="100" min="0" />
       </div>
-      <div class="form-row">
-        <div class="field">
-          <label>Objectif (€) *</label>
-          <input type="number" id="obj-cible" step="1" min="0" />
-        </div>
-        <div class="field">
-          <label>Montant actuel (€)</label>
-          <input type="number" id="obj-actuel" step="1" min="0" value="0" />
-        </div>
+      <div class="form-group">
+        <label class="form-label">Montant actuel (€)</label>
+        <input type="number" id="obj-actuel" class="form-input" step="100" min="0" value="0" />
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date cible (optionnel)</label>
+      <input type="date" id="obj-date" class="form-input" />
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-objectif-epargne">Annuler</button>
-      <button class="btn-primary" id="btn-save-obj-epargne">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-objectif-epargne">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-obj-epargne">Enregistrer</button>
     </div>
   </div>
 </div>
 
 <!-- Modal Objectif CA -->
-<div id="modal-objectif-ca" class="modal-overlay hidden">
+<div id="modal-objectif-ca" class="modal-overlay">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h2>Modifier l'objectif CA</h2>
-      <button class="modal-close" data-modal="modal-objectif-ca"><i class="ti ti-x"></i></button>
+      <span class="modal-title">Modifier l'objectif CA</span>
+      <button class="modal-close" data-close-modal="modal-objectif-ca"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body">
-      <div class="field">
-        <label>Objectif annuel (€) *</label>
-        <input type="number" id="obj-ca-val" step="100" min="0" />
-      </div>
+    <div class="form-group">
+      <label class="form-label">Objectif CA annuel (€) *</label>
+      <input type="number" id="obj-ca-val" class="form-input" step="500" min="0" placeholder="60000" />
     </div>
     <div class="modal-footer">
-      <button class="btn-ghost" data-modal="modal-objectif-ca">Annuler</button>
-      <button class="btn-primary" id="btn-save-objectif-ca">Enregistrer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-objectif-ca">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-objectif-ca">Enregistrer</button>
     </div>
   </div>
 </div>
 
-<!-- Confirm dialog -->
-<div id="modal-confirm" class="modal-overlay hidden">
+<!-- Modal Confirm -->
+<div id="modal-confirm" class="modal-overlay">
   <div class="modal modal-sm">
     <div class="modal-header">
-      <h2 id="confirm-title">Confirmer</h2>
+      <span class="modal-title" id="confirm-title">Confirmer</span>
     </div>
-    <div class="modal-body">
-      <p id="confirm-msg"></p>
-    </div>
+    <p id="confirm-msg" style="font-size:13.5px;color:var(--text-2);margin-bottom:8px;"></p>
     <div class="modal-footer">
-      <button class="btn-ghost" id="confirm-cancel">Annuler</button>
-      <button class="btn-danger" id="confirm-ok">Supprimer</button>
+      <button class="btn btn-ghost" id="confirm-cancel">Annuler</button>
+      <button class="btn btn-danger" id="confirm-ok">Supprimer</button>
     </div>
   </div>
 </div>
 
 <!-- Toast -->
-<div id="toast" class="toast hidden"></div>
+<div id="toast"></div>
 
 <script src="/app.js"></script>
 </body>
