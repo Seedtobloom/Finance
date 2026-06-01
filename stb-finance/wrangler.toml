@@ -18,7 +18,7 @@
 [[workers]]
 name       = "stb-finance-api"
 main       = "back/worker.js"
-account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+account_id = "b798e3f19293ab8af47b8891ea3c52ba"
 
 compatibility_date  = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
