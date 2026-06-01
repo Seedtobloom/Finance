@@ -171,62 +171,62 @@ function confirmDialog(title,msg){
   });
 }
 
-/* ─── 5. LOCALSTORAGE DB ─────────────────────────────────────────────── */
-const LS_KEY = 'stb_finance';
+/* ─── 5. DATA LAYER (cache + API) ────────────────────────────────────── */
 
-function db(){return JSON.parse(localStorage.getItem(LS_KEY)||'{}');}
-function saveDB(d){localStorage.setItem(LS_KEY,JSON.stringify(d));}
-function dbGet(col){return db()[col]||[];}
-function dbGetObj(col){return db()[col]||{};}
-function dbSet(col,val){const d=db();d[col]=val;saveDB(d);}
+/* Lecture synchrone depuis le cache */
+function dbGet(col){return Array.isArray(_cache[col])?_cache[col]:[];}
+function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array.isArray(_cache[col])?_cache[col]:{};}
 
-function dbCreate(col,item){
-  item.id=item.id||uid();
-  const list=dbGet(col);
-  list.push(item);
-  dbSet(col,list);
-  return item;
-}
-function dbUpdate(col,item){
-  const list=dbGet(col);
-  const i=list.findIndex(x=>x.id===item.id);
-  if(i>=0)list[i]=item;else list.push(item);
-  dbSet(col,list);
-  return item;
-}
-function dbDelete(col,id){
-  dbSet(col,dbGet(col).filter(x=>x.id!==id));
+/* Correspondance colonne → chemin API */
+const _pathCreate = {
+  factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
+  comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne'
+};
+const _pathUpdate = id=>({
+  factures:`/api/factures/${id}`, abonnements:`/api/abonnements/${id}`,
+  comptes:`/api/comptes/${id}`, objectifs_epargne:`/api/objectifs/epargne/${id}`
+});
+const _pathDelete = id=>({
+  factures:`/api/factures/${id}`, depenses:`/api/depenses/${id}`,
+  abonnements:`/api/abonnements/${id}`, comptes:`/api/comptes/${id}`,
+  transactions:`/api/transactions/${id}`, objectifs_epargne:`/api/objectifs/epargne/${id}`
+});
+
+/* Normalisation abonnements (UI ↔ API) */
+function _normAbo(a){return {...a, montant:a.montantMensuel||a.montant||0, jour:a.jourPrelevement||a.jour||1};}
+function _normEpargne(o){return {...o, cible:o.montantCible||o.cible||0, actuel:o.montantActuel||o.actuel||0};}
+
+async function dbCreate(col, item){
+  const path=_pathCreate[col]; if(!path)return item;
+  const r = await api('POST', path, item);
+  const norm = col==='abonnements'?_normAbo(r):col==='objectifs_epargne'?_normEpargne(r):r;
+  _cache[col]=[...(_cache[col]||[]), norm];
+  return norm;
 }
 
-function initDB(){
-  const d=db();
-  if(!d.settings)dbSet('settings',{
-    nom:'Cindy',entreprise:'Seed to Bloom',email:'contact@seedtobloom.fr',
-    tauxUrssaf:25.6,tauxCfp:0.2,pasFixe:40,cfe:0,
-    objectifCA:60000,pctVersement:65,pctEpargne:15,pctTresorerie:20
-  });
-  if(!d.factures)     dbSet('factures',[]);
-  if(!d.depenses)     dbSet('depenses',[]);
-  if(!d.transactions) dbSet('transactions',[]);
-  if(!d.urssaf)       dbSet('urssaf',{});
-  if(!d.repartition)  dbSet('repartition',{versement:0,epargne:0,tresorerie:0});
-  if(!d.objectif_ca)  dbSet('objectif_ca',{valeur:60000});
-  if(!d.abonnements)  dbSet('abonnements',[
-    {id:uid(),nom:'Adobe Creative Cloud',categorie:'Logiciels',montant:61.99,periodicite:'mensuel',jour:1,statut:'actif'},
-    {id:uid(),nom:'Notion Pro',categorie:'Logiciels',montant:16,periodicite:'mensuel',jour:3,statut:'actif'},
-    {id:uid(),nom:'Infomaniak hosting',categorie:'Hébergement',montant:12,periodicite:'mensuel',jour:1,statut:'actif'},
-    {id:uid(),nom:'n8n cloud',categorie:'Logiciels',montant:20,periodicite:'mensuel',jour:15,statut:'actif'},
-  ]);
-  if(!d.comptes) dbSet('comptes',[
-    {id:uid(),nom:'Qonto Pro',type:'courant',solde:0,iban:'',historique:[]},
-    {id:uid(),nom:'Crédit Agricole',type:'courant',solde:0,iban:'',historique:[]},
-    {id:uid(),nom:'Épargne',type:'epargne',solde:0,iban:'',historique:[]},
-  ]);
-  if(!d.objectifs_epargne) dbSet('objectifs_epargne',[
-    {id:uid(),nom:'Trésorerie tampon (3 mois)',cible:3000,actuel:0,dateCible:''},
-    {id:uid(),nom:'Épargne retraite annuelle',cible:2400,actuel:0,dateCible:''},
-    {id:uid(),nom:'Matériel (nouvel ordi)',cible:2000,actuel:0,dateCible:''},
-  ]);
+async function dbUpdate(col, item){
+  const path=_pathUpdate(item.id)[col]; if(!path)return item;
+  const r = await api('PUT', path, item);
+  const norm = col==='abonnements'?_normAbo(r):col==='objectifs_epargne'?_normEpargne(r):r;
+  const list=_cache[col]||[];
+  const idx=list.findIndex(x=>x.id===item.id);
+  if(idx>=0)list[idx]=norm;else list.push(norm);
+  _cache[col]=[...list];
+  return norm;
+}
+
+async function dbDelete(col, id){
+  const path=_pathDelete(id)[col]; if(!path)return;
+  await api('DELETE', path);
+  _cache[col]=(_cache[col]||[]).filter(x=>x.id!==id);
+}
+
+async function dbSet(col, val){
+  if(col==='settings'){_cache.settings=await api('PUT','/api/settings',val);return;}
+  if(col==='repartition'){_cache.repartition=await api('PUT','/api/repartition',val);return;}
+  if(col==='objectif_ca'){_cache.objectif_ca=await api('PUT','/api/objectifs/ca',val);return;}
+  if(col==='urssaf'){_cache.urssaf=val;return;}
+  _cache[col]=val;
 }
 
 /* ─── 6. ROUTER ──────────────────────────────────────────────────────── */
