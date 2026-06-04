@@ -4582,8 +4582,7 @@ async function doImportDepenses(){
 }
 async function exportCSV(type){
   try{
-    const token=sessionStorage.getItem(TOKEN_KEY);
-    const r=await fetch(\`\${API_BASE}/api/export/\${type}\`,{headers:{Authorization:\`Bearer \${token}\`}});
+    const r=await fetch(\`/api/export/\${type}\`);
     if(r.status===401){showLogin();return;}
     const blob=await r.blob();
     const url=URL.createObjectURL(blob);
@@ -4754,7 +4753,11 @@ export default {
     if (path.startsWith('/api/')) {
       const ok = await checkAuth(request, env);
       if (!ok) return new Response(JSON.stringify({ error: 'Non autorisé' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
-      return env.STB_BACK.fetch(request);
+      try {
+        return await env.STB_BACK.fetch(request);
+      } catch(e) {
+        return new Response(JSON.stringify({ error: 'Erreur back-end : ' + e.message }), { status: 502, headers: { 'Content-Type': 'application/json' } });
+      }
     }
 
     // SPA fallback
