@@ -192,14 +192,15 @@ async function getFacture(env,uid,id){const list=await kvTableau(env,`${uid}:fac
 async function createFacture(request,env,uid){
   const body=await parseJSON(request);if(!validerDoc(body))return jsonErr(400,'Données invalides.');
   const list=await kvTableau(env,`${uid}:factures`);
-  const f={id:uid4(),numero:prochNumF(list),client:body.client.trim(),description:body.description?.trim()||'',
+  const f={id:uid4(),numero:prochNumF(list),client:body.client.trim(),projet:body.projet?.trim()||'',
+    description:body.description?.trim()||'',
     montant:parseFloat(body.montant),date:body.date,statut:body.statut||'attente',pdfKey:null,createdAt:iso()};
   list.push(f);await kvEcrire(env,`${uid}:factures`,list);return jsonOk(f,201);
 }
 async function updateFacture(request,env,uid,id){
   const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:factures`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Facture introuvable.');
-  ['client','description','montant','date','statut'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
+  ['client','projet','description','montant','date','statut'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
   list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:factures`,list);return jsonOk(list[idx]);
 }
 async function deleteFacture(env,uid,id){

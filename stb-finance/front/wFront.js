@@ -68,6 +68,9 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="factures">
           <i class="ti ti-file-invoice"></i> CA &amp; Factures
         </a>
+        <a class="nav-item" data-section="tiers">
+          <i class="ti ti-users"></i> Clients &amp; tiers
+        </a>
         <a class="nav-item" data-section="objectifs-ca">
           <i class="ti ti-target"></i> Objectifs de CA
         </a>
@@ -372,6 +375,9 @@ const HTML = `<!DOCTYPE html>
             <option value="attente">En attente</option>
             <option value="retard">En retard</option>
           </select>
+          <select id="factures-filter-projet" class="form-select" style="width:170px;">
+            <option value="">Tous projets</option>
+          </select>
           <button class="btn btn-primary" id="btn-new-facture"><i class="ti ti-plus"></i> Nouvelle facture</button>
         </div>
       </div>
@@ -409,10 +415,9 @@ const HTML = `<!DOCTYPE html>
                 <th>Date</th>
                 <th>N° Facture</th>
                 <th>Client</th>
-                <th>Description</th>
+                <th>Projet</th>
                 <th>Montant HT</th>
                 <th>Statut</th>
-                <th>PDF</th>
                 <th></th>
               </tr>
             </thead>
@@ -497,6 +502,66 @@ const HTML = `<!DOCTYPE html>
         <div id="objca-projection"></div>
       </div>
     </section><!-- /objectifs-ca -->
+
+
+    <!-- ═══════════════════════════
+         CLIENTS & TIERS
+         ═══════════════════════════ -->
+    <section id="section-tiers" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Clients &amp; tiers</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Clients, fournisseurs, prestataires — avec CA encaissé par client.</p>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="tiers-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
+          <select id="tiers-filter-type" class="form-select" style="width:150px;">
+            <option value="">Tous types</option>
+            <option value="client">Clients</option>
+            <option value="fournisseur">Fournisseurs</option>
+            <option value="prestataire">Prestataires</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-tiers"><i class="ti ti-plus"></i> Nouveau tiers</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid kpi-grid-3 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
+          <span class="kpi-label">Clients enregistrés</span>
+          <span class="kpi-value" id="tiers-kpi-clients">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-trending-up"></i></div>
+          <span class="kpi-label">CA total encaissé</span>
+          <span class="kpi-value" id="tiers-kpi-ca">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon violet"><i class="ti ti-star"></i></div>
+          <span class="kpi-label">Meilleur client</span>
+          <span class="kpi-value" style="font-size:18px;" id="tiers-kpi-top">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Email</th>
+                <th>CA encaissé</th>
+                <th>Factures</th>
+                <th>Dernière facture</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tiers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section><!-- /tiers -->
 
 
     <!-- ═══════════════════════════
@@ -1263,7 +1328,12 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="form-group">
       <label class="form-label">Client *</label>
-      <input type="text" id="f-client" class="form-input" placeholder="Nom du client" />
+      <input type="text" id="f-client" class="form-input" placeholder="Nom du client" list="tiers-datalist" autocomplete="off" />
+      <datalist id="tiers-datalist"></datalist>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Projet / référence</label>
+      <input type="text" id="f-projet" class="form-input" placeholder="Site web Printemps 2026…" />
     </div>
     <div class="form-group">
       <label class="form-label">Description</label>
@@ -1292,6 +1362,52 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-facture">Annuler</button>
       <button class="btn btn-primary" id="btn-save-facture">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tiers -->
+<div id="modal-tiers" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-tiers-title">Nouveau tiers</span>
+      <button class="modal-close" data-close-modal="modal-tiers"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Nom *</label>
+        <input type="text" id="ti-nom" class="form-input" placeholder="Acme Studio" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="ti-type" class="form-select">
+          <option value="client">Client</option>
+          <option value="fournisseur">Fournisseur</option>
+          <option value="prestataire">Prestataire</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="ti-email" class="form-input" placeholder="contact@acme.fr" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">SIRET</label>
+        <input type="text" id="ti-siret" class="form-input" placeholder="XXX XXX XXX XXXXX" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adresse</label>
+      <input type="text" id="ti-adresse" class="form-input" placeholder="1 rue de la Paix, 75001 Paris" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="ti-notes" class="form-input" rows="2" placeholder="Notes libres…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-tiers">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-tiers">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3128,11 +3244,11 @@ async function api(method, path, body) {
 /* ─── 0c. CACHE ──────────────────────────────────────────────────────── */
 const _cache = {
   settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
-  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[]
 };
 
 async function loadAll() {
-  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA] = await Promise.all([
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers] = await Promise.all([
     api('GET', '/api/settings'),
     api('GET', '/api/factures'),
     api('GET', '/api/depenses'),
@@ -3142,6 +3258,7 @@ async function loadAll() {
     api('GET', '/api/urssaf'),
     api('GET', '/api/repartition'),
     api('GET', '/api/objectifs/ca'),
+    api('GET', '/api/tiers'),
   ]);
   _cache.settings        = settings || {};
   _cache.factures        = factures || [];
@@ -3152,6 +3269,7 @@ async function loadAll() {
   _cache.urssaf          = urssaf   || {};
   _cache.repartition     = repartition || {};
   _cache.objectif_ca     = objCA    || {};
+  _cache.tiers           = tiers    || [];
   // Transactions : on charge jusqu'à 5 pages
   try {
     const t1 = await api('GET', '/api/transactions?page=1');
@@ -3231,16 +3349,19 @@ function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array
 /* Correspondance colonne → chemin API */
 const _pathCreate = {
   factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
-  comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne'
+  comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne',
+  tiers:'/api/tiers'
 };
 const _pathUpdate = id=>({
   factures:\`/api/factures/\${id}\`, abonnements:\`/api/abonnements/\${id}\`,
-  comptes:\`/api/comptes/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`
+  comptes:\`/api/comptes/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
+  tiers:\`/api/tiers/\${id}\`
 });
 const _pathDelete = id=>({
   factures:\`/api/factures/\${id}\`, depenses:\`/api/depenses/\${id}\`,
   abonnements:\`/api/abonnements/\${id}\`, comptes:\`/api/comptes/\${id}\`,
-  transactions:\`/api/transactions/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`
+  transactions:\`/api/transactions/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
+  tiers:\`/api/tiers/\${id}\`
 });
 
 /* Normalisation abonnements (UI ↔ API) */
@@ -3297,7 +3418,7 @@ function loadSection(s){
   const map={
     'dashboard':loadDashboard,'vue-ensemble':loadVueEnsemble,
     'comptes':loadComptes,'transactions':loadTransactions,
-    'factures':loadFactures,'objectifs-ca':loadObjectifsCA,
+    'factures':loadFactures,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,'repartition':loadRepartition,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
@@ -3783,17 +3904,26 @@ function loadFactures(){
 function renderFactures(){
   const search=q('#factures-search')?.value.toLowerCase()||'';
   const statut=q('#factures-filter-statut')?.value||'';
+  const projet=q('#factures-filter-projet')?.value||'';
   let list=[...facturesData];
-  if(search)list=list.filter(f=>((f.numero||'')+(f.client||'')+(f.description||'')).toLowerCase().includes(search));
+  if(search)list=list.filter(f=>((f.numero||'')+(f.client||'')+(f.description||'')+(f.projet||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(f=>f.statut===statut);
+  if(projet)list=list.filter(f=>(f.projet||'')=== projet);
   list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  // Mise à jour filtre projets
+  const selProjet=q('#factures-filter-projet');
+  if(selProjet){
+    const projets=[...new Set(facturesData.map(f=>f.projet).filter(Boolean))].sort();
+    const cur=selProjet.value;
+    selProjet.innerHTML=\`<option value="">Tous projets</option>\`+projets.map(p=>\`<option value="\${p}" \${p===cur?'selected':''}>\${p}</option>\`).join('');
+  }
   const tbody=q('#factures-tbody');
   if(!tbody)return;
   tbody.innerHTML=list.length?list.map(f=>\`<tr>
     <td>\${fmtDate(f.date)}</td>
     <td class="td-mono">\${f.numero||'—'}</td>
     <td>\${f.client||'—'}</td>
-    <td class="td-muted">\${f.description||'—'}</td>
+    <td class="td-muted">\${f.projet||f.description||'—'}</td>
     <td class="td-amount">\${fmt(f.montant||0)}</td>
     <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
     <td style="white-space:nowrap;">
@@ -3805,20 +3935,110 @@ function renderFactures(){
 function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
   q('#f-numero').value=data.numero||'';q('#f-statut').value=data.statut||'attente';
-  q('#f-client').value=data.client||'';q('#f-description').value=data.description||'';
+  q('#f-client').value=data.client||'';q('#f-projet').value=data.projet||'';
+  q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
+  refreshTiersDatalist();
   openModal('modal-facture');
 }
 async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
-  const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),description:q('#f-description').value.trim(),date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
+  const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),
+    projet:q('#f-projet').value.trim(),description:q('#f-description').value.trim(),
+    date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
   try{
     if(id){body.id=id;await dbUpdate('factures',body);}else{await dbCreate('factures',body);}
     facturesData=dbGet('factures');
     closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
   }catch(e){toast(e.message||'Erreur','error');}
+}
+
+/* --- Tiers ------------------------------------------------------------ */
+let tiersData=[];
+function loadTiers(){
+  tiersData=dbGet('tiers');
+  const clients=tiersData.filter(t=>t.type==='client');
+  const factures=dbGet('factures');
+  const payees=factures.filter(f=>f.statut==='payee');
+  const caParNom={};
+  payees.forEach(f=>{caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
+  const caTotal=clients.reduce((s,t)=>s+(caParNom[t.nom]||0),0);
+  const top=clients.reduce((best,t)=>(caParNom[t.nom]||0)>(caParNom[best?.nom]||0)?t:best,null);
+  if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=clients.length;
+  if(q('#tiers-kpi-ca'))q('#tiers-kpi-ca').textContent=fmt(caTotal);
+  if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top?.nom||'—';
+  renderTiers();
+}
+function renderTiers(){
+  const search=q('#tiers-search')?.value.toLowerCase()||'';
+  const type=q('#tiers-filter-type')?.value||'';
+  const factures=dbGet('factures');
+  const payees=factures.filter(f=>f.statut==='payee');
+  let list=[...tiersData];
+  if(search)list=list.filter(t=>((t.nom||'')+(t.email||'')+(t.notes||'')).toLowerCase().includes(search));
+  if(type)list=list.filter(t=>t.type===type);
+  // Trier par CA décroissant pour les clients
+  const caParNom={};payees.forEach(f=>{caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
+  list.sort((a,b)=>(caParNom[b.nom]||0)-(caParNom[a.nom]||0)||(a.nom||'').localeCompare(b.nom||''));
+  const tbody=q('#tiers-tbody');
+  if(!tbody)return;
+  const typeLabel={client:'Client',fournisseur:'Fournisseur',prestataire:'Prestataire'};
+  const typeBadge={client:'payee',fournisseur:'attente',prestataire:'retard'};
+  tbody.innerHTML=list.length?list.map(t=>{
+    const facs=factures.filter(f=>f.client===t.nom);
+    const ca=payees.filter(f=>f.client===t.nom).reduce((s,f)=>s+(f.montant||0),0);
+    const derniere=facs.sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+    return\`<tr>
+      <td><strong>\${t.nom}</strong></td>
+      <td><span class="badge badge-\${typeBadge[t.type]||'attente'}">\${typeLabel[t.type]||t.type}</span></td>
+      <td class="td-muted">\${t.email||'—'}</td>
+      <td class="td-amount">\${ca>0?fmt(ca):'—'}</td>
+      <td style="text-align:center;">\${facs.length||'—'}</td>
+      <td>\${derniere?fmtDate(derniere.date):'—'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-xs" onclick="editTiers('\${t.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteTiers('\${t.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun tiers enregistré</td></tr>';
+}
+function openModalTiers(data={}){
+  q('#modal-tiers-title').textContent=data.id?'Modifier le tiers':'Nouveau tiers';
+  q('#ti-nom').value=data.nom||'';q('#ti-type').value=data.type||'client';
+  q('#ti-email').value=data.email||'';q('#ti-siret').value=data.siret||'';
+  q('#ti-adresse').value=data.adresse||'';q('#ti-notes').value=data.notes||'';
+  q('#btn-save-tiers').dataset.id=data.id||'';
+  openModal('modal-tiers');
+}
+async function saveModalTiers(){
+  const id=q('#btn-save-tiers').dataset.id;
+  const body={nom:q('#ti-nom').value.trim(),type:q('#ti-type').value,
+    email:q('#ti-email').value.trim(),siret:q('#ti-siret').value.trim(),
+    adresse:q('#ti-adresse').value.trim(),notes:q('#ti-notes').value.trim()};
+  if(!body.nom){toast('Nom requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('tiers',body);}else{await dbCreate('tiers',body);}
+    tiersData=dbGet('tiers');
+    closeModal('modal-tiers');toast('Tiers enregistré','success');
+    loadTiers();refreshTiersDatalist();
+  }catch(e){toast(e.message||'Erreur','error');}
+}
+function editTiers(id){const t=tiersData.find(x=>x.id===id);if(t)openModalTiers(t);}
+function deleteTiers(id){
+  confirmDialog('Supprimer ce tiers','Cette action est irréversible.').then(async ok=>{
+    if(!ok)return;
+    try{
+      await dbDelete('tiers',id);tiersData=dbGet('tiers');
+      toast('Tiers supprimé');loadTiers();refreshTiersDatalist();
+    }catch(e){toast(e.message||'Erreur','error');}
+  });
+}
+function refreshTiersDatalist(){
+  const dl=q('#tiers-datalist');if(!dl)return;
+  const tiers=dbGet('tiers').filter(t=>t.type==='client');
+  dl.innerHTML=tiers.map(t=>\`<option value="\${t.nom}">\`).join('');
 }
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
 function deleteFacture(id){
@@ -4676,6 +4896,13 @@ async function init(){
   q('#btn-save-facture')?.addEventListener('click',saveFacture);
   q('#factures-search')?.addEventListener('input',renderFactures);
   q('#factures-filter-statut')?.addEventListener('change',renderFactures);
+  q('#factures-filter-projet')?.addEventListener('change',renderFactures);
+
+  // Tiers
+  q('#btn-new-tiers')?.addEventListener('click',()=>openModalTiers());
+  q('#btn-save-tiers')?.addEventListener('click',saveModalTiers);
+  q('#tiers-search')?.addEventListener('input',renderTiers);
+  q('#tiers-filter-type')?.addEventListener('change',renderTiers);
 
   // Dépenses
   q('#btn-new-depense')?.addEventListener('click',()=>openDepenseModal());
