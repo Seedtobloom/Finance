@@ -1,10 +1,6 @@
-/* ─── STB Finance — app.js — API Cloudflare Workers ─────────────────── */
+/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
-/* ─── 0. CONFIG API ──────────────────────────────────────────────────── */
-const API_BASE  = 'https://stb-back.orange-math-be7e.workers.dev';
-const TOKEN_KEY = 'stb_jwt';
-
-/* ─── 0b. LOGIN OVERLAY ──────────────────────────────────────────────── */
+/* ─── 0. LOGIN OVERLAY ───────────────────────────────────────────────── */
 function injectLoginOverlay() {
   if (q('#login-overlay')) return;
   const div = document.createElement('div');
@@ -44,14 +40,13 @@ async function doLogin() {
   q('#login-btn').textContent = '…';
   q('#login-error').textContent = '';
   try {
-    const r = await fetch(API_BASE + '/api/auth/login', {
+    const r = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pwd })
     });
     const data = await r.json();
     if (!r.ok) { q('#login-error').textContent = data.error || 'Erreur'; q('#login-btn').textContent = 'Se connecter'; return; }
-    sessionStorage.setItem(TOKEN_KEY, data.token);
     hideLogin();
     await startApp();
   } catch(e) {
@@ -60,21 +55,17 @@ async function doLogin() {
   }
 }
 
-/* ─── 0c. API HELPER ─────────────────────────────────────────────────── */
+/* ─── 0b. API HELPER ─────────────────────────────────────────────────── */
 async function api(method, path, body) {
-  const token = sessionStorage.getItem(TOKEN_KEY);
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }
-  };
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
   if (body !== undefined) opts.body = JSON.stringify(body);
-  const r = await fetch(API_BASE + path, opts);
+  const r = await fetch(path, opts);
   if (r.status === 401) { showLogin(); throw new Error('401'); }
   if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || r.statusText); }
   return r.json();
 }
 
-/* ─── 0d. CACHE ──────────────────────────────────────────────────────── */
+/* ─── 0c. CACHE ──────────────────────────────────────────────────────── */
 const _cache = {
   settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
   comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}
@@ -1687,13 +1678,11 @@ async function init(){
   q('#btn-save-options')?.addEventListener('click',saveOptions);
   ['#opt-versement','#opt-epargne-pct','#opt-tresorerie-pct'].forEach(id=>q(id)?.addEventListener('input',updateOptTotal));
 
-  // Démarrage : vérifier si on a déjà un token valide
-  const token = sessionStorage.getItem(TOKEN_KEY);
-  if (token) {
-    await startApp();
-  } else {
-    showLogin();
-  }
+  // Démarrage : vérifier si le cookie de session est valide
+  try {
+    const r = await fetch('/api/settings');
+    if (r.ok) { await startApp(); } else { showLogin(); }
+  } catch { showLogin(); }
 }
 
 document.addEventListener('DOMContentLoaded',init);
