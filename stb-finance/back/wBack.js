@@ -95,6 +95,14 @@ async function router(request, env) {
     if (method === 'DELETE') return deleteObjectifEpargne(env, uid, mOE[1]);
   }
 
+  if (method === 'GET'  && path === '/api/tiers')          return listTiers(env, uid);
+  if (method === 'POST' && path === '/api/tiers')          return createTiers(request, env, uid);
+  const mTi = path.match(/^\/api\/tiers\/([^/]+)$/);
+  if (mTi) {
+    if (method === 'PUT')    return updateTiers(request, env, uid, mTi[1]);
+    if (method === 'DELETE') return deleteTiers(env, uid, mTi[1]);
+  }
+
   if (method === 'GET' && path === '/api/repartition')    return getRepartition(env, uid);
   if (method === 'PUT' && path === '/api/repartition')    return putRepartition(request, env, uid);
 
@@ -256,16 +264,7 @@ async function deleteAbo(env,uid,id){
 
 /* ── COMPTES ── */
 async function listComptes(env,uid){
-  const list=await kvTableau(env,`${uid}:comptes`);
-  if(!list.length){
-    const defaut=[
-      {id:uid4(),nom:'Qonto Pro',type:'professionnel',solde:0,updatedAt:iso(),historique:[]},
-      {id:uid4(),nom:'Crédit Agricole',type:'personnel',solde:0,updatedAt:iso(),historique:[]},
-      {id:uid4(),nom:'Épargne',type:'epargne',solde:0,updatedAt:iso(),historique:[]},
-    ];
-    await kvEcrire(env,`${uid}:comptes`,defaut);return jsonOk(defaut);
-  }
-  return jsonOk(list);
+  return jsonOk(await kvTableau(env,`${uid}:comptes`));
 }
 async function createCompte(request,env,uid){
   const body=await parseJSON(request);if(!body?.nom)return jsonErr(400,'Nom requis.');
@@ -351,16 +350,7 @@ async function putObjectifCA(request,env,uid){const body=await parseJSON(request
 
 /* ── OBJECTIFS ÉPARGNE ── */
 async function listObjectifsEpargne(env,uid){
-  const list=await kvTableau(env,`${uid}:objectifs_epargne`);
-  if(!list.length){
-    const defaut=[
-      {id:uid4(),nom:'Trésorerie tampon (3 mois)',montantCible:9000,montantActuel:0,dateCible:null},
-      {id:uid4(),nom:'Épargne retraite',montantCible:5000,montantActuel:0,dateCible:null},
-      {id:uid4(),nom:'Nouvel ordinateur',montantCible:2500,montantActuel:0,dateCible:null},
-    ];
-    await kvEcrire(env,`${uid}:objectifs_epargne`,defaut);return jsonOk(defaut);
-  }
-  return jsonOk(list);
+  return jsonOk(await kvTableau(env,`${uid}:objectifs_epargne`));
 }
 async function createObjectifEpargne(request,env,uid){
   const body=await parseJSON(request);if(!body?.nom||!body?.montantCible)return jsonErr(400,'Champs requis.');
@@ -378,6 +368,26 @@ async function deleteObjectifEpargne(env,uid,id){
   const list=await kvTableau(env,`${uid}:objectifs_epargne`);const next=list.filter(x=>x.id!==id);
   if(next.length===list.length)return jsonErr(404,'Objectif introuvable.');
   await kvEcrire(env,`${uid}:objectifs_epargne`,next);return jsonOk({deleted:id});
+}
+
+/* ── TIERS (clients, fournisseurs, prestataires) ── */
+async function listTiers(env,uid){return jsonOk(await kvTableau(env,`${uid}:tiers`));}
+async function createTiers(request,env,uid){
+  const body=await parseJSON(request);if(!body?.nom?.trim())return jsonErr(400,'Nom requis.');
+  const list=await kvTableau(env,`${uid}:tiers`);
+  const t={id:uid4(),nom:body.nom.trim(),type:body.type||'client',email:body.email||'',siret:body.siret||'',adresse:body.adresse||'',notes:body.notes||'',createdAt:iso()};
+  list.push(t);await kvEcrire(env,`${uid}:tiers`,list);return jsonOk(t,201);
+}
+async function updateTiers(request,env,uid,id){
+  const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:tiers`);
+  const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Tiers introuvable.');
+  ['nom','type','email','siret','adresse','notes'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=body[c];});
+  list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:tiers`,list);return jsonOk(list[idx]);
+}
+async function deleteTiers(env,uid,id){
+  const list=await kvTableau(env,`${uid}:tiers`);const next=list.filter(x=>x.id!==id);
+  if(next.length===list.length)return jsonErr(404,'Tiers introuvable.');
+  await kvEcrire(env,`${uid}:tiers`,next);return jsonOk({deleted:id});
 }
 
 /* ── RÉPARTITION ── */

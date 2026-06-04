@@ -4728,7 +4728,7 @@ async function init(){
   // Démarrage : vérifier si le cookie de session est valide
   try {
     const r = await fetch('/api/settings');
-    if (r.ok) { await startApp(); } else { showLogin(); }
+    if (r.status === 401) { showLogin(); } else { await startApp(); }
   } catch { showLogin(); }
 }
 
