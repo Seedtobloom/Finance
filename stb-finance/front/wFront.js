@@ -80,7 +80,7 @@ const HTML = `<!DOCTYPE html>
           <i class="ti ti-receipt"></i> Dépenses pro
         </a>
         <a class="nav-item" data-section="abonnements">
-          <i class="ti ti-repeat"></i> Abonnements
+          <i class="ti ti-repeat"></i> Charges fixes
         </a>
         <a class="nav-item" data-section="charges-urssaf">
           <i class="ti ti-calendar-due"></i> Charges &amp; URSSAF
@@ -582,10 +582,11 @@ const HTML = `<!DOCTYPE html>
     <section id="section-abonnements" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Abonnements</h1>
+          <h1>Charges fixes & abonnements</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Logiciels, mutuelle, loyer bureau, abonnements récurrents — tout ce qui est prélevé chaque mois.</p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-primary" id="btn-new-abonnement"><i class="ti ti-plus"></i> Nouvel abonnement</button>
+          <button class="btn btn-primary" id="btn-new-abonnement"><i class="ti ti-plus"></i> Nouvelle charge fixe</button>
         </div>
       </div>
 
@@ -908,11 +909,11 @@ const HTML = `<!DOCTYPE html>
                 <span class="sim-line-amount" id="sr-ca">—</span>
               </div>
               <div class="sim-line">
-                <span class="sim-line-label">— URSSAF (25,6%)</span>
+                <span class="sim-line-label" id="sr-urssaf-label">— URSSAF (25,6%)</span>
                 <span class="sim-line-amount neg" id="sr-urssaf">—</span>
               </div>
               <div class="sim-line">
-                <span class="sim-line-label">— CFP (0,2%)</span>
+                <span class="sim-line-label" id="sr-cfp-label">— CFP (0,2%)</span>
                 <span class="sim-line-amount neg" id="sr-cfp">—</span>
               </div>
               <div class="sim-line">
@@ -924,8 +925,8 @@ const HTML = `<!DOCTYPE html>
                 <span class="sim-line-amount neg" id="sr-cfe">—</span>
               </div>
               <div class="sim-line">
-                <span class="sim-line-label">— PAS fixe (40€)</span>
-                <span class="sim-line-amount neg" id="sr-pas">— 40,00€</span>
+                <span class="sim-line-label" id="sr-pas-label">— PAS mensuel (40€)</span>
+                <span class="sim-line-amount neg" id="sr-pas">—</span>
               </div>
               <div class="sim-line sim-total">
                 <span class="sim-line-label">= Résultat net</span>
@@ -1168,19 +1169,30 @@ const HTML = `<!DOCTYPE html>
           <div class="form-group">
             <label class="form-label">Taux URSSAF (%)</label>
             <input type="number" id="opt-urssaf" class="form-input" value="25.6" step="0.1" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Cotisations sociales micro-BNC (25,6% par défaut 2026)</span>
           </div>
           <div class="form-group">
             <label class="form-label">Taux CFP (%)</label>
             <input type="number" id="opt-cfp" class="form-input" value="0.2" step="0.01" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Contribution à la Formation Professionnelle (0,2%)</span>
           </div>
           <div class="form-group">
-            <label class="form-label">PAS mensuel fixe (€)</label>
+            <label class="form-label">PAS mensuel (€)</label>
             <input type="number" id="opt-pas" class="form-input" value="40" step="1" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Prélèvement à la Source — impôt prélevé automatiquement chaque mois par les impôts (montant sur ton avis d'imposition)</span>
           </div>
           <div class="form-group">
             <label class="form-label">CFE annuelle (€)</label>
             <input type="number" id="opt-cfe" class="form-input" value="0" step="10" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Cotisation Foncière des Entreprises — prélevée en décembre, répartie sur 12 mois dans les calculs</span>
           </div>
+        </div>
+
+        <!-- Charges fixes -->
+        <div class="card">
+          <div class="card-title"><i class="ti ti-repeat"></i> Charges fixes mensuelles</div>
+          <p style="font-size:13px;color:var(--text-2);margin:0 0 12px;">Logiciels, mutuelle, loyer bureau, abonnements récurrents… Gère-les dans l'onglet dédié pour qu'ils soient inclus dans tes calculs.</p>
+          <button class="btn btn-secondary" onclick="navigate('abonnements')"><i class="ti ti-arrow-right"></i> Gérer les charges fixes</button>
         </div>
 
         <!-- Répartition -->
@@ -4437,9 +4449,13 @@ function calcSimMensuel(){
   const versement=Math.round(net*pctV/100*100)/100;
   const epargne=Math.round(net*0.15*100)/100;
   const treso=Math.round(net*(1-pctV/100-0.15)*100)/100;
+  if(q('#sr-urssaf-label'))q('#sr-urssaf-label').textContent=\`— URSSAF (\${s.tauxUrssaf||25.6}%)\`;
+  if(q('#sr-cfp-label'))q('#sr-cfp-label').textContent=\`— CFP (\${s.tauxCfp||0.2}%)\`;
+  if(q('#sr-pas-label'))q('#sr-pas-label').textContent=\`— PAS mensuel (\${pas}€ · impôt prélevé à la source)\`;
   if(q('#sr-ca'))q('#sr-ca').textContent=fmt(ca);
   if(q('#sr-urssaf'))q('#sr-urssaf').textContent=\`− \${fmt(urssaf)}\`;
   if(q('#sr-cfp'))q('#sr-cfp').textContent=\`− \${fmt(cfp)}\`;
+  if(q('#sr-pas'))q('#sr-pas').textContent=\`− \${fmt(pas)}\`;
   if(q('#sr-dep'))q('#sr-dep').textContent=\`− \${fmt(dep)}\`;
   if(q('#sr-cfe'))q('#sr-cfe').textContent=\`− \${fmt(cfe)}\`;
   if(q('#sr-net'))q('#sr-net').textContent=fmt(net);
