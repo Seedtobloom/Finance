@@ -262,15 +262,23 @@ const HTML = `<!DOCTYPE html>
       <div class="page-header">
         <div class="page-header-left">
           <h1>Comptes</h1>
-          <div class="page-subtitle">Soldes saisis manuellement</div>
+          <div class="page-subtitle">Soldes réels et répartition virtuelle</div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary" id="btn-new-compte"><i class="ti ti-plus"></i> Ajouter un compte</button>
         </div>
       </div>
+
+      <!-- Comptes réels -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">Comptes réels</div>
       <div class="comptes-grid" id="comptes-grid"></div>
 
-      <!-- Carte Qonto calculée -->
+      <!-- Pots virtuels (calculés depuis Qonto) -->
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin:24px 0 10px;">Répartition virtuelle du solde Qonto</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;" id="qonto-pots-subtitle">Depuis <span id="qonto-calc-depuis">01/01/2026</span> · Solde estimé : <strong id="qonto-solde-net">—</strong></div>
+      <div class="comptes-grid" id="qonto-pots-grid"></div>
+
+      <!-- Analyse détaillée -->
       <div id="card-qonto-calc" style="margin-top:24px;">
         <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
       </div>
@@ -3221,6 +3229,37 @@ input[type="range"]::-moz-range-thumb {
   gap: 16px;
   margin-bottom: 20px;
 }
+.pot-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.pot-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.pot-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.pot-nom { font-size: 13px; font-weight: 600; color: var(--navy); }
+.pot-icon { font-size: 22px; margin-bottom: 6px; }
+.pot-solde {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 500;
+  margin: 2px 0 4px;
+}
+.pot-sub { font-size: 11px; color: var(--text-2); margin-bottom: 10px; }
+.pot-bar { height: 4px; background: var(--border); border-radius: 2px; }
+.pot-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
 .compte-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -4252,6 +4291,47 @@ function renderQontoCalc(){
       '</div>'+
       depLines(listVers)+
     '</div>';
+
+  // ── Pots virtuels (grille en haut de la section) ──────────────────────
+  const potsGrid=q('#qonto-pots-grid');
+  if(potsGrid){
+    function potCard(icon,nom,solde,couleur,sub,pct){
+      const pctClamped=Math.min(100,Math.max(0,pct||0));
+      return '<div class="pot-card" style="border-top:3px solid '+couleur+';">'+
+        '<div class="pot-card-header">'+
+          '<div>'+
+            '<div class="pot-icon">'+icon+'</div>'+
+            '<div class="pot-nom">'+nom+'</div>'+
+          '</div>'+
+          '<span class="badge" style="background:'+couleur+'22;color:'+couleur+';font-size:10px;">virtuel</span>'+
+        '</div>'+
+        '<div class="pot-solde" style="color:'+couleur+';">'+fmt(solde)+'</div>'+
+        '<div class="pot-sub">'+sub+'</div>'+
+        '<div class="pot-bar"><div class="pot-bar-fill" style="width:'+pctClamped+'%;background:'+couleur+';"></div></div>'+
+      '</div>';
+    }
+    const pctUsedCharges  = provCharges>0 ? depCharges/provCharges*100 : 0;
+    const pctUsedFixes    = provChargesFixes>0 ? depFixes/provChargesFixes*100 : 0;
+    const pctUsedFormation= provFormation>0 ? depFormation/provFormation*100 : 0;
+    const versementSolde  = Math.max(0,Math.round(disponibleBrut*pctVers*100)/100 - depVers);
+    potsGrid.innerHTML=
+      potCard('🔴','URSSAF & Charges sociales', Math.max(0,resteCharges), '#E05252',
+        depCharges>0?fmt(depCharges)+' deja regle · provision '+fmt(provCharges):'Provision sur CA encaisse',
+        pctUsedCharges)+
+      potCard('📋','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#E8A838',
+        'Budget annuel '+fmt(provChargesFixes)+' · '+fmt(depFixes)+' dépensé',
+        pctUsedFixes)+
+      potCard('📚','Formation', Math.max(0,resteFormation), '#7B4DD4',
+        'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
+        pctUsedFormation)+
+      potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#3b6dd4',
+        Math.round(pctTreso*100)+'% du disponible net · sécurité',
+        100)+
+      potCard('💸','Versement perso', versementSolde, '#4CAF82',
+        fmt(depVers)+' versé · reste à te virer',
+        depVers>0?Math.min(100,depVers/(Math.round(disponibleBrut*pctVers*100)/100)*100):0)+
+      (pctEpargne>0.001?potCard('💰','Épargne', provEpargne, '#6B8DD4','Buffer long terme',0):'');
+  }
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
