@@ -441,6 +441,7 @@ const HTML = `<!DOCTYPE html>
                 <th>N° Facture</th>
                 <th>Client</th>
                 <th>Projet</th>
+                <th>Devis</th>
                 <th>Montant HT</th>
                 <th>Statut</th>
                 <th></th>
@@ -4293,20 +4294,29 @@ function renderFactures(){
   }
   const tbody=q('#factures-tbody');
   if(!tbody)return;
-  tbody.innerHTML=list.length?list.map(f=>\`<tr>
-    <td>\${fmtDate(f.date)}</td>
-    <td>\${f.datePaiement?fmtDate(f.datePaiement):'<span style="color:var(--text-2);">—</span>'}</td>
-    <td class="td-mono">\${f.numero||'—'}</td>
-    <td>\${f.client||'—'}</td>
-    <td class="td-muted">\${(()=>{const p=f.projetId?dbGet('projets').find(x=>x.id===f.projetId):null;const dv=p?.devisId?dbGet('devis').find(x=>x.id===p.devisId):null;return p?p.nom+(dv?' <span style="font-size:10px;color:#4CAF82;">'+dv.numero+'</span>':''):(f.description||'—');})()}</td>
-    <td class="td-amount">\${fmt(f.montant||0)}</td>
-    <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
-    <td style="white-space:nowrap;">
-      \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
-      <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
-      <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>\`).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
+  tbody.innerHTML=list.length?list.map(f=>{
+    const proj=f.projetId?dbGet('projets').find(x=>x.id===f.projetId):null;
+    const dv=proj?.devisId?dbGet('devis').find(x=>x.id===proj.devisId):null;
+    const projetCell=proj?proj.nom:(f.description||'<span style="color:var(--text-2);">—</span>');
+    const devisCell=dv
+      ?\`<button class="btn btn-ghost btn-xs" style="color:#4CAF82;font-weight:600;gap:4px;" title="Voir le devis \${dv.numero}" onclick="navigate('devis');setTimeout(()=>highlightDevis('\${dv.id}'),300)"><i class="ti ti-file-description"></i> \${dv.numero}</button>\`
+      :'<span style="color:var(--text-2);font-size:12px;">—</span>';
+    return\`<tr>
+      <td>\${fmtDate(f.date)}</td>
+      <td>\${f.datePaiement?fmtDate(f.datePaiement):'<span style="color:var(--text-2);">—</span>'}</td>
+      <td class="td-mono">\${f.numero||'—'}</td>
+      <td>\${f.client||'—'}</td>
+      <td class="td-muted">\${projetCell}</td>
+      <td>\${devisCell}</td>
+      <td class="td-amount">\${fmt(f.montant||0)}</td>
+      <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
+      <td style="white-space:nowrap;">
+        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
 }
 function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
@@ -4522,6 +4532,19 @@ function refreshProjetsSelect(filterClient=''){
 
 /* --- Projets ---------------------------------------------------------- */
 /* --- Devis ------------------------------------------------------------ */
+function highlightDevis(id){
+  const tbody=q('#devis-tbody');if(!tbody)return;
+  const rows=[...tbody.querySelectorAll('tr')];
+  const all=dbGet('devis');
+  const idx=all.findIndex(x=>x.id===id);
+  if(idx<0)return;
+  const row=rows[idx];
+  if(!row)return;
+  row.scrollIntoView({behavior:'smooth',block:'center'});
+  row.style.transition='background .2s';
+  row.style.background='#e8f5ee';
+  setTimeout(()=>{row.style.background='';},1800);
+}
 function loadDevis(){
   const devisData=dbGet('devis');
   const signes=devisData.filter(d=>d.statut==='signe');
