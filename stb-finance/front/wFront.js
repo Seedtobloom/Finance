@@ -4242,17 +4242,21 @@ function renderQontoCalc(){
   const dAuj=new Date();
   const nbMois=Math.max(1,Math.round((dAuj-dDebut)/(1000*60*60*24*30.44)));
 
-  // CA encaissé depuis dateDebut (datePaiement ou date d'émission)
-  const factures=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date)>=dateDebut);
+  // Toutes les factures depuis dateDebut (payées ou en attente)
+  const factures=dbGet('factures').filter(f=>f.statut!=='retard'&&(f.date||'')>=dateDebut);
   const caEncaisse=factures.reduce((s,f)=>s+(f.montant||0),0);
+  // Parmi ces factures, celles effectivement payées (pour le solde réel)
+  const facPayees=factures.filter(f=>f.statut==='payee');
+  const caEncaisseReel=facPayees.reduce((s,f)=>s+(f.montant||0),0);
 
-  // Dépenses pro réelles depuis dateDebut (déjà sorties du compte)
+  // Dépenses pro réelles depuis dateDebut
   const depenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
   const totalDepReelles=depenses.reduce((s,d)=>s+(d.montant||0),0);
 
-  // Solde actuel estimé
-  const soldeActuel=soldeInitial+caEncaisse-totalDepReelles;
-  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel);
+  // Solde : initial + encaissé réel - dépenses (trésorerie réelle)
+  // Provisions calculées sur CA total facturé (base de calcul charges)
+  const soldeActuel=soldeInitial+caEncaisseReel-totalDepReelles;
+  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+' ('+fmt(caEncaisse)+' facturé)';
 
   // ── Calcul des provisions sur le CA encaissé ──────────────────────────
   const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
