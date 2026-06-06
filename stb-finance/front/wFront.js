@@ -4294,7 +4294,7 @@ function renderFactures(){
   let list=[...facturesData];
   if(search)list=list.filter(f=>((f.numero||'')+(f.client||'')+(f.description||'')+(f.projet||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(f=>f.statut===statut);
-  if(projet)list=list.filter(f=>(f.projet||'')===projet);
+  if(projet)list=list.filter(f=>(f.projetId||f.projet||'')===projet);
   if(client)list=list.filter(f=>(f.client||'')===client);
   if(annee)list=list.filter(f=>(f.date||'').startsWith(annee));
   if(mois)list=list.filter(f=>(f.date||'').slice(5,7)===mois);
@@ -4306,12 +4306,16 @@ function renderFactures(){
     const curA=selAnnee.value;
     selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
   }
-  // Mise à jour filtre projets
+  // Mise à jour filtre projets (via projetId ou nom texte)
   const selProjet=q('#factures-filter-projet');
   if(selProjet){
-    const projets=[...new Set(facturesData.map(f=>f.projet).filter(Boolean))].sort();
+    const allProjets=dbGet('projets');
+    const usedIds=new Set(facturesData.map(f=>f.projetId).filter(Boolean));
+    const usedNames=new Set(facturesData.map(f=>f.projetId?null:f.projet).filter(Boolean));
     const cur=selProjet.value;
-    selProjet.innerHTML=\`<option value="">Tous projets</option>\`+projets.map(p=>\`<option value="\${p}" \${p===cur?'selected':''}>\${p}</option>\`).join('');
+    const opts=allProjets.filter(p=>usedIds.has(p.id)).map(p=>\`<option value="\${p.id}" \${p.id===cur?'selected':''}>\${p.nom}</option>\`);
+    usedNames.forEach(n=>opts.push(\`<option value="\${n}" \${n===cur?'selected':''}>\${n}</option>\`));
+    selProjet.innerHTML=\`<option value="">Tous projets</option>\`+opts.join('');
   }
   // Mise à jour filtre clients
   const selClient=q('#factures-filter-client');
@@ -4445,6 +4449,8 @@ function onFactureProjetChange(keepValues=false){
   }
   if(sugNote)lines.push(sugNote);
   if(ctx){ctx.style.display='';ctx.innerHTML=lines.join('<br>');}
+  // Sync hidden text field with project name
+  if(q('#f-projet'))q('#f-projet').value=projet.nom;
   // Apply suggestions only on fresh selection (not when editing existing facture)
   if(!keepValues){
     q('#f-type-facture').value=sugType;
