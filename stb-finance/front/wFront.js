@@ -5585,7 +5585,7 @@ function loadChargesURSSAF(){
         '<div class="urssaf-detail">CA encaissé '+fmt(caT)+' · URSSAF '+fmt(urssafDue)+' · CFP '+fmt(cfpDue)+'</div>'+
         countdown+
         '<div class="progress-bar" style="margin:8px 0;"><div class="fill '+(pct>=100?'green':'')+'" style="width:'+pct+'%"></div></div>'+
-        (statut!=='paye'?'<button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="openURSSAFPaiement(\''+cle+'\')"><i class="ti ti-check"></i> Marquer payé</button>':'')+
+        (statut!=='paye'?'<button class="btn btn-sm btn-secondary" style="margin-top:8px;" data-cle="'+cle+'" onclick="openURSSAFPaiement(this.dataset.cle)"><i class="ti ti-check"></i> Marquer payé</button>':'')+
       '</div>';
     }).join('');
   }
