@@ -3962,28 +3962,53 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   if(!canvas)return;
   const{ctx,W,H}=setupCanvas(canvas);
   ctx.clearRect(0,0,W,H);
-  const pad={top:16,right:12,bottom:36,left:52};
+  // Reserve right space for target label if needed
+  const pad={top:16,right:opts.targetLine?56:12,bottom:36,left:52};
   const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
   const allVals=datasets.flatMap(d=>d.data);
-  const maxVal=Math.max(...allVals,1);
+  const maxVal=Math.max(...allVals,opts.targetLine||0,opts.seuilLine||0,1);
   const step=niceStep(maxVal);
   const yMax=Math.ceil(maxVal/step)*step;
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const groupW=cW/labels.length;
   const bc=datasets.length,gap=3;
   const bw=Math.max(4,(groupW-gap*(bc+1))/bc);
+  // Primary dataset (index 0) gets color-coded if targetLine set
   datasets.forEach((ds,di)=>{
-    ctx.fillStyle=ds.color||COLORS.navy;
     ds.data.forEach((v,i)=>{
       if(!v)return;
       const bH=(v/yMax)*cH;
       const x=pad.left+i*groupW+gap+di*(bw+gap);
       const y=pad.top+cH-bH;
+      let color=ds.color||COLORS.navy;
+      if(di===0&&opts.targetLine){
+        const ratio=v/opts.targetLine;
+        color=ratio>=1?'#4CAF82':ratio>=0.8?'#E8A838':'#E05252';
+      }
+      ctx.fillStyle=color;
       ctx.beginPath();
       if(ctx.roundRect)ctx.roundRect(x,y,bw,bH,2);else ctx.rect(x,y,bw,bH);
       ctx.fill();
     });
   });
+  // Seuil de rentabilité (ligne pointillée grise)
+  if(opts.seuilLine&&opts.seuilLine>0&&opts.seuilLine<=yMax){
+    const sy=pad.top+cH-(opts.seuilLine/yMax)*cH;
+    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#9CA3AF';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(pad.left,sy);ctx.lineTo(pad.left+cW,sy);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    ctx.fillStyle='#9CA3AF';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillText('Seuil',pad.left+cW+4,sy+4);
+  }
+  // Ligne objectif (pointillé bleu)
+  if(opts.targetLine&&opts.targetLine>0&&opts.targetLine<=yMax){
+    const ty=pad.top+cH-(opts.targetLine/yMax)*cH;
+    ctx.save();ctx.setLineDash([6,3]);ctx.strokeStyle=COLORS.blue;ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(pad.left,ty);ctx.lineTo(pad.left+cW,ty);ctx.stroke();
+    ctx.setLineDash([]);ctx.restore();
+    ctx.fillStyle=COLORS.blue;ctx.font='bold 10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillText('Objectif',pad.left+cW+4,ty+4);
+  }
   ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,pad.top+cH+16));
 }
@@ -4165,10 +4190,35 @@ function loadDashboard(){
   });
   const netParMois=caParMois.map((ca,i)=>Math.max(0,ca-chParMois[i]));
 
+  // Seuil de rentabilité : CA minimum pour couvrir charges fixes sans versement
+  const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const seuilMensuel=Math.round((abosMois+pas)/Math.max(0.01,1-tauxU-tauxC));
+  const objectifMensuel=Math.round((settings.objectifCA||60000)/12);
+
   const c1=q('#chart-dash-bar');
-  if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue},{data:chParMois,color:COLORS.violet}]);
+  if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue},{data:chParMois,color:COLORS.violet}],{targetLine:objectifMensuel,seuilLine:seuilMensuel});
   const leg=q('#chart-dash-bar-legend');
-  if(leg)leg.innerHTML=\`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.blue}"></div>CA</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.violet}"></div>Charges</div>\`;
+  if(leg)leg.innerHTML=
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.blue}"></div>CA</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.violet}"></div>Charges</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4CAF82;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>≥ objectif</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E8A838;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>proche</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E05252;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>insuffisant</div>\`;
+
+  // Encart analyse
+  const moisOk=caParMois.filter((v,i)=>v>0&&v>=objectifMensuel).length;
+  const moisKo=caParMois.filter((v,i)=>v>0&&v<seuilMensuel).length;
+  const moisVide=caParMois.filter(v=>v===0).length;
+  const alertEl=q('#dash-urssaf-alert');
+  if(alertEl){
+    alertEl.innerHTML=
+      \`<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">\`+
+      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Objectif mensuel</div><div style="font-size:16px;font-weight:700;color:var(--navy);">\${fmt(objectifMensuel)}</div><div style="font-size:11px;color:var(--text-2);">pour \${settings.objectifCA||60000} €/an</div></div>\`+
+      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#E8A838;">\${fmt(seuilMensuel)}</div><div style="font-size:11px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
+      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Mois en vert</div><div style="font-size:16px;font-weight:700;color:#4CAF82;">\${moisOk} / \${12-moisVide}</div><div style="font-size:11px;color:var(--text-2);">\${moisKo>0?moisKo+' mois sous le seuil':'Tous les mois couverts'}</div></div>\`+
+      \`</div>\`;
+  }
+
   const c2=q('#chart-dash-line');
   if(c2)drawLineChart(c2,MOIS_COURT,netParMois,COLORS.success);
 
@@ -5412,9 +5462,13 @@ function loadObjectifsCA(){
     </div>\`;
 
   const caMois=MOIS_COURT.map((_,mi)=>{const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;return factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);});
-  const targetMois=Array(12).fill(Math.round(objectif/12));
+  const objectifMensuel=Math.round(objectif/12);
+  const s2=dbGetObj('settings');
+  const abosMoisOCA=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const tauxUOCA=(s2.tauxUrssaf||25.6)/100,tauxCOCA=(s2.tauxCfp||0.2)/100,pasOCA=s2.pasFixe||40;
+  const seuilOCA=Math.round((abosMoisOCA+pasOCA)/Math.max(0.01,1-tauxUOCA-tauxCOCA));
   const c=q('#chart-objca');
-  if(c)drawBarChart(c,MOIS_COURT,[{data:caMois,color:COLORS.blue},{data:targetMois,color:COLORS.muted}]);
+  if(c)drawBarChart(c,MOIS_COURT,[{data:caMois,color:COLORS.blue}],{targetLine:objectifMensuel,seuilLine:seuilOCA});
 }
 function openObjectifCAModal(){
   const s=dbGetObj('settings');
