@@ -4787,20 +4787,35 @@ function renderProjets(){
     const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
     const reste=Math.max(0,(p.montantTotal||0)-montantFacture);
     let facsHtml='';
-    if(p.type==='mensuel'&&p.nombreMois){
-      const montantMensuel=(p.montantTotal||0)/p.nombreMois;
+    if(p.type==='mensuel'&&p.nombreMois&&p.dateDebut){
+      const montantMensuel=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
+      for(let i=0;i<p.nombreMois;i++){
+        const slotDate=new Date(p.dateDebut+'T00:00:00');
+        slotDate.setMonth(slotDate.getMonth()+i);
+        const slotYM=slotDate.toISOString().slice(0,7);
+        const fac=linked.find(f=>(f.date||'').slice(0,7)===slotYM);
+        const dateLabel=MOIS_COURT[slotDate.getMonth()]+' '+slotDate.getFullYear();
+        if(fac)facsHtml+=facRow(fac);
+        else facsHtml+=emptyRow(dateLabel,montantMensuel);
+      }
+      // Factures hors-calendrier (date ne correspond à aucun slot)
+      linked.forEach(f=>{
+        const ym=(f.date||'').slice(0,7);
+        let inSlot=false;
+        for(let i=0;i<p.nombreMois;i++){
+          const sd=new Date(p.dateDebut+'T00:00:00');
+          sd.setMonth(sd.getMonth()+i);
+          if(sd.toISOString().slice(0,7)===ym){inSlot=true;break;}
+        }
+        if(!inSlot)facsHtml+=facRow(f);
+      });
+    }else if(p.type==='mensuel'&&p.nombreMois){
+      // Pas de dateDebut : affichage séquentiel
+      const mm=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
       const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
       facsHtml=sorted.map(f=>facRow(f)).join('');
       const restantMois=Math.max(0,p.nombreMois-sorted.length);
-      for(let i=0;i<restantMois;i++){
-        let dateLabel='—';
-        if(p.dateDebut){
-          const base=new Date(p.dateDebut+'T00:00:00');
-          base.setMonth(base.getMonth()+sorted.length+i);
-          dateLabel=MOIS_COURT[base.getMonth()]+' '+base.getFullYear();
-        }
-        facsHtml+=emptyRow(dateLabel,montantMensuel);
-      }
+      for(let i=0;i<restantMois;i++)facsHtml+=emptyRow('—',mm);
     }else if(p.type==='echelonne'){
       const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
       facsHtml=sorted.map(f=>facRow(f)).join('');
