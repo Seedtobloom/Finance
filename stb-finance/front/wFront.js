@@ -5132,14 +5132,22 @@ async function handleDebug(request, env) {
     try { kvResult = await env.KV_AUTH.get(`sess:${sessionId}`, 'json'); }
     catch(e) { kvError = e.message; }
   }
+  // Test proxy vers wBack
+  let backStatus = null, backBody = null, backError = null;
+  try {
+    const backReq = new Request(new URL('/api/settings', request.url).href, { headers: request.headers });
+    const backResp = await env.STB_BACK.fetch(backReq);
+    backStatus = backResp.status;
+    backBody = await backResp.json().catch(() => '(non JSON)');
+  } catch(e) { backError = e.message; }
+
   return new Response(JSON.stringify({
     cookieHeader: cookieHeader || '(vide)',
-    cookieName: COOKIE_NAME,
     sessionId: sessionId || '(non trouvé)',
-    kvResult,
-    kvError,
-    kvAuthBinding: typeof env.KV_AUTH,
-    stbBackBinding: typeof env.STB_BACK,
+    authOk: !!(kvResult?.active),
+    kvResult, kvError,
+    wBack: { status: backStatus, body: backBody, error: backError },
+    bindings: { KV_AUTH: typeof env.KV_AUTH, STB_BACK: typeof env.STB_BACK },
   }, null, 2), { headers: { 'Content-Type': 'application/json' } });
 }
 
