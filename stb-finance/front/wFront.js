@@ -2322,7 +2322,8 @@ html, body {
 .section {
   display: none;
   padding: 40px 48px;
-  max-width: 1200px;
+  max-width: 1600px;
+  width: 100%;
   animation: none;
 }
 .section.active {
