@@ -3201,7 +3201,7 @@ function injectLoginOverlay() {
   if (q('#login-overlay')) return;
   const div = document.createElement('div');
   div.id = 'login-overlay';
-  div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:flex;align-items:center;justify-content:center;z-index:9999;';
+  div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:none;align-items:center;justify-content:center;z-index:9999;';
   div.innerHTML = \`
     <div style="background:#fff;border:1px solid #E8E8E4;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
       <div style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#051833;margin-bottom:4px;">STB Finance</div>
@@ -5035,7 +5035,7 @@ async function init(){
   // Démarrage : vérifier si le cookie de session est valide
   try {
     const r = await fetch('/api/settings');
-    if (r.status === 401) { showLogin(); } else { await startApp(); }
+    if (r.status === 401) { showLogin(); } else { hideLogin(); await startApp(); }
   } catch { showLogin(); }
 }
 
