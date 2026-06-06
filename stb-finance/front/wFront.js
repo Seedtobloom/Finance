@@ -1546,7 +1546,7 @@ const HTML = `<!DOCTYPE html>
       <div class="form-group">
         <label class="form-label">Date d'échéance / paiement</label>
         <input type="date" id="f-date-paiement" class="form-input" />
-        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+30 · utilisée pour le calcul URSSAF</span>
+        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+15 · utilisée pour le calcul URSSAF</span>
       </div>
     </div>
     <div class="form-group">
@@ -4354,7 +4354,7 @@ function onFactureDateChange(){
   const paiementEl=q('#f-date-paiement');
   if(dateVal&&paiementEl&&!paiementEl.value){
     const d=new Date(dateVal+'T00:00:00');
-    d.setDate(d.getDate()+30);
+    d.setDate(d.getDate()+15);
     paiementEl.value=d.toISOString().slice(0,10);
   }
 }
