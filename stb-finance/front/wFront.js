@@ -780,6 +780,7 @@ const HTML = `<!DOCTYPE html>
             <option value="Communication">Communication</option>
             <option value="Déplacement">Déplacement</option>
             <option value="Comptabilité">Comptabilité</option>
+            <option value="Versement perso">Versement perso</option>
             <option value="Autre">Autre</option>
           </select>
           <button class="btn btn-primary" id="btn-new-depense"><i class="ti ti-plus"></i> Ajouter</button>
@@ -1843,6 +1844,7 @@ const HTML = `<!DOCTYPE html>
           <option>Communication</option>
           <option>Déplacement</option>
           <option>Comptabilité</option>
+          <option>Versement perso</option>
           <option>Autre</option>
         </select>
       </div>
@@ -4249,13 +4251,15 @@ function renderQontoCalc(){
   const facPayees=factures.filter(f=>f.statut==='payee');
   const caEncaisseReel=facPayees.reduce((s,f)=>s+(f.montant||0),0);
 
-  // Dépenses pro réelles depuis dateDebut
-  const depenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
-  const totalDepReelles=depenses.reduce((s,d)=>s+(d.montant||0),0);
+  // Dépenses depuis dateDebut — séparées en pro et versements perso
+  const toutesDepenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
+  const versementsEffectues=toutesDepenses.filter(d=>d.categorie==='Versement perso');
+  const depensesPro=toutesDepenses.filter(d=>d.categorie!=='Versement perso');
+  const totalDepPro=depensesPro.reduce((s,d)=>s+(d.montant||0),0);
+  const totalVersements=versementsEffectues.reduce((s,d)=>s+(d.montant||0),0);
 
-  // Solde : initial + encaissé réel - dépenses (trésorerie réelle)
-  // Provisions calculées sur CA total facturé (base de calcul charges)
-  const soldeActuel=soldeInitial+caEncaisseReel-totalDepReelles;
+  // Solde réel = initial + encaissé - dépenses pro - versements déjà effectués
+  const soldeActuel=soldeInitial+caEncaisseReel-totalDepPro-totalVersements;
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+' ('+fmt(caEncaisse)+' facturé)';
 
   // ── Calcul des provisions sur le CA encaissé ──────────────────────────
@@ -4310,8 +4314,8 @@ function renderQontoCalc(){
       Math.round(pctFormation*100)+'% du net — configurable dans Options')+
     envCard('🏦','Trésorerie',montantTreso,'#3b6dd4',
       Math.round(pctTreso*100)+'% du net')+
-    envCard('💸','Versement perso',montantVers,'#4CAF82',
-      Math.round(pctVers*100)+'% du net')+
+    envCard('💸','Versement perso',Math.max(0,montantVers-totalVersements),'#4CAF82',
+      Math.round(pctVers*100)+'% du net · déjà versé : '+fmt(totalVersements))+
     (pctEpargne>0.001?envCard('💰','Épargne / buffer',montantEpargne,'#BAD1FD',
       Math.round(pctEpargne*100)+'% du net'):'');
 }
