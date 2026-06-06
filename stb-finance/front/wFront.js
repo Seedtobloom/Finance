@@ -437,7 +437,8 @@ const HTML = `<!DOCTYPE html>
             <thead>
               <tr>
                 <th>Émission</th>
-                <th>Paiement</th>
+                <th>Échéance</th>
+                <th>Payée le</th>
                 <th>N° Facture</th>
                 <th>Client</th>
                 <th>Projet</th>
@@ -1544,10 +1545,15 @@ const HTML = `<!DOCTYPE html>
         <input type="date" id="f-date" class="form-input" oninput="onFactureDateChange()" />
       </div>
       <div class="form-group">
-        <label class="form-label">Date d'échéance / paiement</label>
-        <input type="date" id="f-date-paiement" class="form-input" />
-        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+15 · utilisée pour le calcul URSSAF</span>
+        <label class="form-label">Date d'échéance</label>
+        <input type="date" id="f-date-echeance" class="form-input" />
+        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+15</span>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date de paiement réel</label>
+      <input type="date" id="f-date-paiement" class="form-input" />
+      <span style="font-size:11px;color:var(--text-2);">À remplir quand tu reçois le virement · utilisée pour le calcul URSSAF</span>
     </div>
     <div class="form-group">
       <label class="form-label">PDF (facture Indy)</label>
@@ -1740,11 +1746,12 @@ const HTML = `<!DOCTYPE html>
     <div class="form-grid-2">
       <div class="form-group">
         <label class="form-label">Date d'émission *</label>
-        <input type="date" id="dv-date" class="form-input" />
+        <input type="date" id="dv-date" class="form-input" oninput="onDevisDateChange()" />
       </div>
       <div class="form-group">
         <label class="form-label">Date d'expiration</label>
         <input type="date" id="dv-date-expiration" class="form-input" />
+        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+30</span>
       </div>
     </div>
     <div class="form-group">
@@ -4304,6 +4311,7 @@ function renderFactures(){
       :'<span style="color:var(--text-2);font-size:12px;">—</span>';
     return\`<tr>
       <td>\${fmtDate(f.date)}</td>
+      <td>\${f.dateEcheance?fmtDate(f.dateEcheance):'<span style="color:var(--text-2);">—</span>'}</td>
       <td>\${f.datePaiement?fmtDate(f.datePaiement):'<span style="color:var(--text-2);">—</span>'}</td>
       <td class="td-mono">\${f.numero||'—'}</td>
       <td>\${f.client||'—'}</td>
@@ -4317,7 +4325,7 @@ function renderFactures(){
         <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
       </td>
     </tr>\`;
-  }).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
+  }).join(''):'<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
 }
 function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
@@ -4332,8 +4340,9 @@ function openFactureModal(data={}){
   q('#f-type-facture').value=data.typeFacture||'standard';
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();
+  q('#f-date-echeance').value=data.dateEcheance||'';
   q('#f-date-paiement').value=data.datePaiement||'';
-  if(!data.id&&!data.datePaiement)onFactureDateChange();
+  if(!data.id&&!data.dateEcheance)onFactureDateChange();
   q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
   const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
@@ -4351,11 +4360,20 @@ function openFactureModal(data={}){
 }
 function onFactureDateChange(){
   const dateVal=q('#f-date')?.value;
-  const paiementEl=q('#f-date-paiement');
-  if(dateVal&&paiementEl&&!paiementEl.value){
+  const echeanceEl=q('#f-date-echeance');
+  if(dateVal&&echeanceEl&&!echeanceEl.value){
     const d=new Date(dateVal+'T00:00:00');
     d.setDate(d.getDate()+15);
-    paiementEl.value=d.toISOString().slice(0,10);
+    echeanceEl.value=d.toISOString().slice(0,10);
+  }
+}
+function onDevisDateChange(){
+  const dateVal=q('#dv-date')?.value;
+  const expEl=q('#dv-date-expiration');
+  if(dateVal&&expEl&&!expEl.value){
+    const d=new Date(dateVal+'T00:00:00');
+    d.setDate(d.getDate()+30);
+    expEl.value=d.toISOString().slice(0,10);
   }
 }
 function onFactureClientChange(){
@@ -4412,7 +4430,7 @@ async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
   const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),
     projet:q('#f-projet').value.trim(),description:q('#f-description').value.trim(),
-    date:q('#f-date').value,datePaiement:q('#f-date-paiement').value||null,
+    date:q('#f-date').value,dateEcheance:q('#f-date-echeance').value||null,datePaiement:q('#f-date-paiement').value||null,
     montant:parseFloat(q('#f-montant').value)||0,
     typeFacture:q('#f-type-facture').value||'standard',
     projetId:q('#f-projet-id').value||null};
@@ -4612,6 +4630,7 @@ function openDevisModal(data={}){
   q('#dv-description').value=data.description||'';
   q('#dv-date').value=data.date||today();
   q('#dv-date-expiration').value=data.dateExpiration||'';
+  if(!data.id&&!data.dateExpiration)onDevisDateChange();
   q('#dv-montant').value=data.montant||'';
   q('#dv-notes').value=data.notes||'';
   q('#btn-save-devis').dataset.id=data.id||'';
