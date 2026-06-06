@@ -643,7 +643,7 @@ const HTML = `<!DOCTYPE html>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon navy"><i class="ti ti-trending-up"></i></div>
-          <span class="kpi-label">CA signé total</span>
+          <span class="kpi-label" id="dv-kpi-ca-label">CA signé total</span>
           <span class="kpi-value" id="dv-kpi-ca">—</span>
         </div>
         <div class="kpi-card">
@@ -4570,25 +4570,27 @@ function highlightDevis(id){
   row.style.background='#e8f5ee';
   setTimeout(()=>{row.style.background='';},1800);
 }
-function loadDevis(){
-  const devisData=dbGet('devis');
-  const signes=devisData.filter(d=>d.statut==='signe');
-  const envoyes=devisData.filter(d=>d.statut==='envoye');
-  const total=devisData.filter(d=>d.statut!=='refuse').length;
-  const taux=total>0?Math.round(signes.length/total*100):0;
-  const caSign=signes.reduce((s,d)=>s+(d.montant||0),0);
-  if(q('#dv-kpi-signes'))q('#dv-kpi-signes').textContent=signes.length;
-  if(q('#dv-kpi-envoyes'))q('#dv-kpi-envoyes').textContent=envoyes.length;
-  if(q('#dv-kpi-ca'))q('#dv-kpi-ca').textContent=fmt(caSign);
-  if(q('#dv-kpi-taux'))q('#dv-kpi-taux').textContent=taux+'%';
-  renderDevis();
-}
+function loadDevis(){renderDevis();}
 function renderDevis(){
   const search=q('#devis-search')?.value.toLowerCase()||'';
   const statut=q('#devis-filter-statut')?.value||'';
   const annee=q('#devis-filter-annee')?.value||'';
   const mois=q('#devis-filter-mois')?.value||'';
   let list=[...dbGet('devis')];
+  // KPIs: filtered by year+month only (not statut/search)
+  let kpiBase=[...list];
+  if(annee)kpiBase=kpiBase.filter(d=>(d.date||'').startsWith(annee));
+  if(mois)kpiBase=kpiBase.filter(d=>(d.date||'').slice(5,7)===mois);
+  const signes=kpiBase.filter(d=>d.statut==='signe');
+  const envoyes=kpiBase.filter(d=>d.statut==='envoye');
+  const total=kpiBase.filter(d=>d.statut!=='refuse').length;
+  const taux=total>0?Math.round(signes.length/total*100):0;
+  const caSign=signes.reduce((s,d)=>s+(d.montant||0),0);
+  if(q('#dv-kpi-signes'))q('#dv-kpi-signes').textContent=signes.length;
+  if(q('#dv-kpi-envoyes'))q('#dv-kpi-envoyes').textContent=envoyes.length;
+  if(q('#dv-kpi-ca'))q('#dv-kpi-ca').textContent=fmt(caSign);
+  if(q('#dv-kpi-taux'))q('#dv-kpi-taux').textContent=taux+'%';
+  if(q('#dv-kpi-ca-label'))q('#dv-kpi-ca-label').textContent=annee?`CA signé ${annee}`:'CA signé total';
   if(search)list=list.filter(d=>((d.numero||'')+(d.client||'')+(d.description||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(d=>d.statut===statut);
   if(annee)list=list.filter(d=>(d.date||'').startsWith(annee));
