@@ -4956,6 +4956,13 @@ async function saveProjet(){
     notes:q('#pr-notes').value.trim()};
   if(!body.nom){toast('Nom du projet requis','error');return;}
   if(!body.montantTotal){toast('Montant requis','error');return;}
+  if(body.statut==='termine'&&id){
+    const facsPending=dbGet('factures').filter(f=>f.projetId===id&&f.statut!=='payee');
+    if(facsPending.length){
+      toast('Ce projet a '+facsPending.length+' facture'+(facsPending.length>1?'s':'')+' non payée'+(facsPending.length>1?'s':'')+' — il ne peut pas être terminé.','error');
+      return;
+    }
+  }
   try{
     if(id){body.id=id;await dbUpdate('projets',body);}else{await dbCreate('projets',body);}
     closeModal('modal-projet');toast('Projet enregistré','success');
