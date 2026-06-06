@@ -319,6 +319,26 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
       <div class="comptes-grid" id="comptes-grid"></div>
+
+      <!-- Carte Qonto calculée -->
+      <div class="card mt-16" id="card-qonto-calc" style="margin-top:24px;">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="ti ti-building-bank"></i> Qonto Pro — Solde calculé</span>
+          <span style="font-size:12px;font-weight:400;color:var(--text-2);">Factures encaissées − Dépenses pro depuis <span id="qonto-calc-depuis">2026-01-01</span></span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;" id="qonto-calc-totaux"></div>
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-2);margin-bottom:10px;letter-spacing:.5px;">Répartition en enveloppes</div>
+        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
+      </div>
+
+      <!-- Dépenses prévues -->
+      <div class="card mt-16" style="margin-top:24px;">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="ti ti-calendar-stats"></i> Dépenses prévues</span>
+          <button class="btn btn-primary btn-sm" onclick="openDepensePrevueModal()"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+        <div id="depenses-prevues-list"></div>
+      </div>
     </section><!-- /comptes -->
 
 
@@ -1436,6 +1456,37 @@ const HTML = `<!DOCTYPE html>
             <input type="number" id="opt-delai-paiement" class="form-input" value="30" step="1" min="1" />
             <span style="font-size:12px;color:var(--text-2);">Pré-remplit automatiquement la date d'échéance à J+ ce délai lors de la création d'une facture</span>
           </div>
+          <div class="form-group">
+            <label class="form-label">Solde Qonto initial (€)</label>
+            <input type="number" id="opt-qonto-solde-initial" class="form-input" value="0" step="0.01" />
+            <span style="font-size:12px;color:var(--text-2);">Solde du compte Qonto Pro à la date de départ ci-dessous</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de départ du calcul Qonto</label>
+            <input type="date" id="opt-qonto-date-debut" class="form-input" value="2026-01-01" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Enveloppes Qonto (4 max) — Nom · %</label>
+            <div id="opt-enveloppes" style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
+                <input type="text" class="form-input env-nom" placeholder="Ex: Formations" />
+                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
+                <input type="text" class="form-input env-nom" placeholder="Ex: Charges URSSAF" />
+                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
+                <input type="text" class="form-input env-nom" placeholder="Ex: Abonnements" />
+                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
+                <input type="text" class="form-input env-nom" placeholder="Ex: Épargne" />
+                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
+              </div>
+            </div>
+            <span style="font-size:12px;color:var(--text-2);margin-top:4px;display:block;">Le reste (100% − total) est affiché comme "Disponible libre"</span>
+          </div>
         </div>
 
         <!-- Charges fixes -->
@@ -1928,6 +1979,66 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-compte-update">Annuler</button>
       <button class="btn btn-primary" id="btn-save-compte-update">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dépense prévue -->
+<div id="modal-depense-prevue" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-dp-title">Nouvelle dépense prévue</span>
+      <button class="modal-close" data-close-modal="modal-depense-prevue"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type</label>
+      <select id="dp-type" class="form-select" oninput="onDepensePrevueTypeChange()">
+        <option value="ponctuel">Ponctuelle</option>
+        <option value="mensuel">Mensuelle (récurrente)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description *</label>
+      <input type="text" id="dp-description" class="form-input" placeholder="Formation Canva, Mutuelle…" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <select id="dp-categorie" class="form-select">
+        <option>Formation & développement</option>
+        <option>Logiciels & abonnements</option>
+        <option>Matériel & équipement</option>
+        <option>Frais de déplacement</option>
+        <option>Charges sociales</option>
+        <option>Marketing & communication</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label" id="dp-montant-label">Montant *</label>
+        <input type="number" id="dp-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select id="dp-statut" class="form-select">
+          <option value="active">Active</option>
+          <option value="terminee">Terminée</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label" id="dp-datedebut-label">Date prévue *</label>
+        <input type="date" id="dp-datedebut" class="form-input" />
+      </div>
+      <div class="form-group" id="dp-datefin-group" style="display:none;">
+        <label class="form-label">Date de fin</label>
+        <input type="date" id="dp-datefin" class="form-input" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-depense-prevue">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-depense-prevue">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3623,11 +3734,12 @@ async function api(method, path, body) {
 /* ─── 0c. CACHE ──────────────────────────────────────────────────────── */
 const _cache = {
   settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
-  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[], projets:[], devis:[]
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[], projets:[], devis:[],
+  depenses_prevues:[]
 };
 
 async function loadAll() {
-  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers, projets, devis] = await Promise.all([
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers, projets, devis, depensesPrevues] = await Promise.all([
     api('GET', '/api/settings'),
     api('GET', '/api/factures'),
     api('GET', '/api/depenses'),
@@ -3640,6 +3752,7 @@ async function loadAll() {
     api('GET', '/api/tiers'),
     api('GET', '/api/projets'),
     api('GET', '/api/devis'),
+    api('GET', '/api/depenses-prevues'),
   ]);
   _cache.settings        = settings || {};
   _cache.factures        = factures || [];
@@ -3653,6 +3766,7 @@ async function loadAll() {
   _cache.tiers           = tiers    || [];
   _cache.projets         = projets  || [];
   _cache.devis           = devis    || [];
+  _cache.depenses_prevues = depensesPrevues || [];
   // Transactions : on charge jusqu'à 5 pages
   try {
     const t1 = await api('GET', '/api/transactions?page=1');
@@ -3733,15 +3847,17 @@ function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array
 const _pathCreate = {
   factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
   comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne',
-  tiers:'/api/tiers', projets:'/api/projets', devis:'/api/devis'
+  tiers:'/api/tiers', projets:'/api/projets', devis:'/api/devis', depenses_prevues:'/api/depenses-prevues'
 };
 const _pathUpdate = id=>({
   factures:\`/api/factures/\${id}\`, abonnements:\`/api/abonnements/\${id}\`,
+  depenses:\`/api/depenses/\${id}\`, depenses_prevues:\`/api/depenses-prevues/\${id}\`,
   comptes:\`/api/comptes/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
   tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`, devis:\`/api/devis/\${id}\`
 });
 const _pathDelete = id=>({
   factures:\`/api/factures/\${id}\`, depenses:\`/api/depenses/\${id}\`,
+  depenses_prevues:\`/api/depenses-prevues/\${id}\`,
   abonnements:\`/api/abonnements/\${id}\`, comptes:\`/api/comptes/\${id}\`,
   transactions:\`/api/transactions/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
   tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`, devis:\`/api/devis/\${id}\`
@@ -4131,6 +4247,124 @@ function loadVueEnsemble(){
 /* --- Comptes ---------------------------------------------------------- */
 function loadComptes(){
   renderComptes();
+  renderQontoCalc();
+  renderDepensesPrevues();
+}
+function renderQontoCalc(){
+  const s=dbGetObj('settings');
+  const dateDebut=s.qontoDateDebut||'2026-01-01';
+  const soldeInitial=parseFloat(s.qontoSoldeInitial)||0;
+  const enveloppes=s.qontoEnveloppes||[];
+  if(q('#qonto-calc-depuis'))q('#qonto-calc-depuis').textContent=fmtDate(dateDebut);
+  // Factures payées depuis dateDebut (utilise datePaiement ou date)
+  const factures=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date)>=dateDebut);
+  const totalFac=factures.reduce((s,f)=>s+(f.montant||0),0);
+  // Dépenses depuis dateDebut
+  const depenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
+  const totalDep=depenses.reduce((s,d)=>s+(d.montant||0),0);
+  const soldeCalc=soldeInitial+totalFac-totalDep;
+  const totEl=q('#qonto-calc-totaux');
+  if(totEl)totEl.innerHTML=[
+    ['Encaissé depuis '+dateDebut.slice(0,4),fmt(totalFac),'#4CAF82'],
+    ['Dépensé',fmt(totalDep),'#E05252'],
+    ['Solde estimé',fmt(soldeCalc),soldeCalc>=0?'#3b6dd4':'#E05252']
+  ].map(([label,val,color])=>'<div style="background:#F5F3EF;border-radius:8px;padding:14px 16px;">'+
+    '<div style="font-size:11px;color:var(--text-2);margin-bottom:4px;">'+label+'</div>'+
+    '<div style="font-size:22px;font-family:\'Cormorant Garamond\',serif;color:'+color+';">'+val+'</div></div>').join('');
+  // Enveloppes
+  const envEl=q('#qonto-enveloppes');
+  if(envEl){
+    const actives=enveloppes.filter(e=>e.nom&&e.pct>0);
+    const totalPct=actives.reduce((s,e)=>s+(e.pct||0),0);
+    const restePct=Math.max(0,100-totalPct);
+    const rows=[...actives,{nom:'Disponible libre',pct:restePct,libre:true}];
+    envEl.innerHTML=rows.map(e=>{
+      const montant=(soldeCalc*(e.pct/100));
+      return '<div style="background:#F5F3EF;border-radius:8px;padding:12px 14px;">'+
+        '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">'+e.nom+'</div>'+
+        '<div style="font-size:18px;font-family:\'Cormorant Garamond\',serif;color:var(--navy);">'+fmt(montant)+'</div>'+
+        '<div style="font-size:11px;color:var(--text-2);">'+e.pct+'% du solde</div>'+
+        '<div style="height:3px;background:#E8E8E4;border-radius:2px;margin-top:8px;"><div style="height:100%;width:'+Math.min(100,e.pct)+'%;background:'+(e.libre?'#BAD1FD':'#4CAF82')+';border-radius:2px;"></div></div>'+
+      '</div>';
+    }).join('');
+  }
+}
+function renderDepensesPrevues(){
+  const list=dbGet('depenses_prevues');
+  const el=q('#depenses-prevues-list');
+  if(!el)return;
+  if(!list.length){
+    el.innerHTML='<p style="color:var(--text-2);font-size:13px;padding:8px 0;">Aucune dépense prévue. Clique sur "+ Ajouter" pour en planifier une.</p>';
+    return;
+  }
+  const today=new Date().toISOString().slice(0,7);
+  el.innerHTML='<div class="table-wrap"><table><thead><tr><th>Type</th><th>Description</th><th>Catégorie</th><th>Montant</th><th>Période / Date</th><th>Statut</th><th></th></tr></thead><tbody>'+
+    list.map(d=>{
+      const isMens=d.type==='mensuel';
+      const badge=isMens
+        ?'<span class="badge" style="background:#e8f0fe;color:#3b6dd4;">Mensuelle</span>'
+        :'<span class="badge" style="background:#f0e8fe;color:#7b4dd4;">Ponctuelle</span>';
+      const periode=isMens
+        ?(fmtDate(d.dateDebut||'')+(d.dateFin?' → '+fmtDate(d.dateFin):''))
+        :fmtDate(d.dateDebut||'');
+      const totMois=isMens&&d.dateDebut&&d.dateFin
+        ?Math.ceil((new Date(d.dateFin)-new Date(d.dateDebut))/(1000*60*60*24*30.44)):null;
+      const montantAff=isMens&&totMois?fmt(d.montant)+'/mois ('+fmt(d.montant*totMois)+' total)':fmt(d.montant||0);
+      const sttBadge=d.statut==='terminee'?'<span class="badge badge-attente">Terminée</span>':'<span class="badge badge-payee">Active</span>';
+      return '<tr>'+
+        '<td>'+badge+'</td>'+
+        '<td>'+escHtml(d.description||'—')+'</td>'+
+        '<td class="td-muted">'+escHtml(d.categorie||'—')+'</td>'+
+        '<td class="td-amount">'+montantAff+'</td>'+
+        '<td>'+periode+'</td>'+
+        '<td>'+sttBadge+'</td>'+
+        '<td style="white-space:nowrap;">'+
+          '<button class="btn btn-ghost btn-xs" onclick="editDepensePrevue(\''+d.id+'\')"><i class="ti ti-edit"></i></button>'+
+          '<button class="btn btn-ghost btn-xs" onclick="deleteDepensePrevue(\''+d.id+'\')"><i class="ti ti-trash"></i></button>'+
+        '</td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function openDepensePrevueModal(data={}){
+  q('#modal-dp-title').textContent=data.id?'Modifier la dépense prévue':'Nouvelle dépense prévue';
+  q('#dp-type').value=data.type||'ponctuel';
+  q('#dp-description').value=data.description||'';
+  q('#dp-categorie').value=data.categorie||'Autre';
+  q('#dp-montant').value=data.montant||'';
+  q('#dp-statut').value=data.statut||'active';
+  q('#dp-datedebut').value=data.dateDebut||today();
+  q('#dp-datefin').value=data.dateFin||'';
+  q('#btn-save-depense-prevue').dataset.id=data.id||'';
+  onDepensePrevueTypeChange();
+  openModal('modal-depense-prevue');
+}
+function onDepensePrevueTypeChange(){
+  const isMens=q('#dp-type')?.value==='mensuel';
+  if(q('#dp-datefin-group'))q('#dp-datefin-group').style.display=isMens?'':'none';
+  if(q('#dp-montant-label'))q('#dp-montant-label').textContent=isMens?'Montant mensuel *':'Montant *';
+  if(q('#dp-datedebut-label'))q('#dp-datedebut-label').textContent=isMens?'Date de début *':'Date prévue *';
+}
+async function saveDepensePrevue(){
+  const id=q('#btn-save-depense-prevue').dataset.id;
+  const body={type:q('#dp-type').value,description:q('#dp-description').value.trim(),
+    categorie:q('#dp-categorie').value,montant:parseFloat(q('#dp-montant').value)||0,
+    dateDebut:q('#dp-datedebut').value||null,dateFin:q('#dp-datefin').value||null,
+    statut:q('#dp-statut').value};
+  if(!body.description){toast('Description requise','error');return;}
+  if(!body.montant){toast('Montant requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('depenses_prevues',body);}else{await dbCreate('depenses_prevues',body);}
+    closeModal('modal-depense-prevue');toast('Enregistrée','success');
+    renderDepensesPrevues();
+  }catch(e){toast(e.message||'Erreur','error');}
+}
+function editDepensePrevue(id){const d=dbGet('depenses_prevues').find(x=>x.id===id);if(d)openDepensePrevueModal(d);}
+function deleteDepensePrevue(id){
+  confirmDialog('Supprimer','Irréversible.').then(async ok=>{
+    if(!ok)return;
+    try{await dbDelete('depenses_prevues',id);toast('Supprimée');renderDepensesPrevues();}
+    catch(e){toast(e.message||'Erreur','error');}
+  });
 }
 function renderComptes(){
   const comptes=dbGet('comptes');
@@ -5785,6 +6019,12 @@ function loadOptions(){
   if(q('#opt-cfp'))q('#opt-cfp').value=s.tauxCfp||0.2;
   if(q('#opt-pas'))q('#opt-pas').value=s.pasFixe||40;
   if(q('#opt-delai-paiement'))q('#opt-delai-paiement').value=s.delaiPaiement||30;
+  if(q('#opt-qonto-solde-initial'))q('#opt-qonto-solde-initial').value=s.qontoSoldeInitial||0;
+  if(q('#opt-qonto-date-debut'))q('#opt-qonto-date-debut').value=s.qontoDateDebut||'2026-01-01';
+  const envs=s.qontoEnveloppes||[];
+  const envNoms=q('#opt-enveloppes')?.querySelectorAll('.env-nom');
+  const envPcts=q('#opt-enveloppes')?.querySelectorAll('.env-pct');
+  if(envNoms&&envPcts)envs.forEach((e,i)=>{if(envNoms[i])envNoms[i].value=e.nom||'';if(envPcts[i])envPcts[i].value=e.pct||'';});
   if(q('#opt-cfe'))q('#opt-cfe').value=s.cfe||0;
   if(q('#opt-versement'))q('#opt-versement').value=s.pctVersement||65;
   if(q('#opt-epargne-pct'))q('#opt-epargne-pct').value=s.pctEpargne||15;
@@ -5813,6 +6053,9 @@ async function saveOptions(){
     tauxCfp:parseFloat(q('#opt-cfp').value)||0.2,
     pasFixe:parseFloat(q('#opt-pas').value)||40,
     delaiPaiement:parseInt(q('#opt-delai-paiement').value)||30,
+    qontoSoldeInitial:parseFloat(q('#opt-qonto-solde-initial')?.value)||0,
+    qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
+    qontoEnveloppes:[...q('#opt-enveloppes')?.querySelectorAll('.env-nom')||[]].map((el,i)=>({nom:el.value.trim(),pct:parseFloat(q('#opt-enveloppes').querySelectorAll('.env-pct')[i]?.value)||0})).filter(e=>e.nom),
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
@@ -5900,6 +6143,7 @@ async function init(){
   q('#btn-new-compte')?.addEventListener('click',()=>openCompteModal());
   q('#btn-save-compte')?.addEventListener('click',saveCompte);
   q('#btn-save-compte-update')?.addEventListener('click',saveCompteUpdate);
+  q('#btn-save-depense-prevue')?.addEventListener('click',saveDepensePrevue);
 
   // Transactions
   q('#btn-new-txn')?.addEventListener('click',openTxnModal);

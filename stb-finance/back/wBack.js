@@ -57,6 +57,12 @@ async function router(request, env) {
   if (mD && method === 'PUT')    return updateDepense(request, env, uid, mD[1]);
   if (mD && method === 'DELETE') return deleteDepense(env, uid, mD[1]);
 
+  if (method === 'GET'  && path === '/api/depenses-prevues')  return listDepensesPrevues(env, uid);
+  if (method === 'POST' && path === '/api/depenses-prevues')  return createDepensePrevue(request, env, uid);
+  const mDP = path.match(/^\/api\/depenses-prevues\/([^/]+)$/);
+  if (mDP && method === 'PUT')    return updateDepensePrevue(request, env, uid, mDP[1]);
+  if (mDP && method === 'DELETE') return deleteDepensePrevue(env, uid, mDP[1]);
+
   if (method === 'GET'  && path === '/api/abonnements')    return listAbo(env, uid);
   if (method === 'POST' && path === '/api/abonnements')    return createAbo(request, env, uid);
   const mA = path.match(/^\/api\/abonnements\/([^/]+)$/);
@@ -273,6 +279,34 @@ async function updateDepense(request,env,uid,id){
   fields.forEach(f=>{if(body[f]!==undefined)list[idx][f]=f==='montant'?parseFloat(body[f]):body[f];});
   list[idx].updatedAt=iso();
   await kvEcrire(env,`${uid}:depenses`,list);return jsonOk(list[idx]);
+}
+
+/* ── DÉPENSES PRÉVUES ── */
+async function listDepensesPrevues(env,uid){return jsonOk(await kvTableau(env,`${uid}:depenses_prevues`));}
+async function createDepensePrevue(request,env,uid){
+  const body=await parseJSON(request);
+  if(!body?.description||!body?.montant)return jsonErr(400,'Description et montant requis.');
+  const list=await kvTableau(env,`${uid}:depenses_prevues`);
+  const d={id:uid4(),type:body.type||'ponctuel',description:body.description.trim(),
+    categorie:body.categorie||'Autre',montant:parseFloat(body.montant),
+    dateDebut:body.dateDebut||null,dateFin:body.dateFin||null,
+    statut:body.statut||'active',createdAt:iso()};
+  list.push(d);await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(d,201);
+}
+async function updateDepensePrevue(request,env,uid,id){
+  const body=await parseJSON(request);if(!body)return jsonErr(400,'Body invalide.');
+  const list=await kvTableau(env,`${uid}:depenses_prevues`);
+  const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Introuvable.');
+  ['type','description','categorie','montant','dateDebut','dateFin','statut'].forEach(f=>{
+    if(body[f]!==undefined)list[idx][f]=f==='montant'?parseFloat(body[f]):body[f];
+  });
+  list[idx].updatedAt=iso();
+  await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(list[idx]);
+}
+async function deleteDepensePrevue(env,uid,id){
+  const list=await kvTableau(env,`${uid}:depenses_prevues`);
+  const next=list.filter(x=>x.id!==id);if(next.length===list.length)return jsonErr(404,'Introuvable.');
+  await kvEcrire(env,`${uid}:depenses_prevues`,next);return jsonOk({deleted:id});
 }
 
 /* ── ABONNEMENTS ── */
