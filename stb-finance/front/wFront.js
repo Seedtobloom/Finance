@@ -4590,7 +4590,7 @@ function renderDevis(){
   if(q('#dv-kpi-envoyes'))q('#dv-kpi-envoyes').textContent=envoyes.length;
   if(q('#dv-kpi-ca'))q('#dv-kpi-ca').textContent=fmt(caSign);
   if(q('#dv-kpi-taux'))q('#dv-kpi-taux').textContent=taux+'%';
-  if(q('#dv-kpi-ca-label'))q('#dv-kpi-ca-label').textContent=annee?`CA signé ${annee}`:'CA signé total';
+  if(q('#dv-kpi-ca-label'))q('#dv-kpi-ca-label').textContent=annee?('CA signé '+annee):'CA signé total';
   if(search)list=list.filter(d=>((d.numero||'')+(d.client||'')+(d.description||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(d=>d.statut===statut);
   if(annee)list=list.filter(d=>(d.date||'').startsWith(annee));
