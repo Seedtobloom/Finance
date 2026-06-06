@@ -4262,8 +4262,6 @@ function renderQontoCalc(){
   const soldeActuel=soldeInitial+caEncaisse-totalTout;
   _qontoSoldeCalc=soldeActuel;
   const suffixAttente=caAttente>0?' · '+fmt(caAttente)+' en attente':'';
-  // Debug temporaire
-  console.log('[Qonto] dateDebut=',dateDebut,'soldeInitial=',soldeInitial,'factures total=',dbGet('factures').length,'factures filtrées=',factures.length,'facPayees=',facPayees.length,'caEncaisse=',caEncaisse,'totalTout=',totalTout,'solde=',soldeActuel);
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente;
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
@@ -4441,7 +4439,7 @@ function renderComptes(){
   const g=q('#comptes-grid');
   if(!g)return;
   g.innerHTML=comptes.length?comptes.map(c=>{
-    const isCourant=c.type==='courant';
+    const isCourant=c.type==='courant'||c.type==='professionnel';
     const soldeAffiche=isCourant&&_qontoSoldeCalc!==null?_qontoSoldeCalc:(c.solde||0);
     const soldeSuffix=isCourant&&_qontoSoldeCalc!==null?' <span style="font-size:11px;color:var(--text-2);font-weight:400;">(calculé)</span>':'';
     return \`
