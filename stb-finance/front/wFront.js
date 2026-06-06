@@ -4343,11 +4343,11 @@ function renderQontoCalc(){
       '</div>'+
       '<div style="display:flex;gap:12px;margin-bottom:8px;">'+
         '<div style="flex:1;background:'+(overshot?'#FEE':'#fff')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Encore à sécuriser</div>'+
-          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#E05252':restant===0?'#4CAF82':couleur)+';">'+(restant===0?'✓ OK':fmt(restant))+'</div>'+
+          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">À garder de côté</div>'+
+          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#E05252':restant===0?'#4CAF82':couleur)+';">'+(restant===0?'✓ Couvert':fmt(restant))+'</div>'+
         '</div>'+
         '<div style="flex:1;background:#fff;border-radius:8px;padding:8px 10px;text-align:center;">'+
-          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Déjà payé</div>'+
+          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Déjà réglé</div>'+
           '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
         '</div>'+
       '</div>'+
