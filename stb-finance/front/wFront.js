@@ -402,6 +402,9 @@ const HTML = `<!DOCTYPE html>
           <select id="factures-filter-projet" class="form-select" style="width:170px;">
             <option value="">Tous projets</option>
           </select>
+          <select id="factures-filter-client" class="form-select" style="width:150px;">
+            <option value="">Tous clients</option>
+          </select>
           <button class="btn btn-primary" id="btn-new-facture"><i class="ti ti-plus"></i> Nouvelle facture</button>
         </div>
       </div>
@@ -4285,12 +4288,14 @@ function renderFactures(){
   const search=q('#factures-search')?.value.toLowerCase()||'';
   const statut=q('#factures-filter-statut')?.value||'';
   const projet=q('#factures-filter-projet')?.value||'';
+  const client=q('#factures-filter-client')?.value||'';
   const annee=q('#factures-filter-annee')?.value||'';
   const mois=q('#factures-filter-mois')?.value||'';
   let list=[...facturesData];
   if(search)list=list.filter(f=>((f.numero||'')+(f.client||'')+(f.description||'')+(f.projet||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(f=>f.statut===statut);
-  if(projet)list=list.filter(f=>(f.projet||'')=== projet);
+  if(projet)list=list.filter(f=>(f.projet||'')===projet);
+  if(client)list=list.filter(f=>(f.client||'')===client);
   if(annee)list=list.filter(f=>(f.date||'').startsWith(annee));
   if(mois)list=list.filter(f=>(f.date||'').slice(5,7)===mois);
   list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -4307,6 +4312,13 @@ function renderFactures(){
     const projets=[...new Set(facturesData.map(f=>f.projet).filter(Boolean))].sort();
     const cur=selProjet.value;
     selProjet.innerHTML=\`<option value="">Tous projets</option>\`+projets.map(p=>\`<option value="\${p}" \${p===cur?'selected':''}>\${p}</option>\`).join('');
+  }
+  // Mise à jour filtre clients
+  const selClient=q('#factures-filter-client');
+  if(selClient){
+    const clients=[...new Set(facturesData.map(f=>f.client).filter(Boolean))].sort();
+    const curC=selClient.value;
+    selClient.innerHTML=\`<option value="">Tous clients</option>\`+clients.map(c=>\`<option value="\${c}" \${c===curC?'selected':''}>\${c}</option>\`).join('');
   }
   const tbody=q('#factures-tbody');
   if(!tbody)return;
@@ -5822,6 +5834,7 @@ async function init(){
   q('#factures-filter-mois')?.addEventListener('change',renderFactures);
   q('#factures-filter-statut')?.addEventListener('change',renderFactures);
   q('#factures-filter-projet')?.addEventListener('change',renderFactures);
+  q('#factures-filter-client')?.addEventListener('change',renderFactures);
   // PDF : bouton → ouvre le file picker
   q('#f-pdf-btn')?.addEventListener('click',()=>q('#f-pdf-file')?.click());
   q('#f-pdf-file')?.addEventListener('change',function(){
