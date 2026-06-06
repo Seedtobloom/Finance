@@ -1428,6 +1428,11 @@ const HTML = `<!DOCTYPE html>
             <input type="number" id="opt-cfe" class="form-input" value="0" step="10" min="0" />
             <span style="font-size:12px;color:var(--text-2);">Cotisation Foncière des Entreprises — prélevée en décembre, répartie sur 12 mois dans les calculs</span>
           </div>
+          <div class="form-group">
+            <label class="form-label">Délai de paiement factures (jours)</label>
+            <input type="number" id="opt-delai-paiement" class="form-input" value="30" step="1" min="1" />
+            <span style="font-size:12px;color:var(--text-2);">Pré-remplit automatiquement la date d'échéance à J+ ce délai lors de la création d'une facture</span>
+          </div>
         </div>
 
         <!-- Charges fixes -->
@@ -1547,7 +1552,7 @@ const HTML = `<!DOCTYPE html>
       <div class="form-group">
         <label class="form-label">Date d'échéance</label>
         <input type="date" id="f-date-echeance" class="form-input" />
-        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+15</span>
+        <span style="font-size:11px;color:var(--text-2);" id="f-echeance-hint">Pré-remplie selon ton délai configuré dans Options</span>
       </div>
     </div>
     <div class="form-group">
@@ -4362,8 +4367,9 @@ function onFactureDateChange(){
   const dateVal=q('#f-date')?.value;
   const echeanceEl=q('#f-date-echeance');
   if(dateVal&&echeanceEl&&!echeanceEl.value){
+    const delai=parseInt(dbGetObj('settings').delaiPaiement)||30;
     const d=new Date(dateVal+'T00:00:00');
-    d.setDate(d.getDate()+15);
+    d.setDate(d.getDate()+delai);
     echeanceEl.value=d.toISOString().slice(0,10);
   }
 }
@@ -5722,6 +5728,7 @@ function loadOptions(){
   if(q('#opt-urssaf'))q('#opt-urssaf').value=s.tauxUrssaf||25.6;
   if(q('#opt-cfp'))q('#opt-cfp').value=s.tauxCfp||0.2;
   if(q('#opt-pas'))q('#opt-pas').value=s.pasFixe||40;
+  if(q('#opt-delai-paiement'))q('#opt-delai-paiement').value=s.delaiPaiement||30;
   if(q('#opt-cfe'))q('#opt-cfe').value=s.cfe||0;
   if(q('#opt-versement'))q('#opt-versement').value=s.pctVersement||65;
   if(q('#opt-epargne-pct'))q('#opt-epargne-pct').value=s.pctEpargne||15;
@@ -5749,6 +5756,7 @@ async function saveOptions(){
     tauxUrssaf:parseFloat(q('#opt-urssaf').value)||25.6,
     tauxCfp:parseFloat(q('#opt-cfp').value)||0.2,
     pasFixe:parseFloat(q('#opt-pas').value)||40,
+    delaiPaiement:parseInt(q('#opt-delai-paiement').value)||30,
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };

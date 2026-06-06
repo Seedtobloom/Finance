@@ -150,7 +150,7 @@ async function router(request, env) {
 const SETTINGS_DEFAUT = {
   nom:'Cindy', entreprise:'Seed to Bloom', email:'contact@seedtobloom.fr',
   tauxUrssaf:25.6, tauxCfp:0.2, pasFixe:40, cfeAnnuelle:0, objectifCA:60000,
-  pctVersement:65, pctEpargne:15, pctTresorerie:20,
+  pctVersement:65, pctEpargne:15, pctTresorerie:20, delaiPaiement:30,
 };
 async function settingsGet(env, uid) {
   const s = await kvLire(env, `${uid}:settings`);
