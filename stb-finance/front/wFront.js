@@ -323,12 +323,10 @@ const HTML = `<!DOCTYPE html>
       <!-- Carte Qonto calculée -->
       <div class="card mt-16" id="card-qonto-calc" style="margin-top:24px;">
         <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span><i class="ti ti-building-bank"></i> Qonto Pro — Solde calculé</span>
-          <span style="font-size:12px;font-weight:400;color:var(--text-2);">Factures encaissées − Dépenses pro depuis <span id="qonto-calc-depuis">2026-01-01</span></span>
+          <span><i class="ti ti-building-bank"></i> Qonto Pro — Répartition du solde</span>
+          <span style="font-size:12px;font-weight:400;color:var(--text-2);">Depuis <span id="qonto-calc-depuis">01/01/2026</span> · Solde estimé : <strong id="qonto-solde-net">—</strong></span>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;" id="qonto-calc-totaux"></div>
-        <div style="font-size:12px;font-weight:600;text-transform:uppercase;color:var(--text-2);margin-bottom:10px;letter-spacing:.5px;">Répartition en enveloppes</div>
-        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
+        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
       </div>
 
       <!-- Dépenses prévues -->
@@ -1466,26 +1464,9 @@ const HTML = `<!DOCTYPE html>
             <input type="date" id="opt-qonto-date-debut" class="form-input" value="2026-01-01" />
           </div>
           <div class="form-group">
-            <label class="form-label">Enveloppes Qonto (4 max) — Nom · %</label>
-            <div id="opt-enveloppes" style="display:flex;flex-direction:column;gap:8px;">
-              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
-                <input type="text" class="form-input env-nom" placeholder="Ex: Formations" />
-                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
-                <input type="text" class="form-input env-nom" placeholder="Ex: Charges URSSAF" />
-                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
-                <input type="text" class="form-input env-nom" placeholder="Ex: Abonnements" />
-                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 72px;gap:8px;">
-                <input type="text" class="form-input env-nom" placeholder="Ex: Épargne" />
-                <input type="number" class="form-input env-pct" min="0" max="100" placeholder="%" />
-              </div>
-            </div>
-            <span style="font-size:12px;color:var(--text-2);margin-top:4px;display:block;">Le reste (100% − total) est affiché comme "Disponible libre"</span>
+            <label class="form-label">Enveloppe Formation (% du net après charges)</label>
+            <input type="number" id="opt-pct-formation" class="form-input" value="10" min="0" max="100" step="1" />
+            <span style="font-size:12px;color:var(--text-2);">Le reste est réparti entre trésorerie, versement et épargne selon tes pourcentages ci-dessous</span>
           </div>
         </div>
 
@@ -4254,40 +4235,81 @@ function renderQontoCalc(){
   const s=dbGetObj('settings');
   const dateDebut=s.qontoDateDebut||'2026-01-01';
   const soldeInitial=parseFloat(s.qontoSoldeInitial)||0;
-  const enveloppes=s.qontoEnveloppes||[];
   if(q('#qonto-calc-depuis'))q('#qonto-calc-depuis').textContent=fmtDate(dateDebut);
-  // Factures payées depuis dateDebut (utilise datePaiement ou date)
+
+  // Nb de mois depuis dateDebut
+  const dDebut=new Date(dateDebut+'T00:00:00');
+  const dAuj=new Date();
+  const nbMois=Math.max(1,Math.round((dAuj-dDebut)/(1000*60*60*24*30.44)));
+
+  // CA encaissé depuis dateDebut (datePaiement ou date d'émission)
   const factures=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date)>=dateDebut);
-  const totalFac=factures.reduce((s,f)=>s+(f.montant||0),0);
-  // Dépenses depuis dateDebut
+  const caEncaisse=factures.reduce((s,f)=>s+(f.montant||0),0);
+
+  // Dépenses pro réelles depuis dateDebut (déjà sorties du compte)
   const depenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
-  const totalDep=depenses.reduce((s,d)=>s+(d.montant||0),0);
-  const soldeCalc=soldeInitial+totalFac-totalDep;
-  const totEl=q('#qonto-calc-totaux');
-  if(totEl)totEl.innerHTML=[
-    ['Encaissé depuis '+dateDebut.slice(0,4),fmt(totalFac),'#4CAF82'],
-    ['Dépensé',fmt(totalDep),'#E05252'],
-    ['Solde estimé',fmt(soldeCalc),soldeCalc>=0?'#3b6dd4':'#E05252']
-  ].map(([label,val,color])=>'<div style="background:#F5F3EF;border-radius:8px;padding:14px 16px;">'+
-    '<div style="font-size:11px;color:var(--text-2);margin-bottom:4px;">'+label+'</div>'+
-    '<div style="font-size:22px;font-weight:600;color:'+color+';">'+val+'</div></div>').join('');
-  // Enveloppes
-  const envEl=q('#qonto-enveloppes');
-  if(envEl){
-    const actives=enveloppes.filter(e=>e.nom&&e.pct>0);
-    const totalPct=actives.reduce((s,e)=>s+(e.pct||0),0);
-    const restePct=Math.max(0,100-totalPct);
-    const rows=[...actives,{nom:'Disponible libre',pct:restePct,libre:true}];
-    envEl.innerHTML=rows.map(e=>{
-      const montant=(soldeCalc*(e.pct/100));
-      return '<div style="background:#F5F3EF;border-radius:8px;padding:12px 14px;">'+
-        '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">'+e.nom+'</div>'+
-        '<div style="font-size:18px;font-weight:600;color:var(--navy);">'+fmt(montant)+'</div>'+
-        '<div style="font-size:11px;color:var(--text-2);">'+e.pct+'% du solde</div>'+
-        '<div style="height:3px;background:#E8E8E4;border-radius:2px;margin-top:8px;"><div style="height:100%;width:'+Math.min(100,e.pct)+'%;background:'+(e.libre?'#BAD1FD':'#4CAF82')+';border-radius:2px;"></div></div>'+
-      '</div>';
-    }).join('');
+  const totalDepReelles=depenses.reduce((s,d)=>s+(d.montant||0),0);
+
+  // Solde actuel estimé
+  const soldeActuel=soldeInitial+caEncaisse-totalDepReelles;
+  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel);
+
+  // ── Calcul des provisions sur le CA encaissé ──────────────────────────
+  const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
+  const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
+  const pas=parseFloat(s.pasFixe)||40;
+  const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
+
+  // Charges sociales provisionnées (URSSAF + CFP + PAS + CFE)
+  const provCharges=Math.round((caEncaisse*(tauxU+tauxC) + pas*nbMois + cfe*(nbMois/12))*100)/100;
+
+  // Abonnements actifs (charges fixes mensuelles)
+  const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
+  const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const provChargesFixes=Math.round(totalAbosMois*nbMois*100)/100;
+
+  // Net après provisions obligatoires
+  const netApresCharges=Math.max(0,soldeActuel-provCharges-provChargesFixes);
+
+  // Répartition du net (%, depuis les options)
+  const pctVers=(parseFloat(s.pctVersement)||65)/100;
+  const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
+  const pctFormation=(parseFloat(s.pctFormation)||10)/100;
+  const pctEpargne=Math.max(0,1-pctVers-pctTreso-pctFormation);
+
+  const montantVers=Math.round(netApresCharges*pctVers*100)/100;
+  const montantTreso=Math.round(netApresCharges*pctTreso*100)/100;
+  const montantFormation=Math.round(netApresCharges*pctFormation*100)/100;
+  const montantEpargne=Math.round(netApresCharges*pctEpargne*100)/100;
+
+  // ── Rendu des enveloppes ───────────────────────────────────────────────
+  function envCard(icon,label,montant,couleur,detail){
+    const pctSolde=soldeActuel>0?Math.min(100,Math.round(montant/soldeActuel*100)):0;
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
+        '<span style="font-size:18px;">'+icon+'</span>'+
+        '<div>'+
+          '<div style="font-size:12px;font-weight:600;color:var(--navy);">'+label+'</div>'+
+          (detail?'<div style="font-size:10px;color:var(--text-2);">'+detail+'</div>':'')+'</div></div>'+
+      '<div style="font-size:22px;font-weight:700;color:'+couleur+';">'+fmt(montant)+'</div>'+
+      '<div style="height:3px;background:#E8E8E4;border-radius:2px;margin-top:8px;">'+
+        '<div style="height:100%;width:'+pctSolde+'%;background:'+couleur+';border-radius:2px;opacity:0.7;"></div></div>'+
+    '</div>';
   }
+  const envEl=q('#qonto-enveloppes');
+  if(envEl)envEl.innerHTML=
+    envCard('🔴','Provisions charges',provCharges,'#E05252',
+      'URSSAF '+Math.round((tauxU+tauxC)*100)+'% + PAS + CFE sur '+nbMois+' mois')+
+    envCard('📋','Charges fixes mensuelles',provChargesFixes,'#E8A838',
+      fmt(totalAbosMois)+'/mois × '+nbMois+' mois')+
+    envCard('📚','Formation',montantFormation,'#7B4DD4',
+      Math.round(pctFormation*100)+'% du net — configurable dans Options')+
+    envCard('🏦','Trésorerie',montantTreso,'#3b6dd4',
+      Math.round(pctTreso*100)+'% du net')+
+    envCard('💸','Versement perso',montantVers,'#4CAF82',
+      Math.round(pctVers*100)+'% du net')+
+    (pctEpargne>0.001?envCard('💰','Épargne / buffer',montantEpargne,'#BAD1FD',
+      Math.round(pctEpargne*100)+'% du net'):'');
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
@@ -6021,10 +6043,7 @@ function loadOptions(){
   if(q('#opt-delai-paiement'))q('#opt-delai-paiement').value=s.delaiPaiement||30;
   if(q('#opt-qonto-solde-initial'))q('#opt-qonto-solde-initial').value=s.qontoSoldeInitial||0;
   if(q('#opt-qonto-date-debut'))q('#opt-qonto-date-debut').value=s.qontoDateDebut||'2026-01-01';
-  const envs=s.qontoEnveloppes||[];
-  const envNoms=q('#opt-enveloppes')?.querySelectorAll('.env-nom');
-  const envPcts=q('#opt-enveloppes')?.querySelectorAll('.env-pct');
-  if(envNoms&&envPcts)envs.forEach((e,i)=>{if(envNoms[i])envNoms[i].value=e.nom||'';if(envPcts[i])envPcts[i].value=e.pct||'';});
+  if(q('#opt-pct-formation'))q('#opt-pct-formation').value=s.pctFormation||10;
   if(q('#opt-cfe'))q('#opt-cfe').value=s.cfe||0;
   if(q('#opt-versement'))q('#opt-versement').value=s.pctVersement||65;
   if(q('#opt-epargne-pct'))q('#opt-epargne-pct').value=s.pctEpargne||15;
@@ -6055,7 +6074,7 @@ async function saveOptions(){
     delaiPaiement:parseInt(q('#opt-delai-paiement').value)||30,
     qontoSoldeInitial:parseFloat(q('#opt-qonto-solde-initial')?.value)||0,
     qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
-    qontoEnveloppes:(()=>{const c=q('#opt-enveloppes');if(!c)return[];const noms=[...c.querySelectorAll('.env-nom')];const pcts=[...c.querySelectorAll('.env-pct')];return noms.map((el,i)=>({nom:el.value.trim(),pct:parseFloat(pcts[i]?.value)||0})).filter(e=>e.nom);})(),
+    pctFormation:parseFloat(q('#opt-pct-formation')?.value)||10,
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
