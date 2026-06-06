@@ -4360,7 +4360,7 @@ function renderQontoCalc(){
   envEl.innerHTML =
     // ── Zone 1 : Synthèse ────────────────────────────────────────────────
     '<div style="grid-column:1/-1;background:var(--navy);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:4px;">'+
-      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px;">Vue d\'ensemble · depuis '+fmtDate(dateDebut)+'</div>'+
+      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px;">Synthèse · depuis '+fmtDate(dateDebut)+'</div>'+
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">'+
         '<div>'+
           '<div style="font-size:11px;opacity:.6;margin-bottom:4px;">Solde Qonto</div>'+
