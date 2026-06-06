@@ -1540,12 +1540,12 @@ const HTML = `<!DOCTYPE html>
     <div class="form-grid-2">
       <div class="form-group">
         <label class="form-label">Date d'émission *</label>
-        <input type="date" id="f-date" class="form-input" />
+        <input type="date" id="f-date" class="form-input" oninput="onFactureDateChange()" />
       </div>
       <div class="form-group">
-        <label class="form-label">Date de paiement</label>
+        <label class="form-label">Date d'échéance / paiement</label>
         <input type="date" id="f-date-paiement" class="form-input" />
-        <span style="font-size:11px;color:var(--text-2);">Utilisée pour le calcul URSSAF</span>
+        <span style="font-size:11px;color:var(--text-2);">Pré-remplie à J+30 · utilisée pour le calcul URSSAF</span>
       </div>
     </div>
     <div class="form-group">
@@ -1686,7 +1686,7 @@ const HTML = `<!DOCTYPE html>
     <div class="form-grid-2">
       <div class="form-group">
         <label class="form-label">Date de début</label>
-        <input type="date" id="pr-date-debut" class="form-input" />
+        <input type="date" id="pr-date-debut" class="form-input" oninput="onProjetMontantChange()" />
       </div>
       <div class="form-group">
         <label class="form-label">Date de fin (optionnelle)</label>
@@ -4322,6 +4322,7 @@ function openFactureModal(data={}){
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();
   q('#f-date-paiement').value=data.datePaiement||'';
+  if(!data.id&&!data.datePaiement)onFactureDateChange();
   q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
   const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
@@ -4336,6 +4337,15 @@ function openFactureModal(data={}){
     }
   }
   openModal('modal-facture');
+}
+function onFactureDateChange(){
+  const dateVal=q('#f-date')?.value;
+  const paiementEl=q('#f-date-paiement');
+  if(dateVal&&paiementEl&&!paiementEl.value){
+    const d=new Date(dateVal+'T00:00:00');
+    d.setDate(d.getDate()+30);
+    paiementEl.value=d.toISOString().slice(0,10);
+  }
 }
 function onFactureClientChange(){
   const client=q('#f-client')?.value||'';
@@ -4825,6 +4835,17 @@ function onProjetMontantChange(){
   const nbMois=parseInt(q('#pr-nb-mois')?.value)||1;
   const moisEl=q('#pr-montant-mois');
   if(moisEl)moisEl.value=type==='mensuel'&&montant&&nbMois?fmt(montant/nbMois)+'/mois':'—';
+  // Auto-calcul date de fin pour projet mensuel
+  if(type==='mensuel'){
+    const debut=q('#pr-date-debut')?.value;
+    const finEl=q('#pr-date-fin');
+    if(debut&&finEl&&nbMois){
+      const d=new Date(debut+'T00:00:00');
+      d.setMonth(d.getMonth()+nbMois);
+      d.setDate(d.getDate()-1);
+      finEl.value=d.toISOString().slice(0,10);
+    }
+  }
 }
 async function saveProjet(){
   const id=q('#btn-save-projet').dataset.id;
