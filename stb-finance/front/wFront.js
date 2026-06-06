@@ -5055,6 +5055,7 @@ export default {
     // Auth
     if (path === '/api/auth/login'  && request.method === 'POST') return handleLogin(request, env);
     if (path === '/api/auth/logout' && request.method === 'POST') return handleLogout(request, env);
+    if (path === '/api/auth/debug') return handleDebug(request, env);
 
     // Routes API → proxy vers le back (avec vérification auth)
     if (path.startsWith('/api/')) {
@@ -5120,6 +5121,26 @@ async function checkAuth(request, env) {
   } catch {
     return false;
   }
+}
+
+async function handleDebug(request, env) {
+  const cookieHeader = request.headers.get('Cookie') || '';
+  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
+  const sessionId = match ? match[1] : null;
+  let kvResult = null, kvError = null;
+  if (sessionId) {
+    try { kvResult = await env.KV_AUTH.get(`sess:${sessionId}`, 'json'); }
+    catch(e) { kvError = e.message; }
+  }
+  return new Response(JSON.stringify({
+    cookieHeader: cookieHeader || '(vide)',
+    cookieName: COOKIE_NAME,
+    sessionId: sessionId || '(non trouvé)',
+    kvResult,
+    kvError,
+    kvAuthBinding: typeof env.KV_AUTH,
+    stbBackBinding: typeof env.STB_BACK,
+  }, null, 2), { headers: { 'Content-Type': 'application/json' } });
 }
 
 function jsonResp(status, error) {
