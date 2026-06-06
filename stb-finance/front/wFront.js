@@ -774,6 +774,7 @@ const HTML = `<!DOCTYPE html>
           <input type="text" id="depenses-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
           <select id="depenses-filter-cat" class="form-select" style="width:170px;">
             <option value="">Toutes catégories</option>
+            <option value="Charges sociales">Charges sociales</option>
             <option value="Logiciels & abonnements">Logiciels &amp; abonnements</option>
             <option value="Matériel">Matériel</option>
             <option value="Formation">Formation</option>
@@ -1838,6 +1839,7 @@ const HTML = `<!DOCTYPE html>
       <div class="form-group">
         <label class="form-label">Catégorie</label>
         <select id="d-categorie" class="form-select">
+          <option>Charges sociales</option>
           <option>Logiciels &amp; abonnements</option>
           <option>Matériel</option>
           <option>Formation</option>
