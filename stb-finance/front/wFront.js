@@ -4086,7 +4086,7 @@ function deleteTiers(id){
 }
 function refreshTiersDatalist(){
   const sel=q('#f-client');if(!sel||sel.tagName!=='SELECT')return;
-  const tiers=dbGet('tiers').filter(t=>t.type==='client').sort((a,b)=>a.nom.localeCompare(b.nom));
+  const tiers=dbGet('tiers').sort((a,b)=>a.nom.localeCompare(b.nom));
   const cur=sel.value;
   sel.innerHTML=\`<option value="">— Sélectionner un client —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
   if(cur)sel.value=cur;
