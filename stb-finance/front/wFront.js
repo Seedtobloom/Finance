@@ -4255,69 +4255,84 @@ function renderQontoCalc(){
   const toutesDepenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
   const versementsEffectues=toutesDepenses.filter(d=>d.categorie==='Versement perso');
   const depensesPro=toutesDepenses.filter(d=>d.categorie!=='Versement perso');
-  const totalDepPro=depensesPro.reduce((s,d)=>s+(d.montant||0),0);
   const totalVersements=versementsEffectues.reduce((s,d)=>s+(d.montant||0),0);
 
-  // Solde réel = initial + encaissé - dépenses pro - versements déjà effectués
-  const soldeActuel=soldeInitial+caEncaisseReel-totalDepPro-totalVersements;
+  // Réel sorti = toutes dépenses + versements
+  const totalTout=toutesDepenses.reduce((s,d)=>s+(d.montant||0),0);
+  const soldeActuel=soldeInitial+caEncaisseReel-totalTout;
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+' ('+fmt(caEncaisse)+' facturé)';
 
-  // ── Calcul des provisions sur le CA encaissé ──────────────────────────
+  // ── Provisions ────────────────────────────────────────────────────────
   const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
   const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
   const pas=parseFloat(s.pasFixe)||40;
   const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
+  const provCharges=Math.round((caEncaisse*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
 
-  // Charges sociales provisionnées (URSSAF + CFP + PAS + CFE)
-  const provCharges=Math.round((caEncaisse*(tauxU+tauxC) + pas*nbMois + cfe*(nbMois/12))*100)/100;
-
-  // Abonnements actifs (charges fixes mensuelles)
   const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
   const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
   const provChargesFixes=Math.round(totalAbosMois*nbMois*100)/100;
 
-  // Net après provisions obligatoires
-  const netApresCharges=Math.max(0,soldeActuel-provCharges-provChargesFixes);
-
-  // Répartition du net (%, depuis les options)
+  const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
   const pctVers=(parseFloat(s.pctVersement)||65)/100;
   const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
   const pctFormation=(parseFloat(s.pctFormation)||10)/100;
   const pctEpargne=Math.max(0,1-pctVers-pctTreso-pctFormation);
+  const provVers=Math.round(netApresCharges*pctVers*100)/100;
+  const provTreso=Math.round(netApresCharges*pctTreso*100)/100;
+  const provFormation=Math.round(netApresCharges*pctFormation*100)/100;
+  const provEpargne=Math.round(netApresCharges*pctEpargne*100)/100;
 
-  const montantVers=Math.round(netApresCharges*pctVers*100)/100;
-  const montantTreso=Math.round(netApresCharges*pctTreso*100)/100;
-  const montantFormation=Math.round(netApresCharges*pctFormation*100)/100;
-  const montantEpargne=Math.round(netApresCharges*pctEpargne*100)/100;
+  // ── Dépenses réelles par enveloppe (mapping catégories) ───────────────
+  function depCat(...cats){
+    return toutesDepenses.filter(d=>cats.includes(d.categorie)).reduce((s,d)=>s+(d.montant||0),0);
+  }
+  const depCharges   = depCat('Charges sociales');
+  const depFixes     = depCat('Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre');
+  const depFormation = depCat('Formation');
+  const depVers      = totalVersements;
+  // Trésorerie : tout ce qui reste non catégorisé dans les enveloppes ci-dessus
+  const depTreso     = Math.max(0, totalTout - depCharges - depFixes - depFormation - depVers);
 
-  // ── Rendu des enveloppes ───────────────────────────────────────────────
-  function envCard(icon,label,montant,couleur,detail){
-    const pctSolde=soldeActuel>0?Math.min(100,Math.round(montant/soldeActuel*100)):0;
-    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
-        '<span style="font-size:18px;">'+icon+'</span>'+
-        '<div>'+
+  // ── Rendu ──────────────────────────────────────────────────────────────
+  function envCard(icon,label,provision,depense,couleur,detail){
+    const reste=provision-depense;
+    const overshot=reste<0;
+    const pctBar=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:3px solid '+(overshot?'#E05252':couleur)+';">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
+        '<span style="font-size:16px;">'+icon+'</span>'+
+        '<div style="flex:1;">'+
           '<div style="font-size:12px;font-weight:600;color:var(--navy);">'+label+'</div>'+
           (detail?'<div style="font-size:10px;color:var(--text-2);">'+detail+'</div>':'')+'</div></div>'+
-      '<div style="font-size:22px;font-weight:700;color:'+couleur+';">'+fmt(montant)+'</div>'+
-      '<div style="height:3px;background:#E8E8E4;border-radius:2px;margin-top:8px;">'+
-        '<div style="height:100%;width:'+pctSolde+'%;background:'+couleur+';border-radius:2px;opacity:0.7;"></div></div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'+
+        '<div>'+
+          '<div style="font-size:10px;color:var(--text-2);">Reste</div>'+
+          '<div style="font-size:20px;font-weight:700;color:'+(overshot?'#E05252':couleur)+';">'+(overshot?'−':'')+fmt(Math.abs(reste))+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:10px;color:var(--text-2);">Dépensé / Provision</div>'+
+          '<div style="font-size:12px;color:var(--text-2);">'+fmt(depense)+' / '+fmt(provision)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="height:4px;background:#E8E8E4;border-radius:2px;">'+
+        '<div style="height:100%;width:'+pctBar+'%;background:'+(overshot?'#E05252':couleur)+';border-radius:2px;transition:width .4s;"></div></div>'+
     '</div>';
   }
+
   const envEl=q('#qonto-enveloppes');
   if(envEl)envEl.innerHTML=
-    envCard('🔴','Provisions charges',provCharges,'#E05252',
-      'URSSAF '+Math.round((tauxU+tauxC)*100)+'% + PAS + CFE sur '+nbMois+' mois')+
-    envCard('📋','Charges fixes mensuelles',provChargesFixes,'#E8A838',
-      fmt(totalAbosMois)+'/mois × '+nbMois+' mois')+
-    envCard('📚','Formation',montantFormation,'#7B4DD4',
-      Math.round(pctFormation*100)+'% du net — configurable dans Options')+
-    envCard('🏦','Trésorerie',montantTreso,'#3b6dd4',
-      Math.round(pctTreso*100)+'% du net')+
-    envCard('💸','Versement perso',Math.max(0,montantVers-totalVersements),'#4CAF82',
-      Math.round(pctVers*100)+'% du net · déjà versé : '+fmt(totalVersements))+
-    (pctEpargne>0.001?envCard('💰','Épargne / buffer',montantEpargne,'#BAD1FD',
-      Math.round(pctEpargne*100)+'% du net'):'');
+    envCard('🔴','Charges sociales (URSSAF, CFE…)',provCharges,depCharges,'#E05252',
+      'Catégorie "Charges sociales" dans tes dépenses')+
+    envCard('📋','Charges fixes (abonnements, frais)',provChargesFixes,depFixes,'#E8A838',
+      'Logiciels, matériel, compta, déplacement…')+
+    envCard('📚','Formation',provFormation,depFormation,'#7B4DD4',
+      'Catégorie "Formation" dans tes dépenses')+
+    envCard('🏦','Trésorerie',provTreso,depTreso,'#3b6dd4',
+      'Buffer de sécurité')+
+    envCard('💸','Versement perso',provVers,depVers,'#4CAF82',
+      'Catégorie "Versement perso" dans tes dépenses')+
+    (pctEpargne>0.001?envCard('💰','Épargne',provEpargne,0,'#6B8DD4','Buffer long terme'):'');
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
