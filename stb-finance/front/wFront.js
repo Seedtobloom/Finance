@@ -5537,40 +5537,56 @@ function loadChargesURSSAF(){
   const pas=settings.pasFixe||40;
   const cfe=(settings.cfe||0)/12;
 
-  // Calcul CA par trimestre
+  // Calendrier URSSAF trimestriel réel micro-BNC
+  // Déclaration du CA du trimestre précédent, échéance fin du mois suivant
   const moisQ={T1:[1,2,3],T2:[4,5,6],T3:[7,8,9],T4:[10,11,12]};
-  const echeances={T1:\`\${y}-04-30\`,T2:\`\${y}-07-31\`,T3:\`\${y}-10-31\`,T4:\`\${y+1}-01-31\`};
+  // Vraies dates d'exigibilité URSSAF (micro, mensuel ou trimestriel)
+  const echeances={
+    T1:'2026-04-30',  // T1 2026 → exigible 30/04/2026
+    T2:'2026-07-31',  // T2 2026 → exigible 31/07/2026
+    T3:'2026-11-02',  // T3 2026 → exigible 02/11/2026
+    T4:'2027-02-01',  // T4 2026 → exigible 01/02/2027
+  };
   const labelsQ={T1:'T1 (jan–mar)',T2:'T2 (avr–jun)',T3:'T3 (jul–sep)',T4:'T4 (oct–déc)'};
   const quarters=['T1','T2','T3','T4'];
+  // Dates d'ouverture de saisie (dès ce jour on peut déclarer)
+  const saisieOuverture={T1:'2026-04-01',T2:'2026-07-01',T3:'2026-10-01',T4:'2027-01-01'};
+
   const grid=q('#urssaf-cards-grid');
   if(grid){
     grid.innerHTML=quarters.map(t=>{
-      const cle=\`\${t}-\${y}\`;
+      const cle=t+'-'+y;
       const d=urssafObj[cle]||{};
       const moisTrim=moisQ[t];
       const caT=moisTrim.reduce((s,mi)=>{
-        const k=\`\${y}-\${String(mi).padStart(2,'0')}\`;
+        const k=y+'-'+String(mi).padStart(2,'0');
         return s+factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((ss,f)=>ss+(f.montant||0),0);
       },0);
       const urssafDue=Math.round(caT*tauxU*100)/100;
       const cfpDue   =Math.round(caT*tauxC*100)/100;
       const total    =urssafDue+cfpDue;
       const ech=echeances[t];
-      const jours=Math.ceil((new Date(ech)-now)/86400000);
-      const statut=d.statut==='paye'?'paye':jours<0?'a_payer':'a_venir';
+      const echDate=new Date(ech+'T23:59:00');
+      const ouvertDate=new Date(saisieOuverture[t]+'T00:00:00');
+      const jours=Math.ceil((echDate-now)/86400000);
+      const isOuvert=now>=ouvertDate;
+      const statut=d.statut==='paye'?'paye':jours<0?'echu':isOuvert?'a_payer':'a_venir';
       const pct=total>0?Math.min(100,Math.round((d.montantPaye||0)/total*100)):0;
-      const countdown=statut==='paye'?\`<span style="color:var(--success);">Payé le \${fmtDate(d.datePaye)} — \${fmt(d.montantPaye||0)}</span>\`:jours<=0?\`<span class="urssaf-countdown rouge">Échu</span>\`:\`<span class="urssaf-countdown \${jours<=30?'rouge':jours<=60?'orange':''}">\${jours} jours restants</span>\`;
-      return\`<div class="urssaf-card \${jours<=30&&statut!=='paye'?'alerte-rouge':jours<=60&&statut!=='paye'?'alerte-orange':''}">
-        <div class="urssaf-header">
-          <div><div class="urssaf-titre">\${labelsQ[t]}</div><div class="urssaf-echeance">Échéance \${fmtDate(ech)}</div></div>
-          <span class="badge badge-\${statut==='paye'?'paye':statut==='a_payer'?'a-payer':'a-venir'}">\${statut==='paye'?'Payé':statut==='a_payer'?'À payer':'À venir'}</span>
-        </div>
-        <div class="urssaf-montant">\${fmt(total)}</div>
-        <div class="urssaf-detail">CA \${fmt(caT)} · URSSAF \${fmt(urssafDue)} · CFP \${fmt(cfpDue)}</div>
-        \${countdown}
-        <div class="progress-bar" style="margin:8px 0;"><div class="fill \${pct>=100?'green':''}" style="width:\${pct}%"></div></div>
-        \${statut!=='paye'?\`<button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="openURSSAFPaiement('\${cle}')"><i class="ti ti-check"></i> Marquer payé</button>\`:''}
-      </div>\`;
+      let countdown='';
+      if(statut==='paye') countdown='<span style="color:var(--success);">Payé le '+fmtDate(d.datePaye)+' — '+fmt(d.montantPaye||0)+'</span>';
+      else if(statut==='echu') countdown='<span class="urssaf-countdown rouge">Échu depuis '+Math.abs(jours)+' j</span>';
+      else countdown='<span class="urssaf-countdown '+(jours<=30?'rouge':jours<=60?'orange':'')+'">Échéance dans '+jours+' j'+(isOuvert?' · Saisie ouverte':'')+'</span>';
+      return '<div class="urssaf-card '+(jours<=30&&statut!=='paye'?'alerte-rouge':jours<=60&&statut!=='paye'?'alerte-orange':'')+'">'+
+        '<div class="urssaf-header">'+
+          '<div><div class="urssaf-titre">'+labelsQ[t]+' '+y+'</div><div class="urssaf-echeance">Échéance '+fmtDate(ech)+(isOuvert&&statut!=='paye'?' · Saisie ouverte sur net-entreprises.fr':'')+'</div></div>'+
+          '<span class="badge badge-'+(statut==='paye'?'paye':statut==='a_payer'?'a-payer':statut==='echu'?'retard':'a-venir')+'">'+(statut==='paye'?'Payé':statut==='a_payer'?'À déclarer':statut==='echu'?'Échu':'À venir')+'</span>'+
+        '</div>'+
+        '<div class="urssaf-montant">'+fmt(total)+'</div>'+
+        '<div class="urssaf-detail">CA encaissé '+fmt(caT)+' · URSSAF '+fmt(urssafDue)+' · CFP '+fmt(cfpDue)+'</div>'+
+        countdown+
+        '<div class="progress-bar" style="margin:8px 0;"><div class="fill '+(pct>=100?'green':'')+'" style="width:'+pct+'%"></div></div>'+
+        (statut!=='paye'?'<button class="btn btn-sm btn-secondary" style="margin-top:8px;" onclick="openURSSAFPaiement(\''+cle+'\')"><i class="ti ti-check"></i> Marquer payé</button>':'')+
+      '</div>';
     }).join('');
   }
 
