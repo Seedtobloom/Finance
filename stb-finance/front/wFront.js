@@ -1551,8 +1551,11 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="form-group">
         <label class="form-label">Date d'échéance</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;">
+          <input type="number" id="f-delai" class="form-input" style="width:72px;" min="1" placeholder="30" oninput="onFactureDelaiChange()" />
+          <span style="font-size:12px;color:var(--text-2);white-space:nowrap;">jours après émission</span>
+        </div>
         <input type="date" id="f-date-echeance" class="form-input" />
-        <span style="font-size:11px;color:var(--text-2);" id="f-echeance-hint">Pré-remplie selon ton délai configuré dans Options</span>
       </div>
     </div>
     <div class="form-group">
@@ -4347,6 +4350,8 @@ function openFactureModal(data={}){
   q('#f-date').value=data.date||today();
   q('#f-date-echeance').value=data.dateEcheance||'';
   q('#f-date-paiement').value=data.datePaiement||'';
+  const defDelai=parseInt(dbGetObj('settings').delaiPaiement)||30;
+  if(q('#f-delai'))q('#f-delai').value=defDelai;
   if(!data.id&&!data.dateEcheance)onFactureDateChange();
   q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
@@ -4363,16 +4368,17 @@ function openFactureModal(data={}){
   }
   openModal('modal-facture');
 }
-function onFactureDateChange(){
+function _calcEcheance(){
   const dateVal=q('#f-date')?.value;
   const echeanceEl=q('#f-date-echeance');
-  if(dateVal&&echeanceEl&&!echeanceEl.value){
-    const delai=parseInt(dbGetObj('settings').delaiPaiement)||30;
-    const d=new Date(dateVal+'T00:00:00');
-    d.setDate(d.getDate()+delai);
-    echeanceEl.value=d.toISOString().slice(0,10);
-  }
+  if(!dateVal||!echeanceEl)return;
+  const delai=parseInt(q('#f-delai')?.value)||parseInt(dbGetObj('settings').delaiPaiement)||30;
+  const d=new Date(dateVal+'T00:00:00');
+  d.setDate(d.getDate()+delai);
+  echeanceEl.value=d.toISOString().slice(0,10);
 }
+function onFactureDateChange(){_calcEcheance();}
+function onFactureDelaiChange(){_calcEcheance();}
 function onDevisDateChange(){
   const dateVal=q('#dv-date')?.value;
   const expEl=q('#dv-date-expiration');
@@ -4793,10 +4799,17 @@ function renderProjets(){
         const slotDate=new Date(p.dateDebut+'T00:00:00');
         slotDate.setMonth(slotDate.getMonth()+i);
         const slotYM=slotDate.toISOString().slice(0,7);
-        const fac=linked.find(f=>(f.date||'').slice(0,7)===slotYM);
+        const slotFacs=linked.filter(f=>(f.date||'').slice(0,7)===slotYM);
         const dateLabel=MOIS_COURT[slotDate.getMonth()]+' '+slotDate.getFullYear();
-        if(fac)facsHtml+=facRow(fac);
-        else facsHtml+=emptyRow(dateLabel,montantMensuel);
+        if(slotFacs.length===0){
+          facsHtml+=emptyRow(dateLabel,montantMensuel);
+        }else if(slotFacs.length===1){
+          facsHtml+=facRow(slotFacs[0]);
+        }else{
+          // Doublon détecté
+          facsHtml+=\`<div style="background:#FFF3CD;border-left:3px solid #E8A838;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:11px;color:#8a6508;"><i class="ti ti-alert-triangle"></i> ⚠️ \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
+          slotFacs.forEach(f=>facsHtml+=facRow(f));
+        }
       }
       // Factures hors-calendrier (date ne correspond à aucun slot)
       linked.forEach(f=>{
