@@ -682,7 +682,10 @@ const HTML = `<!DOCTYPE html>
           <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de facturation par projet — acomptes, jalons, mensuel.</p>
         </div>
         <div class="page-header-right">
-          <input type="text" id="projets-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
+          <input type="text" id="projets-search" class="form-input" style="width:140px;" placeholder="Rechercher…" />
+          <select id="projets-filter-client" class="form-select" style="width:160px;">
+            <option value="">Tous clients</option>
+          </select>
           <select id="projets-filter-annee" class="form-select" style="width:100px;">
             <option value="">Toutes années</option>
           </select>
@@ -4659,12 +4662,14 @@ function loadProjets(){
 function renderProjets(){
   const search=q('#projets-search')?.value.toLowerCase()||'';
   const statut=q('#projets-filter-statut')?.value||'';
+  const client=q('#projets-filter-client')?.value||'';
   const annee=q('#projets-filter-annee')?.value||'';
   const mois=q('#projets-filter-mois')?.value||'';
   const factures=dbGet('factures');
   let list=[...dbGet('projets')];
   if(search)list=list.filter(p=>((p.nom||'')+(p.client||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(p=>p.statut===statut);
+  if(client)list=list.filter(p=>p.client===client);
   if(annee)list=list.filter(p=>(p.dateDebut||'').startsWith(annee));
   if(mois)list=list.filter(p=>(p.dateDebut||'').slice(5,7)===mois);
   list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
@@ -4675,6 +4680,14 @@ function renderProjets(){
     const annees=[...new Set(all.map(p=>(p.dateDebut||'').slice(0,4)).filter(Boolean))].sort().reverse();
     const curA=selAnnee.value;
     selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
+  }
+  // Mise à jour filtre clients
+  const selClient=q('#projets-filter-client');
+  if(selClient){
+    const all=dbGet('projets');
+    const clients=[...new Set(all.map(p=>p.client).filter(Boolean))].sort();
+    const curC=selClient.value;
+    selClient.innerHTML=\`<option value="">Tous clients</option>\`+clients.map(c=>\`<option value="\${c}" \${c===curC?'selected':''}>\${c}</option>\`).join('');
   }
   const container=q('#projets-list');if(!container)return;
   if(!list.length){
@@ -5733,6 +5746,7 @@ async function init(){
   q('#btn-new-projet')?.addEventListener('click',()=>openProjetModal());
   q('#btn-save-projet')?.addEventListener('click',saveProjet);
   q('#projets-search')?.addEventListener('input',renderProjets);
+  q('#projets-filter-client')?.addEventListener('change',renderProjets);
   q('#projets-filter-annee')?.addEventListener('change',renderProjets);
   q('#projets-filter-mois')?.addEventListener('change',renderProjets);
   q('#projets-filter-statut')?.addEventListener('change',renderProjets);
