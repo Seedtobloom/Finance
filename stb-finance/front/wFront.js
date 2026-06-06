@@ -371,8 +371,26 @@ const HTML = `<!DOCTYPE html>
           <div class="page-subtitle">Importées depuis Indy</div>
         </div>
         <div class="page-header-right">
-          <input type="text" id="factures-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
-          <select id="factures-filter-statut" class="form-select" style="width:150px;">
+          <input type="text" id="factures-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
+          <select id="factures-filter-annee" class="form-select" style="width:100px;">
+            <option value="">Toutes années</option>
+          </select>
+          <select id="factures-filter-mois" class="form-select" style="width:120px;">
+            <option value="">Tous mois</option>
+            <option value="01">Janvier</option>
+            <option value="02">Février</option>
+            <option value="03">Mars</option>
+            <option value="04">Avril</option>
+            <option value="05">Mai</option>
+            <option value="06">Juin</option>
+            <option value="07">Juillet</option>
+            <option value="08">Août</option>
+            <option value="09">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
+          <select id="factures-filter-statut" class="form-select" style="width:140px;">
             <option value="">Tous statuts</option>
             <option value="payee">Payée</option>
             <option value="attente">En attente</option>
@@ -578,8 +596,26 @@ const HTML = `<!DOCTYPE html>
           <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de facturation par projet — acomptes, jalons, mensuel.</p>
         </div>
         <div class="page-header-right">
-          <input type="text" id="projets-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
-          <select id="projets-filter-statut" class="form-select" style="width:150px;">
+          <input type="text" id="projets-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
+          <select id="projets-filter-annee" class="form-select" style="width:100px;">
+            <option value="">Toutes années</option>
+          </select>
+          <select id="projets-filter-mois" class="form-select" style="width:120px;">
+            <option value="">Tous mois</option>
+            <option value="01">Janvier</option>
+            <option value="02">Février</option>
+            <option value="03">Mars</option>
+            <option value="04">Avril</option>
+            <option value="05">Mai</option>
+            <option value="06">Juin</option>
+            <option value="07">Juillet</option>
+            <option value="08">Août</option>
+            <option value="09">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
+          <select id="projets-filter-statut" class="form-select" style="width:140px;">
             <option value="">Tous statuts</option>
             <option value="en_cours">En cours</option>
             <option value="termine">Terminé</option>
@@ -4068,11 +4104,22 @@ function renderFactures(){
   const search=q('#factures-search')?.value.toLowerCase()||'';
   const statut=q('#factures-filter-statut')?.value||'';
   const projet=q('#factures-filter-projet')?.value||'';
+  const annee=q('#factures-filter-annee')?.value||'';
+  const mois=q('#factures-filter-mois')?.value||'';
   let list=[...facturesData];
   if(search)list=list.filter(f=>((f.numero||'')+(f.client||'')+(f.description||'')+(f.projet||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(f=>f.statut===statut);
   if(projet)list=list.filter(f=>(f.projet||'')=== projet);
+  if(annee)list=list.filter(f=>(f.date||'').startsWith(annee));
+  if(mois)list=list.filter(f=>(f.date||'').slice(5,7)===mois);
   list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  // Mise à jour filtre années
+  const selAnnee=q('#factures-filter-annee');
+  if(selAnnee){
+    const annees=[...new Set(facturesData.map(f=>(f.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+    const curA=selAnnee.value;
+    selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
+  }
   // Mise à jour filtre projets
   const selProjet=q('#factures-filter-projet');
   if(selProjet){
@@ -4267,11 +4314,23 @@ function loadProjets(){
 function renderProjets(){
   const search=q('#projets-search')?.value.toLowerCase()||'';
   const statut=q('#projets-filter-statut')?.value||'';
+  const annee=q('#projets-filter-annee')?.value||'';
+  const mois=q('#projets-filter-mois')?.value||'';
   const factures=dbGet('factures');
   let list=[...dbGet('projets')];
   if(search)list=list.filter(p=>((p.nom||'')+(p.client||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(p=>p.statut===statut);
+  if(annee)list=list.filter(p=>(p.dateDebut||'').startsWith(annee));
+  if(mois)list=list.filter(p=>(p.dateDebut||'').slice(5,7)===mois);
   list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  // Mise à jour filtre années
+  const selAnnee=q('#projets-filter-annee');
+  if(selAnnee){
+    const all=dbGet('projets');
+    const annees=[...new Set(all.map(p=>(p.dateDebut||'').slice(0,4)).filter(Boolean))].sort().reverse();
+    const curA=selAnnee.value;
+    selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
+  }
   const container=q('#projets-list');if(!container)return;
   if(!list.length){
     container.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-2);">Aucun projet. Crée ton premier projet pour suivre ta facturation.</div>';
@@ -5284,6 +5343,8 @@ async function init(){
   q('#btn-new-facture')?.addEventListener('click',()=>openFactureModal());
   q('#btn-save-facture')?.addEventListener('click',saveFacture);
   q('#factures-search')?.addEventListener('input',renderFactures);
+  q('#factures-filter-annee')?.addEventListener('change',renderFactures);
+  q('#factures-filter-mois')?.addEventListener('change',renderFactures);
   q('#factures-filter-statut')?.addEventListener('change',renderFactures);
   q('#factures-filter-projet')?.addEventListener('change',renderFactures);
   // PDF : bouton → ouvre le file picker
@@ -5300,6 +5361,8 @@ async function init(){
   q('#btn-new-projet')?.addEventListener('click',()=>openProjetModal());
   q('#btn-save-projet')?.addEventListener('click',saveProjet);
   q('#projets-search')?.addEventListener('input',renderProjets);
+  q('#projets-filter-annee')?.addEventListener('change',renderProjets);
+  q('#projets-filter-mois')?.addEventListener('change',renderProjets);
   q('#projets-filter-statut')?.addEventListener('change',renderProjets);
 
   // Tiers
