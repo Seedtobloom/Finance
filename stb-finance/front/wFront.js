@@ -5082,7 +5082,7 @@ async function handleLogin(request, env) {
   if (!entry.isActive)  return jsonResp(401, 'Compte désactivé.');
   if (entry.expireAt && new Date(entry.expireAt) < new Date()) return jsonResp(401, 'Compte expiré.');
 
-  const cookie = `${COOKIE_NAME}=${encodeURIComponent(password)}; Path=/; HttpOnly; SameSite=Strict; Secure; Max-Age=86400`;
+  const cookie = `${COOKIE_NAME}=${encodeURIComponent(password)}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=2592000`;
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json', 'Set-Cookie': cookie }
@@ -5090,7 +5090,7 @@ async function handleLogin(request, env) {
 }
 
 function handleLogout() {
-  const cookie = `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Secure; Max-Age=0`;
+  const cookie = `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`;
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json', 'Set-Cookie': cookie }
