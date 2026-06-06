@@ -5798,41 +5798,6 @@ async function saveURSSAFPaiement(){
   }catch(e){toast(e.message||'Erreur','error');}
 }
 
-/* --- Répartition ------------------------------------------------------ */
-function loadRepartition(){
-  const settings   =dbGetObj('settings');
-  const factures   =dbGet('factures');
-  const repartition=dbGetObj('repartition');
-  const y=new Date().getFullYear(),m=new Date().getMonth()+1;
-  const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
-  const caMois=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
-  const pctV=settings.pctVersement||65,pctE=settings.pctEpargne||15,pctT=settings.pctTresorerie||20;
-  const recommV=Math.round(caMois*pctV/100),recommE=Math.round(caMois*pctE/100),recommT=Math.round(caMois*pctT/100);
-  if(q('#rep-recomm-versement'))q('#rep-recomm-versement').textContent=fmt(recommV);
-  if(q('#rep-recomm-epargne'))q('#rep-recomm-epargne').textContent=fmt(recommE);
-  if(q('#rep-recomm-tresorerie'))q('#rep-recomm-tresorerie').textContent=fmt(recommT);
-  const rv=repartition.versement||0,re=repartition.epargne||0,rt=repartition.tresorerie||0;
-  if(q('#rep-input-versement'))q('#rep-input-versement').value=rv||'';
-  if(q('#rep-input-epargne'))q('#rep-input-epargne').value=re||'';
-  if(q('#rep-input-tresorerie'))q('#rep-input-tresorerie').value=rt||'';
-  const setEcart=(el,reel,recomm)=>{if(!el)return;const e=reel-recomm;el.innerHTML=e>=0?\`<span class="ok">+\${fmt(e)} vs recommandé</span>\`:\`<span class="ko">\${fmt(e)} vs recommandé</span>\`;};
-  setEcart(q('#rep-ecart-versement'),rv,recommV);
-  setEcart(q('#rep-ecart-epargne'),re,recommE);
-  setEcart(q('#rep-ecart-tresorerie'),rt,recommT);
-  if(q('#rep-bar-versement'))q('#rep-bar-versement').style.width=\`\${recommV>0?Math.min(100,Math.round(rv/recommV*100)):0}%\`;
-  if(q('#rep-bar-epargne'))q('#rep-bar-epargne').style.width=\`\${recommE>0?Math.min(100,Math.round(re/recommE*100)):0}%\`;
-  if(q('#rep-bar-tresorerie'))q('#rep-bar-tresorerie').style.width=\`\${recommT>0?Math.min(100,Math.round(rt/recommT*100)):0}%\`;
-  const c1=q('#chart-rep-donut');
-  if(c1)drawDonutChart(c1,['Versement','Épargne','Tréso'],[pctV,pctE,pctT],[COLORS.navy,COLORS.success,COLORS.blue]);
-  const c2=q('#chart-rep-bar');
-  if(c2)drawBarChart(c2,['Versement','Épargne','Tréso'],[{data:[recommV,recommE,recommT],color:COLORS.muted},{data:[rv,re,rt],color:COLORS.navy}]);
-}
-async function saveRepartition(){
-  const body={versement:parseFloat(q('#rep-input-versement').value)||0,epargne:parseFloat(q('#rep-input-epargne').value)||0,tresorerie:parseFloat(q('#rep-input-tresorerie').value)||0};
-  try{await dbSet('repartition',body);toast('Répartition enregistrée','success');loadRepartition();}
-  catch(e){toast(e.message||'Erreur','error');}
-}
-
 /* --- Objectifs épargne ------------------------------------------------ */
 let epargneGoals=[];
 function loadObjectifsEpargne(){
