@@ -412,7 +412,8 @@ const HTML = `<!DOCTYPE html>
           <table>
             <thead>
               <tr>
-                <th>Date</th>
+                <th>Émission</th>
+                <th>Paiement</th>
                 <th>N° Facture</th>
                 <th>Client</th>
                 <th>Projet</th>
@@ -1341,13 +1342,18 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="form-grid-2">
       <div class="form-group">
-        <label class="form-label">Date *</label>
+        <label class="form-label">Date d'émission *</label>
         <input type="date" id="f-date" class="form-input" />
       </div>
       <div class="form-group">
-        <label class="form-label">Montant HT (€) *</label>
-        <input type="number" id="f-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
+        <label class="form-label">Date de paiement</label>
+        <input type="date" id="f-date-paiement" class="form-input" />
+        <span style="font-size:11px;color:var(--text-2);">Utilisée pour le calcul URSSAF</span>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant HT (€) *</label>
+      <input type="number" id="f-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
     </div>
     <div class="form-group">
       <label class="form-label">PDF (facture Indy)</label>
@@ -1363,6 +1369,20 @@ const HTML = `<!DOCTYPE html>
       <button class="btn btn-ghost" data-close-modal="modal-facture">Annuler</button>
       <button class="btn btn-primary" id="btn-save-facture">Enregistrer</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal PDF Preview -->
+<div id="modal-pdf-preview" class="modal-overlay">
+  <div class="modal modal-lg" style="max-height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-header" style="flex-shrink:0;">
+      <span class="modal-title" id="modal-pdf-title">Aperçu PDF</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="modal-pdf-download" class="btn btn-secondary btn-sm" download><i class="ti ti-download"></i> Télécharger</a>
+        <button class="modal-close" data-close-modal="modal-pdf-preview"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <iframe id="modal-pdf-frame" src="" style="flex:1;border:none;width:100%;min-height:70vh;border-radius:0 0 12px 12px;"></iframe>
   </div>
 </div>
 
@@ -3921,23 +3941,27 @@ function renderFactures(){
   if(!tbody)return;
   tbody.innerHTML=list.length?list.map(f=>\`<tr>
     <td>\${fmtDate(f.date)}</td>
+    <td>\${f.datePaiement?fmtDate(f.datePaiement):'<span style="color:var(--text-2);">—</span>'}</td>
     <td class="td-mono">\${f.numero||'—'}</td>
     <td>\${f.client||'—'}</td>
     <td class="td-muted">\${f.projet||f.description||'—'}</td>
     <td class="td-amount">\${fmt(f.montant||0)}</td>
     <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
     <td style="white-space:nowrap;">
+      \${f.pdfKey?\`<button class="btn btn-ghost btn-xs" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled" style="color:#3b6dd4;"></i></button>\`:''}
       <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
       <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
     </td>
-  </tr>\`).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
+  </tr>\`).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-2);">Aucune facture</td></tr>';
 }
 function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
   q('#f-numero').value=data.numero||'';q('#f-statut').value=data.statut||'attente';
   q('#f-client').value=data.client||'';q('#f-projet').value=data.projet||'';
   q('#f-description').value=data.description||'';
-  q('#f-date').value=data.date||today();q('#f-montant').value=data.montant||'';
+  q('#f-date').value=data.date||today();
+  q('#f-date-paiement').value=data.datePaiement||'';
+  q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
   // PDF
   const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
@@ -3958,7 +3982,8 @@ async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
   const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),
     projet:q('#f-projet').value.trim(),description:q('#f-description').value.trim(),
-    date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
+    date:q('#f-date').value,datePaiement:q('#f-date-paiement').value||null,
+    montant:parseFloat(q('#f-montant').value)||0};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
   try{
     let saved;
@@ -4063,6 +4088,14 @@ function refreshTiersDatalist(){
   dl.innerHTML=tiers.map(t=>\`<option value="\${t.nom}">\`).join('');
 }
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
+function previewPDF(id,numero){
+  const url=\`/api/factures/\${id}/pdf\`;
+  const frame=q('#modal-pdf-frame'),title=q('#modal-pdf-title'),dl=q('#modal-pdf-download');
+  if(frame)frame.src=url;
+  if(title)title.textContent=\`Facture \${numero}\`;
+  if(dl){dl.href=url;dl.download=\`\${numero}.pdf\`;}
+  openModal('modal-pdf-preview');
+}
 function deleteFacture(id){
   confirmDialog('Supprimer la facture','Cette action est irréversible.').then(async ok=>{
     if(!ok)return;

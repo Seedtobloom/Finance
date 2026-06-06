@@ -151,7 +151,7 @@ async function dashboard(env, uid) {
   ]);
   const payees=factures.filter(f=>f.statut==='payee');
   const attentes=factures.filter(f=>['attente','retard'].includes(f.statut));
-  const factMois=payees.filter(f=>memeMA(f.date,annee,mois));
+  const factMois=payees.filter(f=>memeMA(f.datePaiement||f.date,annee,mois));
   const caMois=round(factMois.reduce((s,f)=>s+f.montant,0));
   const depMois=depenses.filter(d=>memeMA(d.date,annee,mois)).reduce((s,d)=>s+d.montant,0);
   const aboMois=abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0);
@@ -167,7 +167,7 @@ async function dashboard(env, uid) {
   for(let i=11;i>=0;i--){
     const d=new Date(today.getFullYear(),today.getMonth()-i,1);
     const y=d.getFullYear(),m=d.getMonth()+1;
-    const caM=round(payees.filter(f=>memeMA(f.date,y,m)).reduce((s,f)=>s+f.montant,0));
+    const caM=round(payees.filter(f=>memeMA(f.datePaiement||f.date,y,m)).reduce((s,f)=>s+f.montant,0));
     const dM=round(depenses.filter(f=>memeMA(f.date,y,m)).reduce((s,f)=>s+f.montant,0));
     const aM=round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
     const chM=round(caM*(tauxU+tauxC)+dM+aM+settings.pasFixe);
@@ -193,14 +193,15 @@ async function createFacture(request,env,uid){
   const body=await parseJSON(request);if(!validerDoc(body))return jsonErr(400,'Données invalides.');
   const list=await kvTableau(env,`${uid}:factures`);
   const f={id:uid4(),numero:prochNumF(list),client:body.client.trim(),projet:body.projet?.trim()||'',
-    description:body.description?.trim()||'',
-    montant:parseFloat(body.montant),date:body.date,statut:body.statut||'attente',pdfKey:null,createdAt:iso()};
+    description:body.description?.trim()||'',montant:parseFloat(body.montant),
+    date:body.date,datePaiement:body.datePaiement||null,
+    statut:body.statut||'attente',pdfKey:null,createdAt:iso()};
   list.push(f);await kvEcrire(env,`${uid}:factures`,list);return jsonOk(f,201);
 }
 async function updateFacture(request,env,uid,id){
   const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:factures`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Facture introuvable.');
-  ['client','projet','description','montant','date','statut'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
+  ['client','projet','description','montant','date','datePaiement','statut'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
   list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:factures`,list);return jsonOk(list[idx]);
 }
 async function deleteFacture(env,uid,id){
@@ -331,7 +332,7 @@ async function listURSSAF(env,uid){
   const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
   const result={};
   for(const [cle,meta] of Object.entries(ECHEANCES_URSSAF)){
-    const caT=round(factures.filter(f=>f.statut==='payee'&&meta.mois.includes(parseInt((f.date||'').split('-')[1]))).reduce((s,f)=>s+f.montant,0));
+    const caT=round(factures.filter(f=>f.statut==='payee'&&meta.mois.includes(parseInt(((f.datePaiement||f.date)||'').split('-')[1]))).reduce((s,f)=>s+f.montant,0));
     const urssafDue=round(caT*tauxU),cfpDue=round(caT*tauxC);
     const data=stored[cle]||{};
     result[cle]={...meta,cle,ca:caT,urssaf:urssafDue,cfp:cfpDue,total:round(urssafDue+cfpDue),montantPaye:data.montantPaye||0,statut:data.statut||'a_venir'};
@@ -411,7 +412,7 @@ async function rapportMensuel(env,uid,url){
   ]);
   const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
   const calcMois=(y,m)=>{
-    const payees=factures.filter(f=>f.statut==='payee'&&memeMA(f.date,y,m));
+    const payees=factures.filter(f=>f.statut==='payee'&&memeMA(f.datePaiement||f.date,y,m));
     const ca=round(payees.reduce((s,f)=>s+f.montant,0));
     const dep=round(depenses.filter(d=>memeMA(d.date,y,m)).reduce((s,d)=>s+d.montant,0));
     const abo=round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
@@ -431,7 +432,7 @@ async function rapportAnnuel(env,uid,url){
   const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
   const moisData=[];let totCA=0,totCharges=0,totNet=0;
   for(let m=1;m<=12;m++){
-    const payees=factures.filter(f=>f.statut==='payee'&&memeMA(f.date,annee,m));
+    const payees=factures.filter(f=>f.statut==='payee'&&memeMA(f.datePaiement||f.date,annee,m));
     const ca=round(payees.reduce((s,f)=>s+f.montant,0));
     const dep=round(depenses.filter(d=>memeMA(d.date,annee,m)).reduce((s,d)=>s+d.montant,0));
     const abo=round(abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+a.montantMensuel,0));
