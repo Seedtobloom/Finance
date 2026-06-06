@@ -215,7 +215,7 @@ async function uploadPDF(request,env,uid,id){
   const key=`${uid}/factures/pdf/${list[idx].numero}.pdf`;
   await env.R2_FINANCE.put(key,bytes,{httpMetadata:{contentType:'application/pdf'}});
   list[idx].pdfKey=key;list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:factures`,list);
-  return jsonOk({pdfKey:key});
+  return jsonOk(list[idx]);
 }
 async function downloadPDF(env,uid,id){
   const list=await kvTableau(env,`${uid}:factures`);const f=list.find(x=>x.id===id);

@@ -3939,6 +3939,18 @@ function openFactureModal(data={}){
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
+  // PDF
+  const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
+  if(btn&&nameEl&&fileIn){
+    fileIn.value='';
+    if(data.pdfKey){
+      btn.className='pdf-btn present';btn.innerHTML=\`<i class="ti ti-file-filled"></i> PDF attaché\`;
+      nameEl.innerHTML=\`<a href="/api/factures/\${data.id}/pdf" target="_blank" style="color:var(--blue);">Voir le PDF</a>\`;
+    }else{
+      btn.className='pdf-btn vide';btn.innerHTML='<i class="ti ti-paperclip"></i> Attacher un PDF';
+      nameEl.textContent='';
+    }
+  }
   refreshTiersDatalist();
   openModal('modal-facture');
 }
@@ -3949,7 +3961,17 @@ async function saveFacture(){
     date:q('#f-date').value,montant:parseFloat(q('#f-montant').value)||0};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
   try{
-    if(id){body.id=id;await dbUpdate('factures',body);}else{await dbCreate('factures',body);}
+    let saved;
+    if(id){body.id=id;saved=await dbUpdate('factures',body);}else{saved=await dbCreate('factures',body);}
+    // Upload PDF si sélectionné
+    const fileIn=q('#f-pdf-file');
+    if(fileIn?.files?.length){
+      const fid=saved?.id||id;
+      const fd=new FormData();fd.append('file',fileIn.files[0]);
+      const res=await fetch(\`/api/factures/\${fid}/pdf\`,{method:'POST',body:fileIn.files[0],headers:{'Content-Type':'application/pdf'}});
+      if(!res.ok)toast('PDF non sauvegardé : '+((await res.json().catch(()=>({}))).error||'erreur'),'warning');
+      else{ const updated=await res.json(); saved={...saved,...updated}; }
+    }
     facturesData=dbGet('factures');
     closeModal('modal-facture');toast('Facture enregistrée','success');loadFactures();
   }catch(e){toast(e.message||'Erreur','error');}
@@ -4897,6 +4919,15 @@ async function init(){
   q('#factures-search')?.addEventListener('input',renderFactures);
   q('#factures-filter-statut')?.addEventListener('change',renderFactures);
   q('#factures-filter-projet')?.addEventListener('change',renderFactures);
+  // PDF : bouton → ouvre le file picker
+  q('#f-pdf-btn')?.addEventListener('click',()=>q('#f-pdf-file')?.click());
+  q('#f-pdf-file')?.addEventListener('change',function(){
+    const nameEl=q('#f-pdf-name'),btn=q('#f-pdf-btn');
+    if(this.files?.length){
+      btn.className='pdf-btn present';btn.innerHTML='<i class="ti ti-file-filled"></i> '+this.files[0].name;
+      if(nameEl)nameEl.textContent='';
+    }
+  });
 
   // Tiers
   q('#btn-new-tiers')?.addEventListener('click',()=>openModalTiers());
