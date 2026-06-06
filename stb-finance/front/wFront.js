@@ -1827,32 +1827,52 @@ const HTML = `<!DOCTYPE html>
       <span class="modal-title" id="modal-depense-title">Nouvelle dépense</span>
       <button class="modal-close" data-close-modal="modal-depense"><i class="ti ti-x"></i></button>
     </div>
-    <div class="form-grid-2">
+    <!-- Toggle ponctuel / mensuel -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="d-type-ponctuel" class="btn btn-primary btn-sm" onclick="onDepenseTypeChange('ponctuel')">Ponctuelle</button>
+      <button id="d-type-mensuel" class="btn btn-secondary btn-sm" onclick="onDepenseTypeChange('mensuel')">Mensuelle (récurrente)</button>
+    </div>
+    <!-- Date ponctuelle -->
+    <div id="d-zone-ponctuel">
       <div class="form-group">
         <label class="form-label">Date *</label>
         <input type="date" id="d-date" class="form-input" />
       </div>
-      <div class="form-group">
-        <label class="form-label">Catégorie</label>
-        <select id="d-categorie" class="form-select">
-          <option>Charges sociales</option>
-          <option>Logiciels &amp; abonnements</option>
-          <option>Matériel</option>
-          <option>Formation</option>
-          <option>Communication</option>
-          <option>Déplacement</option>
-          <option>Comptabilité</option>
-          <option>Versement perso</option>
-          <option>Autre</option>
-        </select>
+    </div>
+    <!-- Dates mensuel -->
+    <div id="d-zone-mensuel" style="display:none;">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Date de début *</label>
+          <input type="date" id="d-date-debut" class="form-input" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date de fin *</label>
+          <input type="date" id="d-date-fin" class="form-input" />
+        </div>
       </div>
+      <p style="font-size:12px;color:var(--text-2);margin-bottom:12px;">Une entrée sera créée par mois entre ces deux dates.</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Catégorie</label>
+      <select id="d-categorie" class="form-select">
+        <option>Charges sociales</option>
+        <option>Logiciels &amp; abonnements</option>
+        <option>Matériel</option>
+        <option>Formation</option>
+        <option>Communication</option>
+        <option>Déplacement</option>
+        <option>Comptabilité</option>
+        <option>Versement perso</option>
+        <option>Autre</option>
+      </select>
     </div>
     <div class="form-group">
       <label class="form-label">Description *</label>
       <input type="text" id="d-description" class="form-input" placeholder="Achat Adobe CC…" />
     </div>
     <div class="form-group">
-      <label class="form-label">Montant (€) *</label>
+      <label class="form-label" id="d-montant-label">Montant mensuel (€) *</label>
       <input type="number" id="d-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
     </div>
     <div class="modal-footer">
@@ -5454,9 +5474,21 @@ function renderDepenses(){
     </td>
   </tr>\`).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-2);">Aucune dépense</td></tr>';
 }
+function onDepenseTypeChange(type){
+  const isMens=type==='mensuel';
+  q('#d-zone-ponctuel').style.display=isMens?'none':'';
+  q('#d-zone-mensuel').style.display=isMens?'':'none';
+  q('#d-type-ponctuel').className='btn btn-sm '+(isMens?'btn-secondary':'btn-primary');
+  q('#d-type-mensuel').className='btn btn-sm '+(isMens?'btn-primary':'btn-secondary');
+  q('#d-montant-label').textContent=isMens?'Montant mensuel (€) *':'Montant (€) *';
+  q('#btn-save-depense').dataset.type=type;
+}
 function openDepenseModal(data={}){
   q('#modal-depense-title').textContent=data.id?'Modifier la dépense':'Nouvelle dépense';
+  onDepenseTypeChange('ponctuel');
   q('#d-date').value=data.date||today();
+  q('#d-date-debut').value=data.date||today();
+  q('#d-date-fin').value=data.date||today();
   q('#d-categorie').value=data.categorie||'Logiciels & abonnements';
   q('#d-description').value=data.description||data.libelle||'';
   q('#d-montant').value=data.montant||'';
@@ -5465,12 +5497,34 @@ function openDepenseModal(data={}){
 }
 async function saveDepense(){
   const id=q('#btn-save-depense').dataset.id;
-  const body={date:q('#d-date').value,categorie:q('#d-categorie').value,description:q('#d-description').value.trim(),montant:parseFloat(q('#d-montant').value)||0};
-  if(!body.description){toast('Description requise','error');return;}
+  const type=q('#btn-save-depense').dataset.type||'ponctuel';
+  const categorie=q('#d-categorie').value;
+  const description=q('#d-description').value.trim();
+  const montant=parseFloat(q('#d-montant').value)||0;
+  if(!description){toast('Description requise','error');return;}
+  if(!montant){toast('Montant requis','error');return;}
   try{
-    if(id){body.id=id;await dbUpdate('depenses',body);}else{await dbCreate('depenses',body);}
-    depensesData=dbGet('depenses');
-    closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+    if(type==='mensuel'&&!id){
+      // Créer une entrée par mois
+      const debut=new Date(q('#d-date-debut').value+'T00:00:00');
+      const fin=new Date(q('#d-date-fin').value+'T00:00:00');
+      if(fin<debut){toast('La date de fin doit être après le début','error');return;}
+      let created=0;
+      const cur=new Date(debut);
+      while(cur<=fin){
+        const dateStr=cur.toISOString().slice(0,7)+'-01';
+        await dbCreate('depenses',{date:dateStr,categorie,description,montant});
+        cur.setMonth(cur.getMonth()+1);
+        created++;
+      }
+      depensesData=dbGet('depenses');
+      closeModal('modal-depense');toast(created+' dépenses créées','success');loadDepenses();
+    }else{
+      const body={date:q('#d-date').value,categorie,description,montant};
+      if(id){body.id=id;await dbUpdate('depenses',body);}else{await dbCreate('depenses',body);}
+      depensesData=dbGet('depenses');
+      closeModal('modal-depense');toast('Dépense enregistrée','success');loadDepenses();
+    }
   }catch(e){toast(e.message||'Erreur','error');}
 }
 function editDepense(id){const d=depensesData.find(x=>x.id===id);if(d)openDepenseModal(d);}
