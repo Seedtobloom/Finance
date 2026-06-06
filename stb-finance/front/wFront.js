@@ -68,6 +68,9 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="factures">
           <i class="ti ti-file-invoice"></i> CA &amp; Factures
         </a>
+        <a class="nav-item" data-section="projets">
+          <i class="ti ti-folders"></i> Projets
+        </a>
         <a class="nav-item" data-section="tiers">
           <i class="ti ti-users"></i> Clients &amp; tiers
         </a>
@@ -563,6 +566,52 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section><!-- /tiers -->
+
+
+    <!-- ═══════════════════════════
+         PROJETS
+         ═══════════════════════════ -->
+    <section id="section-projets" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Projets</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de facturation par projet — acomptes, jalons, mensuel.</p>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="projets-search" class="form-input" style="width:190px;" placeholder="Rechercher…" />
+          <select id="projets-filter-statut" class="form-select" style="width:150px;">
+            <option value="">Tous statuts</option>
+            <option value="en_cours">En cours</option>
+            <option value="termine">Terminé</option>
+            <option value="pause">En pause</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
+        </div>
+      </div>
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-folders"></i></div>
+          <span class="kpi-label">Projets en cours</span>
+          <span class="kpi-value" id="proj-kpi-actifs">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
+          <span class="kpi-label">CA contractualisé</span>
+          <span class="kpi-value" id="proj-kpi-contrat">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
+          <span class="kpi-label">CA facturé</span>
+          <span class="kpi-value green" id="proj-kpi-facture">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">Reste à facturer</span>
+          <span class="kpi-value warning" id="proj-kpi-reste">—</span>
+        </div>
+      </div>
+      <div id="projets-list"></div>
+    </section><!-- /projets -->
 
 
     <!-- ═══════════════════════════
@@ -1334,8 +1383,26 @@ const HTML = `<!DOCTYPE html>
       </select>
       <span style="font-size:12px;color:var(--text-2);">Client non listé ? <a href="#" onclick="navigate('tiers');closeModal('modal-facture');return false;">Ajouter un tiers</a></span>
     </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Type de facture</label>
+        <select id="f-type-facture" class="form-select">
+          <option value="standard">Standard</option>
+          <option value="acompte">Acompte</option>
+          <option value="intermediaire">Intermédiaire</option>
+          <option value="solde">Solde</option>
+          <option value="mensuel">Mensuel</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Projet lié (optionnel)</label>
+        <select id="f-projet-id" class="form-select">
+          <option value="">— Aucun —</option>
+        </select>
+      </div>
+    </div>
     <div class="form-group">
-      <label class="form-label">Projet / référence</label>
+      <label class="form-label">Référence / description courte</label>
       <input type="text" id="f-projet" class="form-input" placeholder="Site web Printemps 2026…" />
     </div>
     <div class="form-group">
@@ -1430,6 +1497,78 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-tiers">Annuler</button>
       <button class="btn btn-primary" id="btn-save-tiers">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Projet -->
+<div id="modal-projet" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-projet-title">Nouveau projet</span>
+      <button class="modal-close" data-close-modal="modal-projet"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nom du projet *</label>
+      <input type="text" id="pr-nom" class="form-input" placeholder="Partenaire Créative — Studio X" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Client</label>
+        <select id="pr-client" class="form-select">
+          <option value="">— Sélectionner —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select id="pr-statut" class="form-select">
+          <option value="en_cours">En cours</option>
+          <option value="pause">En pause</option>
+          <option value="termine">Terminé</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Type de facturation</label>
+        <select id="pr-type" class="form-select" oninput="onProjetTypeChange()">
+          <option value="unique">Facture unique</option>
+          <option value="echelonne">Échelonné (acompte + jalons + solde)</option>
+          <option value="mensuel">Mensuel</option>
+        </select>
+      </div>
+      <div class="form-group" id="pr-nb-mois-group" style="display:none;">
+        <label class="form-label">Nombre de mois</label>
+        <input type="number" id="pr-nb-mois" class="form-input" min="1" max="60" value="6" oninput="onProjetMontantChange()" />
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Montant total HT (€) *</label>
+        <input type="number" id="pr-montant" class="form-input" step="0.01" min="0" placeholder="3000.00" oninput="onProjetMontantChange()" />
+      </div>
+      <div class="form-group" id="pr-montant-mois-group" style="display:none;">
+        <label class="form-label">Montant mensuel</label>
+        <input type="text" id="pr-montant-mois" class="form-input" readonly style="background:#f5f3ef;color:#6B6B6B;" placeholder="—" />
+      </div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date de début</label>
+        <input type="date" id="pr-date-debut" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date de fin (optionnelle)</label>
+        <input type="date" id="pr-date-fin" class="form-input" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="pr-notes" class="form-input" rows="2" placeholder="Détails, conditions…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-projet">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-projet">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3266,11 +3405,11 @@ async function api(method, path, body) {
 /* ─── 0c. CACHE ──────────────────────────────────────────────────────── */
 const _cache = {
   settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
-  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[]
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[], projets:[]
 };
 
 async function loadAll() {
-  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers] = await Promise.all([
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers, projets] = await Promise.all([
     api('GET', '/api/settings'),
     api('GET', '/api/factures'),
     api('GET', '/api/depenses'),
@@ -3281,6 +3420,7 @@ async function loadAll() {
     api('GET', '/api/repartition'),
     api('GET', '/api/objectifs/ca'),
     api('GET', '/api/tiers'),
+    api('GET', '/api/projets'),
   ]);
   _cache.settings        = settings || {};
   _cache.factures        = factures || [];
@@ -3292,6 +3432,7 @@ async function loadAll() {
   _cache.repartition     = repartition || {};
   _cache.objectif_ca     = objCA    || {};
   _cache.tiers           = tiers    || [];
+  _cache.projets         = projets  || [];
   // Transactions : on charge jusqu'à 5 pages
   try {
     const t1 = await api('GET', '/api/transactions?page=1');
@@ -3372,18 +3513,18 @@ function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array
 const _pathCreate = {
   factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
   comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne',
-  tiers:'/api/tiers'
+  tiers:'/api/tiers', projets:'/api/projets'
 };
 const _pathUpdate = id=>({
   factures:\`/api/factures/\${id}\`, abonnements:\`/api/abonnements/\${id}\`,
   comptes:\`/api/comptes/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
-  tiers:\`/api/tiers/\${id}\`
+  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`
 });
 const _pathDelete = id=>({
   factures:\`/api/factures/\${id}\`, depenses:\`/api/depenses/\${id}\`,
   abonnements:\`/api/abonnements/\${id}\`, comptes:\`/api/comptes/\${id}\`,
   transactions:\`/api/transactions/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
-  tiers:\`/api/tiers/\${id}\`
+  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`
 });
 
 /* Normalisation abonnements (UI ↔ API) */
@@ -3440,7 +3581,7 @@ function loadSection(s){
   const map={
     'dashboard':loadDashboard,'vue-ensemble':loadVueEnsemble,
     'comptes':loadComptes,'transactions':loadTransactions,
-    'factures':loadFactures,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
+    'factures':loadFactures,'projets':loadProjets,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,'repartition':loadRepartition,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
@@ -3960,7 +4101,11 @@ function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
   q('#f-numero').value=data.numero||'';q('#f-statut').value=data.statut||'attente';
   refreshTiersDatalist();
-  q('#f-client').value=data.client||'';q('#f-projet').value=data.projet||'';
+  q('#f-client').value=data.client||'';
+  q('#f-type-facture').value=data.typeFacture||'standard';
+  refreshProjetsSelect();
+  q('#f-projet-id').value=data.projetId||'';
+  q('#f-projet').value=data.projet||'';
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();
   q('#f-date-paiement').value=data.datePaiement||'';
@@ -3985,7 +4130,9 @@ async function saveFacture(){
   const body={numero:q('#f-numero').value.trim(),statut:q('#f-statut').value,client:q('#f-client').value.trim(),
     projet:q('#f-projet').value.trim(),description:q('#f-description').value.trim(),
     date:q('#f-date').value,datePaiement:q('#f-date-paiement').value||null,
-    montant:parseFloat(q('#f-montant').value)||0};
+    montant:parseFloat(q('#f-montant').value)||0,
+    typeFacture:q('#f-type-facture').value||'standard',
+    projetId:q('#f-projet-id').value||null};
   if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
   try{
     let saved;
@@ -4091,6 +4238,189 @@ function refreshTiersDatalist(){
   sel.innerHTML=\`<option value="">— Sélectionner un client —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
   if(cur)sel.value=cur;
 }
+function refreshProjetsSelect(){
+  const sel=q('#f-projet-id');if(!sel)return;
+  const projets=dbGet('projets').sort((a,b)=>a.nom.localeCompare(b.nom));
+  const cur=sel.value;
+  sel.innerHTML=\`<option value="">— Aucun —</option>\`+projets.map(p=>\`<option value="\${p.id}">\${p.nom}\${p.client?' · '+p.client:''}</option>\`).join('');
+  if(cur)sel.value=cur;
+}
+
+/* --- Projets ---------------------------------------------------------- */
+function loadProjets(){
+  const projets=dbGet('projets');
+  const factures=dbGet('factures');
+  const enCours=projets.filter(p=>p.statut==='en_cours');
+  const totalContrat=enCours.reduce((s,p)=>s+(p.montantTotal||0),0);
+  let totalFacture=0;
+  projets.forEach(p=>{
+    const linked=factures.filter(f=>f.projetId===p.id);
+    totalFacture+=linked.reduce((s,f)=>s+(f.montant||0),0);
+  });
+  const totalReste=Math.max(0,totalContrat-totalFacture);
+  if(q('#proj-kpi-actifs'))q('#proj-kpi-actifs').textContent=enCours.length;
+  if(q('#proj-kpi-contrat'))q('#proj-kpi-contrat').textContent=fmt(totalContrat);
+  if(q('#proj-kpi-facture'))q('#proj-kpi-facture').textContent=fmt(totalFacture);
+  if(q('#proj-kpi-reste'))q('#proj-kpi-reste').textContent=fmt(totalReste);
+  renderProjets();
+}
+function renderProjets(){
+  const search=q('#projets-search')?.value.toLowerCase()||'';
+  const statut=q('#projets-filter-statut')?.value||'';
+  const factures=dbGet('factures');
+  let list=[...dbGet('projets')];
+  if(search)list=list.filter(p=>((p.nom||'')+(p.client||'')).toLowerCase().includes(search));
+  if(statut)list=list.filter(p=>p.statut===statut);
+  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const container=q('#projets-list');if(!container)return;
+  if(!list.length){
+    container.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-2);">Aucun projet. Crée ton premier projet pour suivre ta facturation.</div>';
+    return;
+  }
+  const typeLabel={unique:'Unique',echelonne:'Échelonné',mensuel:'Mensuel'};
+  const typeIcon={unique:'ti-file-invoice',echelonne:'ti-stairs',mensuel:'ti-calendar-repeat'};
+  const sttBadge={en_cours:'payee',termine:'attente',pause:'retard'};
+  const sttLabel={en_cours:'En cours',termine:'Terminé',pause:'En pause'};
+  const typeFacLabel={standard:'Standard',acompte:'Acompte',intermediaire:'Intermédiaire',solde:'Solde',mensuel:'Mensuel'};
+  const statIcon={payee:'✅',attente:'⏳',retard:'🔴'};
+  function facRow(f,extra=''){
+    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;">
+      <span>\${statIcon[f.statut]||'⏳'}</span>
+      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${fmtDate(f.date)}</span>
+      <span style="font-size:12px;flex:1;">\${f.numero||'—'}\${badge}</span>
+      <span style="font-size:12px;font-weight:500;">\${fmt(f.montant||0)}</span>
+      <span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}" style="font-size:10px;">\${f.statut==='payee'?'Payée':f.statut==='retard'?'Retard':'Attente'}</span>
+      \${extra}
+    </div>\`;
+  }
+  function emptyRow(label,montant){
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;">
+      <span>📋</span>
+      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${label}</span>
+      <span style="font-size:12px;flex:1;font-style:italic;">À émettre</span>
+      \${montant?'<span style="font-size:12px;font-weight:500;">'+fmt(montant)+'</span>':''}
+      <span></span>
+    </div>\`;
+  }
+  container.innerHTML=list.map(p=>{
+    const linked=factures.filter(f=>f.projetId===p.id);
+    const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
+    const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
+    const reste=Math.max(0,(p.montantTotal||0)-montantFacture);
+    let facsHtml='';
+    if(p.type==='mensuel'&&p.nombreMois){
+      const montantMensuel=(p.montantTotal||0)/p.nombreMois;
+      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      facsHtml=sorted.map(f=>facRow(f)).join('');
+      const restantMois=Math.max(0,p.nombreMois-sorted.length);
+      for(let i=0;i<restantMois;i++){
+        let dateLabel='—';
+        if(p.dateDebut){
+          const base=new Date(p.dateDebut+'T00:00:00');
+          base.setMonth(base.getMonth()+sorted.length+i);
+          dateLabel=MOIS_COURT[base.getMonth()]+' '+base.getFullYear();
+        }
+        facsHtml+=emptyRow(dateLabel,montantMensuel);
+      }
+    }else if(p.type==='echelonne'){
+      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      facsHtml=sorted.map(f=>facRow(f)).join('');
+      const hasAcompte=linked.some(f=>f.typeFacture==='acompte');
+      const hasSolde=linked.some(f=>f.typeFacture==='solde');
+      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+    }else{
+      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      facsHtml=sorted.map(f=>facRow(f)).join('');
+      if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
+    }
+    return\`<div class="card mb-16" style="padding:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #E8E8E4;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
+          <div>
+            <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
+            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge badge-\${sttBadge[p.statut]||'attente'}">\${sttLabel[p.statut]||p.statut}</span>
+          <button class="btn btn-ghost btn-xs" onclick="editProjet('\${p.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-ghost btn-xs" onclick="deleteProjet('\${p.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6B6B6B;margin-bottom:6px;">
+          <span>\${fmt(montantFacture)} facturé</span>
+          <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'✓ Complet'}</span></span>
+        </div>
+        <div style="background:#E8E8E4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
+          <div style="background:\${pct>=100?'var(--success)':'#BAD1FD'};height:100%;width:\${pct}%;border-radius:4px;"></div>
+        </div>
+        \${facsHtml?'<div>'+facsHtml+'</div>':''}
+        \${p.notes?'<div style="margin-top:10px;font-size:12px;color:#6B6B6B;font-style:italic;">'+p.notes+'</div>':''}
+      </div>
+    </div>\`;
+  }).join('');
+}
+function openProjetModal(data={}){
+  q('#modal-projet-title').textContent=data.id?'Modifier le projet':'Nouveau projet';
+  q('#pr-nom').value=data.nom||'';
+  const sel=q('#pr-client');
+  const tiers=dbGet('tiers').sort((a,b)=>a.nom.localeCompare(b.nom));
+  sel.innerHTML=\`<option value="">— Sélectionner —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
+  sel.value=data.client||'';
+  q('#pr-statut').value=data.statut||'en_cours';
+  q('#pr-type').value=data.type||'unique';
+  q('#pr-nb-mois').value=data.nombreMois||6;
+  q('#pr-montant').value=data.montantTotal||'';
+  q('#pr-date-debut').value=data.dateDebut||'';
+  q('#pr-date-fin').value=data.dateFin||'';
+  q('#pr-notes').value=data.notes||'';
+  q('#btn-save-projet').dataset.id=data.id||'';
+  onProjetTypeChange();
+  openModal('modal-projet');
+}
+function onProjetTypeChange(){
+  const type=q('#pr-type')?.value;
+  const nbG=q('#pr-nb-mois-group'),mmG=q('#pr-montant-mois-group');
+  if(nbG)nbG.style.display=type==='mensuel'?'':'none';
+  if(mmG)mmG.style.display=type==='mensuel'?'':'none';
+  onProjetMontantChange();
+}
+function onProjetMontantChange(){
+  const type=q('#pr-type')?.value;
+  const montant=parseFloat(q('#pr-montant')?.value)||0;
+  const nbMois=parseInt(q('#pr-nb-mois')?.value)||1;
+  const moisEl=q('#pr-montant-mois');
+  if(moisEl)moisEl.value=type==='mensuel'&&montant&&nbMois?fmt(montant/nbMois)+'/mois':'—';
+}
+async function saveProjet(){
+  const id=q('#btn-save-projet').dataset.id;
+  const type=q('#pr-type').value;
+  const body={nom:q('#pr-nom').value.trim(),client:q('#pr-client').value,type,statut:q('#pr-statut').value,
+    montantTotal:parseFloat(q('#pr-montant').value)||0,
+    nombreMois:type==='mensuel'?parseInt(q('#pr-nb-mois').value)||1:null,
+    dateDebut:q('#pr-date-debut').value||null,dateFin:q('#pr-date-fin').value||null,
+    notes:q('#pr-notes').value.trim()};
+  if(!body.nom){toast('Nom du projet requis','error');return;}
+  if(!body.montantTotal){toast('Montant requis','error');return;}
+  try{
+    if(id){body.id=id;await dbUpdate('projets',body);}else{await dbCreate('projets',body);}
+    closeModal('modal-projet');toast('Projet enregistré','success');
+    loadProjets();refreshProjetsSelect();
+  }catch(e){toast(e.message||'Erreur','error');}
+}
+function editProjet(id){const p=dbGet('projets').find(x=>x.id===id);if(p)openProjetModal(p);}
+function deleteProjet(id){
+  confirmDialog('Supprimer ce projet','Cette action est irréversible.').then(async ok=>{
+    if(!ok)return;
+    try{await dbDelete('projets',id);toast('Projet supprimé');loadProjets();refreshProjetsSelect();}
+    catch(e){toast(e.message||'Erreur','error');}
+  });
+}
+
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
 function previewPDF(id,numero){
   const url=\`/api/factures/\${id}/pdf\`;
@@ -4965,6 +5295,12 @@ async function init(){
       if(nameEl)nameEl.textContent='';
     }
   });
+
+  // Projets
+  q('#btn-new-projet')?.addEventListener('click',()=>openProjetModal());
+  q('#btn-save-projet')?.addEventListener('click',saveProjet);
+  q('#projets-search')?.addEventListener('input',renderProjets);
+  q('#projets-filter-statut')?.addEventListener('change',renderProjets);
 
   // Tiers
   q('#btn-new-tiers')?.addEventListener('click',()=>openModalTiers());

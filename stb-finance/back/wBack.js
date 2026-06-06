@@ -103,6 +103,15 @@ async function router(request, env) {
     if (method === 'DELETE') return deleteTiers(env, uid, mTi[1]);
   }
 
+  if (method === 'GET'  && path === '/api/projets')        return listProjets(env, uid);
+  if (method === 'POST' && path === '/api/projets')        return createProjet(request, env, uid);
+  const mPr = path.match(/^\/api\/projets\/([^/]+)$/);
+  if (mPr) {
+    if (method === 'GET')    return getProjet(env, uid, mPr[1]);
+    if (method === 'PUT')    return updateProjet(request, env, uid, mPr[1]);
+    if (method === 'DELETE') return deleteProjet(env, uid, mPr[1]);
+  }
+
   if (method === 'GET' && path === '/api/repartition')    return getRepartition(env, uid);
   if (method === 'PUT' && path === '/api/repartition')    return putRepartition(request, env, uid);
 
@@ -195,13 +204,14 @@ async function createFacture(request,env,uid){
   const f={id:uid4(),numero:prochNumF(list),client:body.client.trim(),projet:body.projet?.trim()||'',
     description:body.description?.trim()||'',montant:parseFloat(body.montant),
     date:body.date,datePaiement:body.datePaiement||null,
-    statut:body.statut||'attente',pdfKey:null,createdAt:iso()};
+    statut:body.statut||'attente',typeFacture:body.typeFacture||'standard',projetId:body.projetId||null,
+    pdfKey:null,createdAt:iso()};
   list.push(f);await kvEcrire(env,`${uid}:factures`,list);return jsonOk(f,201);
 }
 async function updateFacture(request,env,uid,id){
   const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:factures`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Facture introuvable.');
-  ['client','projet','description','montant','date','datePaiement','statut'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
+  ['client','projet','description','montant','date','datePaiement','statut','typeFacture','projetId'].forEach(c=>{if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];});
   list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:factures`,list);return jsonOk(list[idx]);
 }
 async function deleteFacture(env,uid,id){
@@ -390,6 +400,34 @@ async function deleteTiers(env,uid,id){
   const list=await kvTableau(env,`${uid}:tiers`);const next=list.filter(x=>x.id!==id);
   if(next.length===list.length)return jsonErr(404,'Tiers introuvable.');
   await kvEcrire(env,`${uid}:tiers`,next);return jsonOk({deleted:id});
+}
+
+/* ── PROJETS ── */
+async function listProjets(env,uid){return jsonOk(await kvTableau(env,`${uid}:projets`));}
+async function getProjet(env,uid,id){const list=await kvTableau(env,`${uid}:projets`);const p=list.find(x=>x.id===id);return p?jsonOk(p):jsonErr(404,'Projet introuvable.');}
+async function createProjet(request,env,uid){
+  const body=await parseJSON(request);if(!body?.nom?.trim())return jsonErr(400,'Nom requis.');
+  if(!body?.montantTotal||isNaN(parseFloat(body.montantTotal)))return jsonErr(400,'Montant requis.');
+  const list=await kvTableau(env,`${uid}:projets`);
+  const p={id:uid4(),nom:body.nom.trim(),client:body.client||'',type:body.type||'unique',
+    montantTotal:parseFloat(body.montantTotal),
+    nombreMois:body.type==='mensuel'?parseInt(body.nombreMois)||1:null,
+    dateDebut:body.dateDebut||null,dateFin:body.dateFin||null,
+    statut:body.statut||'en_cours',notes:body.notes||'',createdAt:iso()};
+  list.push(p);await kvEcrire(env,`${uid}:projets`,list);return jsonOk(p,201);
+}
+async function updateProjet(request,env,uid,id){
+  const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:projets`);
+  const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Projet introuvable.');
+  ['nom','client','type','montantTotal','nombreMois','dateDebut','dateFin','statut','notes'].forEach(c=>{
+    if(body[c]!==undefined)list[idx][c]=['montantTotal','nombreMois'].includes(c)?parseFloat(body[c]):body[c];
+  });
+  list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:projets`,list);return jsonOk(list[idx]);
+}
+async function deleteProjet(env,uid,id){
+  const list=await kvTableau(env,`${uid}:projets`);const next=list.filter(x=>x.id!==id);
+  if(next.length===list.length)return jsonErr(404,'Projet introuvable.');
+  await kvEcrire(env,`${uid}:projets`,next);return jsonOk({deleted:id});
 }
 
 /* ── RÉPARTITION ── */
