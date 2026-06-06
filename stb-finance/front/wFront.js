@@ -4270,7 +4270,7 @@ function renderQontoCalc(){
     ['Solde estimé',fmt(soldeCalc),soldeCalc>=0?'#3b6dd4':'#E05252']
   ].map(([label,val,color])=>'<div style="background:#F5F3EF;border-radius:8px;padding:14px 16px;">'+
     '<div style="font-size:11px;color:var(--text-2);margin-bottom:4px;">'+label+'</div>'+
-    '<div style="font-size:22px;font-family:\'Cormorant Garamond\',serif;color:'+color+';">'+val+'</div></div>').join('');
+    '<div style="font-size:22px;font-weight:600;color:'+color+';">'+val+'</div></div>').join('');
   // Enveloppes
   const envEl=q('#qonto-enveloppes');
   if(envEl){
@@ -4282,7 +4282,7 @@ function renderQontoCalc(){
       const montant=(soldeCalc*(e.pct/100));
       return '<div style="background:#F5F3EF;border-radius:8px;padding:12px 14px;">'+
         '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">'+e.nom+'</div>'+
-        '<div style="font-size:18px;font-family:\'Cormorant Garamond\',serif;color:var(--navy);">'+fmt(montant)+'</div>'+
+        '<div style="font-size:18px;font-weight:600;color:var(--navy);">'+fmt(montant)+'</div>'+
         '<div style="font-size:11px;color:var(--text-2);">'+e.pct+'% du solde</div>'+
         '<div style="height:3px;background:#E8E8E4;border-radius:2px;margin-top:8px;"><div style="height:100%;width:'+Math.min(100,e.pct)+'%;background:'+(e.libre?'#BAD1FD':'#4CAF82')+';border-radius:2px;"></div></div>'+
       '</div>';
