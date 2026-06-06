@@ -4258,8 +4258,8 @@ function renderQontoCalc(){
   const totalVersements=versementsEffectues.reduce((s,d)=>s+(d.montant||0),0);
   const totalTout=toutesDepenses.reduce((s,d)=>s+(d.montant||0),0);
 
-  // Solde = solde initial + TOUT le CA facturé (encaissé + en attente) - dépenses
-  const soldeActuel=soldeInitial+caTotal-totalTout;
+  // Solde = solde initial + CA encaissé (payé uniquement) - dépenses
+  const soldeActuel=soldeInitial+caEncaisse-totalTout;
   _qontoSoldeCalc=soldeActuel;
   const suffixAttente=caAttente>0?' · '+fmt(caAttente)+' en attente':'';
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente;
@@ -4271,14 +4271,14 @@ function renderQontoCalc(){
   const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
   const pas=parseFloat(s.pasFixe)||40;
   const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
-  const provCharges=Math.round((caTotal*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
+  const provCharges=Math.round((caEncaisse*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
 
   const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
   const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
   // Provision sur 12 mois (budget annuel à conserver, pas × mois écoulés)
   const provChargesFixes=Math.round(totalAbosMois*12*100)/100;
 
-  const netApresCharges=Math.max(0,caTotal-provCharges-provChargesFixes);
+  const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
   const pctVers=(parseFloat(s.pctVersement)||65)/100;
   const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
   const pctFormation=(parseFloat(s.pctFormation)||10)/100;
