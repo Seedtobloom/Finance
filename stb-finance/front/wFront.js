@@ -1329,8 +1329,10 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="form-group">
       <label class="form-label">Client *</label>
-      <input type="text" id="f-client" class="form-input" placeholder="Nom du client" list="tiers-datalist" autocomplete="off" />
-      <datalist id="tiers-datalist"></datalist>
+      <select id="f-client" class="form-select">
+        <option value="">— Sélectionner un client —</option>
+      </select>
+      <span style="font-size:12px;color:var(--text-2);">Client non listé ? <a href="#" onclick="navigate('tiers');closeModal('modal-facture');return false;">Ajouter un tiers</a></span>
     </div>
     <div class="form-group">
       <label class="form-label">Projet / référence</label>
@@ -3957,6 +3959,7 @@ function renderFactures(){
 function openFactureModal(data={}){
   q('#modal-facture-title').textContent=data.id?'Modifier la facture':'Nouvelle facture';
   q('#f-numero').value=data.numero||'';q('#f-statut').value=data.statut||'attente';
+  refreshTiersDatalist();
   q('#f-client').value=data.client||'';q('#f-projet').value=data.projet||'';
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();
@@ -3975,7 +3978,6 @@ function openFactureModal(data={}){
       nameEl.textContent='';
     }
   }
-  refreshTiersDatalist();
   openModal('modal-facture');
 }
 async function saveFacture(){
@@ -4083,9 +4085,11 @@ function deleteTiers(id){
   });
 }
 function refreshTiersDatalist(){
-  const dl=q('#tiers-datalist');if(!dl)return;
-  const tiers=dbGet('tiers').filter(t=>t.type==='client');
-  dl.innerHTML=tiers.map(t=>\`<option value="\${t.nom}">\`).join('');
+  const sel=q('#f-client');if(!sel||sel.tagName!=='SELECT')return;
+  const tiers=dbGet('tiers').filter(t=>t.type==='client').sort((a,b)=>a.nom.localeCompare(b.nom));
+  const cur=sel.value;
+  sel.innerHTML=\`<option value="">— Sélectionner un client —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
+  if(cur)sel.value=cur;
 }
 function editFacture(id){const f=facturesData.find(x=>x.id===id);if(f)openFactureModal(f);}
 function previewPDF(id,numero){
