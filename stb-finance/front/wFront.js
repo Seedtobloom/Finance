@@ -3798,6 +3798,7 @@ function niceStep(max){
 
 /* ─── 3. TOAST ───────────────────────────────────────────────────────── */
 let _toastTimer;
+let _qontoSoldeCalc=null;
 function toast(msg,type='info'){
   const t=q('#toast');
   if(!t)return;
@@ -4260,7 +4261,10 @@ function renderQontoCalc(){
   // Réel sorti = toutes dépenses + versements
   const totalTout=toutesDepenses.reduce((s,d)=>s+(d.montant||0),0);
   const soldeActuel=soldeInitial+caEncaisseReel-totalTout;
+  _qontoSoldeCalc=soldeActuel;
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+' ('+fmt(caEncaisse)+' facturé)';
+  // Répercuter le solde calculé dans la carte compte manuelle
+  renderComptes();
 
   // ── Provisions ────────────────────────────────────────────────────────
   const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
@@ -4271,7 +4275,8 @@ function renderQontoCalc(){
 
   const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
   const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
-  const provChargesFixes=Math.round(totalAbosMois*nbMois*100)/100;
+  // Provision sur 12 mois (budget annuel à conserver, pas × mois écoulés)
+  const provChargesFixes=Math.round(totalAbosMois*12*100)/100;
 
   const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
   const pctVers=(parseFloat(s.pctVersement)||65)/100;
@@ -4294,8 +4299,18 @@ function renderQontoCalc(){
   // Trésorerie : tout ce qui reste non catégorisé dans les enveloppes ci-dessus
   const depTreso     = Math.max(0, totalTout - depCharges - depFixes - depFormation - depVers);
 
-  // ── Rendu ──────────────────────────────────────────────────────────────
-  function envCard(icon,label,provision,depense,couleur,detail){
+  // ── Dépenses par enveloppe avec liste détail ─────────────────────────
+  function depLines(depList){
+    if(!depList||!depList.length)return '';
+    return '<div style="margin-top:8px;border-top:1px solid #E8E8E4;padding-top:8px;">'+
+      depList.map(d=>'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);padding:2px 0;">'+
+        '<span>'+fmtDate(d.date)+(d.description?' — '+d.description:'')+'</span>'+
+        '<span style="font-weight:600;white-space:nowrap;margin-left:8px;">'+fmt(d.montant||0)+'</span>'+
+      '</div>').join('')+
+    '</div>';
+  }
+
+  function envCard(icon,label,provision,depense,couleur,detail,depList){
     const reste=provision-depense;
     const overshot=reste<0;
     const pctBar=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
@@ -4317,22 +4332,30 @@ function renderQontoCalc(){
       '</div>'+
       '<div style="height:4px;background:#E8E8E4;border-radius:2px;">'+
         '<div style="height:100%;width:'+pctBar+'%;background:'+(overshot?'#E05252':couleur)+';border-radius:2px;transition:width .4s;"></div></div>'+
+      depLines(depList)+
     '</div>';
   }
+
+  // Listes détail par enveloppe
+  const listCharges  = toutesDepenses.filter(d=>d.categorie==='Charges sociales');
+  const listFixes    = toutesDepenses.filter(d=>['Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre'].includes(d.categorie));
+  const listFormation= toutesDepenses.filter(d=>d.categorie==='Formation');
+  const listVers     = versementsEffectues;
+  const listTreso    = toutesDepenses.filter(d=>!['Charges sociales','Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre','Formation','Versement perso'].includes(d.categorie));
 
   const envEl=q('#qonto-enveloppes');
   if(envEl)envEl.innerHTML=
     envCard('🔴','Charges sociales (URSSAF, CFE…)',provCharges,depCharges,'#E05252',
-      'Catégorie "Charges sociales" dans tes dépenses')+
+      'Catégorie "Charges sociales" dans tes dépenses',listCharges)+
     envCard('📋','Charges fixes (abonnements, frais)',provChargesFixes,depFixes,'#E8A838',
-      'Logiciels, matériel, compta, déplacement…')+
+      'Budget annuel — logiciels, matériel, compta…',listFixes)+
     envCard('📚','Formation',provFormation,depFormation,'#7B4DD4',
-      'Catégorie "Formation" dans tes dépenses')+
+      'Catégorie "Formation" dans tes dépenses',listFormation)+
     envCard('🏦','Trésorerie',provTreso,depTreso,'#3b6dd4',
-      'Buffer de sécurité')+
+      'Buffer de sécurité',listTreso)+
     envCard('💸','Versement perso',provVers,depVers,'#4CAF82',
-      'Catégorie "Versement perso" dans tes dépenses')+
-    (pctEpargne>0.001?envCard('💰','Épargne',provEpargne,0,'#6B8DD4','Buffer long terme'):'');
+      'Catégorie "Versement perso" dans tes dépenses',listVers)+
+    (pctEpargne>0.001?envCard('💰','Épargne',provEpargne,0,'#6B8DD4','Buffer long terme',[]):'');
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
@@ -4415,13 +4438,17 @@ function renderComptes(){
   const comptes=dbGet('comptes');
   const g=q('#comptes-grid');
   if(!g)return;
-  g.innerHTML=comptes.length?comptes.map(c=>\`
+  g.innerHTML=comptes.length?comptes.map(c=>{
+    const isCourant=c.type==='courant';
+    const soldeAffiche=isCourant&&_qontoSoldeCalc!==null?_qontoSoldeCalc:(c.solde||0);
+    const soldeSuffix=isCourant&&_qontoSoldeCalc!==null?' <span style="font-size:11px;color:var(--text-2);font-weight:400;">(calculé)</span>':'';
+    return \`
     <div class="compte-card">
       <div class="compte-card-header">
         <span class="compte-nom">\${c.nom}</span>
         <span class="badge badge-neutral">\${c.type}</span>
       </div>
-      <div class="compte-solde">\${fmt(c.solde||0)}</div>
+      <div class="compte-solde">\${fmt(soldeAffiche)}\${soldeSuffix}</div>
       <div class="compte-upd">\${c.updatedAt?'Mis à jour '+fmtDate(c.updatedAt.slice(0,10)):''}</div>
       <div class="compte-historique">\${(c.historique||[]).slice(-5).reverse().map(h=>\`<div class="compte-historique-item"><span>\${fmtDate(h.date)} \${h.libelle||''}</span><span>\${fmt(h.montant||0)}</span></div>\`).join('')}</div>
       <div class="compte-actions">
@@ -4429,7 +4456,7 @@ function renderComptes(){
         <button class="btn btn-ghost btn-sm" onclick="openCompteModal('\${c.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-sm" onclick="deleteCompte('\${c.id}')"><i class="ti ti-trash"></i></button>
       </div>
-    </div>\`).join(''):'<p style="color:var(--text-2);">Aucun compte</p>';
+    </div>\`;}).join(''):'<p style="color:var(--text-2);">Aucun compte</p>';
 }
 function openCompteModal(idOuVide=''){
   const data=idOuVide?dbGet('comptes').find(x=>x.id===idOuVide)||{}:{};
