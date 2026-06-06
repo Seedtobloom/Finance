@@ -51,9 +51,6 @@ const HTML = `<!DOCTYPE html>
       <!-- MES FINANCES -->
       <div class="nav-group">
         <span class="nav-group-label">Mes finances</span>
-        <a class="nav-item" data-section="vue-ensemble">
-          <i class="ti ti-chart-area"></i> Vue d'ensemble
-        </a>
         <a class="nav-item" data-section="comptes">
           <i class="ti ti-building-bank"></i> Comptes
         </a>
@@ -77,9 +74,6 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="tiers">
           <i class="ti ti-users"></i> Clients &amp; tiers
         </a>
-        <a class="nav-item" data-section="objectifs-ca">
-          <i class="ti ti-target"></i> Objectifs de CA
-        </a>
       </div>
 
       <!-- DÉPENSES -->
@@ -99,9 +93,6 @@ const HTML = `<!DOCTYPE html>
       <!-- ÉPARGNE & INVESTISSEMENT -->
       <div class="nav-group">
         <span class="nav-group-label">Épargne &amp; Investissement</span>
-        <a class="nav-item" data-section="repartition">
-          <i class="ti ti-chart-pie"></i> Répartition
-        </a>
         <a class="nav-item" data-section="objectifs-epargne">
           <i class="ti ti-piggy-bank"></i> Objectifs
         </a>
@@ -262,47 +253,6 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section><!-- /dashboard -->
-
-
-    <!-- ═══════════════════════════
-         VUE D'ENSEMBLE
-         ═══════════════════════════ -->
-    <section id="section-vue-ensemble" class="section">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Vue d'ensemble</h1>
-          <div class="page-subtitle">Évolution de votre activité</div>
-        </div>
-      </div>
-
-      <div class="card mb-16">
-        <div class="card-title"><i class="ti ti-chart-line"></i> Solde Qonto dans le temps</div>
-        <div class="chart-wrap"><canvas id="chart-ve-solde" height="180"></canvas></div>
-      </div>
-
-      <div class="card mb-16">
-        <div class="card-title"><i class="ti ti-table"></i> Récapitulatif mensuel</div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Mois</th>
-                <th>CA</th>
-                <th>Charges</th>
-                <th>Résultat</th>
-                <th>Versement</th>
-              </tr>
-            </thead>
-            <tbody id="ve-recap-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title"><i class="ti ti-trending-up"></i> Projection fin d'année</div>
-        <div id="ve-projection"></div>
-      </div>
-    </section><!-- /vue-ensemble -->
 
 
     <!-- ═══════════════════════════
@@ -485,67 +435,6 @@ const HTML = `<!DOCTYPE html>
       <!-- Input PDF caché -->
       <input type="file" id="pdf-upload-input" accept=".pdf" style="display:none;" />
     </section><!-- /factures -->
-
-
-    <!-- ═══════════════════════════
-         OBJECTIFS CA
-         ═══════════════════════════ -->
-    <section id="section-objectifs-ca" class="section">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Objectifs de CA</h1>
-        </div>
-        <div class="page-header-right">
-          <button class="btn btn-secondary" id="btn-edit-objectif-ca"><i class="ti ti-edit"></i> Modifier l'objectif</button>
-        </div>
-      </div>
-
-      <div class="kpi-grid kpi-grid-4 mb-24">
-        <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-target"></i></div>
-          <span class="kpi-label">Objectif annuel</span>
-          <span class="kpi-value" id="objca-kpi-objectif">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
-          <span class="kpi-label">CA YTD atteint</span>
-          <span class="kpi-value" id="objca-kpi-atteint">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-chart-bar"></i></div>
-          <span class="kpi-label">CA mensuel moyen actuel</span>
-          <span class="kpi-value green" id="objca-kpi-moyen-actuel">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-arrow-up"></i></div>
-          <span class="kpi-label">Nécessaire / mois restant</span>
-          <span class="kpi-value warning" id="objca-kpi-necessaire">—</span>
-        </div>
-      </div>
-
-      <!-- Grande jauge -->
-      <div class="card mb-16" style="text-align:center;padding:32px;">
-        <div class="card-title" style="justify-content:center;">Progression YTD</div>
-        <div id="objca-gauge-wrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:500;color:var(--navy);" id="objca-gauge-pct">0%</div>
-          <div style="width:100%;max-width:600px;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;">
-            <div id="objca-gauge-fill" style="height:100%;background:var(--blue);border-radius:6px;transition:width 0.6s ease;width:0%"></div>
-          </div>
-          <div style="font-size:13px;color:var(--text-2);" id="objca-gauge-label"></div>
-        </div>
-      </div>
-
-      <div class="card mb-16">
-        <div class="card-title"><i class="ti ti-chart-bar"></i> Objectif mensuel (pointillé) vs réel</div>
-        <div class="chart-wrap"><canvas id="chart-objca" height="200"></canvas></div>
-      </div>
-
-      <div id="objca-alert"></div>
-      <div class="card">
-        <div class="card-title"><i class="ti ti-trending-up"></i> Projection fin d'année</div>
-        <div id="objca-projection"></div>
-      </div>
-    </section><!-- /objectifs-ca -->
 
 
     <!-- ═══════════════════════════
@@ -952,70 +841,6 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section><!-- /charges-urssaf -->
-
-
-    <!-- ═══════════════════════════
-         RÉPARTITION
-         ═══════════════════════════ -->
-    <section id="section-repartition" class="section">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1>Répartition</h1>
-          <div class="page-subtitle">Recommandé : 65% versement · 15% épargne · 20% trésorerie</div>
-        </div>
-      </div>
-
-      <div class="repartition-grid mb-24">
-        <!-- Versement -->
-        <div class="rep-card">
-          <div class="rep-card-title"><i class="ti ti-cash" style="margin-right:5px;"></i>Versement (65%)</div>
-          <div class="rep-recommande">Recommandé : <span id="rep-recomm-versement">—</span></div>
-          <div class="rep-actuel-label">Montant réellement alloué</div>
-          <input type="number" id="rep-input-versement" class="form-input" placeholder="0.00" step="1" />
-          <div class="rep-ecart" id="rep-ecart-versement"></div>
-          <div class="progress-bar" style="margin-top:10px;">
-            <div class="fill" id="rep-bar-versement" style="width:0%"></div>
-          </div>
-        </div>
-        <!-- Épargne -->
-        <div class="rep-card">
-          <div class="rep-card-title"><i class="ti ti-piggy-bank" style="margin-right:5px;"></i>Épargne (15%)</div>
-          <div class="rep-recommande">Recommandé : <span id="rep-recomm-epargne">—</span></div>
-          <div class="rep-actuel-label">Montant réellement alloué</div>
-          <input type="number" id="rep-input-epargne" class="form-input" placeholder="0.00" step="1" />
-          <div class="rep-ecart" id="rep-ecart-epargne"></div>
-          <div class="progress-bar" style="margin-top:10px;">
-            <div class="fill green" id="rep-bar-epargne" style="width:0%"></div>
-          </div>
-        </div>
-        <!-- Trésorerie -->
-        <div class="rep-card">
-          <div class="rep-card-title"><i class="ti ti-wallet" style="margin-right:5px;"></i>Trésorerie tampon (20%)</div>
-          <div class="rep-recommande">Recommandé : <span id="rep-recomm-tresorerie">—</span></div>
-          <div class="rep-actuel-label">Montant réellement alloué</div>
-          <input type="number" id="rep-input-tresorerie" class="form-input" placeholder="0.00" step="1" />
-          <div class="rep-ecart" id="rep-ecart-tresorerie"></div>
-          <div class="progress-bar" style="margin-top:10px;">
-            <div class="fill violet" id="rep-bar-tresorerie" style="width:0%"></div>
-          </div>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-bottom:24px;">
-        <button class="btn btn-primary" id="btn-save-repartition"><i class="ti ti-check"></i> Enregistrer</button>
-      </div>
-
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-title"><i class="ti ti-chart-donut"></i> Répartition recommandée vs réelle</div>
-          <div class="chart-wrap"><canvas id="chart-rep-donut" height="220"></canvas></div>
-        </div>
-        <div class="card">
-          <div class="card-title"><i class="ti ti-chart-bar"></i> Comparaison montants</div>
-          <div class="chart-wrap"><canvas id="chart-rep-bar" height="220"></canvas></div>
-        </div>
-      </div>
-    </section><!-- /repartition -->
 
 
     <!-- ═══════════════════════════
@@ -2141,23 +1966,6 @@ const HTML = `<!DOCTYPE html>
   </div>
 </div>
 
-<!-- Modal Objectif CA -->
-<div id="modal-objectif-ca" class="modal-overlay">
-  <div class="modal modal-sm">
-    <div class="modal-header">
-      <span class="modal-title">Modifier l'objectif CA</span>
-      <button class="modal-close" data-close-modal="modal-objectif-ca"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Objectif CA annuel (€) *</label>
-      <input type="number" id="obj-ca-val" class="form-input" step="500" min="0" placeholder="60000" />
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" data-close-modal="modal-objectif-ca">Annuler</button>
-      <button class="btn btn-primary" id="btn-save-objectif-ca">Enregistrer</button>
-    </div>
-  </div>
-</div>
 
 <!-- Modal Confirm -->
 <div id="modal-confirm" class="modal-overlay">
@@ -3917,11 +3725,11 @@ function navigate(section){
 }
 function loadSection(s){
   const map={
-    'dashboard':loadDashboard,'vue-ensemble':loadVueEnsemble,
+    'dashboard':loadDashboard,
     'comptes':loadComptes,'transactions':loadTransactions,
-    'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
+    'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
-    'charges-urssaf':loadChargesURSSAF,'repartition':loadRepartition,
+    'charges-urssaf':loadChargesURSSAF,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
     'rapport-annuel':loadRapportAnnuel,'rapport-fiscal':loadRapportFiscal,
     'simulateur':loadSimulateur,'import-export':initImportExport,'options':loadOptions,
@@ -4255,45 +4063,6 @@ function loadDashboard(){
       alEl.innerHTML=\`<div class="alert danger"><i class="ti ti-alert-triangle"></i> URSSAF \${prochaineEcheance.label} à payer dans \${prochaineEcheance.joursRestants} jours (échéance \${fmtDate(prochaineEcheance.echeance)})</div>\`;
     }else alEl.innerHTML='';
   }
-}
-
-/* --- Vue d'ensemble --------------------------------------------------- */
-function loadVueEnsemble(){
-  const factures =dbGet('factures');
-  const settings =dbGetObj('settings');
-  const y=new Date().getFullYear();
-  const moisActuels=new Date().getMonth()+1;
-  const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
-
-  const caParMois=MOIS_COURT.map((_,mi)=>{
-    const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;
-    return factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
-  });
-  const cumul=caParMois.reduce((acc,v,i)=>{acc.push((acc[i-1]||0)+v);return acc;},[]);
-
-  const c=q('#chart-ve-solde');if(c)drawLineChart(c,MOIS_COURT,cumul,COLORS.navy);
-
-  const tbody=q('#ve-recap-tbody');
-  if(tbody){
-    tbody.innerHTML=MOIS_COURT.map((mLabel,mi)=>{
-      const ca=caParMois[mi];
-      const charges=Math.round(ca*(tauxU+tauxC)*100)/100+(settings.pasFixe||40);
-      const net=Math.max(0,ca-charges);
-      const vers=Math.round(net*(settings.pctVersement||65)/100*100)/100;
-      return\`<tr><td>\${mLabel}</td><td class="td-amount">\${ca?fmt(ca):'—'}</td><td class="td-amount">\${ca?fmt(charges):'—'}</td><td class="td-amount">\${ca?fmt(net):'—'}</td><td class="td-amount">\${ca?fmt(vers):'—'}</td></tr>\`;
-    }).join('');
-  }
-
-  const caYTD=caParMois.slice(0,moisActuels).reduce((a,b)=>a+b,0);
-  const moyenne=moisActuels>0?caYTD/moisActuels:0;
-  const projection=moyenne*12;
-  const vp=q('#ve-projection');
-  if(vp)vp.innerHTML=\`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:4px;">CA YTD</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy);">\${fmt(caYTD)}</div></div>
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:4px;">Moyenne mensuelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy);">\${fmt(moyenne)}</div></div>
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:4px;">Projection fin d'année</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy);">\${fmt(projection)}</div></div>
-    </div>\`;
 }
 
 /* --- Comptes ---------------------------------------------------------- */
@@ -5428,63 +5197,6 @@ function deleteFacture(id){
   });
 }
 
-/* --- Objectifs CA ----------------------------------------------------- */
-function loadObjectifsCA(){
-  const settings=dbGetObj('settings');
-  const factures=dbGet('factures');
-  const y=new Date().getFullYear(),m=new Date().getMonth()+1;
-  const objectif=settings.objectifCA||60000;
-  const payees=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(String(y)));
-  const atteint=payees.reduce((s,f)=>s+(f.montant||0),0);
-  const pct=objectif>0?Math.min(100,Math.round(atteint/objectif*100)):0;
-  const moyenneActuel=m>0?atteint/m:0;
-  const resteMois=12-m+1;
-  const necessaire=resteMois>0?Math.max(0,(objectif-atteint)/resteMois):0;
-  const projFin=moyenneActuel*12;
-
-  if(q('#objca-kpi-objectif'))q('#objca-kpi-objectif').textContent=fmt(objectif);
-  if(q('#objca-kpi-atteint'))q('#objca-kpi-atteint').textContent=fmt(atteint);
-  if(q('#objca-kpi-moyen-actuel'))q('#objca-kpi-moyen-actuel').textContent=fmt(moyenneActuel);
-  if(q('#objca-kpi-necessaire'))q('#objca-kpi-necessaire').textContent=fmt(necessaire);
-  if(q('#objca-gauge-pct'))q('#objca-gauge-pct').textContent=\`\${pct}%\`;
-  if(q('#objca-gauge-fill')){q('#objca-gauge-fill').style.width=\`\${pct}%\`;q('#objca-gauge-fill').style.background=pct>=100?COLORS.success:pct>=80?COLORS.warning:COLORS.blue;}
-  if(q('#objca-gauge-label'))q('#objca-gauge-label').textContent=\`\${fmt(atteint)} sur \${fmt(objectif)}\`;
-
-  const al=q('#objca-alert');
-  if(al)al.innerHTML=projFin<objectif?\`<div class="alert warning"><i class="ti ti-alert-triangle"></i> Projection fin d'année : \${fmt(projFin)} — en dessous de l'objectif de \${fmt(objectif)}</div>\`:'';
-
-  const pr=q('#objca-projection');
-  if(pr)pr.innerHTML=\`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);">Projection fin d'année</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);">\${fmt(projFin)}</div></div>
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);">Objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--navy);">\${fmt(objectif)}</div></div>
-      <div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);">Écart projeté</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:\${projFin>=objectif?'var(--success)':'var(--danger)'};">\${fmt(projFin-objectif)}</div></div>
-    </div>\`;
-
-  const caMois=MOIS_COURT.map((_,mi)=>{const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;return factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);});
-  const objectifMensuel=Math.round(objectif/12);
-  const s2=dbGetObj('settings');
-  const abosMoisOCA=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
-  const tauxUOCA=(s2.tauxUrssaf||25.6)/100,tauxCOCA=(s2.tauxCfp||0.2)/100,pasOCA=s2.pasFixe||40;
-  const seuilOCA=Math.round((abosMoisOCA+pasOCA)/Math.max(0.01,1-tauxUOCA-tauxCOCA));
-  const c=q('#chart-objca');
-  if(c)drawBarChart(c,MOIS_COURT,[{data:caMois,color:COLORS.blue}],{targetLine:objectifMensuel,seuilLine:seuilOCA});
-}
-function openObjectifCAModal(){
-  const s=dbGetObj('settings');
-  q('#obj-ca-val').value=s.objectifCA||60000;
-  openModal('modal-objectif-ca');
-}
-async function saveObjectifCA(){
-  const val=parseFloat(q('#obj-ca-val').value)||0;
-  try{
-    await dbSet('objectif_ca',{annee:new Date().getFullYear(),montant:val});
-    const s=dbGetObj('settings');
-    await dbSet('settings',{...s,objectifCA:val});
-    closeModal('modal-objectif-ca');toast('Objectif mis à jour','success');loadObjectifsCA();
-  }catch(e){toast(e.message||'Erreur','error');}
-}
-
 /* --- Dépenses --------------------------------------------------------- */
 let depensesData=[];
 function loadDepenses(){
@@ -6374,16 +6086,11 @@ async function init(){
   // URSSAF
   q('#btn-save-urssaf')?.addEventListener('click',saveURSSAFPaiement);
 
-  // Objectifs CA
-  q('#btn-edit-objectif-ca')?.addEventListener('click',openObjectifCAModal);
-  q('#btn-save-objectif-ca')?.addEventListener('click',saveObjectifCA);
 
   // Objectifs épargne
   q('#btn-new-objectif-epargne')?.addEventListener('click',()=>openEpargneGoalModal());
   q('#btn-save-obj-epargne')?.addEventListener('click',saveEpargneGoal);
 
-  // Répartition
-  q('#btn-save-repartition')?.addEventListener('click',saveRepartition);
 
   // Rapports
   q('#btn-rm-gen')?.addEventListener('click',renderRapportMensuel);
