@@ -224,9 +224,10 @@ const HTML = `<!DOCTYPE html>
         <!-- Gauche : graphiques -->
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div class="card">
-            <div class="card-title"><i class="ti ti-chart-bar"></i> Revenus vs charges (12 mois)</div>
+            <div class="card-title"><i class="ti ti-chart-bar"></i> CA mensuel (12 mois)</div>
             <div class="chart-wrap"><canvas id="chart-dash-bar" height="200"></canvas></div>
             <div class="chart-legend" id="chart-dash-bar-legend"></div>
+            <div id="dash-analyse-ca"></div>
           </div>
           <div class="card">
             <div class="card-title"><i class="ti ti-chart-line"></i> Résultat net (12 mois)</div>
@@ -3969,30 +3970,29 @@ function loadDashboard(){
   const tauxC=(settings.tauxCfp||0.2)/100;
   const pas  =settings.pasFixe||40;
 
-  // CA mois courant (factures payées)
-  const caMois=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
+  // CA mois courant — base encaissements (datePaiement en priorité)
+  const caMois=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
   // CA YTD
-  const caYTD=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
+  const caYTD=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
   const objectif=settings.objectifCA||60000;
   const progressionCA=objectif>0?Math.round(caYTD/objectif*100):0;
 
   // Charges mois courant
   const urssafM=Math.round(caMois*tauxU*100)/100;
   const cfpM   =Math.round(caMois*tauxC*100)/100;
-  const depM   =depenses.filter(d=>(d.date||'').startsWith(mKey)).reduce((s,d)=>s+(d.montant||0),0);
+  const depM   =depenses.filter(d=>(d.date||'').startsWith(mKey)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
   const aboM   =abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
   const chargesTotal=urssafM+cfpM+pas+depM+aboM;
   const netMois=Math.max(0,caMois-chargesTotal);
   const versementEstime=Math.round(netMois*(settings.pctVersement||65)/100);
 
-  // Solde total comptes courants
-  const comptes=dbGet('comptes');
-  const tresoQonto=comptes.filter(c=>c.type==='courant').reduce((s,c)=>s+(c.solde||0),0);
+  // Trésorerie Qonto — solde calculé (sinon solde manuel)
+  const tresoQonto=_qontoSoldeCalc!==null?_qontoSoldeCalc:dbGet('comptes').filter(c=>c.type==='courant'||c.type==='professionnel').reduce((s,c)=>s+(c.solde||0),0);
 
   // Prochaine échéance URSSAF
   const echeances={
-    'T1':\`\${y}-04-30\`,'T2':\`\${y}-07-31\`,
-    'T3':\`\${y}-10-31\`,'T4':\`\${y+1}-01-31\`
+    'T1':'2026-04-30','T2':'2026-07-31',
+    'T3':'2026-11-02','T4':'2027-02-01'
   };
   const labels={'T1':'T1 (jan–mar)','T2':'T2 (avr–jun)','T3':'T3 (jul–sep)','T4':'T4 (oct–déc)'};
   let prochaineEcheance=null;
@@ -4024,18 +4024,12 @@ function loadDashboard(){
     if(q('#kpi-urssaf-sub'))q('#kpi-urssaf-sub').textContent=\`\${prochaineEcheance.label} · \${fmtDate(prochaineEcheance.echeance)}\`;
   }
 
-  // Graphique barres groupées 12 mois
+  // Graphique CA 12 mois
   const caParMois=MOIS_COURT.map((_,mi)=>{
     const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;
-    return factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
+    return factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
   });
-  const chParMois=MOIS_COURT.map((_,mi)=>{
-    const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;
-    const ca=caParMois[mi];
-    const dep=depenses.filter(d=>(d.date||'').startsWith(k)).reduce((s,d)=>s+(d.montant||0),0);
-    return Math.round(ca*(tauxU+tauxC)*100)/100+pas+dep;
-  });
-  const netParMois=caParMois.map((ca,i)=>Math.max(0,ca-chParMois[i]));
+  const netParMois=caParMois.map((ca,i)=>Math.max(0,ca));
 
   // Seuil de rentabilité : CA minimum pour couvrir charges fixes sans versement
   const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
@@ -4043,20 +4037,20 @@ function loadDashboard(){
   const objectifMensuel=Math.round((settings.objectifCA||60000)/12);
 
   const c1=q('#chart-dash-bar');
-  if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue},{data:chParMois,color:COLORS.violet}],{targetLine:objectifMensuel,seuilLine:seuilMensuel});
+  if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue}],{targetLine:objectifMensuel,seuilLine:seuilMensuel});
   const leg=q('#chart-dash-bar-legend');
   if(leg)leg.innerHTML=
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.blue}"></div>CA</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:\${COLORS.violet}"></div>Charges</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4CAF82;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>≥ objectif</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E8A838;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>proche</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E05252;border-radius:0;height:2px;width:16px;margin-top:3px;"></div>insuffisant</div>\`;
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4CAF82"></div>CA objectif atteint</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E8A838"></div>CA proche</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E05252"></div>CA insuffisant</div>\`+
+    \`<div class="chart-legend-item"><div style="border-top:2px dashed #1A2E5A;width:16px;margin-top:4px;"></div>Objectif</div>\`+
+    \`<div class="chart-legend-item"><div style="border-top:2px dashed #9e9e9e;width:16px;margin-top:4px;"></div>Seuil</div>\`;
 
   // Encart analyse
   const moisOk=caParMois.filter((v,i)=>v>0&&v>=objectifMensuel).length;
   const moisKo=caParMois.filter((v,i)=>v>0&&v<seuilMensuel).length;
   const moisVide=caParMois.filter(v=>v===0).length;
-  const alertEl=q('#dash-urssaf-alert');
+  const alertEl=q('#dash-analyse-ca');
   if(alertEl){
     alertEl.innerHTML=
       \`<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">\`+
