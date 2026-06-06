@@ -5558,9 +5558,10 @@ function loadChargesURSSAF(){
       const cle=t+'-'+y;
       const d=urssafObj[cle]||{};
       const moisTrim=moisQ[t];
+      // URSSAF micro-BNC : base = encaissements (date de paiement reçu, pas d'émission)
       const caT=moisTrim.reduce((s,mi)=>{
         const k=y+'-'+String(mi).padStart(2,'0');
-        return s+factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(k)).reduce((ss,f)=>ss+(f.montant||0),0);
+        return s+factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(k)).reduce((ss,f)=>ss+(f.montant||0),0);
       },0);
       const urssafDue=Math.round(caT*tauxU*100)/100;
       const cfpDue   =Math.round(caT*tauxC*100)/100;
@@ -5590,8 +5591,8 @@ function loadChargesURSSAF(){
     }).join('');
   }
 
-  // Charges mensuelles
-  const caMois=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
+  // Charges mensuelles — base encaissements (datePaiement)
+  const caMois=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
   const urssafM=Math.round(caMois*tauxU*100)/100;
   const cfpM   =Math.round(caMois*tauxC*100)/100;
   const aboM   =abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
