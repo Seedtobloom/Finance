@@ -4352,7 +4352,7 @@ function openFactureModal(data={}){
   q('#f-date-paiement').value=data.datePaiement||'';
   const defDelai=parseInt(dbGetObj('settings').delaiPaiement)||30;
   if(q('#f-delai'))q('#f-delai').value=defDelai;
-  if(!data.id&&!data.dateEcheance)onFactureDateChange();
+  if(!data.id&&!data.dateEcheance){q('#f-date-echeance').value='';_calcEcheance(true);}
   q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
   const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
@@ -4368,17 +4368,18 @@ function openFactureModal(data={}){
   }
   openModal('modal-facture');
 }
-function _calcEcheance(){
+function _calcEcheance(forceOverwrite){
   const dateVal=q('#f-date')?.value;
   const echeanceEl=q('#f-date-echeance');
   if(!dateVal||!echeanceEl)return;
-  const delai=parseInt(q('#f-delai')?.value)||parseInt(dbGetObj('settings').delaiPaiement)||30;
+  if(!forceOverwrite&&echeanceEl.value)return;
+  const delai=parseInt(q('#f-delai')?.value);
   const d=new Date(dateVal+'T00:00:00');
-  d.setDate(d.getDate()+delai);
+  d.setDate(d.getDate()+(delai>0?delai:(parseInt(dbGetObj('settings').delaiPaiement)||30)));
   echeanceEl.value=d.toISOString().slice(0,10);
 }
-function onFactureDateChange(){_calcEcheance();}
-function onFactureDelaiChange(){_calcEcheance();}
+function onFactureDateChange(){_calcEcheance(false);}
+function onFactureDelaiChange(){_calcEcheance(true);}
 function onDevisDateChange(){
   const dateVal=q('#dv-date')?.value;
   const expEl=q('#dv-date-expiration');
