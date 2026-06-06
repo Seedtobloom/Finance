@@ -4245,24 +4245,24 @@ function renderQontoCalc(){
   const dAuj=new Date();
   const nbMois=Math.max(1,Math.round((dAuj-dDebut)/(1000*60*60*24*30.44)));
 
-  // Toutes les factures depuis dateDebut (payées ou en attente)
+  // Toutes les factures depuis dateDebut (hors retard = toutes celles qui comptent)
   const factures=dbGet('factures').filter(f=>f.statut!=='retard'&&(f.date||'')>=dateDebut);
-  const caEncaisse=factures.reduce((s,f)=>s+(f.montant||0),0);
-  // Parmi ces factures, celles effectivement payées (pour le solde réel)
+  const caTotal=factures.reduce((s,f)=>s+(f.montant||0),0);
   const facPayees=factures.filter(f=>f.statut==='payee');
-  const caEncaisseReel=facPayees.reduce((s,f)=>s+(f.montant||0),0);
+  const caEncaisse=facPayees.reduce((s,f)=>s+(f.montant||0),0);
+  const caAttente=caTotal-caEncaisse;
 
-  // Dépenses depuis dateDebut — séparées en pro et versements perso
+  // Dépenses depuis dateDebut
   const toutesDepenses=dbGet('depenses').filter(d=>(d.date||'')>=dateDebut);
   const versementsEffectues=toutesDepenses.filter(d=>d.categorie==='Versement perso');
-  const depensesPro=toutesDepenses.filter(d=>d.categorie!=='Versement perso');
   const totalVersements=versementsEffectues.reduce((s,d)=>s+(d.montant||0),0);
-
-  // Réel sorti = toutes dépenses + versements
   const totalTout=toutesDepenses.reduce((s,d)=>s+(d.montant||0),0);
-  const soldeActuel=soldeInitial+caEncaisseReel-totalTout;
+
+  // Solde = solde initial + TOUT le CA facturé (encaissé + en attente) - dépenses
+  const soldeActuel=soldeInitial+caTotal-totalTout;
   _qontoSoldeCalc=soldeActuel;
-  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+' ('+fmt(caEncaisse)+' facturé)';
+  const suffixAttente=caAttente>0?' · '+fmt(caAttente)+' en attente':'';
+  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente;
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
 
@@ -4271,14 +4271,14 @@ function renderQontoCalc(){
   const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
   const pas=parseFloat(s.pasFixe)||40;
   const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
-  const provCharges=Math.round((caEncaisse*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
+  const provCharges=Math.round((caTotal*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
 
   const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
   const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
   // Provision sur 12 mois (budget annuel à conserver, pas × mois écoulés)
   const provChargesFixes=Math.round(totalAbosMois*12*100)/100;
 
-  const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
+  const netApresCharges=Math.max(0,caTotal-provCharges-provChargesFixes);
   const pctVers=(parseFloat(s.pctVersement)||65)/100;
   const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
   const pctFormation=(parseFloat(s.pctFormation)||10)/100;
