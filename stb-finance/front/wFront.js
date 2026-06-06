@@ -1500,10 +1500,18 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="form-group">
       <label class="form-label">Client *</label>
-      <select id="f-client" class="form-select">
+      <select id="f-client" class="form-select" oninput="onFactureClientChange()">
         <option value="">— Sélectionner un client —</option>
       </select>
       <span style="font-size:12px;color:var(--text-2);">Client non listé ? <a href="#" onclick="navigate('tiers');closeModal('modal-facture');return false;">Ajouter un tiers</a></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Projet lié <span style="font-weight:400;color:var(--text-2);">(optionnel)</span></label>
+      <select id="f-projet-id" class="form-select" oninput="onFactureProjetChange()">
+        <option value="">— Aucun projet —</option>
+      </select>
+      <!-- Bloc contextuel devis + avancement -->
+      <div id="f-projet-context" style="display:none;margin-top:8px;padding:10px 12px;background:#f5f3ef;border-radius:8px;border-left:3px solid #BAD1FD;font-size:12px;line-height:1.7;"></div>
     </div>
     <div class="form-grid-2">
       <div class="form-group">
@@ -1517,20 +1525,15 @@ const HTML = `<!DOCTYPE html>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Projet lié (optionnel)</label>
-        <select id="f-projet-id" class="form-select">
-          <option value="">— Aucun —</option>
-        </select>
+        <label class="form-label">Montant HT (€) *</label>
+        <input type="number" id="f-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Référence / description courte</label>
-      <input type="text" id="f-projet" class="form-input" placeholder="Site web Printemps 2026…" />
     </div>
     <div class="form-group">
       <label class="form-label">Description</label>
       <input type="text" id="f-description" class="form-input" placeholder="Prestation graphique…" />
     </div>
+    <input type="hidden" id="f-projet" value="" />
     <div class="form-grid-2">
       <div class="form-group">
         <label class="form-label">Date d'émission *</label>
@@ -1541,10 +1544,6 @@ const HTML = `<!DOCTYPE html>
         <input type="date" id="f-date-paiement" class="form-input" />
         <span style="font-size:11px;color:var(--text-2);">Utilisée pour le calcul URSSAF</span>
       </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Montant HT (€) *</label>
-      <input type="number" id="f-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
     </div>
     <div class="form-group">
       <label class="form-label">PDF (facture Indy)</label>
@@ -4296,7 +4295,7 @@ function renderFactures(){
     <td>\${f.datePaiement?fmtDate(f.datePaiement):'<span style="color:var(--text-2);">—</span>'}</td>
     <td class="td-mono">\${f.numero||'—'}</td>
     <td>\${f.client||'—'}</td>
-    <td class="td-muted">\${f.projet||f.description||'—'}</td>
+    <td class="td-muted">\${(()=>{const p=f.projetId?dbGet('projets').find(x=>x.id===f.projetId):null;const dv=p?.devisId?dbGet('devis').find(x=>x.id===p.devisId):null;return p?p.nom+(dv?' <span style="font-size:10px;color:#4CAF82;">'+dv.numero+'</span>':''):(f.description||'—');})()}</td>
     <td class="td-amount">\${fmt(f.montant||0)}</td>
     <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
     <td style="white-space:nowrap;">
@@ -4311,16 +4310,17 @@ function openFactureModal(data={}){
   q('#f-numero').value=data.numero||'';q('#f-statut').value=data.statut||'attente';
   refreshTiersDatalist();
   q('#f-client').value=data.client||'';
-  q('#f-type-facture').value=data.typeFacture||'standard';
-  refreshProjetsSelect();
+  // Projet : filtre par client puis restaure la valeur
+  refreshProjetsSelect(data.client||'');
   q('#f-projet-id').value=data.projetId||'';
-  q('#f-projet').value=data.projet||'';
+  // Contexte projet : si on édite une facture existante déjà liée
+  if(data.projetId){onFactureProjetChange(true);}else{const ctx=q('#f-projet-context');if(ctx)ctx.style.display='none';}
+  q('#f-type-facture').value=data.typeFacture||'standard';
   q('#f-description').value=data.description||'';
   q('#f-date').value=data.date||today();
   q('#f-date-paiement').value=data.datePaiement||'';
   q('#f-montant').value=data.montant||'';
   q('#btn-save-facture').dataset.id=data.id||'';
-  // PDF
   const btn=q('#f-pdf-btn'),nameEl=q('#f-pdf-name'),fileIn=q('#f-pdf-file');
   if(btn&&nameEl&&fileIn){
     fileIn.value='';
@@ -4333,6 +4333,56 @@ function openFactureModal(data={}){
     }
   }
   openModal('modal-facture');
+}
+function onFactureClientChange(){
+  const client=q('#f-client')?.value||'';
+  refreshProjetsSelect(client);
+  q('#f-projet-id').value='';
+  const ctx=q('#f-projet-context');if(ctx)ctx.style.display='none';
+}
+function onFactureProjetChange(keepValues=false){
+  const projetId=q('#f-projet-id')?.value;
+  const ctx=q('#f-projet-context');
+  if(!projetId){if(ctx)ctx.style.display='none';return;}
+  const projet=dbGet('projets').find(x=>x.id===projetId);
+  if(!projet){if(ctx)ctx.style.display='none';return;}
+  // Auto-fill client if empty
+  const clientSel=q('#f-client');
+  if(clientSel&&!clientSel.value&&projet.client){clientSel.value=projet.client;}
+  // Linked devis
+  const devis=projet.devisId?dbGet('devis').find(x=>x.id===projet.devisId):null;
+  // Compute what's already invoiced
+  const linked=dbGet('factures').filter(f=>f.projetId===projetId);
+  const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
+  const reste=Math.max(0,(projet.montantTotal||0)-montantFacture);
+  // Build context block
+  const typeLabel={unique:'Facture unique',echelonne:'Échelonné',mensuel:'Mensuel'};
+  let lines=[];
+  if(devis)lines.push(\`📄 Devis \${devis.numero} · signé · \${fmt(devis.montant)}\`);
+  lines.push(\`📁 \${projet.nom} · \${typeLabel[projet.type]||projet.type}\${projet.type==='mensuel'?' · '+projet.nombreMois+' mois':''}\`);
+  lines.push(\`Facturé : \${fmt(montantFacture)} / \${fmt(projet.montantTotal||0)} · <strong style="color:\${reste>0?'#E8A838':'#4CAF82'};">\${reste>0?'Reste : '+fmt(reste):'✓ Complet'}</strong>\`);
+  // Suggest type & montant
+  let sugType='standard',sugMontant=null,sugNote='';
+  if(projet.type==='mensuel'&&projet.nombreMois){
+    sugType='mensuel';
+    sugMontant=Math.round((projet.montantTotal||0)/projet.nombreMois*100)/100;
+    const moisFact=linked.length;
+    const resteMois=Math.max(0,projet.nombreMois-moisFact);
+    sugNote=resteMois>0?\`Mois \${moisFact+1}/\${projet.nombreMois} suggéré · \${fmt(sugMontant)}\`:\`✓ Tous les mois facturés\`;
+  }else if(projet.type==='echelonne'){
+    const hasA=linked.some(f=>f.typeFacture==='acompte');
+    const hasS=linked.some(f=>f.typeFacture==='solde');
+    if(!hasA){sugType='acompte';sugNote='💡 Acompte suggéré (pas encore émis)';}
+    else if(!hasS&&reste>0){sugType='solde';sugNote=\`💡 Solde suggéré · \${fmt(reste)} restant\`;}
+    else if(reste>0){sugType='intermediaire';sugNote=\`💡 Intermédiaire suggéré · \${fmt(reste)} restant\`;}
+  }
+  if(sugNote)lines.push(sugNote);
+  if(ctx){ctx.style.display='';ctx.innerHTML=lines.join('<br>');}
+  // Apply suggestions only on fresh selection (not when editing existing facture)
+  if(!keepValues){
+    q('#f-type-facture').value=sugType;
+    if(sugMontant&&!q('#f-montant').value)q('#f-montant').value=sugMontant;
+  }
 }
 async function saveFacture(){
   const id=q('#btn-save-facture').dataset.id;
@@ -4447,11 +4497,13 @@ function refreshTiersDatalist(){
   sel.innerHTML=\`<option value="">— Sélectionner un client —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
   if(cur)sel.value=cur;
 }
-function refreshProjetsSelect(){
+function refreshProjetsSelect(filterClient=''){
   const sel=q('#f-projet-id');if(!sel)return;
-  const projets=dbGet('projets').sort((a,b)=>a.nom.localeCompare(b.nom));
+  let projets=dbGet('projets');
+  if(filterClient)projets=projets.filter(p=>!p.client||p.client===filterClient);
+  projets=projets.sort((a,b)=>a.nom.localeCompare(b.nom));
   const cur=sel.value;
-  sel.innerHTML=\`<option value="">— Aucun —</option>\`+projets.map(p=>\`<option value="\${p.id}">\${p.nom}\${p.client?' · '+p.client:''}</option>\`).join('');
+  sel.innerHTML=\`<option value="">— Aucun projet —</option>\`+projets.map(p=>\`<option value="\${p.id}">\${p.nom}\${!filterClient&&p.client?' · '+p.client:''}</option>\`).join('');
   if(cur)sel.value=cur;
 }
 
