@@ -4262,6 +4262,8 @@ function renderQontoCalc(){
   const soldeActuel=soldeInitial+caEncaisse-totalTout;
   _qontoSoldeCalc=soldeActuel;
   const suffixAttente=caAttente>0?' · '+fmt(caAttente)+' en attente':'';
+  // Debug temporaire
+  console.log('[Qonto] dateDebut=',dateDebut,'soldeInitial=',soldeInitial,'factures total=',dbGet('factures').length,'factures filtrées=',factures.length,'facPayees=',facPayees.length,'caEncaisse=',caEncaisse,'totalTout=',totalTout,'solde=',soldeActuel);
   if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente;
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
