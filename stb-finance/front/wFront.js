@@ -6055,12 +6055,15 @@ async function saveOptions(){
     delaiPaiement:parseInt(q('#opt-delai-paiement').value)||30,
     qontoSoldeInitial:parseFloat(q('#opt-qonto-solde-initial')?.value)||0,
     qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
-    qontoEnveloppes:[...q('#opt-enveloppes')?.querySelectorAll('.env-nom')||[]].map((el,i)=>({nom:el.value.trim(),pct:parseFloat(q('#opt-enveloppes').querySelectorAll('.env-pct')[i]?.value)||0})).filter(e=>e.nom),
+    qontoEnveloppes:(()=>{const c=q('#opt-enveloppes');if(!c)return[];const noms=[...c.querySelectorAll('.env-nom')];const pcts=[...c.querySelectorAll('.env-pct')];return noms.map((el,i)=>({nom:el.value.trim(),pct:parseFloat(pcts[i]?.value)||0})).filter(e=>e.nom);})(),
     cfe:parseFloat(q('#opt-cfe').value)||0,
     pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
-  try{await dbSet('settings',body);toast('Options enregistrées','success');}
-  catch(e){toast(e.message||'Erreur','error');}
+  try{
+    await dbSet('settings',body);
+    toast('Options enregistrées','success');
+    renderQontoCalc();
+  }catch(e){toast(e.message||'Erreur','error');}
 }
 
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
