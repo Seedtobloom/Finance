@@ -5054,7 +5054,7 @@ export default {
 
     // Auth
     if (path === '/api/auth/login'  && request.method === 'POST') return handleLogin(request, env);
-    if (path === '/api/auth/logout' && request.method === 'POST') return handleLogout();
+    if (path === '/api/auth/logout' && request.method === 'POST') return handleLogout(request, env);
 
     // Routes API → proxy vers le back (avec vérification auth)
     if (path.startsWith('/api/')) {
@@ -5077,19 +5077,31 @@ async function handleLogin(request, env) {
   const password = body?.password;
   if (!password) return jsonResp(400, 'Mot de passe requis.');
 
-  const entry = await env.KV_AUTH.get(password, 'json');
+  let entry;
+  try { entry = await env.KV_AUTH.get(password, 'json'); } catch { return jsonResp(500, 'Erreur KV'); }
   if (!entry)           return jsonResp(401, 'Mot de passe incorrect.');
   if (!entry.isActive)  return jsonResp(401, 'Compte désactivé.');
   if (entry.expireAt && new Date(entry.expireAt) < new Date()) return jsonResp(401, 'Compte expiré.');
 
-  const cookie = `${COOKIE_NAME}=${encodeURIComponent(password)}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=2592000`;
+  // Session token : UUID aléatoire stocké dans KV, jamais le mot de passe dans le cookie
+  const sessionId = crypto.randomUUID();
+  const SESSION_TTL = 30 * 24 * 3600; // 30 jours en secondes
+  await env.KV_AUTH.put(`sess:${sessionId}`, JSON.stringify({ active: true, createdAt: new Date().toISOString() }), { expirationTtl: SESSION_TTL });
+
+  const cookie = `${COOKIE_NAME}=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${SESSION_TTL}`;
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json', 'Set-Cookie': cookie }
   });
 }
 
-function handleLogout() {
+async function handleLogout(request, env) {
+  // Supprime la session côté KV
+  try {
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
+    if (match) await env.KV_AUTH.delete(`sess:${match[1]}`);
+  } catch {}
   const cookie = `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0`;
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
@@ -5098,14 +5110,16 @@ function handleLogout() {
 }
 
 async function checkAuth(request, env) {
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
-  if (!match) return false;
-  const password = decodeURIComponent(match[1]);
-  const entry = await env.KV_AUTH.get(password, 'json');
-  if (!entry || !entry.isActive) return false;
-  if (entry.expireAt && new Date(entry.expireAt) < new Date()) return false;
-  return true;
+  try {
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
+    if (!match || !match[1]) return false;
+    const sessionId = match[1];
+    const session = await env.KV_AUTH.get(`sess:${sessionId}`, 'json');
+    return !!(session?.active);
+  } catch {
+    return false;
+  }
 }
 
 function jsonResp(status, error) {
