@@ -54,6 +54,7 @@ async function router(request, env) {
   if (method === 'GET'  && path === '/api/depenses')       return listDepenses(env, uid);
   if (method === 'POST' && path === '/api/depenses')       return createDepense(request, env, uid);
   const mD = path.match(/^\/api\/depenses\/([^/]+)$/);
+  if (mD && method === 'PUT')    return updateDepense(request, env, uid, mD[1]);
   if (mD && method === 'DELETE') return deleteDepense(env, uid, mD[1]);
 
   if (method === 'GET'  && path === '/api/abonnements')    return listAbo(env, uid);
@@ -262,6 +263,16 @@ async function deleteDepense(env,uid,id){
   const list=await kvTableau(env,`${uid}:depenses`);const next=list.filter(x=>x.id!==id);
   if(next.length===list.length)return jsonErr(404,'Dépense introuvable.');
   await kvEcrire(env,`${uid}:depenses`,next);return jsonOk({deleted:id});
+}
+async function updateDepense(request,env,uid,id){
+  const body=await parseJSON(request);if(!body)return jsonErr(400,'Body invalide.');
+  const list=await kvTableau(env,`${uid}:depenses`);
+  const idx=list.findIndex(x=>x.id===id);
+  if(idx<0)return jsonErr(404,'Dépense introuvable.');
+  const fields=['date','categorie','description','montant'];
+  fields.forEach(f=>{if(body[f]!==undefined)list[idx][f]=f==='montant'?parseFloat(body[f]):body[f];});
+  list[idx].updatedAt=iso();
+  await kvEcrire(env,`${uid}:depenses`,list);return jsonOk(list[idx]);
 }
 
 /* ── ABONNEMENTS ── */
