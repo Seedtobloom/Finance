@@ -4319,8 +4319,8 @@ function renderDepensesPrevues(){
         '<td>'+periode+'</td>'+
         '<td>'+sttBadge+'</td>'+
         '<td style="white-space:nowrap;">'+
-          '<button class="btn btn-ghost btn-xs" onclick="editDepensePrevue(\''+d.id+'\')"><i class="ti ti-edit"></i></button>'+
-          '<button class="btn btn-ghost btn-xs" onclick="deleteDepensePrevue(\''+d.id+'\')"><i class="ti ti-trash"></i></button>'+
+          '<button class="btn btn-ghost btn-xs" data-dpid="'+d.id+'" onclick="editDepensePrevue(this.dataset.dpid)"><i class="ti ti-edit"></i></button>'+
+          '<button class="btn btn-ghost btn-xs" data-dpid="'+d.id+'" onclick="deleteDepensePrevue(this.dataset.dpid)"><i class="ti ti-trash"></i></button>'+
         '</td></tr>';
     }).join('')+'</tbody></table></div>';
 }
