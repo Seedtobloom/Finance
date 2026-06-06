@@ -321,12 +321,8 @@ const HTML = `<!DOCTYPE html>
       <div class="comptes-grid" id="comptes-grid"></div>
 
       <!-- Carte Qonto calculée -->
-      <div class="card mt-16" id="card-qonto-calc" style="margin-top:24px;">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span><i class="ti ti-building-bank"></i> Qonto Pro — Répartition du solde</span>
-          <span style="font-size:12px;font-weight:400;color:var(--text-2);">Depuis <span id="qonto-calc-depuis">01/01/2026</span> · Solde estimé : <strong id="qonto-solde-net">—</strong></span>
-        </div>
-        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;"></div>
+      <div id="card-qonto-calc" style="margin-top:24px;">
+        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
       </div>
 
       <!-- Dépenses prévues -->
@@ -4301,63 +4297,122 @@ function renderQontoCalc(){
   // Trésorerie : tout ce qui reste non catégorisé dans les enveloppes ci-dessus
   const depTreso     = Math.max(0, totalTout - depCharges - depFixes - depFormation - depVers);
 
-  // ── Dépenses par enveloppe avec liste détail ─────────────────────────
+  // ── Calculs disponible net ────────────────────────────────────────────
+  const resteCharges   = Math.max(0, provCharges    - depCharges);
+  const resteChargesFix= Math.max(0, provChargesFixes - depFixes);
+  const resteFormation = Math.max(0, provFormation  - depFormation);
+  const totalASecuriser= resteCharges + resteChargesFix + resteFormation;
+  const disponibleBrut = soldeActuel - totalASecuriser;
+  const versementPossible = Math.max(0, Math.round(disponibleBrut * pctVers * 100)/100 - depVers);
+  const tresoLibre     = Math.max(0, Math.round(disponibleBrut * pctTreso * 100)/100);
+  const vraimentLibre  = Math.max(0, disponibleBrut - Math.round(disponibleBrut*pctVers*100)/100 - tresoLibre - Math.round(disponibleBrut*(parseFloat(s.pctFormation||10)/100)*100)/100);
+
+  // ── Listes dépenses par enveloppe ────────────────────────────────────
   function depLines(depList){
-    if(!depList||!depList.length)return '';
-    return '<div style="margin-top:8px;border-top:1px solid #E8E8E4;padding-top:8px;">'+
+    if(!depList||!depList.length)return '<div style="font-size:11px;color:var(--text-2);margin-top:6px;font-style:italic;">Aucune dépense dans cette enveloppe</div>';
+    return '<div style="margin-top:8px;border-top:1px solid #E0DDD8;padding-top:8px;">'+
       depList.map(d=>'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);padding:2px 0;">'+
         '<span>'+fmtDate(d.date)+(d.description?' — '+d.description:'')+'</span>'+
-        '<span style="font-weight:600;white-space:nowrap;margin-left:8px;">'+fmt(d.montant||0)+'</span>'+
+        '<span style="font-weight:600;white-space:nowrap;margin-left:8px;color:var(--navy);">−'+fmt(d.montant||0)+'</span>'+
       '</div>').join('')+
     '</div>';
   }
 
-  function envCard(icon,label,provision,depense,couleur,detail,depList){
-    const reste=provision-depense;
-    const overshot=reste<0;
-    const pctBar=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
-    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:3px solid '+(overshot?'#E05252':couleur)+';">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'+
-        '<span style="font-size:16px;">'+icon+'</span>'+
-        '<div style="flex:1;">'+
-          '<div style="font-size:12px;font-weight:600;color:var(--navy);">'+label+'</div>'+
-          (detail?'<div style="font-size:10px;color:var(--text-2);">'+detail+'</div>':'')+'</div></div>'+
-      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'+
-        '<div>'+
-          '<div style="font-size:10px;color:var(--text-2);">Reste</div>'+
-          '<div style="font-size:20px;font-weight:700;color:'+(overshot?'#E05252':couleur)+';">'+(overshot?'−':'')+fmt(Math.abs(reste))+'</div>'+
-        '</div>'+
-        '<div style="text-align:right;">'+
-          '<div style="font-size:10px;color:var(--text-2);">Dépensé / Provision</div>'+
-          '<div style="font-size:12px;color:var(--text-2);">'+fmt(depense)+' / '+fmt(provision)+'</div>'+
-        '</div>'+
-      '</div>'+
-      '<div style="height:4px;background:#E8E8E4;border-radius:2px;">'+
-        '<div style="height:100%;width:'+pctBar+'%;background:'+(overshot?'#E05252':couleur)+';border-radius:2px;transition:width .4s;"></div></div>'+
-      depLines(depList)+
-    '</div>';
-  }
-
-  // Listes détail par enveloppe
   const listCharges  = toutesDepenses.filter(d=>d.categorie==='Charges sociales');
   const listFixes    = toutesDepenses.filter(d=>['Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre'].includes(d.categorie));
   const listFormation= toutesDepenses.filter(d=>d.categorie==='Formation');
   const listVers     = versementsEffectues;
-  const listTreso    = toutesDepenses.filter(d=>!['Charges sociales','Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre','Formation','Versement perso'].includes(d.categorie));
 
+  // ── Rendu ──────────────────────────────────────────────────────────────
   const envEl=q('#qonto-enveloppes');
-  if(envEl)envEl.innerHTML=
-    envCard('🔴','Charges sociales (URSSAF, CFE…)',provCharges,depCharges,'#E05252',
-      'Catégorie "Charges sociales" dans tes dépenses',listCharges)+
-    envCard('📋','Charges fixes (abonnements, frais)',provChargesFixes,depFixes,'#E8A838',
-      'Budget annuel — logiciels, matériel, compta…',listFixes)+
-    envCard('📚','Formation',provFormation,depFormation,'#7B4DD4',
-      'Catégorie "Formation" dans tes dépenses',listFormation)+
-    envCard('🏦','Trésorerie',provTreso,depTreso,'#3b6dd4',
-      'Buffer de sécurité',listTreso)+
-    envCard('💸','Versement perso',provVers,depVers,'#4CAF82',
-      'Catégorie "Versement perso" dans tes dépenses',listVers)+
-    (pctEpargne>0.001?envCard('💰','Épargne',provEpargne,0,'#6B8DD4','Buffer long terme',[]):'');
+  if(!envEl)return;
+
+  function provCard(icon,label,provision,depense,restant,couleur,depList){
+    const pct=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
+    const overshot=restant<0;
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid '+(overshot?'#E05252':couleur)+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'+
+        '<div style="display:flex;align-items:center;gap:8px;">'+
+          '<span style="font-size:18px;">'+icon+'</span>'+
+          '<span style="font-size:12px;font-weight:700;color:var(--navy);">'+label+'</span>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:10px;color:var(--text-2);">Provision</div>'+
+          '<div style="font-size:13px;font-weight:600;color:var(--navy);">'+fmt(provision)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:12px;margin-bottom:8px;">'+
+        '<div style="flex:1;background:'+(overshot?'#FEE':'#fff')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Encore à sécuriser</div>'+
+          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#E05252':restant===0?'#4CAF82':couleur)+';">'+(restant===0?'✓ OK':fmt(restant))+'</div>'+
+        '</div>'+
+        '<div style="flex:1;background:#fff;border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Déjà payé</div>'+
+          '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="height:5px;background:#E8E8E4;border-radius:3px;margin-bottom:8px;">'+
+        '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#E05252':pct>=100?'#4CAF82':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
+      depLines(depList)+
+    '</div>';
+  }
+
+  envEl.innerHTML =
+    // ── Zone 1 : Synthèse ────────────────────────────────────────────────
+    '<div style="grid-column:1/-1;background:var(--navy);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:4px;">'+
+      '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px;">Vue d\'ensemble · depuis '+fmtDate(dateDebut)+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">'+
+        '<div>'+
+          '<div style="font-size:11px;opacity:.6;margin-bottom:4px;">Solde Qonto</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;">'+fmt(soldeActuel)+'</div>'+
+          (caAttente>0?'<div style="font-size:11px;opacity:.6;margin-top:4px;">+'+fmt(caAttente)+' en attente</div>':'')+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:11px;opacity:.6;margin-bottom:4px;">🔒 À sécuriser</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:#F8B84E;">'+fmt(totalASecuriser)+'</div>'+
+          '<div style="font-size:11px;opacity:.6;margin-top:4px;">charges + frais restants</div>'+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:11px;opacity:.6;margin-bottom:4px;">✅ Disponible net</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:'+(disponibleBrut<0?'#F87171':'#4ADE80')+';">'+fmt(disponibleBrut)+'</div>'+
+          '<div style="font-size:11px;opacity:.6;margin-top:4px;">après provisions sécurisées</div>'+
+        '</div>'+
+      '</div>'+
+      // Répartition du disponible
+      (disponibleBrut>0?
+      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);">'+
+        '<div style="font-size:11px;opacity:.6;margin-bottom:10px;">Répartition du disponible net</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;opacity:.6;margin-bottom:3px;">💸 Versement perso ('+Math.round(pctVers*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctVers*100)/100)+'</div>'+
+            (depVers>0?'<div style="font-size:10px;opacity:.5;margin-top:2px;">Déjà versé : '+fmt(depVers)+'</div>':'')+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;opacity:.6;margin-bottom:3px;">🏦 Trésorerie ('+Math.round(pctTreso*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctTreso*100)/100)+'</div>'+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:10px;opacity:.6;margin-bottom:3px;">📚 Formation ('+Math.round(pctFormation*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctFormation*100)/100)+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>':'')
+    +'</div>'+
+    // ── Zone 2 : Provisions ──────────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;">🔒 Provisions à sécuriser</div>'+
+    provCard('🔴','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#E05252',listCharges)+
+    provCard('📋','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#E8A838',listFixes)+
+    provCard('📚','Formation',provFormation,depFormation,resteFormation,'#7B4DD4',listFormation)+
+    // ── Zone 3 : Versements perso ────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;">💸 Versements perso effectués</div>'+
+    '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid #4CAF82;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+        '<span style="font-size:12px;font-weight:700;color:var(--navy);">Total versé depuis '+fmtDate(dateDebut)+'</span>'+
+        '<span style="font-size:20px;font-weight:700;color:#4CAF82;">'+fmt(depVers)+'</span>'+
+      '</div>'+
+      depLines(listVers)+
+    '</div>';
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
