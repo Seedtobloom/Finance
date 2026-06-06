@@ -68,6 +68,9 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="factures">
           <i class="ti ti-file-invoice"></i> CA &amp; Factures
         </a>
+        <a class="nav-item" data-section="devis">
+          <i class="ti ti-file-description"></i> Devis
+        </a>
         <a class="nav-item" data-section="projets">
           <i class="ti ti-folders"></i> Projets
         </a>
@@ -584,6 +587,89 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section><!-- /tiers -->
+
+
+    <!-- ═══════════════════════════
+         DEVIS
+         ═══════════════════════════ -->
+    <section id="section-devis" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Devis</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Devis signés = base contractuelle de tes projets et factures.</p>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="devis-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
+          <select id="devis-filter-annee" class="form-select" style="width:100px;">
+            <option value="">Toutes années</option>
+          </select>
+          <select id="devis-filter-mois" class="form-select" style="width:120px;">
+            <option value="">Tous mois</option>
+            <option value="01">Janvier</option>
+            <option value="02">Février</option>
+            <option value="03">Mars</option>
+            <option value="04">Avril</option>
+            <option value="05">Mai</option>
+            <option value="06">Juin</option>
+            <option value="07">Juillet</option>
+            <option value="08">Août</option>
+            <option value="09">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
+          <select id="devis-filter-statut" class="form-select" style="width:140px;">
+            <option value="">Tous statuts</option>
+            <option value="brouillon">Brouillon</option>
+            <option value="envoye">Envoyé</option>
+            <option value="signe">Signé</option>
+            <option value="refuse">Refusé</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-devis"><i class="ti ti-plus"></i> Nouveau devis</button>
+        </div>
+      </div>
+      <div class="kpi-grid kpi-grid-4 mb-24">
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-signature"></i></div>
+          <span class="kpi-label">Devis signés</span>
+          <span class="kpi-value green" id="dv-kpi-signes">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-send"></i></div>
+          <span class="kpi-label">En attente de réponse</span>
+          <span class="kpi-value" id="dv-kpi-envoyes">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-trending-up"></i></div>
+          <span class="kpi-label">CA signé total</span>
+          <span class="kpi-value" id="dv-kpi-ca">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-percentage"></i></div>
+          <span class="kpi-label">Taux de conversion</span>
+          <span class="kpi-value" id="dv-kpi-taux">—</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>N° Devis</th>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Montant HT</th>
+                <th>Expiration</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="devis-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section><!-- /devis -->
 
 
     <!-- ═══════════════════════════
@@ -1545,6 +1631,13 @@ const HTML = `<!DOCTYPE html>
       <button class="modal-close" data-close-modal="modal-projet"><i class="ti ti-x"></i></button>
     </div>
     <div class="form-group">
+      <label class="form-label">Devis signé (optionnel)</label>
+      <select id="pr-devis-id" class="form-select" oninput="onProjetDevisChange()">
+        <option value="">— Aucun devis lié —</option>
+      </select>
+      <span style="font-size:12px;color:var(--text-2);">Sélectionne un devis signé pour pré-remplir le montant.</span>
+    </div>
+    <div class="form-group">
       <label class="form-label">Nom du projet *</label>
       <input type="text" id="pr-nom" class="form-input" placeholder="Partenaire Créative — Studio X" />
     </div>
@@ -1605,6 +1698,73 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-projet">Annuler</button>
       <button class="btn btn-primary" id="btn-save-projet">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Devis -->
+<div id="modal-devis" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-devis-title">Nouveau devis</span>
+      <button class="modal-close" data-close-modal="modal-devis"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">N° Devis *</label>
+        <input type="text" id="dv-numero" class="form-input" placeholder="D2026-001" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Statut</label>
+        <select id="dv-statut" class="form-select">
+          <option value="brouillon">Brouillon</option>
+          <option value="envoye">Envoyé</option>
+          <option value="signe">Signé ✓</option>
+          <option value="refuse">Refusé</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Client *</label>
+      <select id="dv-client" class="form-select">
+        <option value="">— Sélectionner un client —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Objet / description</label>
+      <input type="text" id="dv-description" class="form-input" placeholder="Identité visuelle, site web…" />
+    </div>
+    <div class="form-grid-2">
+      <div class="form-group">
+        <label class="form-label">Date d'émission *</label>
+        <input type="date" id="dv-date" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date d'expiration</label>
+        <input type="date" id="dv-date-expiration" class="form-input" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Montant HT (€) *</label>
+      <input type="number" id="dv-montant" class="form-input" step="0.01" min="0" placeholder="0.00" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">PDF du devis</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button type="button" class="pdf-btn vide" id="dv-pdf-btn">
+          <i class="ti ti-paperclip"></i> Attacher un PDF
+        </button>
+        <span id="dv-pdf-name" style="font-size:12px;color:var(--text-2);"></span>
+      </div>
+      <input type="file" id="dv-pdf-file" accept=".pdf" style="display:none;" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notes</label>
+      <textarea id="dv-notes" class="form-input" rows="2" placeholder="Conditions, délais…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-devis">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-devis">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -3441,11 +3601,11 @@ async function api(method, path, body) {
 /* ─── 0c. CACHE ──────────────────────────────────────────────────────── */
 const _cache = {
   settings:{}, factures:[], depenses:[], transactions:[], abonnements:[],
-  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[], projets:[]
+  comptes:[], objectifs_epargne:[], urssaf:{}, repartition:{}, objectif_ca:{}, tiers:[], projets:[], devis:[]
 };
 
 async function loadAll() {
-  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers, projets] = await Promise.all([
+  const [settings, factures, depenses, abonnements, comptes, oe, urssaf, repartition, objCA, tiers, projets, devis] = await Promise.all([
     api('GET', '/api/settings'),
     api('GET', '/api/factures'),
     api('GET', '/api/depenses'),
@@ -3457,6 +3617,7 @@ async function loadAll() {
     api('GET', '/api/objectifs/ca'),
     api('GET', '/api/tiers'),
     api('GET', '/api/projets'),
+    api('GET', '/api/devis'),
   ]);
   _cache.settings        = settings || {};
   _cache.factures        = factures || [];
@@ -3469,6 +3630,7 @@ async function loadAll() {
   _cache.objectif_ca     = objCA    || {};
   _cache.tiers           = tiers    || [];
   _cache.projets         = projets  || [];
+  _cache.devis           = devis    || [];
   // Transactions : on charge jusqu'à 5 pages
   try {
     const t1 = await api('GET', '/api/transactions?page=1');
@@ -3549,18 +3711,18 @@ function dbGetObj(col){return _cache[col]&&typeof _cache[col]==='object'&&!Array
 const _pathCreate = {
   factures:'/api/factures', depenses:'/api/depenses', abonnements:'/api/abonnements',
   comptes:'/api/comptes', transactions:'/api/transactions', objectifs_epargne:'/api/objectifs/epargne',
-  tiers:'/api/tiers', projets:'/api/projets'
+  tiers:'/api/tiers', projets:'/api/projets', devis:'/api/devis'
 };
 const _pathUpdate = id=>({
   factures:\`/api/factures/\${id}\`, abonnements:\`/api/abonnements/\${id}\`,
   comptes:\`/api/comptes/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
-  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`
+  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`, devis:\`/api/devis/\${id}\`
 });
 const _pathDelete = id=>({
   factures:\`/api/factures/\${id}\`, depenses:\`/api/depenses/\${id}\`,
   abonnements:\`/api/abonnements/\${id}\`, comptes:\`/api/comptes/\${id}\`,
   transactions:\`/api/transactions/\${id}\`, objectifs_epargne:\`/api/objectifs/epargne/\${id}\`,
-  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`
+  tiers:\`/api/tiers/\${id}\`, projets:\`/api/projets/\${id}\`, devis:\`/api/devis/\${id}\`
 });
 
 /* Normalisation abonnements (UI ↔ API) */
@@ -3617,7 +3779,7 @@ function loadSection(s){
   const map={
     'dashboard':loadDashboard,'vue-ensemble':loadVueEnsemble,
     'comptes':loadComptes,'transactions':loadTransactions,
-    'factures':loadFactures,'projets':loadProjets,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
+    'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,'objectifs-ca':loadObjectifsCA,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,'repartition':loadRepartition,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
@@ -4294,6 +4456,137 @@ function refreshProjetsSelect(){
 }
 
 /* --- Projets ---------------------------------------------------------- */
+/* --- Devis ------------------------------------------------------------ */
+function loadDevis(){
+  const devisData=dbGet('devis');
+  const signes=devisData.filter(d=>d.statut==='signe');
+  const envoyes=devisData.filter(d=>d.statut==='envoye');
+  const total=devisData.filter(d=>d.statut!=='refuse').length;
+  const taux=total>0?Math.round(signes.length/total*100):0;
+  const caSign=signes.reduce((s,d)=>s+(d.montant||0),0);
+  if(q('#dv-kpi-signes'))q('#dv-kpi-signes').textContent=signes.length;
+  if(q('#dv-kpi-envoyes'))q('#dv-kpi-envoyes').textContent=envoyes.length;
+  if(q('#dv-kpi-ca'))q('#dv-kpi-ca').textContent=fmt(caSign);
+  if(q('#dv-kpi-taux'))q('#dv-kpi-taux').textContent=taux+'%';
+  renderDevis();
+}
+function renderDevis(){
+  const search=q('#devis-search')?.value.toLowerCase()||'';
+  const statut=q('#devis-filter-statut')?.value||'';
+  const annee=q('#devis-filter-annee')?.value||'';
+  const mois=q('#devis-filter-mois')?.value||'';
+  let list=[...dbGet('devis')];
+  if(search)list=list.filter(d=>((d.numero||'')+(d.client||'')+(d.description||'')).toLowerCase().includes(search));
+  if(statut)list=list.filter(d=>d.statut===statut);
+  if(annee)list=list.filter(d=>(d.date||'').startsWith(annee));
+  if(mois)list=list.filter(d=>(d.date||'').slice(5,7)===mois);
+  list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  // Mise à jour filtre années
+  const selAnnee=q('#devis-filter-annee');
+  if(selAnnee){
+    const all=dbGet('devis');
+    const annees=[...new Set(all.map(d=>(d.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+    const curA=selAnnee.value;
+    selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
+  }
+  const tbody=q('#devis-tbody');if(!tbody)return;
+  const sttBadge={brouillon:'attente',envoye:'attente',signe:'payee',refuse:'retard'};
+  const sttLabel={brouillon:'Brouillon',envoye:'Envoyé',signe:'Signé',refuse:'Refusé'};
+  const today=new Date().toISOString().slice(0,10);
+  tbody.innerHTML=list.length?list.map(d=>{
+    const expire=d.dateExpiration&&d.dateExpiration<today&&d.statut==='envoye';
+    return\`<tr>
+      <td>\${fmtDate(d.date)}</td>
+      <td class="td-mono">\${d.numero||'—'}</td>
+      <td>\${d.client||'—'}</td>
+      <td class="td-muted">\${d.description||'—'}</td>
+      <td class="td-amount">\${fmt(d.montant||0)}</td>
+      <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:11px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
+      <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
+      <td style="white-space:nowrap;">
+        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#4CAF82;border:1px solid #4CAF82;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
+        <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-2);">Aucun devis</td></tr>';
+}
+function openDevisModal(data={}){
+  q('#modal-devis-title').textContent=data.id?'Modifier le devis':'Nouveau devis';
+  q('#dv-numero').value=data.numero||prochNumDevis();
+  q('#dv-statut').value=data.statut||'brouillon';
+  const sel=q('#dv-client');
+  const tiers=dbGet('tiers').sort((a,b)=>a.nom.localeCompare(b.nom));
+  sel.innerHTML=\`<option value="">— Sélectionner un client —</option>\`+tiers.map(t=>\`<option value="\${t.nom}">\${t.nom}</option>\`).join('');
+  sel.value=data.client||'';
+  q('#dv-description').value=data.description||'';
+  q('#dv-date').value=data.date||today();
+  q('#dv-date-expiration').value=data.dateExpiration||'';
+  q('#dv-montant').value=data.montant||'';
+  q('#dv-notes').value=data.notes||'';
+  q('#btn-save-devis').dataset.id=data.id||'';
+  const btn=q('#dv-pdf-btn'),nameEl=q('#dv-pdf-name'),fileIn=q('#dv-pdf-file');
+  if(btn&&nameEl&&fileIn){
+    fileIn.value='';
+    if(data.pdfKey){btn.className='pdf-btn present';btn.innerHTML=\`<i class="ti ti-file-filled"></i> PDF attaché\`;nameEl.innerHTML=\`<a href="/api/devis/\${data.id}/pdf" target="_blank" style="color:var(--blue);">Voir le PDF</a>\`;}
+    else{btn.className='pdf-btn vide';btn.innerHTML='<i class="ti ti-paperclip"></i> Attacher un PDF';nameEl.textContent='';}
+  }
+  openModal('modal-devis');
+}
+function prochNumDevis(){
+  const list=dbGet('devis');
+  const nums=list.map(d=>parseInt((d.numero||'').split('-')[1])||0).filter(n=>!isNaN(n));
+  return\`D\${new Date().getFullYear()}-\${String((nums.length?Math.max(...nums):0)+1).padStart(3,'0')}\`;
+}
+async function saveDevis(){
+  const id=q('#btn-save-devis').dataset.id;
+  const body={numero:q('#dv-numero').value.trim(),statut:q('#dv-statut').value,
+    client:q('#dv-client').value.trim(),description:q('#dv-description').value.trim(),
+    date:q('#dv-date').value,dateExpiration:q('#dv-date-expiration').value||null,
+    montant:parseFloat(q('#dv-montant').value)||0,notes:q('#dv-notes').value.trim()};
+  if(!body.client||!body.montant){toast('Client et montant requis','error');return;}
+  try{
+    let saved;
+    if(id){body.id=id;saved=await dbUpdate('devis',body);}else{saved=await dbCreate('devis',body);}
+    const fileIn=q('#dv-pdf-file');
+    if(fileIn?.files?.length){
+      const res=await fetch(\`/api/devis/\${saved?.id||id}/pdf\`,{method:'POST',body:fileIn.files[0],headers:{'Content-Type':'application/pdf'}});
+      if(!res.ok)toast('PDF non sauvegardé','warning');
+      else{const updated=await res.json();saved={...saved,...updated};}
+    }
+    closeModal('modal-devis');toast('Devis enregistré','success');loadDevis();refreshDevisSelect();
+  }catch(e){toast(e.message||'Erreur','error');}
+}
+function editDevis(id){const d=dbGet('devis').find(x=>x.id===id);if(d)openDevisModal(d);}
+function deleteDevis(id){
+  confirmDialog('Supprimer ce devis','Cette action est irréversible.').then(async ok=>{
+    if(!ok)return;
+    try{await dbDelete('devis',id);toast('Devis supprimé');loadDevis();refreshDevisSelect();}
+    catch(e){toast(e.message||'Erreur','error');}
+  });
+}
+function previewDevisPDF(id,numero){
+  const url=\`/api/devis/\${id}/pdf\`;
+  const frame=q('#modal-pdf-frame'),title=q('#modal-pdf-title'),dl=q('#modal-pdf-download');
+  if(frame)frame.src=url;
+  if(title)title.textContent=\`Devis \${numero}\`;
+  if(dl){dl.href=url;dl.download=\`\${numero}.pdf\`;}
+  openModal('modal-pdf-preview');
+}
+function creerProjetDepuisDevis(devisId){
+  const d=dbGet('devis').find(x=>x.id===devisId);if(!d)return;
+  openProjetModal({client:d.client,montantTotal:d.montant,devisId:d.id,nom:d.description||d.client});
+  toast('Projet pré-rempli depuis le devis '+d.numero,'info');
+}
+function refreshDevisSelect(){
+  const sel=q('#pr-devis-id');if(!sel)return;
+  const devisData=dbGet('devis').filter(d=>d.statut==='signe').sort((a,b)=>b.date.localeCompare(a.date));
+  const cur=sel.value;
+  sel.innerHTML=\`<option value="">— Aucun devis lié —</option>\`+devisData.map(d=>\`<option value="\${d.id}">\${d.numero} · \${d.client} · \${fmt(d.montant)}</option>\`).join('');
+  if(cur)sel.value=cur;
+}
+
 function loadProjets(){
   const projets=dbGet('projets');
   const factures=dbGet('factures');
@@ -4400,7 +4693,8 @@ function renderProjets(){
           <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
           <div>
             <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
-            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}</div>
+            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet(\'devis\').find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            </div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -4425,6 +4719,8 @@ function renderProjets(){
 }
 function openProjetModal(data={}){
   q('#modal-projet-title').textContent=data.id?'Modifier le projet':'Nouveau projet';
+  refreshDevisSelect();
+  q('#pr-devis-id').value=data.devisId||'';
   q('#pr-nom').value=data.nom||'';
   const sel=q('#pr-client');
   const tiers=dbGet('tiers').sort((a,b)=>a.nom.localeCompare(b.nom));
@@ -4440,6 +4736,16 @@ function openProjetModal(data={}){
   q('#btn-save-projet').dataset.id=data.id||'';
   onProjetTypeChange();
   openModal('modal-projet');
+}
+function onProjetDevisChange(){
+  const devisId=q('#pr-devis-id')?.value;
+  if(!devisId)return;
+  const d=dbGet('devis').find(x=>x.id===devisId);
+  if(!d)return;
+  if(d.client&&!q('#pr-client').value)q('#pr-client').value=d.client;
+  if(d.montant)q('#pr-montant').value=d.montant;
+  if(d.description&&!q('#pr-nom').value)q('#pr-nom').value=d.description;
+  onProjetMontantChange();
 }
 function onProjetTypeChange(){
   const type=q('#pr-type')?.value;
@@ -4461,6 +4767,7 @@ async function saveProjet(){
   const body={nom:q('#pr-nom').value.trim(),client:q('#pr-client').value,type,statut:q('#pr-statut').value,
     montantTotal:parseFloat(q('#pr-montant').value)||0,
     nombreMois:type==='mensuel'?parseInt(q('#pr-nb-mois').value)||1:null,
+    devisId:q('#pr-devis-id').value||null,
     dateDebut:q('#pr-date-debut').value||null,dateFin:q('#pr-date-fin').value||null,
     notes:q('#pr-notes').value.trim()};
   if(!body.nom){toast('Nom du projet requis','error');return;}
@@ -5355,6 +5662,19 @@ async function init(){
       btn.className='pdf-btn present';btn.innerHTML='<i class="ti ti-file-filled"></i> '+this.files[0].name;
       if(nameEl)nameEl.textContent='';
     }
+  });
+
+  // Devis
+  q('#btn-new-devis')?.addEventListener('click',()=>openDevisModal());
+  q('#btn-save-devis')?.addEventListener('click',saveDevis);
+  q('#devis-search')?.addEventListener('input',renderDevis);
+  q('#devis-filter-annee')?.addEventListener('change',renderDevis);
+  q('#devis-filter-mois')?.addEventListener('change',renderDevis);
+  q('#devis-filter-statut')?.addEventListener('change',renderDevis);
+  q('#dv-pdf-btn')?.addEventListener('click',()=>q('#dv-pdf-file')?.click());
+  q('#dv-pdf-file')?.addEventListener('change',function(){
+    const btn=q('#dv-pdf-btn');
+    if(this.files?.length){btn.className='pdf-btn present';btn.innerHTML='<i class="ti ti-file-filled"></i> '+this.files[0].name;}
   });
 
   // Projets

@@ -103,6 +103,20 @@ async function router(request, env) {
     if (method === 'DELETE') return deleteTiers(env, uid, mTi[1]);
   }
 
+  if (method === 'GET'  && path === '/api/devis')          return listDevis(env, uid);
+  if (method === 'POST' && path === '/api/devis')          return createDevis(request, env, uid);
+  const mDv = path.match(/^\/api\/devis\/([^/]+)$/);
+  if (mDv) {
+    if (method === 'GET')    return getDevis(env, uid, mDv[1]);
+    if (method === 'PUT')    return updateDevis(request, env, uid, mDv[1]);
+    if (method === 'DELETE') return deleteDevis(env, uid, mDv[1]);
+  }
+  const mDvPDF = path.match(/^\/api\/devis\/([^/]+)\/pdf$/);
+  if (mDvPDF) {
+    if (method === 'POST') return uploadDevisPDF(request, env, uid, mDvPDF[1]);
+    if (method === 'GET')  return downloadDevisPDF(env, uid, mDvPDF[1]);
+  }
+
   if (method === 'GET'  && path === '/api/projets')        return listProjets(env, uid);
   if (method === 'POST' && path === '/api/projets')        return createProjet(request, env, uid);
   const mPr = path.match(/^\/api\/projets\/([^/]+)$/);
@@ -402,6 +416,51 @@ async function deleteTiers(env,uid,id){
   await kvEcrire(env,`${uid}:tiers`,next);return jsonOk({deleted:id});
 }
 
+/* ── DEVIS ── */
+async function listDevis(env,uid){const list=await kvTableau(env,`${uid}:devis`);return jsonOk(list.sort((a,b)=>b.numero.localeCompare(a.numero)));}
+async function getDevis(env,uid,id){const list=await kvTableau(env,`${uid}:devis`);const d=list.find(x=>x.id===id);return d?jsonOk(d):jsonErr(404,'Devis introuvable.');}
+async function createDevis(request,env,uid){
+  const body=await parseJSON(request);
+  if(!body?.client?.trim())return jsonErr(400,'Client requis.');
+  if(isNaN(parseFloat(body?.montant))||parseFloat(body?.montant)<=0)return jsonErr(400,'Montant invalide.');
+  if(!body?.date)return jsonErr(400,'Date requise.');
+  const list=await kvTableau(env,`${uid}:devis`);
+  const nums=list.map(d=>parseInt((d.numero||'').split('-')[1])||0).filter(n=>!isNaN(n));
+  const numero=body.numero?.trim()||`D${new Date().getFullYear()}-${String((nums.length?Math.max(...nums):0)+1).padStart(3,'0')}`;
+  const d={id:uid4(),numero,client:body.client.trim(),description:body.description?.trim()||'',
+    montant:parseFloat(body.montant),date:body.date,dateExpiration:body.dateExpiration||null,
+    statut:body.statut||'brouillon',notes:body.notes||'',pdfKey:null,createdAt:iso()};
+  list.push(d);await kvEcrire(env,`${uid}:devis`,list);return jsonOk(d,201);
+}
+async function updateDevis(request,env,uid,id){
+  const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:devis`);
+  const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Devis introuvable.');
+  ['numero','client','description','montant','date','dateExpiration','statut','notes'].forEach(c=>{
+    if(body[c]!==undefined)list[idx][c]=c==='montant'?parseFloat(body[c]):body[c];
+  });
+  list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:devis`,list);return jsonOk(list[idx]);
+}
+async function deleteDevis(env,uid,id){
+  const list=await kvTableau(env,`${uid}:devis`);const next=list.filter(x=>x.id!==id);
+  if(next.length===list.length)return jsonErr(404,'Devis introuvable.');
+  await kvEcrire(env,`${uid}:devis`,next);return jsonOk({deleted:id});
+}
+async function uploadDevisPDF(request,env,uid,id){
+  const list=await kvTableau(env,`${uid}:devis`);const idx=list.findIndex(x=>x.id===id);
+  if(idx<0)return jsonErr(404,'Devis introuvable.');
+  const bytes=await request.arrayBuffer();
+  const key=`${uid}/devis/pdf/${list[idx].numero}.pdf`;
+  await env.R2_FINANCE.put(key,bytes,{httpMetadata:{contentType:'application/pdf'}});
+  list[idx].pdfKey=key;list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:devis`,list);
+  return jsonOk(list[idx]);
+}
+async function downloadDevisPDF(env,uid,id){
+  const list=await kvTableau(env,`${uid}:devis`);const d=list.find(x=>x.id===id);
+  if(!d?.pdfKey)return jsonErr(404,'Aucun PDF attaché.');
+  const obj=await env.R2_FINANCE.get(d.pdfKey);if(!obj)return jsonErr(404,'Fichier introuvable dans R2.');
+  return new Response(obj.body,{headers:{'Content-Type':'application/pdf','Content-Disposition':`inline; filename="${d.numero}.pdf"`}});
+}
+
 /* ── PROJETS ── */
 async function listProjets(env,uid){return jsonOk(await kvTableau(env,`${uid}:projets`));}
 async function getProjet(env,uid,id){const list=await kvTableau(env,`${uid}:projets`);const p=list.find(x=>x.id===id);return p?jsonOk(p):jsonErr(404,'Projet introuvable.');}
@@ -412,6 +471,7 @@ async function createProjet(request,env,uid){
   const p={id:uid4(),nom:body.nom.trim(),client:body.client||'',type:body.type||'unique',
     montantTotal:parseFloat(body.montantTotal),
     nombreMois:body.type==='mensuel'?parseInt(body.nombreMois)||1:null,
+    devisId:body.devisId||null,
     dateDebut:body.dateDebut||null,dateFin:body.dateFin||null,
     statut:body.statut||'en_cours',notes:body.notes||'',createdAt:iso()};
   list.push(p);await kvEcrire(env,`${uid}:projets`,list);return jsonOk(p,201);
@@ -419,7 +479,7 @@ async function createProjet(request,env,uid){
 async function updateProjet(request,env,uid,id){
   const body=await parseJSON(request);const list=await kvTableau(env,`${uid}:projets`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Projet introuvable.');
-  ['nom','client','type','montantTotal','nombreMois','dateDebut','dateFin','statut','notes'].forEach(c=>{
+  ['nom','client','type','montantTotal','nombreMois','devisId','dateDebut','dateFin','statut','notes'].forEach(c=>{
     if(body[c]!==undefined)list[idx][c]=['montantTotal','nombreMois'].includes(c)?parseFloat(body[c]):body[c];
   });
   list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:projets`,list);return jsonOk(list[idx]);
