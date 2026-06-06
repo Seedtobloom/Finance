@@ -3948,7 +3948,7 @@ function renderFactures(){
     <td class="td-amount">\${fmt(f.montant||0)}</td>
     <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
     <td style="white-space:nowrap;">
-      \${f.pdfKey?\`<button class="btn btn-ghost btn-xs" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled" style="color:#3b6dd4;"></i></button>\`:''}
+      \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
       <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
       <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
     </td>
