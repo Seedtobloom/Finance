@@ -265,31 +265,18 @@ const HTML = `<!DOCTYPE html>
     <section id="section-comptes" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Comptes</h1>
-          <div class="page-subtitle">Soldes réels et répartition virtuelle</div>
+          <h1>Comptes bancaires</h1>
+          <div class="page-subtitle">Soldes de tes comptes réels</div>
         </div>
-        <div class="page-header-right" style="display:flex;gap:8px;">
-          <button class="btn btn-outline" id="btn-qonto-sync" onclick="syncQonto()"><i class="ti ti-refresh"></i> Sync Qonto</button>
+        <div class="page-header-right">
           <button class="btn btn-primary" id="btn-new-compte"><i class="ti ti-plus"></i> Ajouter un compte</button>
         </div>
       </div>
 
-      <!-- Comptes réels -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">Comptes réels</div>
       <div class="comptes-grid" id="comptes-grid"></div>
 
-      <!-- Pots virtuels (calculés depuis Qonto) -->
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin:24px 0 10px;">Répartition virtuelle du solde Qonto</div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:14px;" id="qonto-pots-subtitle">Depuis <span id="qonto-calc-depuis">01/01/2026</span> · Solde estimé : <strong id="qonto-solde-net">—</strong></div>
-      <div class="comptes-grid" id="qonto-pots-grid"></div>
-
-      <!-- Analyse détaillée -->
-      <div id="card-qonto-calc" style="margin-top:24px;">
-        <div id="qonto-enveloppes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
-      </div>
-
       <!-- Dépenses prévues -->
-      <div class="card mt-16" style="margin-top:24px;">
+      <div class="card" style="margin-top:24px;">
         <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
           <span><i class="ti ti-calendar-stats"></i> Dépenses prévues</span>
           <button class="btn btn-primary btn-sm" onclick="openDepensePrevueModal()"><i class="ti ti-plus"></i> Ajouter</button>
@@ -4325,7 +4312,6 @@ async function deleteVirement(id){
 /* --- Comptes ---------------------------------------------------------- */
 function loadComptes(){
   renderComptes();
-  renderQontoCalc();
   renderDepensesPrevues();
 }
 function renderQontoCalc(){
@@ -4636,8 +4622,10 @@ function renderComptes(){
   if(!g)return;
   g.innerHTML=comptes.length?comptes.map(c=>{
     const isCourant=c.type==='courant'||c.type==='professionnel';
-    const soldeAffiche=isCourant&&_qontoSoldeCalc!==null?_qontoSoldeCalc:(c.solde||0);
-    const soldeSuffix=isCourant&&_qontoSoldeCalc!==null?' <span style="font-size:11px;color:var(--text-2);font-weight:400;">(calculé)</span>':'';
+    const soldeReel=dbGetObj('settings').qontoSoldeReel;
+    const soldeAffiche=isCourant&&soldeReel!=null?parseFloat(soldeReel):(c.solde||0);
+    const syncAt=dbGetObj('settings').qontoSyncAt;
+    const soldeSuffix=isCourant&&soldeReel!=null?\` <span style="font-size:11px;color:var(--text-2);font-weight:400;">· Sync \${syncAt?fmtDate(syncAt.slice(0,10)):''}</span>\`:'';
     return \`
     <div class="compte-card">
       <div class="compte-card-header">
