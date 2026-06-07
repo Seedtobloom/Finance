@@ -4104,7 +4104,7 @@ async function syncQonto(){
   const btn=q('#btn-qonto-sync');
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
   try{
-    const res=await api('/api/qonto/sync','POST');
+    const res=await api('POST','/api/qonto/sync');
     if(res.error){showToast('Erreur Qonto : '+res.error,'error');}
     else{
       showToast(res.message||'Sync Qonto OK','success');
