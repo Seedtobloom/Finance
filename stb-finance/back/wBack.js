@@ -899,13 +899,14 @@ async function getEnveloppes(env, uid) {
   const netMensuelObj = Math.round((objCA / 12) * (1 - tauxU - tauxC) - pas - abosMois);
   const versementObj  = Math.round(netMensuelObj * pctV / 100);
 
-  // Objectifs par enveloppe (cible à atteindre)
+  // Objectifs par enveloppe — objectif manuel prioritaire sur le calcul auto
+  const s = settings || {};
   const objectifs = {
     qonto:      null,
-    charges:    abosMois > 0 ? Math.round(abosMois * 3) : null,   // 3 mois d abos
-    formations: parseFloat((settings||{}).budgetFormations) || 500,
-    tresorerie: seuilMensuel > 0 ? Math.round(seuilMensuel * 2) : null,
-    salaire:    versementObj > 0 ? Math.round(versementObj * 3) : null,
+    charges:    s.objectifCharges    != null ? parseFloat(s.objectifCharges)    : (abosMois > 0 ? Math.round(abosMois * 3) : null),
+    formations: s.objectifFormations != null ? parseFloat(s.objectifFormations) : (parseFloat(s.budgetFormations) || 500),
+    tresorerie: s.objectifTresorerie != null ? parseFloat(s.objectifTresorerie) : (seuilMensuel > 0 ? Math.round(seuilMensuel * 2) : null),
+    salaire:    s.objectifSalaire    != null ? parseFloat(s.objectifSalaire)    : (versementObj > 0 ? Math.round(versementObj * 3) : null),
   };
 
   // Recommandation mensuelle : combien virer chaque mois vers cette enveloppe

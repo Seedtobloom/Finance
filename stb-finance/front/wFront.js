@@ -309,6 +309,27 @@ const HTML = `<!DOCTYPE html>
       </div>
     </section><!-- /enveloppes -->
 
+    <!-- Modal objectif enveloppe -->
+    <div class="modal-overlay" id="modal-objectif-env" style="display:none;">
+      <div class="modal" style="max-width:380px;">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-objectif-env-title">Fixer l'objectif</div>
+          <button class="modal-close" onclick="q('#modal-objectif-env').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label class="form-label">Objectif (€)</label>
+            <input class="form-control" type="number" id="objectif-env-montant" min="0" step="1" placeholder="Ex: 1500">
+          </div>
+          <div style="font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:8px;padding:10px 12px;" id="objectif-env-hint"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-objectif-env').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" id="btn-save-objectif-env" onclick="saveObjectifEnv()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal virement -->
     <div class="modal-overlay" id="modal-virement" style="display:none;">
       <div class="modal" style="max-width:440px;">
@@ -4227,9 +4248,12 @@ function renderEnveloppes(){
           </div>
           \${syncInfo}
         </div>
-        <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
-          <i class="ti ti-arrows-transfer-up"></i> Virer
-        </button>
+        <div style="display:flex;gap:6px;">
+          \${env.objectif!=null?\`<button onclick="openObjectifModal('\${env.id}',\${env.objectif})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);"><i class="ti ti-target"></i> Objectif</button>\`:''}
+          <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
+            <i class="ti ti-arrows-transfer-up"></i> Virer
+          </button>
+        </div>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:8px;">
         \${fmt(env.solde)}
@@ -4271,6 +4295,39 @@ function renderVirements(){
         <button onclick="deleteVirement('\${t.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash" style="font-size:14px;"></i></button>
       </div>
     </div>\`).join(''):'<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Aucun virement pour le moment</p>';
+}
+
+const OBJECTIF_HINTS={
+  charges:'Recommandé : 3 mois de tes abonnements actifs. Cela te donne un matelas pour couvrir tes charges fixes sans stress.',
+  formations:'Recommandé : ton budget annuel de formation. Tu peux viser 500–2000€/an selon tes projets.',
+  tresorerie:'Recommandé : 2 à 3 mois de seuil de rentabilité. C\'est ton filet de sécurité si un mois est creux.',
+  salaire:'Recommandé : 2 à 3 mois de ton versement mensuel objectif. Pour te payer même si une facture est en retard.',
+};
+const OBJECTIF_KEYS={charges:'objectifCharges',formations:'objectifFormations',tresorerie:'objectifTresorerie',salaire:'objectifSalaire'};
+let _objectifEnvId=null;
+
+function openObjectifModal(id,valActuelle){
+  _objectifEnvId=id;
+  const env=_enveloppes.find(e=>e.id===id);
+  if(q('#modal-objectif-env-title'))q('#modal-objectif-env-title').textContent='Objectif — '+(env?.nom||id);
+  if(q('#objectif-env-montant'))q('#objectif-env-montant').value=valActuelle||'';
+  if(q('#objectif-env-hint'))q('#objectif-env-hint').textContent=OBJECTIF_HINTS[id]||'';
+  q('#modal-objectif-env').style.display='flex';
+}
+
+async function saveObjectifEnv(){
+  const montant=parseFloat(q('#objectif-env-montant').value);
+  if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
+  const key=OBJECTIF_KEYS[_objectifEnvId];
+  if(!key){toast('Enveloppe inconnue','error');return;}
+  try{
+    const settings=dbGetObj('settings');
+    settings[key]=montant;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-objectif-env').style.display='none';
+    toast('Objectif mis à jour','success');
+    await loadEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 function openVirementModal(defaultDe='qonto'){
