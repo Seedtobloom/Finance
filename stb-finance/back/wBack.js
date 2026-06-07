@@ -843,26 +843,35 @@ async function qontoSync(env, uid) {
     ajoutees++;
   }
 
-  // Met aussi à jour le solde du compte Qonto dans comptes
+  // Met aussi à jour le solde du compte Qonto dans comptes (seulement si changé)
   const cleComptes = `user:${uid}:comptes`;
   const comptes = await kvTableau(env, cleComptes);
   const qIdx = comptes.findIndex(c => c.type === 'professionnel' || c.type === 'courant');
-  if (qIdx >= 0) {
+  const soldeChange = qIdx >= 0 && comptes[qIdx].solde !== main.balance;
+  if (qIdx >= 0 && soldeChange) {
     comptes[qIdx].solde = main.balance;
     comptes[qIdx].qontoIban = main.iban;
     await kvEcrire(env, cleComptes, comptes);
   }
 
-  // Sauvegarde le solde réel Qonto pour les enveloppes
+  // Sauvegarde le solde réel Qonto (seulement si changé)
   const settings = await kvLire(env, `user:${uid}:settings`) || {};
-  settings.qontoSoldeReel = main.balance;
-  settings.qontoSyncAt   = iso();
-  await kvEcrire(env, `user:${uid}:settings`, settings);
+  const settingsChange = settings.qontoSoldeReel !== main.balance;
+  if (settingsChange) {
+    settings.qontoSoldeReel = main.balance;
+    settings.qontoSyncAt   = iso();
+    await kvEcrire(env, `user:${uid}:settings`, settings);
+  }
 
-  await kvEcrire(env, cle, existantes);
+  // Sauvegarde les transactions (seulement si nouvelles)
+  if (ajoutees > 0) {
+    await kvEcrire(env, cle, existantes);
+  }
 
   return jsonOk({
-    message: `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`,
+    message: ajoutees > 0
+      ? `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`
+      : 'Sync Qonto OK — rien de nouveau',
     solde: main.balance,
     totalTransactions: txData.transactions?.length || 0,
     ajoutees,
