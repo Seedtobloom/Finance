@@ -4314,13 +4314,13 @@ async function deleteVirement(id){
 
 /* --- Comptes ---------------------------------------------------------- */
 async function loadComptes(){
-  renderComptes();
   renderDepensesPrevues();
-  // Sync Qonto silencieux pour avoir le vrai solde
-  syncQonto(true).then(async()=>{
+  // Sync silencieux d abord, puis on affiche avec le vrai solde
+  try{
+    await syncQonto(true);
     _cache.settings=await api('GET','/api/settings');
-    renderComptes();
-  });
+  }catch(e){}
+  renderComptes();
 }
 function renderQontoCalc(){
   const s=dbGetObj('settings');
