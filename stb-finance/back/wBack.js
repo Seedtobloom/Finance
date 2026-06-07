@@ -899,13 +899,22 @@ async function getEnveloppes(env, uid) {
   const netMensuelObj = Math.round((objCA / 12) * (1 - tauxU - tauxC) - pas - abosMois);
   const versementObj  = Math.round(netMensuelObj * pctV / 100);
 
-  // Objectifs par enveloppe
+  // Objectifs par enveloppe (cible à atteindre)
   const objectifs = {
-    qonto:      null,                                             // pas d objectif pour le compte source
-    charges:    Math.round(abosMois * 3),                        // 3 mois d abos en avance
-    formations: parseFloat((settings||{}).budgetFormations) || 500, // budget annuel formations
-    tresorerie: Math.round(seuilMensuel * 2),                    // 2 mois de survie
-    salaire:    Math.round(versementObj * 3),                    // 3 mois de salaire d avance
+    qonto:      null,
+    charges:    abosMois > 0 ? Math.round(abosMois * 3) : null,   // 3 mois d abos
+    formations: parseFloat((settings||{}).budgetFormations) || 500,
+    tresorerie: seuilMensuel > 0 ? Math.round(seuilMensuel * 2) : null,
+    salaire:    versementObj > 0 ? Math.round(versementObj * 3) : null,
+  };
+
+  // Recommandation mensuelle : combien virer chaque mois vers cette enveloppe
+  const virerParMois = {
+    qonto:      null,
+    charges:    abosMois > 0 ? Math.round(abosMois) : null,           // couvrir 1 mois d abos
+    formations: Math.round((parseFloat((settings||{}).budgetFormations) || 500) / 12),
+    tresorerie: seuilMensuel > 0 ? Math.round(seuilMensuel / 6) : null, // constituer en 6 mois
+    salaire:    versementObj > 0 ? Math.round(versementObj) : null,    // versement mensuel objectif
   };
 
   const enveloppes = ENVELOPPES_DEF.map(def => {
@@ -934,9 +943,10 @@ async function getEnveloppes(env, uid) {
       .sort((a, b) => b.date.localeCompare(a.date));
 
     const objectif = objectifs[def.id] ?? null;
-    const pct = objectif ? Math.min(100, Math.round((Math.max(0, solde) / objectif) * 100)) : null;
+    const pct = objectif > 0 ? Math.min(100, Math.round((Math.max(0, solde) / objectif) * 100)) : null;
+    const virer = virerParMois[def.id] ?? null;
 
-    return { ...def, solde: round(solde), soldeQontoReel, objectif, pct, transactions: txs };
+    return { ...def, solde: round(solde), soldeQontoReel, objectif, pct, virer, transactions: txs };
   });
 
   return jsonOk({ enveloppes, meta: { abosMois, seuilMensuel, versementObj } });

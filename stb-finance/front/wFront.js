@@ -4235,14 +4235,17 @@ function renderEnveloppes(){
         \${fmt(env.solde)}
       </div>
       \${env.objectif!=null?\`
-      <div style="margin-bottom:14px;">
+      <div style="margin-bottom:12px;">
         <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;">
-          <span>Objectif : \${fmt(env.objectif)}</span>
+          <span>Objectif : <strong>\${fmt(env.objectif)}</strong></span>
           <span style="font-weight:600;color:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};">\${env.pct} %</span>
         </div>
         <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
           <div style="height:100%;width:\${env.pct}%;background:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};border-radius:3px;transition:width .5s;"></div>
         </div>
+        \${env.virer!=null&&env.pct<100?\`<div style="margin-top:6px;font-size:11px;color:var(--text-2);">
+          <i class="ti ti-arrow-up-circle" style="color:#4CAF82;"></i> Vire environ <strong>\${fmt(env.virer)}/mois</strong> pour atteindre l'objectif
+        </div>\`:''}
       </div>\`:'<div style="margin-bottom:14px;"></div>'}
       <div style="border-top:1px solid var(--border);padding-top:10px;">
         \${txHtml}
@@ -4310,9 +4313,14 @@ async function deleteVirement(id){
 }
 
 /* --- Comptes ---------------------------------------------------------- */
-function loadComptes(){
+async function loadComptes(){
   renderComptes();
   renderDepensesPrevues();
+  // Sync Qonto silencieux pour avoir le vrai solde
+  syncQonto(true).then(async()=>{
+    _cache.settings=await api('GET','/api/settings');
+    renderComptes();
+  });
 }
 function renderQontoCalc(){
   const s=dbGetObj('settings');
