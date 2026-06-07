@@ -4163,14 +4163,14 @@ function loadDashboard(){
 }
 
 /* --- Qonto Sync ------------------------------------------------------- */
-async function syncQonto(){
+async function syncQonto(silent=false){
   const btn=q('#btn-qonto-sync');
-  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
+  if(!silent&&btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
   try{
     const res=await api('POST','/api/qonto/sync');
-    if(res.error){toast('Erreur Qonto : '+res.error,'error');}
+    if(res.error){if(!silent)toast('Erreur Qonto : '+res.error,'error');}
     else{
-      toast(res.message||'Sync Qonto OK','success');
+      if(!silent)toast(res.message||'Sync Qonto OK','success');
       // Met à jour le solde réel dans _cache et réaffiche
       const soldeQonto=res.solde;
       if(soldeQonto!==undefined){
@@ -4185,9 +4185,9 @@ async function syncQonto(){
       loadDashboard();
       if(q('#section-enveloppes.active'))loadEnveloppes();
     }
-  }catch(e){toast('Erreur réseau : '+e.message,'error');}
+  }catch(e){if(!silent)toast('Erreur réseau : '+e.message,'error');}
   finally{
-    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
+    if(!silent&&btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
   }
 }
 
@@ -4197,6 +4197,10 @@ const ENVELOPPES_ICONES={qonto:'ti-building-bank',charges:'ti-receipt',formation
 let _enveloppes=[];
 
 async function loadEnveloppes(){
+  // Sync Qonto silencieux en arrière-plan, puis recharge les enveloppes
+  syncQonto(true).then(()=>api('GET','/api/enveloppes').then(res=>{
+    _enveloppes=res.enveloppes||[];renderEnveloppes();renderVirements();
+  }));
   try{
     const res=await api('GET','/api/enveloppes');
     _enveloppes=res.enveloppes||[];
