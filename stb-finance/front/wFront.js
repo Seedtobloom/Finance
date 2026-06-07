@@ -301,6 +301,7 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
+      <div id="enveloppes-banner" style="margin-bottom:20px;"></div>
       <div id="enveloppes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;"></div>
 
       <div class="card" style="margin-top:24px;">
@@ -4226,12 +4227,47 @@ async function loadEnveloppes(){
 function renderEnveloppes(){
   const g=q('#enveloppes-grid');
   if(!g)return;
+
+  // Bandeau récap
+  const qonto=_enveloppes.find(e=>e.id==='qonto');
+  const banner=q('#enveloppes-banner');
+  if(banner&&qonto){
+    const soldeReel=qonto.soldeQontoReel??0;
+    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
+    const restant=soldeReel-totalAlloue;
+    const surplusColor=restant<0?'#E05252':restant===0?'#E8A838':'#4CAF82';
+    banner.innerHTML=\`<div style="background:var(--navy);border-radius:12px;padding:16px 24px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
+      <div style="color:#fff;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Solde reel Qonto</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(soldeReel)}</div>
+      </div>
+      <div style="color:#fff;opacity:.4;font-size:20px;">−</div>
+      <div style="color:#fff;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Total alloue</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(totalAlloue)}</div>
+      </div>
+      <div style="color:#fff;opacity:.4;font-size:20px;">=</div>
+      <div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);margin-bottom:3px;">\${restant<0?'Deficit':'Disponible a repartir'}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:\${surplusColor};">\${fmt(Math.abs(restant))}\${restant<0?' ⚠':''}</div>
+      </div>
+    </div>\`;
+  }
+
   g.innerHTML=_enveloppes.map(env=>{
     const couleur=ENVELOPPES_COULEURS[env.id]||'#888';
     const icone=ENVELOPPES_ICONES[env.id]||'ti-wallet';
     const txRecentes=env.transactions.slice(0,5);
-    const syncInfo=env.id==='qonto'&&env.soldeQontoReel!==null
-      ? \`<div style="font-size:11px;color:var(--text-2);margin-top:2px;">Solde Qonto : <strong>\${fmt(env.soldeQontoReel)}</strong></div>\`:'';
+    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
+    const syncInfo=env.id==='qonto'&&env.soldeQontoReel!==null?\`
+      <div style="font-size:11px;color:var(--text-2);margin-top:2px;">
+        Solde reel Qonto : <strong>\${fmt(env.soldeQontoReel)}</strong>
+        &nbsp;·&nbsp; Deja alloue : <strong>\${fmt(totalAlloue)}</strong>
+      </div>
+      \${env.solde<0?\`<div style="margin-top:6px;background:#FEE2E2;border-radius:6px;padding:6px 10px;font-size:12px;color:#B91C1C;font-weight:600;">
+        <i class="ti ti-alert-triangle"></i> Tu as alloue \${fmt(Math.abs(env.solde))} de plus que ton solde reel. Retire des virements ou attends un encaissement.
+      </div>\`:''}
+    \`:'';
     const txHtml=txRecentes.length
       ? txRecentes.map(t=>\`
           <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
