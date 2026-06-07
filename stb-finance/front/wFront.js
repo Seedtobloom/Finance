@@ -4244,9 +4244,19 @@ function renderEnveloppes(){
           <i class="ti ti-arrows-transfer-up"></i> Virer
         </button>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:14px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:8px;">
         \${fmt(env.solde)}
       </div>
+      \${env.objectif!=null?\`
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;">
+          <span>Objectif : \${fmt(env.objectif)}</span>
+          <span style="font-weight:600;color:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};">\${env.pct} %</span>
+        </div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:\${env.pct}%;background:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};border-radius:3px;transition:width .5s;"></div>
+        </div>
+      </div>\`:'<div style="margin-bottom:14px;"></div>'}
       <div style="border-top:1px solid var(--border);padding-top:10px;">
         \${txHtml}
       </div>

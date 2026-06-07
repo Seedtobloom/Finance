@@ -874,25 +874,51 @@ const ENVELOPPES_DEF = [
 ];
 
 async function getEnveloppes(env, uid) {
-  const virements = await kvTableau(env, `user:${uid}:virements`);
+  const [virements, settings, abonnements, depensesPrevues] = await Promise.all([
+    kvTableau(env, `user:${uid}:virements`),
+    kvLire(env,    `user:${uid}:settings`) || {},
+    kvTableau(env, `user:${uid}:abonnements`),
+    kvTableau(env, `user:${uid}:depenses-prevues`),
+  ]);
 
-  // Solde Qonto réel depuis Cloudflare KV (mis à jour par qontoSync)
-  const settings  = await kvLire(env, `user:${uid}:settings`) || {};
-  const soldeQontoReel = settings.qontoSoldeReel ?? null;
+  const soldeQontoReel = (settings || {}).qontoSoldeReel ?? null;
+
+  // Calcul des objectifs par enveloppe
+  const tauxU = ((settings||{}).tauxUrssaf || 25.6) / 100;
+  const tauxC = ((settings||{}).tauxCfp    || 0.2)  / 100;
+  const pas   = parseFloat((settings||{}).pas) || 40;
+  const pctV  = parseFloat((settings||{}).pctVersement) || 65;
+  const objCA = parseFloat((settings||{}).objectifCA) || 60000;
+
+  const abosMois = (abonnements || [])
+    .filter(a => a.statut === 'actif' || !a.statut)
+    .reduce((s, a) => s + (a.montantMensuel || a.montant || 0), 0);
+
+  // Seuil mensuel minimum pour couvrir toutes les charges
+  const seuilMensuel = Math.round((abosMois + pas) / Math.max(0.01, 1 - tauxU - tauxC));
+  const netMensuelObj = Math.round((objCA / 12) * (1 - tauxU - tauxC) - pas - abosMois);
+  const versementObj  = Math.round(netMensuelObj * pctV / 100);
+
+  // Objectifs par enveloppe
+  const objectifs = {
+    qonto:      null,                                             // pas d objectif pour le compte source
+    charges:    Math.round(abosMois * 3),                        // 3 mois d abos en avance
+    formations: parseFloat((settings||{}).budgetFormations) || 500, // budget annuel formations
+    tresorerie: Math.round(seuilMensuel * 2),                    // 2 mois de survie
+    salaire:    Math.round(versementObj * 3),                    // 3 mois de salaire d avance
+  };
 
   const enveloppes = ENVELOPPES_DEF.map(def => {
-    const entrees  = virements.filter(v => v.vers === def.id).reduce((s, v) => s + (v.montant || 0), 0);
-    const sorties  = virements.filter(v => v.de   === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+    const entrees = virements.filter(v => v.vers === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+    const sorties = virements.filter(v => v.de   === def.id).reduce((s, v) => s + (v.montant || 0), 0);
 
     let solde;
     if (def.id === 'qonto') {
-      // Qonto = solde réel Qonto - ce qui a été viré vers d'autres enveloppes + ce qui revient
       solde = (soldeQontoReel ?? 0) - sorties + entrees;
     } else {
       solde = entrees - sorties;
     }
 
-    // Transactions de ce compte (les plus récentes en premier)
     const txs = virements
       .filter(v => v.de === def.id || v.vers === def.id)
       .map(v => ({
@@ -907,10 +933,13 @@ async function getEnveloppes(env, uid) {
       }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
-    return { ...def, solde: round(solde), soldeQontoReel, transactions: txs };
+    const objectif = objectifs[def.id] ?? null;
+    const pct = objectif ? Math.min(100, Math.round((Math.max(0, solde) / objectif) * 100)) : null;
+
+    return { ...def, solde: round(solde), soldeQontoReel, objectif, pct, transactions: txs };
   });
 
-  return jsonOk({ enveloppes });
+  return jsonOk({ enveloppes, meta: { abosMois, seuilMensuel, versementObj } });
 }
 
 async function listVirements(env, uid) {
