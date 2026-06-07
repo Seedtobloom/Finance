@@ -54,6 +54,9 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="comptes">
           <i class="ti ti-building-bank"></i> Comptes
         </a>
+        <a class="nav-item" data-section="enveloppes">
+          <i class="ti ti-wallet"></i> Enveloppes
+        </a>
         <a class="nav-item" data-section="transactions">
           <i class="ti ti-arrows-exchange"></i> Transactions
         </a>
@@ -294,6 +297,66 @@ const HTML = `<!DOCTYPE html>
         <div id="depenses-prevues-list"></div>
       </div>
     </section><!-- /comptes -->
+
+
+    <!-- ═══════════════════════════
+         ENVELOPPES
+         ═══════════════════════════ -->
+    <section id="section-enveloppes" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Enveloppes</h1>
+          <div class="page-subtitle">Répartition réelle de ton argent entre tes comptes virtuels</div>
+        </div>
+        <div class="page-header-right" style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="syncQonto()"><i class="ti ti-refresh"></i> Sync Qonto</button>
+          <button class="btn btn-primary" onclick="openVirementModal()"><i class="ti ti-arrows-transfer-up"></i> Nouveau virement</button>
+        </div>
+      </div>
+
+      <div id="enveloppes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;"></div>
+
+      <div class="card" style="margin-top:24px;">
+        <div class="card-title"><i class="ti ti-history"></i> Historique des virements</div>
+        <div id="virements-list"></div>
+      </div>
+    </section><!-- /enveloppes -->
+
+    <!-- Modal virement -->
+    <div class="modal-overlay" id="modal-virement" style="display:none;">
+      <div class="modal" style="max-width:440px;">
+        <div class="modal-header">
+          <div class="modal-title">Nouveau virement</div>
+          <button class="modal-close" onclick="closeVirementModal()"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label class="form-label">De</label>
+            <select class="form-control" id="virement-de"></select>
+          </div>
+          <div>
+            <label class="form-label">Vers</label>
+            <select class="form-control" id="virement-vers"></select>
+          </div>
+          <div>
+            <label class="form-label">Montant (€)</label>
+            <input class="form-control" type="number" id="virement-montant" min="0.01" step="0.01" placeholder="0,00">
+          </div>
+          <div>
+            <label class="form-label">Date</label>
+            <input class="form-control" type="date" id="virement-date">
+          </div>
+          <div>
+            <label class="form-label">Motif</label>
+            <input class="form-control" type="text" id="virement-motif" placeholder="Ex: Versement salaire juin">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+            <button class="btn btn-outline" onclick="closeVirementModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="saveVirement()"><i class="ti ti-check"></i> Valider</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
     <!-- ═══════════════════════════
@@ -3767,7 +3830,7 @@ function navigate(section){
 function loadSection(s){
   const map={
     'dashboard':loadDashboard,
-    'comptes':loadComptes,'transactions':loadTransactions,
+    'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':loadTransactions,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,
@@ -4120,11 +4183,129 @@ async function syncQonto(){
       await loadAll();
       loadComptes();
       loadDashboard();
+      if(q('#section-enveloppes.active'))loadEnveloppes();
     }
   }catch(e){toast('Erreur réseau : '+e.message,'error');}
   finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
   }
+}
+
+/* --- Enveloppes ------------------------------------------------------- */
+const ENVELOPPES_COULEURS={qonto:'#1A2E5A',charges:'#E8A838',formations:'#7C3AED',tresorerie:'#4CAF82',salaire:'#E05252'};
+const ENVELOPPES_ICONES={qonto:'ti-building-bank',charges:'ti-receipt',formations:'ti-school',tresorerie:'ti-safe',salaire:'ti-user'};
+let _enveloppes=[];
+
+async function loadEnveloppes(){
+  try{
+    const res=await api('GET','/api/enveloppes');
+    _enveloppes=res.enveloppes||[];
+    renderEnveloppes();
+    renderVirements();
+  }catch(e){toast('Erreur chargement enveloppes','error');}
+}
+
+function renderEnveloppes(){
+  const g=q('#enveloppes-grid');
+  if(!g)return;
+  g.innerHTML=_enveloppes.map(env=>{
+    const couleur=ENVELOPPES_COULEURS[env.id]||'#888';
+    const icone=ENVELOPPES_ICONES[env.id]||'ti-wallet';
+    const txRecentes=env.transactions.slice(0,5);
+    const syncInfo=env.id==='qonto'&&env.soldeQontoReel!==null
+      ? \`<div style="font-size:11px;color:var(--text-2);margin-top:2px;">Solde Qonto : <strong>\${fmt(env.soldeQontoReel)}</strong></div>\`:'';
+    const txHtml=txRecentes.length
+      ? txRecentes.map(t=>\`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+            <div>
+              <div style="font-weight:500;color:var(--text-1);">\${t.motif||'Virement'}</div>
+              <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.contrepartie}</div>
+            </div>
+            <span style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:\${t.type==='credit'?'#4CAF82':'#E05252'};">
+              \${t.type==='credit'?'+':'−'}\${fmt(t.montant)}
+            </span>
+          </div>\`).join('')
+      : \`<div style="font-size:12px;color:var(--text-2);padding:10px 0;">Aucune transaction</div>\`;
+
+    return \`<div class="card" style="border-top:3px solid \${couleur};padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <i class="ti \${icone}" style="color:\${couleur};font-size:18px;"></i>
+            <span style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${env.nom}</span>
+          </div>
+          \${syncInfo}
+        </div>
+        <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
+          <i class="ti ti-arrows-transfer-up"></i> Virer
+        </button>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:14px;">
+        \${fmt(env.solde)}
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:10px;">
+        \${txHtml}
+      </div>
+    </div>\`;
+  }).join('');
+}
+
+function renderVirements(){
+  const el=q('#virements-list');
+  if(!el)return;
+  const tous=_enveloppes.flatMap(e=>e.transactions.filter(t=>t.type==='debit').map(t=>({
+    ...t,de:e.id,deNom:e.nom
+  }))).sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML=tous.length?tous.map(t=>\`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:500;">\${t.motif||'Virement'}</div>
+        <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.deNom} <i class="ti ti-arrow-right" style="font-size:10px;"></i> \${t.contrepartie}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:16px;">\${fmt(t.montant)}</span>
+        <button onclick="deleteVirement('\${t.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash" style="font-size:14px;"></i></button>
+      </div>
+    </div>\`).join(''):'<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Aucun virement pour le moment</p>';
+}
+
+function openVirementModal(defaultDe='qonto'){
+  const opts=_enveloppes.map(e=>\`<option value="\${e.id}">\${e.nom} (\${fmt(e.solde)})</option>\`).join('');
+  q('#virement-de').innerHTML=opts;
+  q('#virement-vers').innerHTML=opts;
+  q('#virement-de').value=defaultDe;
+  q('#virement-vers').value=defaultDe==='qonto'?'salaire':'qonto';
+  q('#virement-date').value=new Date().toISOString().slice(0,10);
+  q('#virement-montant').value='';
+  q('#virement-motif').value='';
+  q('#modal-virement').style.display='flex';
+}
+
+function closeVirementModal(){q('#modal-virement').style.display='none';}
+
+async function saveVirement(){
+  const de=q('#virement-de').value;
+  const vers=q('#virement-vers').value;
+  const montant=parseFloat(q('#virement-montant').value);
+  const date=q('#virement-date').value;
+  const motif=q('#virement-motif').value.trim();
+  if(!de||!vers||!date||isNaN(montant)||montant<=0){toast('Remplis tous les champs','error');return;}
+  if(de===vers){toast('Choisis deux comptes différents','error');return;}
+  try{
+    await api('POST','/api/virements',{de,vers,montant,date,motif});
+    closeVirementModal();
+    toast('Virement enregistré','success');
+    await loadEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+async function deleteVirement(id){
+  if(!await confirmDialog('Supprimer ce virement ?','Cette action est irréversible.'))return;
+  try{
+    await api('DELETE',\`/api/virements/\${id}\`);
+    toast('Virement supprimé','success');
+    await loadEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 /* --- Comptes ---------------------------------------------------------- */

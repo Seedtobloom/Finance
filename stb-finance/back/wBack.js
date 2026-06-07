@@ -155,6 +155,13 @@ async function router(request, env) {
   if (method === 'GET'  && path === '/api/qonto/transactions') return qontoTransactions(env, url);
   if (method === 'POST' && path === '/api/qonto/sync')         return qontoSync(env, uid);
 
+  // Enveloppes / virements
+  if (method === 'GET'  && path === '/api/enveloppes')         return getEnveloppes(env, uid);
+  if (method === 'GET'  && path === '/api/virements')          return listVirements(env, uid);
+  if (method === 'POST' && path === '/api/virements')          return createVirement(request, env, uid);
+  const mV = path.match(/^\/api\/virements\/([^/]+)$/);
+  if (mV && method === 'DELETE') return deleteVirement(env, uid, mV[1]);
+
   return jsonErr(404, 'Route inconnue.');
 }
 
@@ -840,6 +847,12 @@ async function qontoSync(env, uid) {
     await kvEcrire(env, cleComptes, comptes);
   }
 
+  // Sauvegarde le solde réel Qonto pour les enveloppes
+  const settings = await kvLire(env, `user:${uid}:settings`) || {};
+  settings.qontoSoldeReel = main.balance / 100;
+  settings.qontoSyncAt   = iso();
+  await kvEcrire(env, `user:${uid}:settings`, settings);
+
   await kvEcrire(env, cle, existantes);
 
   return jsonOk({
@@ -848,4 +861,82 @@ async function qontoSync(env, uid) {
     totalTransactions: txData.transactions?.length || 0,
     ajoutees,
   });
+}
+
+/* ── ENVELOPPES & VIREMENTS ─────────────────────────────────────────────── */
+
+const ENVELOPPES_DEF = [
+  { id: 'qonto',      nom: 'Compte Qonto CA',  couleur: '#1A2E5A', icone: 'building-bank',  ordre: 0 },
+  { id: 'charges',    nom: 'Charges fixes',     couleur: '#E8A838', icone: 'receipt',         ordre: 1 },
+  { id: 'formations', nom: 'Formations',        couleur: '#7C3AED', icone: 'school',          ordre: 2 },
+  { id: 'tresorerie', nom: 'Trésorerie',        couleur: '#4CAF82', icone: 'safe',            ordre: 3 },
+  { id: 'salaire',    nom: 'Mon salaire',       couleur: '#E05252', icone: 'user',            ordre: 4 },
+];
+
+async function getEnveloppes(env, uid) {
+  const virements = await kvTableau(env, `user:${uid}:virements`);
+
+  // Solde Qonto réel depuis Cloudflare KV (mis à jour par qontoSync)
+  const settings  = await kvLire(env, `user:${uid}:settings`) || {};
+  const soldeQontoReel = settings.qontoSoldeReel ?? null;
+
+  const enveloppes = ENVELOPPES_DEF.map(def => {
+    const entrees  = virements.filter(v => v.vers === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+    const sorties  = virements.filter(v => v.de   === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+
+    let solde;
+    if (def.id === 'qonto') {
+      // Qonto = solde réel Qonto - ce qui a été viré vers d'autres enveloppes + ce qui revient
+      solde = (soldeQontoReel ?? 0) - sorties + entrees;
+    } else {
+      solde = entrees - sorties;
+    }
+
+    // Transactions de ce compte (les plus récentes en premier)
+    const txs = virements
+      .filter(v => v.de === def.id || v.vers === def.id)
+      .map(v => ({
+        id:     v.id,
+        date:   v.date,
+        motif:  v.motif,
+        type:   v.vers === def.id ? 'credit' : 'debit',
+        montant: v.montant,
+        contrepartie: v.vers === def.id
+          ? (ENVELOPPES_DEF.find(e => e.id === v.de)?.nom  || v.de)
+          : (ENVELOPPES_DEF.find(e => e.id === v.vers)?.nom || v.vers),
+      }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+
+    return { ...def, solde: round(solde), soldeQontoReel, transactions: txs };
+  });
+
+  return jsonOk({ enveloppes });
+}
+
+async function listVirements(env, uid) {
+  const v = await kvTableau(env, `user:${uid}:virements`);
+  return jsonOk(v.sort((a, b) => b.date.localeCompare(a.date)));
+}
+
+async function createVirement(request, env, uid) {
+  const b = await parseJSON(request);
+  if (!b?.de || !b?.vers || !b?.montant || !b?.date) return jsonErr(400, 'Champs manquants : de, vers, montant, date');
+  if (b.de === b.vers) return jsonErr(400, 'Compte source et destination identiques');
+  const montant = parseFloat(b.montant);
+  if (isNaN(montant) || montant <= 0) return jsonErr(400, 'Montant invalide');
+
+  const v = { id: uid4(), de: b.de, vers: b.vers, montant, date: b.date, motif: b.motif || '', createdAt: iso() };
+  const liste = await kvTableau(env, `user:${uid}:virements`);
+  liste.push(v);
+  await kvEcrire(env, `user:${uid}:virements`, liste);
+  return jsonOk(v, 201);
+}
+
+async function deleteVirement(env, uid, id) {
+  const liste = await kvTableau(env, `user:${uid}:virements`);
+  const idx = liste.findIndex(v => v.id === id);
+  if (idx < 0) return jsonErr(404, 'Virement introuvable');
+  liste.splice(idx, 1);
+  await kvEcrire(env, `user:${uid}:virements`, liste);
+  return jsonOk({ ok: true });
 }
