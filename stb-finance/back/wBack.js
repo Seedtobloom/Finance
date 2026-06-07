@@ -150,6 +150,11 @@ async function router(request, env) {
     return exportCSV(env, uid, res);
   }
 
+  // Qonto API proxy
+  if (method === 'GET'  && path === '/api/qonto/solde')        return qontoSolde(env);
+  if (method === 'GET'  && path === '/api/qonto/transactions') return qontoTransactions(env, url);
+  if (method === 'POST' && path === '/api/qonto/sync')         return qontoSync(env, uid);
+
   return jsonErr(404, 'Route inconnue.');
 }
 
@@ -690,3 +695,157 @@ const uid4=()=>crypto.randomUUID().replace(/-/g,'').slice(0,16);
 async function parseJSON(req){try{return await req.json();}catch{return null;}}
 function jsonOk(data,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});}
 function jsonErr(status,message){return new Response(JSON.stringify({error:message}),{status,headers:{'Content-Type':'application/json'}});}
+
+/* ── QONTO API ─────────────────────────────────────────────────────────── */
+
+const QONTO_BASE = 'https://thirdparty.qonto.com/v2';
+
+function qontoHeaders(env) {
+  const login  = env.QONTO_LOGIN;
+  const secret = env.QONTO_SECRET_KEY;
+  if (!login || !secret) return null;
+  return {
+    'Authorization': `${login}:${secret}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+async function qontoSolde(env) {
+  const headers = qontoHeaders(env);
+  if (!headers) return jsonErr(503, 'Clé API Qonto non configurée (QONTO_LOGIN / QONTO_SECRET_KEY)');
+
+  const res = await fetch(`${QONTO_BASE}/organization`, { headers });
+  if (!res.ok) return jsonErr(res.status, `Erreur Qonto : ${res.statusText}`);
+  const data = await res.json();
+
+  const comptes = (data.organization?.bank_accounts || []).map(a => ({
+    id:       a.slug,
+    nom:      a.name,
+    iban:     a.iban,
+    solde:    a.balance / 100,         // Qonto renvoie en centimes
+    devise:   a.currency,
+    statut:   a.status,
+  }));
+
+  return jsonOk({ comptes });
+}
+
+async function qontoTransactions(env, url) {
+  const headers = qontoHeaders(env);
+  if (!headers) return jsonErr(503, 'Clé API Qonto non configurée (QONTO_LOGIN / QONTO_SECRET_KEY)');
+
+  // Paramètres optionnels : ?from=2026-01-01&page=1&per_page=50
+  const from      = url.searchParams.get('from') || '2026-01-01';
+  const page      = url.searchParams.get('page') || '1';
+  const per_page  = url.searchParams.get('per_page') || '100';
+  const ibanParam = url.searchParams.get('iban') || '';
+
+  // Récupère d'abord le slug du compte principal si iban non fourni
+  let slug = url.searchParams.get('slug') || '';
+  if (!slug) {
+    const orgRes = await fetch(`${QONTO_BASE}/organization`, { headers });
+    if (!orgRes.ok) return jsonErr(orgRes.status, `Erreur Qonto org : ${orgRes.statusText}`);
+    const orgData = await orgRes.json();
+    const accounts = orgData.organization?.bank_accounts || [];
+    const main = ibanParam
+      ? accounts.find(a => a.iban === ibanParam)
+      : accounts.find(a => a.status === 'activated') || accounts[0];
+    if (!main) return jsonErr(404, 'Aucun compte Qonto trouvé');
+    slug = main.slug;
+  }
+
+  const params = new URLSearchParams({
+    slug,
+    settled_at_from: `${from}T00:00:00.000Z`,
+    current_page: page,
+    per_page,
+    sort_by: 'settled_at:desc',
+  });
+
+  const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
+  if (!txRes.ok) return jsonErr(txRes.status, `Erreur Qonto tx : ${txRes.statusText}`);
+  const txData = await txRes.json();
+
+  const transactions = (txData.transactions || []).map(t => ({
+    id:        t.transaction_id,
+    libelle:   t.label,
+    montant:   Math.abs(t.amount) / 100,
+    type:      t.side === 'credit' ? 'credit' : 'debit',
+    date:      (t.settled_at || t.emitted_at || '').slice(0, 10),
+    categorie: t.category || '',
+    note:      t.note || '',
+    statut:    t.status,
+    devise:    t.currency,
+  }));
+
+  return jsonOk({
+    transactions,
+    meta: txData.meta || {},
+  });
+}
+
+// Sync : importe les transactions Qonto dans KV_DATA comme transactions locales
+async function qontoSync(env, uid) {
+  const headers = qontoHeaders(env);
+  if (!headers) return jsonErr(503, 'Clé API Qonto non configurée (QONTO_LOGIN / QONTO_SECRET_KEY)');
+
+  // Compte principal
+  const orgRes = await fetch(`${QONTO_BASE}/organization`, { headers });
+  if (!orgRes.ok) return jsonErr(orgRes.status, `Erreur Qonto : ${orgRes.statusText}`);
+  const orgData = await orgRes.json();
+  const accounts = orgData.organization?.bank_accounts || [];
+  const main = accounts.find(a => a.status === 'activated') || accounts[0];
+  if (!main) return jsonErr(404, 'Aucun compte Qonto actif');
+
+  // Toutes les transactions depuis 2026-01-01 (jusqu'à 100)
+  const params = new URLSearchParams({
+    slug: main.slug,
+    settled_at_from: '2026-01-01T00:00:00.000Z',
+    per_page: '100',
+    sort_by: 'settled_at:desc',
+  });
+  const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
+  if (!txRes.ok) return jsonErr(txRes.status, `Erreur Qonto tx : ${txRes.statusText}`);
+  const txData = await txRes.json();
+
+  // Charge les transactions existantes pour ne pas dupliquer
+  const cle = `user:${uid}:transactions`;
+  const existantes = await kvTableau(env, cle);
+  const existanteIds = new Set(existantes.map(t => t.qontoId).filter(Boolean));
+
+  let ajoutees = 0;
+  for (const t of (txData.transactions || [])) {
+    if (existanteIds.has(t.transaction_id)) continue;
+    existantes.push({
+      id:       uid4(),
+      qontoId:  t.transaction_id,
+      libelle:  t.label,
+      montant:  Math.abs(t.amount) / 100,
+      type:     t.side === 'credit' ? 'credit' : 'debit',
+      date:     (t.settled_at || t.emitted_at || '').slice(0, 10),
+      categorie: t.category || '',
+      note:     t.note || '',
+      source:   'qonto',
+    });
+    ajoutees++;
+  }
+
+  // Met aussi à jour le solde du compte Qonto dans comptes
+  const cleComptes = `user:${uid}:comptes`;
+  const comptes = await kvTableau(env, cleComptes);
+  const qIdx = comptes.findIndex(c => c.type === 'professionnel' || c.type === 'courant');
+  if (qIdx >= 0) {
+    comptes[qIdx].solde = main.balance / 100;
+    comptes[qIdx].qontoIban = main.iban;
+    await kvEcrire(env, cleComptes, comptes);
+  }
+
+  await kvEcrire(env, cle, existantes);
+
+  return jsonOk({
+    message: `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`,
+    solde: main.balance / 100,
+    totalTransactions: txData.transactions?.length || 0,
+    ajoutees,
+  });
+}

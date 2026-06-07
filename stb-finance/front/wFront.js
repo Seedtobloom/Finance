@@ -265,7 +265,8 @@ const HTML = `<!DOCTYPE html>
           <h1>Comptes</h1>
           <div class="page-subtitle">Soldes réels et répartition virtuelle</div>
         </div>
-        <div class="page-header-right">
+        <div class="page-header-right" style="display:flex;gap:8px;">
+          <button class="btn btn-outline" id="btn-qonto-sync" onclick="syncQonto()"><i class="ti ti-refresh"></i> Sync Qonto</button>
           <button class="btn btn-primary" id="btn-new-compte"><i class="ti ti-plus"></i> Ajouter un compte</button>
         </div>
       </div>
@@ -4095,6 +4096,34 @@ function loadDashboard(){
     if(prochaineEcheance&&prochaineEcheance.joursRestants<=30){
       alEl.innerHTML=\`<div class="alert danger"><i class="ti ti-alert-triangle"></i> URSSAF \${prochaineEcheance.label} à payer dans \${prochaineEcheance.joursRestants} jours (échéance \${fmtDate(prochaineEcheance.echeance)})</div>\`;
     }else alEl.innerHTML='';
+  }
+}
+
+/* --- Qonto Sync ------------------------------------------------------- */
+async function syncQonto(){
+  const btn=q('#btn-qonto-sync');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
+  try{
+    const res=await api('/api/qonto/sync','POST');
+    if(res.error){showToast('Erreur Qonto : '+res.error,'error');}
+    else{
+      showToast(res.message||'Sync Qonto OK','success');
+      // Met à jour le solde réel dans _cache et réaffiche
+      const soldeQonto=res.solde;
+      if(soldeQonto!==undefined){
+        const comptes=dbGet('comptes');
+        const qIdx=comptes.findIndex(c=>c.type==='professionnel'||c.type==='courant');
+        if(qIdx>=0){comptes[qIdx].solde=soldeQonto;_cache.comptes=comptes;}
+        _qontoSoldeCalc=soldeQonto;
+      }
+      // Reload transactions depuis KV (le sync les a ajoutées)
+      await loadAll();
+      loadComptes();
+      loadDashboard();
+    }
+  }catch(e){showToast('Erreur réseau : '+e.message,'error');}
+  finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
   }
 }
 
