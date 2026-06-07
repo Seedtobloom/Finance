@@ -729,7 +729,7 @@ async function qontoSolde(env) {
     id:       a.slug,
     nom:      a.name,
     iban:     a.iban,
-    solde:    a.balance / 100,         // Qonto renvoie en centimes
+    solde:    a.balance,
     devise:   a.currency,
     statut:   a.status,
   }));
@@ -776,7 +776,7 @@ async function qontoTransactions(env, url) {
   const transactions = (txData.transactions || []).map(t => ({
     id:        t.transaction_id,
     libelle:   t.label,
-    montant:   Math.abs(t.amount) / 100,
+    montant:   Math.abs(t.amount),
     type:      t.side === 'credit' ? 'credit' : 'debit',
     date:      (t.settled_at || t.emitted_at || '').slice(0, 10),
     categorie: t.category || '',
@@ -827,7 +827,7 @@ async function qontoSync(env, uid) {
       id:       uid4(),
       qontoId:  t.transaction_id,
       libelle:  t.label,
-      montant:  Math.abs(t.amount) / 100,
+      montant:  Math.abs(t.amount),
       type:     t.side === 'credit' ? 'credit' : 'debit',
       date:     (t.settled_at || t.emitted_at || '').slice(0, 10),
       categorie: t.category || '',
@@ -842,14 +842,14 @@ async function qontoSync(env, uid) {
   const comptes = await kvTableau(env, cleComptes);
   const qIdx = comptes.findIndex(c => c.type === 'professionnel' || c.type === 'courant');
   if (qIdx >= 0) {
-    comptes[qIdx].solde = main.balance / 100;
+    comptes[qIdx].solde = main.balance;
     comptes[qIdx].qontoIban = main.iban;
     await kvEcrire(env, cleComptes, comptes);
   }
 
   // Sauvegarde le solde réel Qonto pour les enveloppes
   const settings = await kvLire(env, `user:${uid}:settings`) || {};
-  settings.qontoSoldeReel = main.balance / 100;
+  settings.qontoSoldeReel = main.balance;
   settings.qontoSyncAt   = iso();
   await kvEcrire(env, `user:${uid}:settings`, settings);
 
@@ -857,7 +857,7 @@ async function qontoSync(env, uid) {
 
   return jsonOk({
     message: `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`,
-    solde: main.balance / 100,
+    solde: main.balance,
     totalTransactions: txData.transactions?.length || 0,
     ajoutees,
   });
