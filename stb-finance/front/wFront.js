@@ -4176,24 +4176,26 @@ async function syncQonto(silent=false){
   if(!silent&&btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
   try{
     const res=await api('POST','/api/qonto/sync');
-    if(res.error){if(!silent)toast('Erreur Qonto : '+res.error,'error');}
-    else{
-      if(!silent)toast(res.message||'Sync Qonto OK','success');
-      // Met à jour le solde réel dans _cache et réaffiche
-      const soldeQonto=res.solde;
-      if(soldeQonto!==undefined){
-        const comptes=dbGet('comptes');
-        const qIdx=comptes.findIndex(c=>c.type==='professionnel'||c.type==='courant');
-        if(qIdx>=0){comptes[qIdx].solde=soldeQonto;_cache.comptes=comptes;}
-        _qontoSoldeCalc=soldeQonto;
-      }
-      // Reload transactions depuis KV (le sync les a ajoutées)
-      await loadAll();
-      loadComptes();
-      loadDashboard();
-      if(q('#section-enveloppes.active'))loadEnveloppes();
+    if(res.error){
+      if(!silent)toast('Erreur Qonto : '+res.error,'error');
+      return;
     }
-  }catch(e){if(!silent)toast('Erreur réseau : '+e.message,'error');}
+    // Met à jour le cache settings avec le vrai solde
+    if(res.solde!==undefined){
+      _cache.settings=_cache.settings||{};
+      _cache.settings.qontoSoldeReel=res.solde;
+      _cache.settings.qontoSyncAt=new Date().toISOString();
+      _qontoSoldeCalc=res.solde;
+    }
+    if(!silent){
+      toast(res.message||'Sync Qonto OK','success');
+      // Bouton manuel : reload complet
+      await loadAll();
+      renderComptes();
+      loadDashboard();
+      loadEnveloppes();
+    }
+  }catch(e){if(!silent)toast('Erreur reseau : '+e.message,'error');}
   finally{
     if(!silent&&btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
   }
@@ -4205,10 +4207,8 @@ const ENVELOPPES_ICONES={qonto:'ti-building-bank',charges:'ti-receipt',formation
 let _enveloppes=[];
 
 async function loadEnveloppes(){
-  // Sync Qonto silencieux en arrière-plan, puis recharge les enveloppes
-  syncQonto(true).then(()=>api('GET','/api/enveloppes').then(res=>{
-    _enveloppes=res.enveloppes||[];renderEnveloppes();renderVirements();
-  }));
+  // Sync silencieux puis chargement des enveloppes
+  try{await syncQonto(true);}catch(e){}
   try{
     const res=await api('GET','/api/enveloppes');
     _enveloppes=res.enveloppes||[];
@@ -4372,11 +4372,8 @@ async function deleteVirement(id){
 /* --- Comptes ---------------------------------------------------------- */
 async function loadComptes(){
   renderDepensesPrevues();
-  // Sync silencieux d abord, puis on affiche avec le vrai solde
-  try{
-    await syncQonto(true);
-    _cache.settings=await api('GET','/api/settings');
-  }catch(e){}
+  // Sync silencieux puis rendu (sans boucle)
+  try{await syncQonto(true);}catch(e){}
   renderComptes();
 }
 function renderQontoCalc(){

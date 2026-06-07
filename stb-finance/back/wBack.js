@@ -798,7 +798,10 @@ async function qontoSync(env, uid) {
 
   // Compte principal
   const orgRes = await fetch(`${QONTO_BASE}/organization`, { headers });
-  if (!orgRes.ok) return jsonErr(orgRes.status, `Erreur Qonto : ${orgRes.statusText}`);
+  if (!orgRes.ok) {
+    const body = await orgRes.text().catch(()=>'');
+    return jsonErr(orgRes.status, `Erreur Qonto organization (${orgRes.status}) : ${body||orgRes.statusText}`);
+  }
   const orgData = await orgRes.json();
   const accounts = orgData.organization?.bank_accounts || [];
   const main = accounts.find(a => a.status === 'activated') || accounts[0];
@@ -812,7 +815,10 @@ async function qontoSync(env, uid) {
     sort_by: 'settled_at:desc',
   });
   const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
-  if (!txRes.ok) return jsonErr(txRes.status, `Erreur Qonto tx : ${txRes.statusText}`);
+  if (!txRes.ok) {
+    const body = await txRes.text().catch(()=>'');
+    return jsonErr(txRes.status, `Erreur Qonto transactions (${txRes.status}) : ${body||txRes.statusText}`);
+  }
   const txData = await txRes.json();
 
   // Charge les transactions existantes pour ne pas dupliquer
