@@ -4171,7 +4171,12 @@ function loadDashboard(){
 }
 
 /* --- Qonto Sync ------------------------------------------------------- */
+let _lastQontoSync=0;
+const QONTO_SYNC_COOLDOWN=5*60*1000; // 5 minutes entre deux syncs automatiques
+
 async function syncQonto(silent=false){
+  // En mode silencieux, skip si sync trop récent
+  if(silent&&Date.now()-_lastQontoSync<QONTO_SYNC_COOLDOWN)return;
   const btn=q('#btn-qonto-sync');
   if(!silent&&btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
   try{
@@ -4181,6 +4186,7 @@ async function syncQonto(silent=false){
       return;
     }
     // Met à jour le cache settings avec le vrai solde
+    _lastQontoSync=Date.now();
     if(res.solde!==undefined){
       _cache.settings=_cache.settings||{};
       _cache.settings.qontoSoldeReel=res.solde;
