@@ -4338,11 +4338,13 @@ function renderQontoCalc(){
   const totalVersements=versementsEffectues.reduce((s,d)=>s+(d.montant||0),0);
   const totalTout=toutesDepenses.reduce((s,d)=>s+(d.montant||0),0);
 
-  // Solde = solde initial + CA encaissé (payé uniquement) - dépenses
-  const soldeActuel=soldeInitial+caEncaisse-totalTout;
+  // Solde réel Qonto si sync effectué, sinon calcul estimé
+  const soldeQontoReel=s.qontoSoldeReel!=null?parseFloat(s.qontoSoldeReel):null;
+  const soldeActuel=soldeQontoReel!==null?soldeQontoReel:(soldeInitial+caEncaisse-totalTout);
   _qontoSoldeCalc=soldeActuel;
   const suffixAttente=caAttente>0?' · '+fmt(caAttente)+' en attente':'';
-  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente;
+  const suffixSource=soldeQontoReel!==null?' (Qonto réel)':' (estimé)';
+  if(q('#qonto-solde-net'))q('#qonto-solde-net').textContent=fmt(soldeActuel)+suffixAttente+suffixSource;
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
 
