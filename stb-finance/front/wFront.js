@@ -4298,10 +4298,10 @@ function renderVirements(){
 }
 
 const OBJECTIF_HINTS={
-  charges:'Recommandé : 3 mois de tes abonnements actifs. Cela te donne un matelas pour couvrir tes charges fixes sans stress.',
-  formations:'Recommandé : ton budget annuel de formation. Tu peux viser 500–2000€/an selon tes projets.',
-  tresorerie:'Recommandé : 2 à 3 mois de seuil de rentabilité. C\'est ton filet de sécurité si un mois est creux.',
-  salaire:'Recommandé : 2 à 3 mois de ton versement mensuel objectif. Pour te payer même si une facture est en retard.',
+  charges:"Recommande : 3 mois de tes abonnements actifs. Un matelas pour couvrir tes charges fixes sans stress.",
+  formations:"Recommande : ton budget annuel de formation. Vise 500 a 2000 par an selon tes projets.",
+  tresorerie:"Recommande : 2 a 3 mois de seuil de rentabilite. Ton filet de securite si un mois est creux.",
+  salaire:"Recommande : 2 a 3 mois de ton versement mensuel objectif. Pour te payer meme si une facture est en retard.",
 };
 const OBJECTIF_KEYS={charges:'objectifCharges',formations:'objectifFormations',tresorerie:'objectifTresorerie',salaire:'objectifSalaire'};
 let _objectifEnvId=null;
