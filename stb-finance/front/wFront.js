@@ -4105,9 +4105,9 @@ async function syncQonto(){
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader-2"></i> Sync...';}
   try{
     const res=await api('POST','/api/qonto/sync');
-    if(res.error){showToast('Erreur Qonto : '+res.error,'error');}
+    if(res.error){toast('Erreur Qonto : '+res.error,'error');}
     else{
-      showToast(res.message||'Sync Qonto OK','success');
+      toast(res.message||'Sync Qonto OK','success');
       // Met à jour le solde réel dans _cache et réaffiche
       const soldeQonto=res.solde;
       if(soldeQonto!==undefined){
@@ -4121,7 +4121,7 @@ async function syncQonto(){
       loadComptes();
       loadDashboard();
     }
-  }catch(e){showToast('Erreur réseau : '+e.message,'error');}
+  }catch(e){toast('Erreur réseau : '+e.message,'error');}
   finally{
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Sync Qonto';}
   }
