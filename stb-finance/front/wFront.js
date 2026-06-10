@@ -79,6 +79,14 @@ const HTML = `<!DOCTYPE html>
         </a>
       </div>
 
+      <!-- PROSPECTION -->
+      <div class="nav-group">
+        <span class="nav-group-label">Développement</span>
+        <a class="nav-item" data-section="crm">
+          <i class="ti ti-address-book"></i> Prospection CRM
+        </a>
+      </div>
+
       <!-- DÉPENSES -->
       <div class="nav-group">
         <span class="nav-group-label">Dépenses</span>
@@ -600,6 +608,202 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
     </section><!-- /tiers -->
+
+
+    <!-- ═══════════════════════════
+         CRM PROSPECTION
+         ═══════════════════════════ -->
+    <section id="section-crm" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Prospection CRM</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de la prospection commerciale — contacts, relances et conversion.</p>
+        </div>
+        <div class="page-header-right">
+          <input type="text" id="crm-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
+          <select id="crm-filter-statut" class="form-select" style="width:150px;">
+            <option value="">Tous statuts</option>
+            <option value="contact">Premier contact</option>
+            <option value="en_attente">En attente</option>
+            <option value="positif">Positif</option>
+            <option value="negatif">Négatif</option>
+            <option value="proposition">Proposition envoyée</option>
+            <option value="converti">Converti client</option>
+            <option value="sans_suite">Sans suite</option>
+          </select>
+          <select id="crm-filter-secteur" class="form-select" style="width:150px;">
+            <option value="">Tous secteurs</option>
+          </select>
+          <button class="btn btn-primary" id="btn-new-prospect"><i class="ti ti-plus"></i> Nouveau prospect</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-grid kpi-grid-4 mb-16">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
+          <span class="kpi-label">Contacts total</span>
+          <span class="kpi-value" id="crm-kpi-total">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-thumb-up"></i></div>
+          <span class="kpi-label">Taux de réponse</span>
+          <span class="kpi-value" id="crm-kpi-reponse">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon violet"><i class="ti ti-trophy"></i></div>
+          <span class="kpi-label">Taux de conversion</span>
+          <span class="kpi-value" id="crm-kpi-conversion">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">En attente / relance</span>
+          <span class="kpi-value" id="crm-kpi-attente">—</span>
+        </div>
+      </div>
+
+      <!-- Relances à faire -->
+      <div id="crm-relances-banner" class="card mb-16" style="display:none;border-left:4px solid var(--warning);">
+        <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
+          <i class="ti ti-bell" style="font-size:20px;color:var(--warning);"></i>
+          <div id="crm-relances-banner-text" style="font-size:14px;"></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="card">
+          <div class="card-title">Répartition par statut</div>
+          <div style="position:relative;height:200px;">
+            <canvas id="crm-chart-statuts" height="200"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Contacts par secteur</div>
+          <div style="position:relative;height:200px;">
+            <canvas id="crm-chart-secteurs" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Entreprise</th>
+                <th>Secteur</th>
+                <th>Contact</th>
+                <th>Statut</th>
+                <th>1re relance</th>
+                <th>2e relance</th>
+                <th>Finale</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="crm-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section><!-- /crm -->
+
+    <!-- Modal prospect -->
+    <div id="modal-prospect" class="modal-overlay">
+      <div class="modal" style="width:640px;">
+        <div class="modal-header">
+          <span id="modal-prospect-title">Nouveau prospect</span>
+          <button class="modal-close" data-close-modal="modal-prospect"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="prospect-id" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label class="form-group">
+              <span>Nom *</span>
+              <input type="text" id="prospect-nom" class="form-input" placeholder="Prénom Nom" />
+            </label>
+            <label class="form-group">
+              <span>Entreprise</span>
+              <input type="text" id="prospect-entreprise" class="form-input" placeholder="Nom entreprise" />
+            </label>
+            <label class="form-group">
+              <span>Secteur</span>
+              <input type="text" id="prospect-secteur" class="form-input" placeholder="Ex: Bien-être, Tech…" list="crm-secteur-list" />
+              <datalist id="crm-secteur-list"></datalist>
+            </label>
+            <label class="form-group">
+              <span>Statut</span>
+              <select id="prospect-statut" class="form-select">
+                <option value="contact">Premier contact</option>
+                <option value="en_attente">En attente</option>
+                <option value="positif">Positif</option>
+                <option value="negatif">Négatif</option>
+                <option value="proposition">Proposition envoyée</option>
+                <option value="converti">Converti client</option>
+                <option value="sans_suite">Sans suite</option>
+              </select>
+            </label>
+            <label class="form-group">
+              <span>Email</span>
+              <input type="email" id="prospect-email" class="form-input" placeholder="email@exemple.fr" />
+            </label>
+            <label class="form-group">
+              <span>Téléphone</span>
+              <input type="tel" id="prospect-telephone" class="form-input" placeholder="06 00 00 00 00" />
+            </label>
+            <label class="form-group">
+              <span>Site web</span>
+              <input type="text" id="prospect-siteweb" class="form-input" placeholder="https://…" />
+            </label>
+            <label class="form-group">
+              <span>Date premier contact</span>
+              <input type="date" id="prospect-datecontact" class="form-input" />
+            </label>
+          </div>
+          <div style="margin-top:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Planning de relance</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+              <label class="form-group">
+                <span>Date 1re relance prévue</span>
+                <input type="date" id="prospect-relance1" class="form-input" />
+              </label>
+              <label class="form-group">
+                <span>Date 2e relance prévue</span>
+                <input type="date" id="prospect-relance2" class="form-input" />
+              </label>
+              <label class="form-group">
+                <span>Date relance finale</span>
+                <input type="date" id="prospect-relancefinale" class="form-input" />
+              </label>
+              <label class="form-group">
+                <span>1re relance faite le</span>
+                <input type="date" id="prospect-daterelance1" class="form-input" />
+              </label>
+              <label class="form-group">
+                <span>2e relance faite le</span>
+                <input type="date" id="prospect-daterelance2" class="form-input" />
+              </label>
+              <label class="form-group">
+                <span>Relance finale faite le</span>
+                <input type="date" id="prospect-daterelancefinale" class="form-input" />
+              </label>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <label class="form-group">
+              <span>Notes</span>
+              <textarea id="prospect-notes" class="form-input" rows="3" style="resize:vertical;" placeholder="Contexte, besoins, informations utiles…"></textarea>
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close-modal="modal-prospect">Annuler</button>
+          <button class="btn btn-primary" id="btn-save-prospect">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    <!-- /modal prospect -->
 
 
     <!-- ═══════════════════════════
@@ -3863,6 +4067,7 @@ function loadSection(s){
   const map={
     'dashboard':loadDashboard,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':loadTransactions,
+    'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,
@@ -5190,6 +5395,280 @@ function deleteTiers(id){
     }catch(e){toast(e.message||'Erreur','error');}
   });
 }
+/* ─── CRM PROSPECTION ──────────────────────────────────────────────── */
+let _prospectsCache=[];
+
+const CRM_STATUTS={
+  contact:{label:'Premier contact',color:'#BAD1FD',cls:'attente'},
+  en_attente:{label:'En attente',color:'#E8A838',cls:'retard'},
+  positif:{label:'Positif',color:'#4CAF82',cls:'payee'},
+  negatif:{label:'Négatif',color:'#E85454',cls:'annule'},
+  proposition:{label:'Proposition',color:'#E4D1FE',cls:'brouillon'},
+  converti:{label:'Converti',color:'#4CAF82',cls:'payee'},
+  sans_suite:{label:'Sans suite',color:'#6B6B6B',cls:'annule'},
+};
+
+async function loadCrm(){
+  try{
+    const res=await api('GET','/api/prospects');
+    _prospectsCache=Array.isArray(res)?res:[];
+  }catch(e){_prospectsCache=[];}
+  renderCrmKpis();
+  renderCrmBanner();
+  renderCrmCharts();
+  renderCrmTable();
+  refreshCrmSecteurFilter();
+  const btnNew=q('#btn-new-prospect');
+  if(btnNew)btnNew.onclick=()=>openProspectModal();
+  const btnSave=q('#btn-save-prospect');
+  if(btnSave)btnSave.onclick=saveProspectModal;
+  const searchEl=q('#crm-search');
+  if(searchEl)searchEl.oninput=renderCrmTable;
+  const filtStatut=q('#crm-filter-statut');
+  if(filtStatut)filtStatut.onchange=renderCrmTable;
+  const filtSecteur=q('#crm-filter-secteur');
+  if(filtSecteur)filtSecteur.onchange=renderCrmTable;
+}
+
+function renderCrmKpis(){
+  const p=_prospectsCache;
+  const total=p.length;
+  const repondus=p.filter(x=>['positif','negatif','proposition','converti','sans_suite'].includes(x.statut)).length;
+  const convertis=p.filter(x=>x.statut==='converti').length;
+  const attente=p.filter(x=>['contact','en_attente','proposition'].includes(x.statut)).length;
+  const tauxRep=total>0?Math.round(repondus/total*100):0;
+  const tauxConv=total>0?Math.round(convertis/total*100):0;
+  if(q('#crm-kpi-total'))q('#crm-kpi-total').textContent=total;
+  if(q('#crm-kpi-reponse'))q('#crm-kpi-reponse').textContent=total?tauxRep+'%':'—';
+  if(q('#crm-kpi-conversion'))q('#crm-kpi-conversion').textContent=total?tauxConv+'%':'—';
+  if(q('#crm-kpi-attente'))q('#crm-kpi-attente').textContent=attente;
+}
+
+function renderCrmBanner(){
+  const todayStr=today();
+  const aRelancer=_prospectsCache.filter(p=>{
+    if(['negatif','converti','sans_suite'].includes(p.statut))return false;
+    const r1=p.relance1&&!p.dateRelance1&&p.relance1<=todayStr;
+    const r2=p.relance2&&!p.dateRelance2&&p.relance2<=todayStr;
+    const rf=p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr;
+    return r1||r2||rf;
+  });
+  const banner=q('#crm-relances-banner');
+  const bannerTxt=q('#crm-relances-banner-text');
+  if(!banner||!bannerTxt)return;
+  if(aRelancer.length>0){
+    const noms=aRelancer.slice(0,3).map(p=>p.nom+(p.entreprise?" ("+p.entreprise+")":"")).join(", ");
+    bannerTxt.innerHTML="<strong>"+aRelancer.length+" relance(s) à effectuer</strong> : "+noms+(aRelancer.length>3?" et "+(aRelancer.length-3)+" autres":"");
+    banner.style.display='';
+  }else{
+    banner.style.display='none';
+  }
+}
+
+function renderCrmCharts(){
+  const statutCanvas=q('#crm-chart-statuts');
+  const secteurCanvas=q('#crm-chart-secteurs');
+  if(statutCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{counts[p.statut]=(counts[p.statut]||0)+1;});
+    const labels=Object.keys(counts).map(k=>CRM_STATUTS[k]?.label||k);
+    const vals=Object.values(counts);
+    const colors=Object.keys(counts).map(k=>CRM_STATUTS[k]?.color||'#ccc');
+    _drawDonutChart(statutCanvas,labels,vals,colors);
+  }
+  if(secteurCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{const s=p.secteur||"Non précisé";counts[s]=(counts[s]||0)+1;});
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const labels=sorted.map(x=>x[0]);
+    const vals=sorted.map(x=>x[1]);
+    const colors=PALETTE;
+    _drawBarChartCRM(secteurCanvas,labels,vals,colors);
+  }
+}
+
+function _drawDonutChart(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  const total=vals.reduce((s,v)=>s+v,0);
+  if(total===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-20,ri=r*0.55;
+  let angle=-Math.PI/2;
+  vals.forEach((v,i)=>{
+    const slice=v/total*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=colors[i%colors.length];ctx.fill();
+    angle+=slice;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,ri,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
+  // Légende
+  const legendX=W*0.72,legendStep=18,legendY0=Math.max(12,cy-vals.length*legendStep/2);
+  labels.forEach((l,i)=>{
+    const y=legendY0+i*legendStep;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.fillRect(legendX-20,y-8,12,12);
+    ctx.fillStyle='#222';ctx.font="12px DM Sans";ctx.textAlign="left";
+    ctx.fillText(l+" ("+vals[i]+")",legendX-4,y+2);
+  });
+}
+
+function _drawBarChartCRM(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  if(vals.length===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  const maxV=Math.max(...vals)||1;
+  const pad={l:10,r:10,t:10,b:50};
+  const bw=Math.max(16,Math.floor((W-pad.l-pad.r)/labels.length*0.6));
+  const gap=Math.floor((W-pad.l-pad.r)/labels.length);
+  const chartH=H-pad.t-pad.b;
+  labels.forEach((label,i)=>{
+    const x=pad.l+i*gap+gap/2-bw/2;
+    const bh=Math.round(vals[i]/maxV*chartH);
+    const y=pad.t+chartH-bh;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
+    ctx.fillStyle='#222';ctx.font="bold 12px DM Sans";ctx.textAlign="center";
+    ctx.fillText(vals[i],x+bw/2,y-4);
+    ctx.fillStyle='#555';ctx.font="11px DM Sans";
+    const short=label.length>10?label.slice(0,9)+"…":label;
+    ctx.fillText(short,x+bw/2,H-pad.b+14);
+  });
+}
+
+function renderCrmTable(){
+  const search=(q('#crm-search')?.value||'').toLowerCase();
+  const filtStatut=q('#crm-filter-statut')?.value||'';
+  const filtSecteur=q('#crm-filter-secteur')?.value||'';
+  const todayStr=today();
+  let list=[..._prospectsCache];
+  if(search)list=list.filter(p=>((p.nom||'')+(p.entreprise||'')+(p.secteur||'')+(p.email||'')+(p.notes||'')).toLowerCase().includes(search));
+  if(filtStatut)list=list.filter(p=>p.statut===filtStatut);
+  if(filtSecteur)list=list.filter(p=>(p.secteur||'')=== filtSecteur);
+  list.sort((a,b)=>(b.dateContact||'').localeCompare(a.dateContact||''));
+  const tbody=q('#crm-tbody');
+  if(!tbody)return;
+  function relanceCell(prevue,faite){
+    if(faite)return"<span style='color:var(--success);font-size:12px;'>"+fmtDate(faite)+"<br><small>faite</small></span>";
+    if(!prevue)return"<span style='color:var(--text-2);'>—</span>";
+    const en_retard=prevue<=todayStr&&!faite;
+    const style=en_retard?"color:var(--danger);font-weight:600;":"";
+    return"<span style='font-size:12px;"+style+"'>"+fmtDate(prevue)+(en_retard?"<br><small>En retard</small>":"")+"</span>";
+  }
+  tbody.innerHTML=list.length?list.map(p=>{
+    const st=CRM_STATUTS[p.statut]||{label:p.statut,cls:'attente'};
+    return\`<tr>
+      <td><strong>\${p.nom}</strong>\${p.email?"<br><small style='color:var(--text-2);'>"+p.email+"</small>":""}</td>
+      <td>\${p.entreprise||"—"}</td>
+      <td><span style="font-size:12px;">\${p.secteur||"—"}</span></td>
+      <td>\${p.dateContact?fmtDate(p.dateContact):"—"}\${p.telephone?"<br><small style='color:var(--text-2);'>"+p.telephone+"</small>":""}</td>
+      <td><span class="badge badge-\${st.cls}">\${st.label}</span></td>
+      <td>\${relanceCell(p.relance1,p.dateRelance1)}</td>
+      <td>\${relanceCell(p.relance2,p.dateRelance2)}</td>
+      <td>\${relanceCell(p.relanceFinale,p.dateRelanceFinale)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-xs" onclick="editProspect('\${p.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteProspect('\${p.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-2);">Aucun prospect — ajoutez votre premier contact.</td></tr>';
+}
+
+function refreshCrmSecteurFilter(){
+  const sel=q('#crm-filter-secteur');
+  if(!sel)return;
+  const secteurs=[...new Set(_prospectsCache.map(p=>p.secteur||'').filter(Boolean))].sort();
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Tous secteurs</option>'+secteurs.map(s=>\`<option value="\${s}">\${s}</option>\`).join('');
+  sel.value=cur;
+  const dl=q('#crm-secteur-list');
+  if(dl)dl.innerHTML=secteurs.map(s=>\`<option value="\${s}">\`).join('');
+}
+
+function openProspectModal(data={}){
+  q('#modal-prospect-title').textContent=data.id?"Modifier le prospect":"Nouveau prospect";
+  q('#prospect-id').value=data.id||'';
+  q('#prospect-nom').value=data.nom||'';
+  q('#prospect-entreprise').value=data.entreprise||'';
+  q('#prospect-secteur').value=data.secteur||'';
+  q('#prospect-email').value=data.email||'';
+  q('#prospect-telephone').value=data.telephone||'';
+  q('#prospect-siteweb').value=data.siteWeb||'';
+  q('#prospect-statut').value=data.statut||'contact';
+  const dc=data.dateContact||today();
+  q('#prospect-datecontact').value=dc;
+  // Auto-calcul relances si nouveau
+  const addDays=(d,n)=>{const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);};
+  q('#prospect-relance1').value=data.relance1||(data.id?'':addDays(dc,7));
+  q('#prospect-relance2').value=data.relance2||(data.id?'':addDays(dc,21));
+  q('#prospect-relancefinale').value=data.relanceFinale||(data.id?'':addDays(dc,45));
+  q('#prospect-daterelance1').value=data.dateRelance1||'';
+  q('#prospect-daterelance2').value=data.dateRelance2||'';
+  q('#prospect-daterelancefinale').value=data.dateRelanceFinale||'';
+  q('#prospect-notes').value=data.notes||'';
+  // Recalcul relances si date contact change
+  const dcInput=q('#prospect-datecontact');
+  dcInput.onchange=()=>{
+    const nd=dcInput.value;
+    if(!nd)return;
+    const addD=(d,n)=>{const dt=new Date(d);dt.setDate(dt.getDate()+n);return dt.toISOString().slice(0,10);};
+    if(!q('#prospect-relance1').value)q('#prospect-relance1').value=addD(nd,7);
+    if(!q('#prospect-relance2').value)q('#prospect-relance2').value=addD(nd,21);
+    if(!q('#prospect-relancefinale').value)q('#prospect-relancefinale').value=addD(nd,45);
+  };
+  openModal('modal-prospect');
+}
+
+async function saveProspectModal(){
+  const id=q('#prospect-id').value;
+  const body={
+    nom:q('#prospect-nom').value.trim(),
+    entreprise:q('#prospect-entreprise').value.trim(),
+    secteur:q('#prospect-secteur').value.trim(),
+    email:q('#prospect-email').value.trim(),
+    telephone:q('#prospect-telephone').value.trim(),
+    siteWeb:q('#prospect-siteweb').value.trim(),
+    statut:q('#prospect-statut').value,
+    dateContact:q('#prospect-datecontact').value,
+    relance1:q('#prospect-relance1').value,
+    relance2:q('#prospect-relance2').value,
+    relanceFinale:q('#prospect-relancefinale').value,
+    dateRelance1:q('#prospect-daterelance1').value,
+    dateRelance2:q('#prospect-daterelance2').value,
+    dateRelanceFinale:q('#prospect-daterelancefinale').value,
+    notes:q('#prospect-notes').value.trim(),
+  };
+  if(!body.nom){toast('Nom requis','error');return;}
+  try{
+    if(id){
+      body.id=id;
+      const res=await api('PUT',\`/api/prospects/\${id}\`,body);
+      const idx=_prospectsCache.findIndex(p=>p.id===id);
+      if(idx>=0)_prospectsCache[idx]=res;else _prospectsCache.push(res);
+    }else{
+      const res=await api('POST','/api/prospects',body);
+      _prospectsCache.push(res);
+    }
+    closeModal('modal-prospect');
+    toast('Prospect enregistré','success');
+    renderCrmKpis();renderCrmBanner();renderCrmCharts();renderCrmTable();refreshCrmSecteurFilter();
+  }catch(e){toast(e.message||'Erreur','error');}
+}
+
+function editProspect(id){const p=_prospectsCache.find(x=>x.id===id);if(p)openProspectModal(p);}
+function deleteProspect(id){
+  confirmDialog('Supprimer ce prospect','Cette action est irréversible.').then(async ok=>{
+    if(!ok)return;
+    try{
+      await api('DELETE',\`/api/prospects/\${id}\`);
+      _prospectsCache=_prospectsCache.filter(p=>p.id!==id);
+      toast('Prospect supprimé','success');
+      renderCrmKpis();renderCrmBanner();renderCrmCharts();renderCrmTable();refreshCrmSecteurFilter();
+    }catch(e){toast(e.message||'Erreur','error');}
+  });
+}
+
 function refreshTiersDatalist(){
   const sel=q('#f-client');if(!sel||sel.tagName!=='SELECT')return;
   const tiers=dbGet('tiers').sort((a,b)=>a.nom.localeCompare(b.nom));

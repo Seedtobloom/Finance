@@ -162,6 +162,15 @@ async function router(request, env) {
   const mV = path.match(/^\/api\/virements\/([^/]+)$/);
   if (mV && method === 'DELETE') return deleteVirement(env, uid, mV[1]);
 
+  // CRM Prospects
+  if (method === 'GET'  && path === '/api/prospects')         return listProspects(env, uid);
+  if (method === 'POST' && path === '/api/prospects')         return createProspect(request, env, uid);
+  const mPros = path.match(/^\/api\/prospects\/([^/]+)$/);
+  if (mPros) {
+    if (method === 'PUT')    return updateProspect(request, env, uid, mPros[1]);
+    if (method === 'DELETE') return deleteProspect(env, uid, mPros[1]);
+  }
+
   return jsonErr(404, 'Route inconnue.');
 }
 
@@ -994,5 +1003,60 @@ async function deleteVirement(env, uid, id) {
   if (idx < 0) return jsonErr(404, 'Virement introuvable');
   liste.splice(idx, 1);
   await kvEcrire(env, `user:${uid}:virements`, liste);
+  return jsonOk({ ok: true });
+}
+
+/* ── CRM PROSPECTS ── */
+async function listProspects(env, uid) {
+  const list = await kvTableau(env, `user:${uid}:prospects`);
+  return jsonOk(list.sort((a, b) => (b.dateContact || '').localeCompare(a.dateContact || '')));
+}
+
+async function createProspect(request, env, uid) {
+  const b = await parseJSON(request);
+  if (!b?.nom) return jsonErr(400, 'Nom requis');
+  const p = {
+    id: uid4(),
+    nom: b.nom || '',
+    entreprise: b.entreprise || '',
+    secteur: b.secteur || '',
+    email: b.email || '',
+    telephone: b.telephone || '',
+    siteWeb: b.siteWeb || '',
+    dateContact: b.dateContact || iso().slice(0, 10),
+    statut: b.statut || 'contact',
+    relance1: b.relance1 || '',
+    dateRelance1: b.dateRelance1 || '',
+    relance2: b.relance2 || '',
+    dateRelance2: b.dateRelance2 || '',
+    relanceFinale: b.relanceFinale || '',
+    dateRelanceFinale: b.dateRelanceFinale || '',
+    notes: b.notes || '',
+    createdAt: iso(),
+  };
+  const liste = await kvTableau(env, `user:${uid}:prospects`);
+  liste.push(p);
+  await kvEcrire(env, `user:${uid}:prospects`, liste);
+  return jsonOk(p, 201);
+}
+
+async function updateProspect(request, env, uid, id) {
+  const b = await parseJSON(request);
+  if (!b) return jsonErr(400, 'Body invalide');
+  const liste = await kvTableau(env, `user:${uid}:prospects`);
+  const idx = liste.findIndex(p => p.id === id);
+  if (idx < 0) return jsonErr(404, 'Prospect introuvable');
+  const updated = { ...liste[idx], ...b, id, updatedAt: iso() };
+  liste[idx] = updated;
+  await kvEcrire(env, `user:${uid}:prospects`, liste);
+  return jsonOk(updated);
+}
+
+async function deleteProspect(env, uid, id) {
+  const liste = await kvTableau(env, `user:${uid}:prospects`);
+  const idx = liste.findIndex(p => p.id === id);
+  if (idx < 0) return jsonErr(404, 'Prospect introuvable');
+  liste.splice(idx, 1);
+  await kvEcrire(env, `user:${uid}:prospects`, liste);
   return jsonOk({ ok: true });
 }
