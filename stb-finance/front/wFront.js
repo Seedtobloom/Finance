@@ -6346,13 +6346,13 @@ function indyStatut(v){
 function indyDate(v){
   if(!v)return'';
   // Formats : DD/MM/YYYY ou YYYY-MM-DD
-  const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const m=v.match(/^([0-9]{2})[/]([0-9]{2})[/]([0-9]{4})$/);
   return m?\`\${m[3]}-\${m[2]}-\${m[1]}\`:v.slice(0,10);
 }
 function indyMontant(v){
   if(!v)return 0;
   // Enlève espaces, remplace virgule par point
-  return parseFloat(v.replace(/\s/g,'').replace(',','.'))||0;
+  return parseFloat(v.replace(/[ \u00a0]/g,'').replace(',','.'))||0;
 }
 function indyGet(r,...keys){
   for(const k of keys){
