@@ -424,20 +424,35 @@ const HTML = `<!DOCTYPE html>
           <select id="factures-filter-annee" class="form-select" style="width:100px;">
             <option value="">Toutes années</option>
           </select>
-          <select id="factures-filter-mois" class="form-select" style="width:120px;">
-            <option value="">Tous mois</option>
-            <option value="01">Janvier</option>
-            <option value="02">Février</option>
-            <option value="03">Mars</option>
-            <option value="04">Avril</option>
-            <option value="05">Mai</option>
-            <option value="06">Juin</option>
-            <option value="07">Juillet</option>
-            <option value="08">Août</option>
-            <option value="09">Septembre</option>
-            <option value="10">Octobre</option>
-            <option value="11">Novembre</option>
-            <option value="12">Décembre</option>
+          <select id="factures-filter-mois" class="form-select" style="width:150px;">
+            <option value="">Mois émission</option>
+            <option value="01">Janv. (émission)</option>
+            <option value="02">Févr. (émission)</option>
+            <option value="03">Mars (émission)</option>
+            <option value="04">Avr. (émission)</option>
+            <option value="05">Mai (émission)</option>
+            <option value="06">Juin (émission)</option>
+            <option value="07">Juil. (émission)</option>
+            <option value="08">Août (émission)</option>
+            <option value="09">Sept. (émission)</option>
+            <option value="10">Oct. (émission)</option>
+            <option value="11">Nov. (émission)</option>
+            <option value="12">Déc. (émission)</option>
+          </select>
+          <select id="factures-filter-mois-paiement" class="form-select" style="width:155px;">
+            <option value="">Mois paiement</option>
+            <option value="01">Janv. (paiement)</option>
+            <option value="02">Févr. (paiement)</option>
+            <option value="03">Mars (paiement)</option>
+            <option value="04">Avr. (paiement)</option>
+            <option value="05">Mai (paiement)</option>
+            <option value="06">Juin (paiement)</option>
+            <option value="07">Juil. (paiement)</option>
+            <option value="08">Août (paiement)</option>
+            <option value="09">Sept. (paiement)</option>
+            <option value="10">Oct. (paiement)</option>
+            <option value="11">Nov. (paiement)</option>
+            <option value="12">Déc. (paiement)</option>
           </select>
           <select id="factures-filter-statut" class="form-select" style="width:140px;">
             <option value="">Tous statuts</option>
@@ -4899,10 +4914,10 @@ function renderFactures(){
   if(projet)list=list.filter(f=>(f.projetId||f.projet||'')===projet);
   if(client)list=list.filter(f=>(f.client||'')===client);
   const tri=q('#factures-sort')?.value||'date-desc';
-  // Filtre année/mois selon le champ de tri actif (émission ou paiement)
-  const dateRef=f=>tri.startsWith('paiement')?(f.datePaiement||f.date||''):(f.date||'');
-  if(annee)list=list.filter(f=>dateRef(f).startsWith(annee));
-  if(mois)list=list.filter(f=>dateRef(f).slice(5,7)===mois);
+  const moisPaiement=q('#factures-filter-mois-paiement')?.value||'';
+  if(annee)list=list.filter(f=>(f.date||'').startsWith(annee));
+  if(mois)list=list.filter(f=>(f.date||'').slice(5,7)===mois);
+  if(moisPaiement)list=list.filter(f=>(f.datePaiement||'').slice(5,7)===moisPaiement);
   list.sort((a,b)=>{
     if(tri==='date-asc')     return (a.date||'').localeCompare(b.date||'');
     if(tri==='paiement-desc')return (b.datePaiement||b.date||'').localeCompare(a.datePaiement||a.date||'');
@@ -6433,6 +6448,7 @@ async function init(){
   q('#factures-filter-projet')?.addEventListener('change',renderFactures);
   q('#factures-filter-client')?.addEventListener('change',renderFactures);
   q('#factures-sort')?.addEventListener('change',renderFactures);
+  q('#factures-filter-mois-paiement')?.addEventListener('change',renderFactures);
   // PDF : bouton → ouvre le file picker
   q('#f-pdf-btn')?.addEventListener('click',()=>q('#f-pdf-file')?.click());
   q('#f-pdf-file')?.addEventListener('change',function(){
