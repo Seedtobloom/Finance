@@ -445,6 +445,14 @@ const HTML = `<!DOCTYPE html>
             <option value="attente">En attente</option>
             <option value="retard">En retard</option>
           </select>
+          <select id="factures-sort" class="form-select" style="width:180px;">
+            <option value="date-desc">Date émission ↓</option>
+            <option value="date-asc">Date émission ↑</option>
+            <option value="paiement-desc">Date paiement ↓</option>
+            <option value="paiement-asc">Date paiement ↑</option>
+            <option value="montant-desc">Montant ↓</option>
+            <option value="montant-asc">Montant ↑</option>
+          </select>
           <select id="factures-filter-projet" class="form-select" style="width:170px;">
             <option value="">Tous projets</option>
           </select>
@@ -4890,9 +4898,19 @@ function renderFactures(){
   if(statut)list=list.filter(f=>f.statut===statut);
   if(projet)list=list.filter(f=>(f.projetId||f.projet||'')===projet);
   if(client)list=list.filter(f=>(f.client||'')===client);
-  if(annee)list=list.filter(f=>(f.date||'').startsWith(annee));
-  if(mois)list=list.filter(f=>(f.date||'').slice(5,7)===mois);
-  list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const tri=q('#factures-sort')?.value||'date-desc';
+  // Filtre année/mois selon le champ de tri actif (émission ou paiement)
+  const dateRef=f=>tri.startsWith('paiement')?(f.datePaiement||f.date||''):(f.date||'');
+  if(annee)list=list.filter(f=>dateRef(f).startsWith(annee));
+  if(mois)list=list.filter(f=>dateRef(f).slice(5,7)===mois);
+  list.sort((a,b)=>{
+    if(tri==='date-asc')     return (a.date||'').localeCompare(b.date||'');
+    if(tri==='paiement-desc')return (b.datePaiement||b.date||'').localeCompare(a.datePaiement||a.date||'');
+    if(tri==='paiement-asc') return (a.datePaiement||a.date||'').localeCompare(b.datePaiement||b.date||'');
+    if(tri==='montant-desc') return (b.montant||0)-(a.montant||0);
+    if(tri==='montant-asc')  return (a.montant||0)-(b.montant||0);
+    return (b.date||'').localeCompare(a.date||'');
+  });
   // Mise à jour filtre années
   const selAnnee=q('#factures-filter-annee');
   if(selAnnee){
@@ -6414,6 +6432,7 @@ async function init(){
   q('#factures-filter-statut')?.addEventListener('change',renderFactures);
   q('#factures-filter-projet')?.addEventListener('change',renderFactures);
   q('#factures-filter-client')?.addEventListener('change',renderFactures);
+  q('#factures-sort')?.addEventListener('change',renderFactures);
   // PDF : bouton → ouvre le file picker
   q('#f-pdf-btn')?.addEventListener('click',()=>q('#f-pdf-file')?.click());
   q('#f-pdf-file')?.addEventListener('change',function(){
