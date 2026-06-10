@@ -6298,16 +6298,31 @@ function setupFileDrop(dropId,inputId,cb){
 function readCSV(file,cb){
   const reader=new FileReader();
   reader.onload=e=>{
-    const lines=e.target.result.split('\\n').filter(l=>l.trim());
+    const text=e.target.result;
+    const lines=text.split(/\\r?\\n/).filter(l=>l.trim());
     if(!lines.length)return;
-    const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+    // Détecte le séparateur (;  ou ,)
+    const sep=lines[0].includes(';')?';':',';
+    // Parse une ligne CSV en gérant les champs entre guillemets
+    const parseLine=line=>{
+      const res=[];let cur='',inQ=false;
+      for(let i=0;i<line.length;i++){
+        const c=line[i];
+        if(c==='"'){inQ=!inQ;}
+        else if(c===sep&&!inQ){res.push(cur.trim());cur='';}
+        else cur+=c;
+      }
+      res.push(cur.trim());
+      return res;
+    };
+    const headers=parseLine(lines[0]).map(h=>h.replace(/"/g,'').toLowerCase().trim());
     const rows=lines.slice(1).map(line=>{
-      const vals=line.split(',').map(v=>v.trim().replace(/"/g,''));
+      const vals=parseLine(line).map(v=>v.replace(/^"|"$/g,'').trim());
       return Object.fromEntries(headers.map((h,i)=>[h,vals[i]||'']));
     }).filter(r=>Object.values(r).some(v=>v));
     cb(rows);
   };
-  reader.readAsText(file);
+  reader.readAsText(file,'UTF-8');
 }
 function previewImport(type,rows){
   const prev=q(\`#import-\${type}-preview\`),btn=q(\`#btn-import-\${type}\`);
@@ -6321,13 +6336,41 @@ function previewImport(type,rows){
     }).join('');
   if(btn)btn.style.display='inline-flex';
 }
+function indyStatut(v){
+  const s=(v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  if(s.includes('pay'))return'payee';
+  if(s.includes('retard'))return'retard';
+  return'attente';
+}
+function indyDate(v){
+  if(!v)return'';
+  // Formats : DD/MM/YYYY ou YYYY-MM-DD
+  const m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m?\`\${m[3]}-\${m[2]}-\${m[1]}\`:v.slice(0,10);
+}
+function indyMontant(v){
+  if(!v)return 0;
+  // Enlève espaces, remplace virgule par point
+  return parseFloat(v.replace(/\s/g,'').replace(',','.'))||0;
+}
+function indyGet(r,...keys){
+  for(const k of keys){
+    const found=Object.keys(r).find(h=>h.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(k));
+    if(found&&r[found])return r[found];
+  }
+  return'';
+}
 async function doImportFactures(){
   if(!importFacturesParsed)return;
   const lignes=importFacturesParsed.map(r=>({
-    numero:r.numero||r['n° facture']||r.number||'',
-    client:r.client||'',description:r.description||r.objet||'',
-    date:r.date||today(),montant:parseFloat(r.montant)||0,statut:r.statut||'attente'
-  }));
+    numero:     indyGet(r,'numero','n°','reference','ref','number'),
+    client:     indyGet(r,'client','tiers','nom client','customer'),
+    description:indyGet(r,'objet','description','libelle','designation'),
+    date:       indyDate(indyGet(r,'emission','date facture','date creation','date','issued')),
+    datePaiement:indyDate(indyGet(r,'paiement','paid','reglement','encaissement'))||undefined,
+    montant:    indyMontant(indyGet(r,'ttc','montant','total','amount','ht')),
+    statut:     indyStatut(indyGet(r,'statut','status','etat')),
+  })).map(l=>({...l,datePaiement:l.datePaiement||undefined}));
   try{
     const res=await api('POST','/api/import/factures',{lignes});
     _cache.factures=await api('GET','/api/factures');

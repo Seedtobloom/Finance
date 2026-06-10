@@ -623,7 +623,8 @@ async function importFactures(request,env,uid){
     if(!validerDoc(ligne))continue;
     if(nums.has(ligne.numero)){doublons++;continue;}
     const f={id:uid4(),numero:ligne.numero,client:ligne.client?.trim(),description:ligne.description?.trim()||'',
-      montant:parseFloat(ligne.montant),date:ligne.date,statut:ligne.statut||'attente',pdfKey:null,createdAt:iso()};
+      montant:parseFloat(ligne.montant),date:ligne.date,statut:ligne.statut||'attente',
+      datePaiement:ligne.datePaiement||null,pdfKey:null,createdAt:iso()};
     list.push(f);nums.add(f.numero);importees++;
   }
   await kvEcrire(env,`${uid}:factures`,list);return jsonOk({importees,doublons});
