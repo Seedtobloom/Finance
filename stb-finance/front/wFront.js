@@ -5493,7 +5493,7 @@ function renderProjets(){
           <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
           <div>
             <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
-            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet(\'devis\').find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
             </div>
           </div>
         </div>
