@@ -6607,8 +6607,8 @@ export default {
     const path = url.pathname;
 
     // Assets statiques
-    if (path === '/style.css') return new Response(CSS,  { headers: { 'Content-Type': 'text/css; charset=utf-8',         'Cache-Control': 'public, max-age=3600' } });
-    if (path === '/app.js')    return new Response(JS,   { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
+    if (path === '/style.css') return new Response(CSS,  { headers: { 'Content-Type': 'text/css; charset=utf-8',         'Cache-Control': 'no-cache' } });
+    if (path === '/app.js')    return new Response(JS,   { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-cache' } });
     if (path === '/favicon.ico') return new Response(null, { status: 204 });
 
     // Auth
