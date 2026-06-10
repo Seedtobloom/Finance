@@ -6336,7 +6336,7 @@ function previewImport(type,rows){
     }).join('');
   if(btn)btn.style.display='inline-flex';
 }
-function deaccent(s){return(s||'').toLowerCase().replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c').replace(/[^a-z0-9° /-]/g,'');}
+function deaccent(s){var r=(s||'').toLowerCase();r=r.replace(/[\u00e0\u00e2\u00e4]/g,'a');r=r.replace(/[\u00e9\u00e8\u00ea\u00eb]/g,'e');r=r.replace(/[\u00ee\u00ef]/g,'i');r=r.replace(/[\u00f4\u00f6]/g,'o');r=r.replace(/[\u00f9\u00fb\u00fc]/g,'u');r=r.replace(/\u00e7/g,'c');return r;}
 function indyStatut(v){
   const s=deaccent(v||'');
   if(s.includes('pay'))return'payee';
