@@ -6336,8 +6336,9 @@ function previewImport(type,rows){
     }).join('');
   if(btn)btn.style.display='inline-flex';
 }
+function deaccent(s){return(s||'').toLowerCase().replace(/[àâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[îï]/g,'i').replace(/[ôö]/g,'o').replace(/[ùûü]/g,'u').replace(/ç/g,'c').replace(/[^a-z0-9° /-]/g,'');}
 function indyStatut(v){
-  const s=(v||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const s=deaccent(v||'');
   if(s.includes('pay'))return'payee';
   if(s.includes('retard'))return'retard';
   return'attente';
@@ -6355,7 +6356,7 @@ function indyMontant(v){
 }
 function indyGet(r,...keys){
   for(const k of keys){
-    const found=Object.keys(r).find(h=>h.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').includes(k));
+    const found=Object.keys(r).find(h=>deaccent(h).includes(k));
     if(found&&r[found])return r[found];
   }
   return'';
