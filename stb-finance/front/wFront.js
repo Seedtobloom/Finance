@@ -1852,7 +1852,13 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="form-group" id="pr-nb-mois-group" style="display:none;">
         <label class="form-label">Nombre de mois</label>
-        <input type="number" id="pr-nb-mois" class="form-input" min="1" max="60" value="6" oninput="onProjetMontantChange()" />
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="number" id="pr-nb-mois" class="form-input" min="1" max="60" value="6" oninput="onProjetMontantChange()" style="flex:1;" />
+          <label style="display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="pr-indetermine" onchange="onProjetIndetermineChange()" />
+            Durée indéterminée
+          </label>
+        </div>
       </div>
     </div>
     <div class="form-grid-2">
@@ -5262,11 +5268,15 @@ function onFactureProjetChange(keepValues=false){
   const typeLabel={unique:'Facture unique',echelonne:'Échelonné',mensuel:'Mensuel'};
   let lines=[];
   if(devis)lines.push(\`📄 Devis \${devis.numero} · signé · \${fmt(devis.montant)}\`);
-  lines.push(\`📁 \${projet.nom} · \${typeLabel[projet.type]||projet.type}\${projet.type==='mensuel'?' · '+projet.nombreMois+' mois':''}\`);
-  lines.push(\`Facturé : \${fmt(montantFacture)} / \${fmt(projet.montantTotal||0)} · <strong style="color:\${reste>0?'#E8A838':'#4CAF82'};">\${reste>0?'Reste : '+fmt(reste):'✓ Complet'}</strong>\`);
+  lines.push(\`📁 \${projet.nom} · \${typeLabel[projet.type]||projet.type}\${projet.type==='mensuel'?(projet.dureeIndeterminee?' · indéterminé':' · '+projet.nombreMois+' mois'):''}\`);
+  lines.push(\`Facturé : \${fmt(montantFacture)}\${!projet.dureeIndeterminee?' / '+fmt(projet.montantTotal||0):''} · <strong style="color:\${reste>0?'#E8A838':'#4CAF82'};">\${projet.dureeIndeterminee?(linked.length+' facture(s) émise(s)'):(reste>0?'Reste : '+fmt(reste):'✓ Complet')}</strong>\`);
   // Suggest type & montant
   let sugType='standard',sugMontant=null,sugNote='';
-  if(projet.type==='mensuel'&&projet.nombreMois){
+  if(projet.type==='mensuel'&&projet.dureeIndeterminee){
+    sugType='mensuel';
+    sugMontant=projet.montantTotal||0;
+    sugNote=\`Mois \${linked.length+1} suggéré · \${fmt(sugMontant)}/mois\`;
+  }else if(projet.type==='mensuel'&&projet.nombreMois){
     sugType='mensuel';
     sugMontant=Math.round((projet.montantTotal||0)/projet.nombreMois*100)/100;
     const moisFact=linked.length;
@@ -5918,7 +5928,13 @@ function renderProjets(){
     const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
     const reste=Math.max(0,(p.montantTotal||0)-montantFacture);
     let facsHtml='';
-    if(p.type==='mensuel'&&p.nombreMois&&p.dateDebut){
+    if(p.type==='mensuel'&&p.dureeIndeterminee){
+      // Durée indéterminée : on affiche toutes les factures liées + 1 slot vide pour le prochain mois
+      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+      facsHtml=sorted.map(f=>facRow(f)).join('');
+      const mm=p.montantTotal||0;
+      facsHtml+=emptyRow('Prochain mois',mm);
+    }else if(p.type==='mensuel'&&p.nombreMois&&p.dateDebut){
       const montantMensuel=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
       for(let i=0;i<p.nombreMois;i++){
         const slotDate=new Date(p.dateDebut+'T00:00:00');
@@ -5972,7 +5988,7 @@ function renderProjets(){
           <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
           <div>
             <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
-            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?' · '+p.nombreMois+' mois':''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
             </div>
           </div>
         </div>
@@ -6007,6 +6023,7 @@ function openProjetModal(data={}){
   sel.value=data.client||'';
   q('#pr-statut').value=data.statut||'en_cours';
   q('#pr-type').value=data.type||'unique';
+  q('#pr-indetermine').checked=!!(data.dureeIndeterminee);
   q('#pr-nb-mois').value=data.nombreMois||6;
   q('#pr-montant').value=data.montantTotal||'';
   q('#pr-date-debut').value=data.dateDebut||'';
@@ -6031,16 +6048,27 @@ function onProjetTypeChange(){
   const nbG=q('#pr-nb-mois-group'),mmG=q('#pr-montant-mois-group');
   if(nbG)nbG.style.display=type==='mensuel'?'':'none';
   if(mmG)mmG.style.display=type==='mensuel'?'':'none';
+  onProjetIndetermineChange();
+  onProjetMontantChange();
+}
+function onProjetIndetermineChange(){
+  const indet=q('#pr-indetermine')?.checked;
+  const nbInput=q('#pr-nb-mois');
+  const finEl=q('#pr-date-fin');
+  if(nbInput)nbInput.disabled=!!indet;
+  if(indet&&finEl)finEl.value='';
   onProjetMontantChange();
 }
 function onProjetMontantChange(){
   const type=q('#pr-type')?.value;
+  const indet=q('#pr-indetermine')?.checked;
   const montant=parseFloat(q('#pr-montant')?.value)||0;
   const nbMois=parseInt(q('#pr-nb-mois')?.value)||1;
   const moisEl=q('#pr-montant-mois');
-  if(moisEl)moisEl.value=type==='mensuel'&&montant&&nbMois?fmt(montant/nbMois)+'/mois':'—';
-  // Auto-calcul date de fin pour projet mensuel
-  if(type==='mensuel'){
+  if(moisEl)moisEl.value=type==='mensuel'&&montant&&(indet||nbMois)?
+    (indet?fmt(montant)+'/mois':fmt(montant/nbMois)+'/mois'):'—';
+  // Auto-calcul date de fin pour projet mensuel (sauf durée indéterminée)
+  if(type==='mensuel'&&!indet){
     const debut=q('#pr-date-debut')?.value;
     const finEl=q('#pr-date-fin');
     if(debut&&finEl&&nbMois){
@@ -6054,9 +6082,11 @@ function onProjetMontantChange(){
 async function saveProjet(){
   const id=q('#btn-save-projet').dataset.id;
   const type=q('#pr-type').value;
+  const indet=type==='mensuel'&&!!(q('#pr-indetermine')?.checked);
   const body={nom:q('#pr-nom').value.trim(),client:q('#pr-client').value,type,statut:q('#pr-statut').value,
     montantTotal:parseFloat(q('#pr-montant').value)||0,
-    nombreMois:type==='mensuel'?parseInt(q('#pr-nb-mois').value)||1:null,
+    nombreMois:type==='mensuel'&&!indet?parseInt(q('#pr-nb-mois').value)||1:null,
+    dureeIndeterminee:indet||false,
     devisId:q('#pr-devis-id').value||null,
     dateDebut:q('#pr-date-debut').value||null,dateFin:q('#pr-date-fin').value||null,
     notes:q('#pr-notes').value.trim()};
