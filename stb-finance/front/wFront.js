@@ -375,6 +375,38 @@ const HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+    <!-- Modal déduction (dépense depuis une enveloppe) -->
+    <div class="modal-overlay" id="modal-depense" style="display:none;">
+      <div class="modal" style="max-width:440px;">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-depense-title">Déduire d'une enveloppe</div>
+          <button class="modal-close" onclick="closeDepenseModal()"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div style="font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:8px;padding:10px 12px;line-height:1.5;">
+            <i class="ti ti-info-circle"></i> Enregistre une dépense réelle <strong>déjà débitée sur Qonto</strong>.
+            Cela diminue uniquement cette enveloppe — le solde réel Qonto n'est pas touché (il a déjà baissé via la sync).
+          </div>
+          <div>
+            <label class="form-label">Montant (€)</label>
+            <input class="form-control" type="number" id="depense-montant" min="0.01" step="0.01" placeholder="0,00">
+          </div>
+          <div>
+            <label class="form-label">Date</label>
+            <input class="form-control" type="date" id="depense-date">
+          </div>
+          <div>
+            <label class="form-label">Motif</label>
+            <input class="form-control" type="text" id="depense-motif" placeholder="Ex: Accompagnement prospection">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
+            <button class="btn btn-outline" onclick="closeDepenseModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="saveDepense()"><i class="ti ti-check"></i> Déduire</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- ═══════════════════════════
          TRANSACTIONS
@@ -4529,6 +4561,9 @@ function renderEnveloppes(){
           <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
             <i class="ti ti-arrows-transfer-up"></i> Virer
           </button>
+          \${env.id!=='qonto'?\`<button onclick="openDepenseModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
+            <i class="ti ti-arrow-down-circle"></i> Déduire
+          </button>\`:''}
         </div>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:8px;">
@@ -4641,6 +4676,30 @@ async function deleteVirement(id){
   try{
     await api('DELETE',\`/api/virements/\${id}\`);
     toast('Virement supprimé','success');
+    await loadEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+let _depenseEnvId=null;
+function openDepenseModal(id){
+  _depenseEnvId=id;
+  const env=_enveloppes.find(e=>e.id===id);
+  if(q('#modal-depense-title'))q('#modal-depense-title').textContent='Déduire — '+(env?.nom||id);
+  q('#depense-montant').value='';
+  q('#depense-date').value=new Date().toISOString().slice(0,10);
+  q('#depense-motif').value='';
+  q('#modal-depense').style.display='flex';
+}
+function closeDepenseModal(){q('#modal-depense').style.display='none';}
+async function saveDepense(){
+  const montant=parseFloat(q('#depense-montant').value);
+  const date=q('#depense-date').value;
+  const motif=q('#depense-motif').value.trim();
+  if(!_depenseEnvId||!date||isNaN(montant)||montant<=0){toast('Remplis le montant et la date','error');return;}
+  try{
+    await api('POST','/api/virements',{de:_depenseEnvId,vers:'depense',montant,date,motif});
+    closeDepenseModal();
+    toast('Dépense déduite','success');
     await loadEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }

@@ -898,6 +898,17 @@ const ENVELOPPES_DEF = [
   { id: 'salaire',    nom: 'Mon salaire',       couleur: '#E05252', icone: 'user',            ordre: 4 },
 ];
 
+// Cibles spéciales (hors enveloppes) pour un virement.
+// 'depense' : sortie réelle déjà débitée sur Qonto → on déduit l'enveloppe sans créditer une autre.
+const VIREMENT_CIBLES_SPECIALES = { depense: 'Dépense' };
+const ENVELOPPE_IDS = ENVELOPPES_DEF.map(e => e.id);
+
+function nomContrepartie(id) {
+  return ENVELOPPES_DEF.find(e => e.id === id)?.nom
+      || VIREMENT_CIBLES_SPECIALES[id]
+      || id;
+}
+
 async function getEnveloppes(env, uid) {
   const [virements, settings, abonnements, depensesPrevues] = await Promise.all([
     kvTableau(env, `user:${uid}:virements`),
@@ -943,16 +954,25 @@ async function getEnveloppes(env, uid) {
     salaire:    versementObj > 0 ? Math.round(versementObj) : null,    // versement mensuel objectif
   };
 
-  const enveloppes = ENVELOPPES_DEF.map(def => {
+  // Solde brut de chaque enveloppe = entrées − sorties (virements)
+  const soldeBrut = {};
+  for (const def of ENVELOPPES_DEF) {
     const entrees = virements.filter(v => v.vers === def.id).reduce((s, v) => s + (v.montant || 0), 0);
     const sorties = virements.filter(v => v.de   === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+    soldeBrut[def.id] = entrees - sorties;
+  }
 
-    let solde;
-    if (def.id === 'qonto') {
-      solde = (soldeQontoReel ?? 0) - sorties + entrees;
-    } else {
-      solde = entrees - sorties;
-    }
+  // Les enveloppes virtuelles (hors qonto) sont des parts mises de côté DANS le compte Qonto.
+  // Le solde « libre » du compte Qonto = solde réel − total déjà alloué aux autres enveloppes.
+  // Ce modèle reste cohérent quel que soit le sens du virement (vers ou depuis qonto).
+  const totalAlloue = ENVELOPPES_DEF
+    .filter(d => d.id !== 'qonto')
+    .reduce((s, d) => s + Math.max(0, soldeBrut[d.id]), 0);
+
+  const enveloppes = ENVELOPPES_DEF.map(def => {
+    const solde = def.id === 'qonto'
+      ? (soldeQontoReel ?? 0) - totalAlloue
+      : soldeBrut[def.id];
 
     const txs = virements
       .filter(v => v.de === def.id || v.vers === def.id)
@@ -963,8 +983,8 @@ async function getEnveloppes(env, uid) {
         type:   v.vers === def.id ? 'credit' : 'debit',
         montant: v.montant,
         contrepartie: v.vers === def.id
-          ? (ENVELOPPES_DEF.find(e => e.id === v.de)?.nom  || v.de)
-          : (ENVELOPPES_DEF.find(e => e.id === v.vers)?.nom || v.vers),
+          ? nomContrepartie(v.de)
+          : nomContrepartie(v.vers),
       }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -987,6 +1007,8 @@ async function createVirement(request, env, uid) {
   const b = await parseJSON(request);
   if (!b?.de || !b?.vers || !b?.montant || !b?.date) return jsonErr(400, 'Champs manquants : de, vers, montant, date');
   if (b.de === b.vers) return jsonErr(400, 'Compte source et destination identiques');
+  if (!ENVELOPPE_IDS.includes(b.de)) return jsonErr(400, 'Enveloppe source inconnue');
+  if (!ENVELOPPE_IDS.includes(b.vers) && !VIREMENT_CIBLES_SPECIALES[b.vers]) return jsonErr(400, 'Destination inconnue');
   const montant = parseFloat(b.montant);
   if (isNaN(montant) || montant <= 0) return jsonErr(400, 'Montant invalide');
 
