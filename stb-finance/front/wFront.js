@@ -376,11 +376,11 @@ const HTML = `<!DOCTYPE html>
     </div>
 
     <!-- Modal déduction (dépense depuis une enveloppe) -->
-    <div class="modal-overlay" id="modal-depense" style="display:none;">
+    <div class="modal-overlay" id="modal-deduire-env" style="display:none;">
       <div class="modal" style="max-width:440px;">
         <div class="modal-header">
-          <div class="modal-title" id="modal-depense-title">Déduire d'une enveloppe</div>
-          <button class="modal-close" onclick="closeDepenseModal()"><i class="ti ti-x"></i></button>
+          <div class="modal-title" id="modal-deduire-env-title">Déduire d'une enveloppe</div>
+          <button class="modal-close" onclick="closeDeduireEnvModal()"><i class="ti ti-x"></i></button>
         </div>
         <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
           <div style="font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:8px;padding:10px 12px;line-height:1.5;">
@@ -389,19 +389,19 @@ const HTML = `<!DOCTYPE html>
           </div>
           <div>
             <label class="form-label">Montant (€)</label>
-            <input class="form-control" type="number" id="depense-montant" min="0.01" step="0.01" placeholder="0,00">
+            <input class="form-control" type="number" id="deduire-env-montant" min="0.01" step="0.01" placeholder="0,00">
           </div>
           <div>
             <label class="form-label">Date</label>
-            <input class="form-control" type="date" id="depense-date">
+            <input class="form-control" type="date" id="deduire-env-date">
           </div>
           <div>
             <label class="form-label">Motif</label>
-            <input class="form-control" type="text" id="depense-motif" placeholder="Ex: Accompagnement prospection">
+            <input class="form-control" type="text" id="deduire-env-motif" placeholder="Ex: Accompagnement prospection">
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-            <button class="btn btn-outline" onclick="closeDepenseModal()">Annuler</button>
-            <button class="btn btn-primary" onclick="saveDepense()"><i class="ti ti-check"></i> Déduire</button>
+            <button class="btn btn-outline" onclick="closeDeduireEnvModal()">Annuler</button>
+            <button class="btn btn-primary" onclick="saveDeduireEnv()"><i class="ti ti-check"></i> Déduire</button>
           </div>
         </div>
       </div>
@@ -4561,7 +4561,7 @@ function renderEnveloppes(){
           <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
             <i class="ti ti-arrows-transfer-up"></i> Virer
           </button>
-          \${env.id!=='qonto'?\`<button onclick="openDepenseModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
+          \${env.id!=='qonto'?\`<button onclick="openDeduireEnvModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
             <i class="ti ti-arrow-down-circle"></i> Déduire
           </button>\`:''}
         </div>
@@ -4680,25 +4680,25 @@ async function deleteVirement(id){
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
-let _depenseEnvId=null;
-function openDepenseModal(id){
-  _depenseEnvId=id;
+let _deduireEnvId=null;
+function openDeduireEnvModal(id){
+  _deduireEnvId=id;
   const env=_enveloppes.find(e=>e.id===id);
-  if(q('#modal-depense-title'))q('#modal-depense-title').textContent='Déduire — '+(env?.nom||id);
-  q('#depense-montant').value='';
-  q('#depense-date').value=new Date().toISOString().slice(0,10);
-  q('#depense-motif').value='';
-  q('#modal-depense').style.display='flex';
+  if(q('#modal-deduire-env-title'))q('#modal-deduire-env-title').textContent='Déduire — '+(env?.nom||id);
+  q('#deduire-env-montant').value='';
+  q('#deduire-env-date').value=new Date().toISOString().slice(0,10);
+  q('#deduire-env-motif').value='';
+  q('#modal-deduire-env').style.display='flex';
 }
-function closeDepenseModal(){q('#modal-depense').style.display='none';}
-async function saveDepense(){
-  const montant=parseFloat(q('#depense-montant').value);
-  const date=q('#depense-date').value;
-  const motif=q('#depense-motif').value.trim();
-  if(!_depenseEnvId||!date||isNaN(montant)||montant<=0){toast('Remplis le montant et la date','error');return;}
+function closeDeduireEnvModal(){q('#modal-deduire-env').style.display='none';}
+async function saveDeduireEnv(){
+  const montant=parseFloat(q('#deduire-env-montant').value);
+  const date=q('#deduire-env-date').value;
+  const motif=q('#deduire-env-motif').value.trim();
+  if(!_deduireEnvId||!date||isNaN(montant)||montant<=0){toast('Remplis le montant et la date','error');return;}
   try{
-    await api('POST','/api/virements',{de:_depenseEnvId,vers:'depense',montant,date,motif});
-    closeDepenseModal();
+    await api('POST','/api/virements',{de:_deduireEnvId,vers:'depense',montant,date,motif});
+    closeDeduireEnvModal();
     toast('Dépense déduite','success');
     await loadEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
