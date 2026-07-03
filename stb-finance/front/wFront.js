@@ -6758,6 +6758,15 @@ function renderRapportTrimestriel(){
   const meilleur=trims.reduce((b,t)=>t.ca>b.ca?t:b,trims[0]);
   const badge=(t)=>t.statut==='paye'?'<span class="badge badge-paye">Payé</span>':t.statut==='echu'?'<span class="badge badge-retard">Échu</span>':'<span class="badge badge-a-venir">À venir</span>';
 
+  // Détail de chaque poste de charge, réparti par trimestre
+  const chargeLignes=[
+    {lib:'URSSAF ('+(tauxU*100).toFixed(1)+' %)',get:t=>t.urssaf},
+    {lib:'CFP ('+(tauxC*100).toFixed(1)+' %)',get:t=>t.cfp},
+    {lib:'Dépenses pro',get:t=>t.dep},
+    {lib:'Abonnements',get:t=>t.abo},
+    {lib:'PAS',get:t=>t.pasT},
+  ];
+
   const container=q('#rapport-trimestriel-content');
   if(!container)return;
   container.innerHTML=\`
@@ -6789,6 +6798,22 @@ function renderRapportTrimestriel(){
           <td class="td-amount" style="color:var(--danger);">\${fmt(totCharges)}</td>
           <td class="td-amount" style="color:var(--success);">\${fmt(totNet)}</td>
           <td class="td-amount">\${fmt(totVers)}</td>
+        </tr></tfoot>
+      </table></div>
+    </div>
+    <div class="card mb-16">
+      <div class="card-title">Détail des charges par trimestre</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Charge</th>\${trims.map(t=>\`<th>\${t.lib}</th>\`).join('')}<th>Année</th></tr></thead>
+        <tbody>\${chargeLignes.map(l=>\`<tr>
+          <td>\${l.lib}</td>
+          \${trims.map(t=>\`<td class="td-amount">\${fmt(l.get(t))}</td>\`).join('')}
+          <td class="td-amount"><strong>\${fmt(trims.reduce((s,t)=>s+l.get(t),0))}</strong></td>
+        </tr>\`).join('')}</tbody>
+        <tfoot><tr style="font-weight:600;border-top:2px solid var(--border);">
+          <td>Total charges</td>
+          \${trims.map(t=>\`<td class="td-amount" style="color:var(--danger);">\${fmt(t.charges)}</td>\`).join('')}
+          <td class="td-amount" style="color:var(--danger);">\${fmt(totCharges)}</td>
         </tr></tfoot>
       </table></div>
     </div>
