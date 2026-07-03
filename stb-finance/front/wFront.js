@@ -115,6 +115,9 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="rapport-mensuel">
           <i class="ti ti-report"></i> Mensuel
         </a>
+        <a class="nav-item" data-section="rapport-trimestriel">
+          <i class="ti ti-calendar-stats"></i> Trimestriel
+        </a>
         <a class="nav-item" data-section="rapport-annuel">
           <i class="ti ti-report-analytics"></i> Annuel
         </a>
@@ -1231,6 +1234,24 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div id="rapport-mensuel-content"></div>
     </section><!-- /rapport-mensuel -->
+
+
+    <!-- ═══════════════════════════
+         RAPPORT TRIMESTRIEL
+         ═══════════════════════════ -->
+    <section id="section-rapport-trimestriel" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Rapport trimestriel</h1>
+          <div class="page-subtitle">CA, charges et URSSAF par trimestre · échéances de paiement</div>
+        </div>
+        <div class="page-header-right">
+          <select id="rt-annee" class="form-select" style="width:100px;"></select>
+          <button class="btn btn-secondary" id="btn-rt-gen"><i class="ti ti-refresh"></i> Générer</button>
+        </div>
+      </div>
+      <div id="rapport-trimestriel-content"></div>
+    </section><!-- /rapport-trimestriel -->
 
 
     <!-- ═══════════════════════════
@@ -4110,6 +4131,7 @@ function loadSection(s){
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
+    'rapport-trimestriel':loadRapportTrimestriel,
     'rapport-annuel':loadRapportAnnuel,'rapport-fiscal':loadRapportFiscal,
     'simulateur':loadSimulateur,'import-export':initImportExport,'options':loadOptions,
   };
@@ -6685,6 +6707,111 @@ function renderRapportAnnuel(){
   },50);
 }
 
+/* --- Rapport trimestriel ---------------------------------------------- */
+function loadRapportTrimestriel(){
+  const y=new Date().getFullYear();
+  const sel=q('#rt-annee');
+  if(sel&&!sel.options.length){for(let i=y;i>=y-3;i--)sel.add(new Option(i,i));sel.value=y;}
+  renderRapportTrimestriel();
+}
+function renderRapportTrimestriel(){
+  const annee=parseInt(q('#rt-annee')?.value||new Date().getFullYear());
+  const factures =dbGet('factures');
+  const depenses =dbGet('depenses');
+  const abonnements=dbGet('abonnements');
+  const settings =dbGetObj('settings');
+  const urssafObj=dbGetObj('urssaf');
+  const tauxU=(settings.tauxUrssaf||25.6)/100,tauxC=(settings.tauxCfp||0.2)/100;
+  const pas=settings.pasFixe||40,pctV=settings.pctVersement||65;
+  const aboMois=abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
+  const now=new Date();
+
+  const defs=[
+    {lib:'T1',periode:'jan–mar',ms:[1,2,3],ech:annee+'-04-30'},
+    {lib:'T2',periode:'avr–jun',ms:[4,5,6],ech:annee+'-07-31'},
+    {lib:'T3',periode:'jul–sep',ms:[7,8,9],ech:annee+'-10-31'},
+    {lib:'T4',periode:'oct–déc',ms:[10,11,12],ech:(annee+1)+'-01-31'},
+  ];
+  // Base URSSAF = CA encaissé (datePaiement en priorité), cohérent avec « Charges & URSSAF »
+  const inTrim=(ds,ms)=>{const s=(ds||'')+'';return s.slice(0,4)==String(annee)&&ms.includes(parseInt(s.slice(5,7)));};
+  const trims=defs.map((def,i)=>{
+    const ca=factures.filter(f=>f.statut==='payee'&&inTrim(f.datePaiement||f.date,def.ms)).reduce((s,f)=>s+(f.montant||0),0);
+    const dep=depenses.filter(d=>d.categorie!=='Versement perso'&&inTrim(d.date,def.ms)).reduce((s,d)=>s+(d.montant||0),0);
+    const abo=aboMois*3,pasT=pas*3;
+    const urssaf=Math.round(ca*tauxU*100)/100,cfp=Math.round(ca*tauxC*100)/100;
+    const cotis=urssaf+cfp;
+    const charges=cotis+dep+abo+pasT;
+    const net=Math.max(0,ca-charges);
+    const u=urssafObj[def.lib+'-'+annee]||{};
+    const echDate=new Date(def.ech+'T23:59:00');
+    const jours=Math.ceil((echDate-now)/86400000);
+    const statut=u.statut==='paye'?'paye':jours<0?'echu':'a_venir';
+    return{...def,num:i+1,ca,dep,abo,pasT,urssaf,cfp,cotis,charges,net,versement:Math.round(net*pctV/100),statut,jours,montantPaye:u.montantPaye||0,datePaye:u.datePaye};
+  });
+
+  const totCA=trims.reduce((s,t)=>s+t.ca,0);
+  const totDep=trims.reduce((s,t)=>s+t.dep,0);
+  const totCotis=trims.reduce((s,t)=>s+t.cotis,0);
+  const totCharges=trims.reduce((s,t)=>s+t.charges,0);
+  const totNet=trims.reduce((s,t)=>s+t.net,0);
+  const totVers=trims.reduce((s,t)=>s+t.versement,0);
+  const meilleur=trims.reduce((b,t)=>t.ca>b.ca?t:b,trims[0]);
+  const badge=(t)=>t.statut==='paye'?'<span class="badge badge-paye">Payé</span>':t.statut==='echu'?'<span class="badge badge-retard">Échu</span>':'<span class="badge badge-a-venir">À venir</span>';
+
+  const container=q('#rapport-trimestriel-content');
+  if(!container)return;
+  container.innerHTML=\`
+    <div class="kpi-grid kpi-grid-4 mb-16">
+      <div class="kpi-card"><span class="kpi-label">CA encaissé \${annee}</span><span class="kpi-value">\${fmt(totCA)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">Charges totales</span><span class="kpi-value danger">\${fmt(totCharges)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">URSSAF + CFP</span><span class="kpi-value danger">\${fmt(totCotis)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">Résultat net</span><span class="kpi-value green">\${fmt(totNet)}</span></div>
+    </div>
+    \${meilleur&&meilleur.ca>0?\`<div class="alert info" style="margin-bottom:16px;"><i class="ti ti-trophy"></i> Meilleur trimestre : \${meilleur.lib} (\${meilleur.periode}) · \${fmt(meilleur.ca)}</div>\`:''}
+    <div class="card mb-16">
+      <div class="card-title">Détail par trimestre</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Trimestre</th><th>CA encaissé</th><th>Dépenses</th><th>URSSAF + CFP</th><th>Charges</th><th>Résultat</th><th>Versement</th></tr></thead>
+        <tbody>\${trims.map(t=>\`<tr>
+          <td><strong>\${t.lib}</strong> <span style="color:var(--text-2);font-size:11px;">\${t.periode}</span></td>
+          <td class="td-amount">\${fmt(t.ca)}</td>
+          <td class="td-amount">\${fmt(t.dep)}</td>
+          <td class="td-amount" style="color:var(--danger);">\${fmt(t.cotis)}</td>
+          <td class="td-amount" style="color:var(--danger);">\${fmt(t.charges)}</td>
+          <td class="td-amount" style="color:var(--success);">\${fmt(t.net)}</td>
+          <td class="td-amount">\${fmt(t.versement)}</td>
+        </tr>\`).join('')}</tbody>
+        <tfoot><tr style="font-weight:600;border-top:2px solid var(--border);">
+          <td>Année \${annee}</td>
+          <td class="td-amount">\${fmt(totCA)}</td>
+          <td class="td-amount">\${fmt(totDep)}</td>
+          <td class="td-amount" style="color:var(--danger);">\${fmt(totCotis)}</td>
+          <td class="td-amount" style="color:var(--danger);">\${fmt(totCharges)}</td>
+          <td class="td-amount" style="color:var(--success);">\${fmt(totNet)}</td>
+          <td class="td-amount">\${fmt(totVers)}</td>
+        </tr></tfoot>
+      </table></div>
+    </div>
+    <div class="card mb-16">
+      <div class="card-title">URSSAF par trimestre — échéances</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Trimestre</th><th>Montant dû</th><th>Échéance</th><th>Statut</th></tr></thead>
+        <tbody>\${trims.map(t=>\`<tr>
+          <td><strong>\${t.lib}</strong></td>
+          <td class="td-amount">\${fmt(t.cotis)}</td>
+          <td>\${fmtDate(t.ech)}\${t.statut!=='paye'&&t.jours>=0?\` <span style="color:var(--text-2);font-size:11px;">· dans \${t.jours} j</span>\`:''}</td>
+          <td>\${badge(t)}\${t.statut==='paye'&&t.datePaye?\` <span style="color:var(--text-2);font-size:11px;">le \${fmtDate(t.datePaye)}</span>\`:''}</td>
+        </tr>\`).join('')}</tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--text-2);margin-top:8px;">Base : CA encaissé du trimestre × \${(tauxU*100).toFixed(1)} % (URSSAF) + \${(tauxC*100).toFixed(1)} % (CFP). Les paiements se gèrent dans « Charges &amp; URSSAF ».</div>
+    </div>
+    <div class="card"><div class="card-title">CA vs charges par trimestre</div><div class="chart-wrap"><canvas id="chart-rt" height="200"></canvas></div></div>\`;
+  setTimeout(()=>{
+    const c=q('#chart-rt');
+    if(c)drawBarChart(c,trims.map(t=>t.lib),[{data:trims.map(t=>t.ca),color:COLORS.blue},{data:trims.map(t=>t.charges),color:COLORS.violet}]);
+  },50);
+}
+
 /* --- Rapport fiscal --------------------------------------------------- */
 function loadRapportFiscal(){
   const y=new Date().getFullYear();
@@ -7133,6 +7260,7 @@ async function init(){
 
   // Rapports
   q('#btn-rm-gen')?.addEventListener('click',renderRapportMensuel);
+  q('#btn-rt-gen')?.addEventListener('click',renderRapportTrimestriel);
   q('#btn-ra-gen')?.addEventListener('click',renderRapportAnnuel);
   q('#btn-rf-gen')?.addEventListener('click',renderRapportFiscal);
 
