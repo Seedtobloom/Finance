@@ -4632,23 +4632,33 @@ function renderAranger(ctx){
   if(!debits.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">Aucune dépense Qonto pour le moment. Clique « Sync Qonto ».</div>';return;}
   const aRanger=debits.filter(t=>t.cat==='autre');
   const list=(_envShowAll?debits:aRanger).slice(0,80);
+  const projets=dbGet('projets')||[];
+  const txProjet=(ctx.settings&&ctx.settings.txProjet)||{};
   const opt=(cur)=>ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');
   const header=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:12px;color:var(--text-2);">\${aRanger.length?aRanger.length+' opération(s) à ranger':'✓ Tout est rangé'}\${_envShowAll?' · toutes affichées':''}</span>
     <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
   </div>\`;
   if(!list.length){el.innerHTML=header+'<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">✓ Rien à ranger. Clique « Voir toutes les opérations » pour re-catégoriser.</div>';return;}
+  const selStyle='border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text-1);background:var(--surface-2);cursor:pointer;';
   el.innerHTML=header+list.map(t=>{
     const key=t.qontoId||t.id;
     const isRanger=t.cat==='autre';
+    const projSel=t.cat==='soustraitance'
+      ? \`<select onchange="assignTxProjet('\${key}',this.value)" style="\${selStyle}max-width:150px;" title="Rattacher à un projet">
+          <option value="">— Projet ? —</option>
+          \${projets.map(p=>\`<option value="\${p.id}"\${txProjet[key]===p.id?' selected':''}>\${escHtml(p.nom)}</option>\`).join('')}
+        </select>\`
+      : '';
     return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(232,168,56,.08);':''}">
       <div style="min-width:150px;flex:1;">
         <div style="font-size:12.5px;font-weight:500;">\${escHtml(t.libelle||'—')}</div>
         <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · −\${fmt(t.montant)}</div>
       </div>
-      <select onchange="assignTx('\${key}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text-1);background:var(--surface-2);cursor:pointer;">
-        \${opt(t.cat)}
-      </select>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        \${projSel}
+        <select onchange="assignTx('\${key}',this.value)" style="\${selStyle}">\${opt(t.cat)}</select>
+      </div>
     </div>\`;
   }).join('');
 }
@@ -4660,6 +4670,17 @@ async function assignTx(key,cat){
     settings.envTx[key]=cat;
     _cache.settings=await api('PUT','/api/settings',settings);
     toast('Rangé dans « '+(ENV_LABELS[cat]||cat)+' »','success');
+    renderEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+async function assignTxProjet(key,projetId){
+  try{
+    const settings=dbGetObj('settings');
+    settings.txProjet=settings.txProjet||{};
+    if(projetId)settings.txProjet[key]=projetId; else delete settings.txProjet[key];
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast(projetId?'Rattaché au projet':'Détaché du projet','success');
     renderEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
@@ -5909,6 +5930,8 @@ function renderProjets(){
   const annee=q('#projets-filter-annee')?.value||'';
   const mois=q('#projets-filter-mois')?.value||'';
   const factures=dbGet('factures');
+  const transactions=dbGet('transactions');
+  const txProjet=dbGetObj('settings').txProjet||{};
   let list=[...dbGet('projets')];
   if(search)list=list.filter(p=>((p.nom||'')+(p.client||'')).toLowerCase().includes(search));
   if(statut)list=list.filter(p=>p.statut===statut);
@@ -5968,6 +5991,9 @@ function renderProjets(){
     const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
     const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
     const reste=Math.max(0,(p.montantTotal||0)-montantFacture);
+    // Sous-traitance rattachée à ce projet (transactions Qonto liées) → marge
+    const stLiee=transactions.filter(t=>t.type==='debit'&&txProjet[t.qontoId||t.id]===p.id).reduce((s,t)=>s+(t.montant||0),0);
+    const marge=montantFacture-stLiee;
     let facsHtml='';
     if(p.type==='mensuel'&&p.dureeIndeterminee){
       // Durée indéterminée : on affiche toutes les factures liées + 1 slot vide pour le prochain mois
@@ -6047,6 +6073,10 @@ function renderProjets(){
         <div style="background:#E8E8E4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
           <div style="background:\${pct>=100?'var(--success)':'#BAD1FD'};height:100%;width:\${pct}%;border-radius:4px;"></div>
         </div>
+        \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
+          <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:#2AA9A0;">− \${fmt(stLiee)} sous-traitance</span></span>
+          <span style="font-weight:700;color:\${marge>=0?'var(--success)':'var(--danger)'};">Marge \${fmt(marge)}</span>
+        </div>\`:''}
         \${facsHtml?'<div>'+facsHtml+'</div>':''}
         \${p.notes?'<div style="margin-top:10px;font-size:12px;color:#6B6B6B;font-style:italic;">'+p.notes+'</div>':''}
       </div>
