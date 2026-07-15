@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v14 · navigation</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v15 · alertes</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2309,7 +2309,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=14"></script>
+<script src="/app.js?v=15"></script>
 </body>
 </html>
 `;
@@ -4438,7 +4438,36 @@ function computeIntel(){
   if(burnMensuel>0&&moisSecurite<3)ins.push({t:'warn',txt:'Ta trésorerie couvre '+moisSecurite.toFixed(1)+' mois de charges. Vise 3 mois de sécurité.'});
   if(retard.length)ins.push({t:'warn',txt:retard.length+' facture(s) en retard de paiement ('+fmt(retardTotal)+'). Pense à relancer.'});
   if(urssafProchain&&urssafProchain.jours<=30)ins.push({t:'info',txt:'URSSAF '+urssafProchain.t+' à déclarer d\\'ici '+urssafProchain.jours+' jours ('+fmtDate(urssafProchain.date)+').'});
+  // Devis à relancer (envoyés, sans réponse depuis > 14 jours)
+  const devis=dbGet('devis')||[];
+  const ageJ=ds=>ds?Math.floor((now-new Date(ds+'T00:00'))/86400000):0;
+  const devisRelance=devis.filter(dv=>dv.statut==='envoye'&&ageJ(dv.date)>14);
+  if(devisRelance.length){const dv0=devisRelance.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];ins.push({t:'warn',nav:'devis',txt:devisRelance.length+' devis en attente de réponse ('+fmt(devisRelance.reduce((s,x)=>s+(x.montant||0),0))+'). Relance '+(dv0.client||dv0.numero||'le plus ancien')+' — sans nouvelle depuis '+ageJ(dv0.date)+' j.'});}
+
+  // Projection de trésorerie sur 3 mois (récurrent − charges − URSSAF à venir)
+  const caTrim=mois=>{const q=Math.floor((mois-1)/3),mm=[q*3+1,q*3+2,q*3+3];return factures.filter(f=>f.statut==='payee'&&(((f.datePaiement||f.date||'')+'').startsWith(String(y)))&&mm.includes(parseInt(((f.datePaiement||f.date||'')+'').slice(5,7)))).reduce((s,f)=>s+(f.montant||0),0);};
+  const urssafDueMonth={4:'T1',7:'T2',10:'T3',1:'T4'};
+  let bal=soldeReel,dip=null;
+  for(let k=1;k<=3&&!dip;k++){
+    let mm=m+k,yy=y;while(mm>12){mm-=12;yy++;}
+    let out=burnMensuel;
+    const tq=urssafDueMonth[mm];
+    if(tq){const paye=(urssafObj[tq+'-'+(mm===1?yy-1:yy)]||{}).statut==='paye';if(!paye)out+=Math.round(caTrim(mm===1?12:mm-1)*(tauxU+tauxC));}
+    bal+=recMensuel-out;
+    if(bal<0)dip={mm,bal};else if(bal<burnMensuel)dip={mm,bal,tendu:true};
+  }
+  if(dip)ins.push({t:'warn',txt:'Trésorerie à surveiller : avec tes charges et l\\'URSSAF à venir, ton solde '+(dip.tendu?'deviendrait tendu':'passerait dans le rouge')+' vers '+MOIS_LONG[dip.mm-1]+' (~'+fmt(dip.bal)+'). Anticipe une rentrée ou mets de côté dès maintenant.'});
+
+  // Hausse anormale de dépenses (dernier mois clôturé vs moyenne des 3 précédents)
+  const depMoisF=(yy,mm)=>depenses.filter(d=>(d.date||'').startsWith(yy+'-'+String(mm).padStart(2,'0'))&&d.categorie!=='Versement perso').reduce((s,x)=>s+(x.montant||0),0);
+  {let lm=m-1,ly=y;if(lm<1){lm+=12;ly--;}const dLast=depMoisF(ly,lm);const prev=[2,3,4].map(k=>{let mm=m-k,yy=y;while(mm<1){mm+=12;yy--;}return depMoisF(yy,mm);});const moy=prev.reduce((s,x)=>s+x,0)/3;if(moy>0&&dLast>moy*1.4)ins.push({t:'warn',nav:'depenses',txt:'Tes dépenses de '+MOIS_LONG[lm-1]+' ('+fmt(dLast)+') sont '+Math.round((dLast/moy-1)*100)+'% au-dessus de ta moyenne récente ('+fmt(moy)+'). Regarde ce qui a changé.'});}
+
+  // Autonomie de trésorerie si l'activité tombe à zéro
+  if(joursRupture>0&&joursRupture<60)ins.push({t:'warn',txt:'Sans nouvelle rentrée d\\'argent, ta trésorerie tiendrait environ '+joursRupture+' jours.'});
+
   if(!ins.length)ins.push({t:'good',txt:'Tout est au vert. Rien qui demande ton attention aujourd\\'hui.'});
+  const prio={warn:0,info:1,good:2};
+  ins.sort((a,b)=>(prio[a.t]||9)-(prio[b.t]||9));
 
   return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caYTD,pctObjectif,retard,attente,urssafProchain};
 }
@@ -4500,10 +4529,10 @@ function renderCockpit(){
       </div>
       <div class="card" style="padding:16px 18px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:10px;"><i class="ti ti-bulb"></i> Ce qui compte maintenant</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          \${d.ins.slice(0,5).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;">
+        <div style="display:flex;flex-direction:column;gap:9px;">
+          \${d.ins.slice(0,6).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;\${i.nav?'cursor:pointer;':''}" \${i.nav?'onclick="navigate(\\''+i.nav+'\\')"':''}>
             <i class="ti \${insIcon[i.t]}" style="color:\${insColor[i.t]};font-size:15px;margin-top:1px;flex:none;"></i>
-            <span>\${i.txt}</span>
+            <span>\${i.txt}\${i.nav?' <span style="color:var(--navy);white-space:nowrap;">→</span>':''}</span>
           </div>\`).join('')}
         </div>
       </div>
