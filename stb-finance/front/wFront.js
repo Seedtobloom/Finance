@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v12 · tendances</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v13 · objectifs</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1151,14 +1151,51 @@ const HTML = `<!DOCTYPE html>
     <section id="section-objectifs-epargne" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Objectifs d'épargne</h1>
+          <h1>Mes objectifs</h1>
+          <div class="page-subtitle">Ton cap financier, en un coup d'œil</div>
         </div>
-        <div class="page-header-right">
-          <button class="btn btn-primary" id="btn-new-objectif-epargne"><i class="ti ti-plus"></i> Nouvel objectif</button>
+        <div class="page-header-right" style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="openObjectifsPilotage()"><i class="ti ti-adjustments"></i> Définir mes objectifs</button>
+          <button class="btn btn-primary" id="btn-new-objectif-epargne"><i class="ti ti-plus"></i> Nouvel objectif d'épargne</button>
         </div>
       </div>
+      <div id="objectifs-pilotage" style="margin-bottom:22px;"></div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin:0 2px 12px;">Objectifs d'épargne</div>
       <div class="goals-grid" id="epargne-goals-grid"></div>
     </section><!-- /objectifs-epargne -->
+
+    <!-- Modal définir mes objectifs -->
+    <div class="modal-overlay" id="modal-objectifs-pilotage" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title">Définir mes objectifs</div>
+          <button class="modal-close" onclick="q('#modal-objectifs-pilotage').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <label class="form-label">Objectif de CA annuel (€)</label>
+            <input class="form-control" type="number" id="obj-ca" min="0" step="1000" placeholder="Ex: 60000">
+          </div>
+          <div>
+            <label class="form-label">Matelas de trésorerie visé (€)</label>
+            <input class="form-control" type="number" id="obj-treso" min="0" step="500" placeholder="Ex: 10000">
+          </div>
+          <div>
+            <label class="form-label">Mois de sécurité visés</label>
+            <input class="form-control" type="number" id="obj-mois-secu" min="0" max="24" step="1" placeholder="3">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Combien de mois de charges tu veux pouvoir tenir sans rentrée d'argent.</div>
+          </div>
+          <div>
+            <label class="form-label">Revenus récurrents visés (€ / mois)</label>
+            <input class="form-control" type="number" id="obj-recurrent" min="0" step="100" placeholder="Ex: 2000">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-objectifs-pilotage').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="saveObjectifsPilotage()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 
     <!-- ═══════════════════════════
@@ -2328,7 +2365,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=12"></script>
+<script src="/app.js?v=13"></script>
 </body>
 </html>
 `;
@@ -6770,9 +6807,73 @@ async function saveURSSAFPaiement(){
   }catch(e){toast(e.message||'Erreur','error');}
 }
 
+/* --- Objectifs de pilotage (jauges) ----------------------------------- */
+function ringGauge(pct,color){
+  const p=Math.max(0,Math.min(100,pct||0));
+  const r=32,c=2*Math.PI*r,off=c*(1-p/100);
+  return \`<svg viewBox="0 0 80 80" style="width:82px;height:82px;">
+    <circle cx="40" cy="40" r="\${r}" fill="none" stroke="var(--border)" stroke-width="7"/>
+    <circle cx="40" cy="40" r="\${r}" fill="none" stroke="\${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="\${c.toFixed(1)}" stroke-dashoffset="\${off.toFixed(1)}" transform="rotate(-90 40 40)"/>
+    <text x="40" y="46" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-size="19" font-weight="600" fill="var(--navy)">\${Math.round(p)}%</text>
+  </svg>\`;
+}
+function renderObjectifsPilotage(){
+  const el=q('#objectifs-pilotage'); if(!el)return;
+  const s=dbGetObj('settings');
+  let d={}; try{d=computeIntel();}catch(e){}
+  const objCA=parseFloat(s.objectifCA)||0;
+  const objTreso=parseFloat(s.objectifTresorerie)||0;
+  const objMois=parseFloat(s.objectifMoisSecu)||3;
+  const objRec=parseFloat(s.objectifRecurrent)||0;
+  const caYTD=d.caYTD||0, soldeReel=d.soldeReel||0, moisSecu=d.moisSecurite||0, rec=d.recMensuel||0;
+  const tiles=[
+    {lab:'CA annuel',      color:'#4C6FBF',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
+    {lab:'Matelas trésorerie',color:'#3E9E74',cur:soldeReel,cible:objTreso,txt:objTreso>0?fmt(soldeReel)+' / '+fmt(objTreso):'objectif non défini',        pct:objTreso>0?soldeReel/objTreso*100:0},
+    {lab:'Mois de sécurité',color:'#E8A838',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
+    {lab:'Revenus récurrents',color:'#7C3AED',cur:rec,   cible:objRec,  txt:objRec>0?fmt(rec)+' / '+fmt(objRec)+'/mois':'objectif non défini',              pct:objRec>0?rec/objRec*100:0},
+  ];
+  el.innerHTML=\`<div class="card" style="padding:20px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;">
+    \${tiles.map(t=>{
+      const atteint=t.cible>0&&t.cur>=t.cible;
+      return \`<div style="display:flex;align-items:center;gap:14px;">
+        <div style="flex:none;">\${ringGauge(t.pct,atteint?'#3E9E74':t.color)}</div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);margin-bottom:3px;">\${t.lab}</div>
+          <div style="font-size:12.5px;color:var(--text-1);">\${t.txt}</div>
+          \${atteint?'<div style="font-size:11px;color:#3E9E74;font-weight:600;margin-top:2px;"><i class="ti ti-circle-check"></i> Atteint</div>':''}
+        </div>
+      </div>\`;
+    }).join('')}
+    </div>
+  </div>\`;
+}
+function openObjectifsPilotage(){
+  const s=dbGetObj('settings');
+  q('#obj-ca').value=s.objectifCA||'';
+  q('#obj-treso').value=s.objectifTresorerie||'';
+  q('#obj-mois-secu').value=s.objectifMoisSecu!=null?s.objectifMoisSecu:3;
+  q('#obj-recurrent').value=s.objectifRecurrent||'';
+  q('#modal-objectifs-pilotage').style.display='flex';
+}
+async function saveObjectifsPilotage(){
+  try{
+    const settings=dbGetObj('settings');
+    const ca=parseFloat(q('#obj-ca').value); if(!isNaN(ca))settings.objectifCA=ca;
+    const tr=parseFloat(q('#obj-treso').value); settings.objectifTresorerie=isNaN(tr)?0:tr;
+    const ms=parseFloat(q('#obj-mois-secu').value); settings.objectifMoisSecu=isNaN(ms)?3:ms;
+    const re=parseFloat(q('#obj-recurrent').value); settings.objectifRecurrent=isNaN(re)?0:re;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-objectifs-pilotage').style.display='none';
+    toast('Objectifs enregistrés','success');
+    renderObjectifsPilotage();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
 /* --- Objectifs épargne ------------------------------------------------ */
 let epargneGoals=[];
 function loadObjectifsEpargne(){
+  try{renderObjectifsPilotage();}catch(e){}
   epargneGoals=dbGet('objectifs_epargne');
   renderEpargneGoals();
 }
