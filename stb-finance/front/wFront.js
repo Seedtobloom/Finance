@@ -37,6 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v9 · enveloppes + prévision</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2320,7 +2321,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js"></script>
+<script src="/app.js?v=9"></script>
 </body>
 </html>
 `;
@@ -7498,7 +7499,7 @@ export default {
 
     // Assets statiques
     if (path === '/style.css') return new Response(CSS,  { headers: { 'Content-Type': 'text/css; charset=utf-8',         'Cache-Control': 'no-cache' } });
-    if (path === '/app.js')    return new Response(JS,   { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-cache' } });
+    if (path === '/app.js')    return new Response(JS,   { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
     if (path === '/favicon.ico') return new Response(null, { status: 204 });
 
     // Auth
