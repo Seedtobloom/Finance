@@ -6687,6 +6687,15 @@ function computePrevision(){
     }
     if(reste>0){resteAFacturer+=reste;detailProjets.push({nom:p.nom,client:p.client||'',reste});}
   });
+  // Revenus récurrents déclarés (facturés chaque mois, sans date de fin) → projetés sur les mois restants
+  const revenusRec=(settings.revenusRecurrents||[]);
+  let recMensuel=0, recRestant=0;
+  revenusRec.forEach(r=>{
+    const m=parseFloat(r.montant)||0; recMensuel+=m;
+    const rr=Math.round(m*moisRestants*100)/100;
+    if(rr>0){recRestant+=rr;detailProjets.push({nom:(r.nom||'Revenu récurrent')+' · '+fmt(m)+'/mois',client:'récurrent',reste:rr});}
+  });
+  resteAFacturer+=recRestant;
   detailProjets.sort((a,b)=>b.reste-a.reste);
 
   const caProjete=encaisse+enAttente+resteAFacturer;
@@ -6709,7 +6718,7 @@ function computePrevision(){
   const objectifCA=parseFloat(settings.objectifCA)||0;
   const pctObj=objectifCA>0?Math.round(caProjete/objectifCA*100):null;
 
-  return {annee,moisRestants,encaisse,enAttente,resteAFacturer,caProjete,cotisations,abosAnnee,pasAnnee,chargesProjetees,netProjete,netEncaisse,resteAGagner,objectifCA,pctObj,detailProjets};
+  return {annee,moisRestants,encaisse,enAttente,resteAFacturer,caProjete,cotisations,abosAnnee,pasAnnee,chargesProjetees,netProjete,netEncaisse,resteAGagner,objectifCA,pctObj,detailProjets,revenusRec,recMensuel,recRestant};
 }
 
 function renderRapportPrevision(){
@@ -6727,6 +6736,23 @@ function renderRapportPrevision(){
       <div class="kpi-card"><span class="kpi-label">CA projeté \${p.annee}</span><span class="kpi-value">\${fmt(p.caProjete)}</span></div>
       <div class="kpi-card"><span class="kpi-label">Charges projetées</span><span class="kpi-value danger">\${fmt(p.chargesProjetees)}</span></div>
       <div class="kpi-card"><span class="kpi-label">Net projeté fin d'année</span><span class="kpi-value green">\${fmt(p.netProjete)}</span></div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title"><i class="ti ti-repeat"></i> Revenus récurrents (facturés chaque mois)</div>
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Déclare tes revenus mensuels sans date de fin (ex : Envol 600 €/mois). Ils sont projetés sur les \${p.moisRestants} mois restants de l'année.</div>
+      \${p.revenusRec.length?p.revenusRec.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;">\${escHtml(r.nom||'—')} · <strong>\${fmt(parseFloat(r.montant)||0)}/mois</strong></div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:12px;color:var(--text-2);">→ \${fmt(Math.round((parseFloat(r.montant)||0)*p.moisRestants*100)/100)} d'ici déc.</span>
+          <button onclick="deleteRevenuRecurrent('\${r.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>\`).join(''):'<div style="font-size:12px;color:var(--text-2);font-style:italic;padding:4px 0;">Aucun revenu récurrent déclaré.</div>'}
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <input id="rec-nom" class="form-control" style="flex:2;min-width:140px;" placeholder="Nom (ex : Envol)">
+        <input id="rec-montant" class="form-control" type="number" style="flex:1;min-width:90px;" placeholder="€/mois">
+        <button class="btn btn-secondary" onclick="addRevenuRecurrent()"><i class="ti ti-plus"></i> Ajouter</button>
+      </div>
     </div>
 
     <div class="card mb-16">
@@ -6764,6 +6790,29 @@ function renderRapportPrevision(){
 
     <div style="font-size:11px;color:var(--text-2);">Estimation : le « reste à facturer » projette tes projets récurrents sur les mois restants de l'année et le solde des projets en cours. Les charges sont projetées sur 12 mois d'abonnements et de PAS.</div>
   \`;
+}
+
+async function addRevenuRecurrent(){
+  const nom=(q('#rec-nom')?.value||'').trim();
+  const montant=parseFloat(q('#rec-montant')?.value);
+  if(!nom||isNaN(montant)||montant<=0){toast('Indique un nom et un montant','error');return;}
+  try{
+    const settings=dbGetObj('settings');
+    settings.revenusRecurrents=settings.revenusRecurrents||[];
+    settings.revenusRecurrents.push({id:'r'+Date.now(),nom,montant});
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Revenu récurrent ajouté','success');
+    renderRapportPrevision();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function deleteRevenuRecurrent(id){
+  try{
+    const settings=dbGetObj('settings');
+    settings.revenusRecurrents=(settings.revenusRecurrents||[]).filter(r=>r.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Supprimé','success');
+    renderRapportPrevision();
+  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 /* --- Rapport trimestriel ---------------------------------------------- */
