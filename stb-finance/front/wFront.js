@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v10 · sous-traitance</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v11 · copilote</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -180,6 +180,9 @@ const HTML = `<!DOCTYPE html>
           </button>
         </div>
       </div>
+
+      <!-- Cockpit : copilote financier (score, briefing, insights) -->
+      <div id="dash-cockpit" style="margin-bottom:22px;"></div>
 
       <!-- Ligne 1 KPIs -->
       <div class="kpi-grid kpi-grid-4 mb-16">
@@ -2322,7 +2325,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=10"></script>
+<script src="/app.js?v=11"></script>
 </body>
 </html>
 `;
@@ -4285,11 +4288,186 @@ function drawStackedBarChart(canvas,labels,datasets){
 /* ─── 9. MODULES ─────────────────────────────────────────────────────── */
 
 /* --- Dashboard -------------------------------------------------------- */
+/* ═══ Copilote financier : analyse, score de santé, briefing, insights ═══ */
+function computeIntel(){
+  const now=new Date();
+  const y=now.getFullYear(), m=now.getMonth()+1;
+  const factures=dbGet('factures'), depenses=dbGet('depenses'), abonnements=dbGet('abonnements'), projets=dbGet('projets');
+  const settings=dbGetObj('settings'), urssafObj=dbGetObj('urssaf');
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const pas=parseFloat(settings.pasFixe)||40, objectifCA=parseFloat(settings.objectifCA)||0;
+  const PLAFOND=77700;
+  const ym=(yy,mm)=>yy+'-'+String(mm).padStart(2,'0');
+  const inY=ds=>((ds||'')+'').startsWith(String(y));
+
+  // Enveloppes (réutilise le moteur pour le disponible réel)
+  let env={},disponible=0,soldeReel=0,totalReserve=0;
+  try{const ce=computeEnveloppes();env=ce.env;disponible=ce.disponible;soldeReel=ce.soldeReel;totalReserve=ce.totalReserve;}catch(e){}
+
+  const caM=(yy,mm)=>factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(ym(yy,mm))).reduce((s,f)=>s+(f.montant||0),0);
+  const caMois=caM(y,m);
+  const pm=m===1?12:m-1, py=m===1?y-1:y;
+  const caMoisPrec=caM(py,pm);
+  const caYTD=factures.filter(f=>f.statut==='payee'&&inY(f.datePaiement||f.date)).reduce((s,f)=>s+(f.montant||0),0);
+  const moisEcoules=m;
+  const revenuMoyen=caYTD/Math.max(1,moisEcoules);
+  const serie=[2,1,0].map(k=>{let mm=m-k,yy=y;while(mm<1){mm+=12;yy--;}return caM(yy,mm);});
+  const caTrendUp=serie[0]<serie[1]&&serie[1]<serie[2];
+  const deltaMois=caMoisPrec>0?Math.round((caMois-caMoisPrec)/caMoisPrec*100):null;
+
+  const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const depYTD=depenses.filter(d=>inY(d.date)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
+  const depMoyMois=depYTD/Math.max(1,moisEcoules);
+  const chargesYTD=Math.round(caYTD*(tauxU+tauxC))+(abosMois+pas)*moisEcoules+depYTD;
+  const ratioCharges=caYTD>0?chargesYTD/caYTD:0;
+  const burnMensuel=Math.round(abosMois+pas+depMoyMois);
+  const moisSecurite=burnMensuel>0?soldeReel/burnMensuel:0;
+  const joursRupture=Math.round(moisSecurite*30);
+
+  const attenduYTD=objectifCA>0?objectifCA*(moisEcoules/12):0;
+  const ecartObjectif=Math.round(caYTD-attenduYTD);
+  const projAnnuel=Math.round(revenuMoyen*12);
+  const pctPlafond=Math.round(projAnnuel/PLAFOND*100);
+  const pctObjectif=objectifCA>0?Math.round(caYTD/objectifCA*100):null;
+
+  // Concentration client
+  const caParClient={};
+  factures.filter(f=>f.statut==='payee'&&inY(f.datePaiement||f.date)).forEach(f=>{const c=f.client||'—';caParClient[c]=(caParClient[c]||0)+(f.montant||0);});
+  const clientsTri=Object.entries(caParClient).sort((a,b)=>b[1]-a[1]);
+  const topClient=clientsTri[0]||['—',0];
+  const topClientPct=caYTD>0?Math.round(topClient[1]/caYTD*100):0;
+
+  // Revenus récurrents (projets indéterminés + déclarés)
+  const recMensuel=projets.filter(p=>p.type==='mensuel'&&p.dureeIndeterminee).reduce((s,p)=>s+(p.montantTotal||0),0)
+    +(settings.revenusRecurrents||[]).reduce((s,r)=>s+(parseFloat(r.montant)||0),0);
+
+  // Factures en retard / en attente
+  const retard=factures.filter(f=>f.statut==='retard');
+  const attente=factures.filter(f=>f.statut==='attente');
+  const retardTotal=retard.reduce((s,f)=>s+(f.montant||0),0);
+
+  // Prochaine échéance URSSAF non payée
+  const echeances={T1:y+'-04-30',T2:y+'-07-31',T3:y+'-10-31',T4:(y+1)+'-01-31'};
+  let urssafProchain=null;
+  ['T1','T2','T3','T4'].forEach(t=>{const d=urssafObj[t+'-'+y]||{};if(d.statut==='paye')return;const ech=new Date(echeances[t]+'T23:59');const j=Math.ceil((ech-now)/86400000);if(j>=0&&(!urssafProchain||j<urssafProchain.jours))urssafProchain={t,jours:j,date:echeances[t]};});
+
+  // Score de santé (pondéré)
+  const s1=Math.max(0,Math.min(100,Math.round(moisSecurite/3*100)));
+  const s2=disponible>=0?100:Math.max(0,Math.round(100+disponible/Math.max(1,totalReserve)*100));
+  const s3=objectifCA>0?Math.max(0,Math.min(100,Math.round(caYTD/Math.max(1,attenduYTD)*100))):70;
+  const s4=ratioCharges>0?Math.max(0,Math.min(100,Math.round(100-Math.max(0,ratioCharges-0.45)*300))):100;
+  const s5=revenuMoyen>0?Math.min(100,Math.round(recMensuel/revenuMoyen*100)):0;
+  const s6=topClientPct<=40?100:Math.max(0,100-(topClientPct-40)*2);
+  const score=Math.round(s1*.25+s2*.25+s3*.20+s4*.15+s5*.10+s6*.05);
+
+  const indics=[
+    {ok:moisSecurite>=3,label:'Trésorerie',val:moisSecurite.toFixed(1)+' mois de sécurité'},
+    {ok:disponible>=0,label:'Réserves',val:disponible>=0?'URSSAF & charges couvertes':'réserves à découvert'},
+    {ok:pctObjectif==null||s3>=90,label:'Objectif CA',val:pctObjectif!=null?pctObjectif+'% (rythme '+(ecartObjectif>=0?'OK':fmt(ecartObjectif))+')':'non défini'},
+    {ok:ratioCharges<=0.5,label:'Charges',val:caYTD>0?Math.round(ratioCharges*100)+'% du CA':'—'},
+    {ok:recMensuel>0&&s5>=25,label:'Revenus récurrents',val:recMensuel>0?fmt(recMensuel)+'/mois':'aucun'},
+    {ok:topClientPct<=40,label:'Dépendance client',val:topClient[0]!=='—'?topClient[0]+' = '+topClientPct+'%':'—'},
+  ];
+
+  // Insights automatiques
+  const ins=[];
+  if(disponible>0)ins.push({t:'good',txt:'Tu peux te verser jusqu\\'à '+fmt(disponible)+' aujourd\\'hui sans toucher à tes réserves (URSSAF, charges…).'});
+  else if(disponible<0)ins.push({t:'warn',txt:'Tu as réservé '+fmt(-disponible)+' de plus que ton solde réel. Attends un encaissement avant de te verser quoi que ce soit.'});
+  if(deltaMois!=null)ins.push({t:deltaMois>=0?'good':'warn',txt:'Ton CA de '+MOIS_LONG[m-1]+' est '+(deltaMois>=0?'en hausse de +'+deltaMois+'%':'en baisse de '+deltaMois+'%')+' vs le mois dernier.'});
+  if(caTrendUp)ins.push({t:'good',txt:'Tes revenus progressent depuis 3 mois d\\'affilée. Continue comme ça.'});
+  if(objectifCA>0&&ecartObjectif<0)ins.push({t:'warn',txt:'Tu es en dessous de ton rythme annuel : il te manque environ '+fmt(-ecartObjectif)+' pour rester dans l\\'objectif de '+fmt(objectifCA)+'.'});
+  if(objectifCA>0&&ecartObjectif>=0&&pctObjectif!=null)ins.push({t:'good',txt:'Tu es en avance sur ton objectif de CA ('+pctObjectif+'% atteint, rythme dépassé de '+fmt(ecartObjectif)+').'});
+  if(topClientPct>40)ins.push({t:'warn',txt:topClient[0]+' représente '+topClientPct+'% de ton CA. Beaucoup dépend de ce client — pense à diversifier.'});
+  if(pctPlafond>=80)ins.push({t:'warn',txt:'À ce rythme, tu projettes '+fmt(projAnnuel)+' sur l\\'année, soit '+pctPlafond+'% du plafond micro-BNC (77 700 €). Surveille le dépassement.'});
+  if(burnMensuel>0&&moisSecurite<3)ins.push({t:'warn',txt:'Ta trésorerie couvre '+moisSecurite.toFixed(1)+' mois de charges. Vise 3 mois de sécurité.'});
+  if(retard.length)ins.push({t:'warn',txt:retard.length+' facture(s) en retard de paiement ('+fmt(retardTotal)+'). Pense à relancer.'});
+  if(urssafProchain&&urssafProchain.jours<=30)ins.push({t:'info',txt:'URSSAF '+urssafProchain.t+' à déclarer d\\'ici '+urssafProchain.jours+' jours ('+fmtDate(urssafProchain.date)+').'});
+  if(!ins.length)ins.push({t:'good',txt:'Tout est au vert. Rien qui demande ton attention aujourd\\'hui.'});
+
+  return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caYTD,pctObjectif,retard,attente,urssafProchain};
+}
+
+function renderCockpit(){
+  const el=q('#dash-cockpit'); if(!el)return;
+  let d; try{d=computeIntel();}catch(e){el.innerHTML='';return;}
+  const now=new Date();
+  const scoreColor=d.score>=80?'#3E9E74':d.score>=55?'#E8A838':'#E05252';
+  const scoreLabel=d.score>=80?'Solide':d.score>=55?'Correct':'Fragile';
+  const insColor={good:'#3E9E74',warn:'#E05252',info:'#1A2E5A'};
+  const insIcon={good:'ti-circle-check',warn:'ti-alert-triangle',info:'ti-info-circle'};
+
+  // Briefing du jour (les 4-5 réponses essentielles)
+  const brief=[];
+  brief.push({ic:'ti-cash',txt:d.disponible>0?'Tu peux te verser <strong>'+fmt(d.disponible)+'</strong>':'Rien à te verser pour l\\'instant'});
+  brief.push({ic:'ti-calendar-due',txt:d.urssafProchain?('URSSAF '+d.urssafProchain.t+' dans <strong>'+d.urssafProchain.jours+' j</strong>'):'Rien à déclarer à l\\'URSSAF'});
+  brief.push({ic:'ti-file-invoice',txt:d.retard.length?('<strong>'+d.retard.length+'</strong> facture(s) en retard'):'Aucune facture en retard'});
+  brief.push({ic:'ti-target',txt:d.pctObjectif!=null?('<strong>'+d.pctObjectif+'%</strong> de ton objectif annuel'):'Objectif de CA non défini'});
+
+  const wow=[
+    {ic:'💸',lab:'Disponible réel',val:fmt(d.disponible)},
+    {ic:'🛟',lab:'Mois de sécurité',val:d.moisSecurite.toFixed(1)+' mois'},
+    {ic:'📊',lab:'Revenu moyen / mois',val:fmt(d.revenuMoyen)},
+    {ic:'📈',lab:'Récurrent garanti',val:fmt(d.recMensuel)+'/mois'},
+    {ic:'❤️',lab:'Meilleur client',val:d.topClient[0]==='—'?'—':d.topClient[0]},
+    {ic:'🔥',lab:'Burn rate',val:fmt(d.burnMensuel)+'/mois'},
+  ];
+
+  el.innerHTML=\`
+  <div style="display:grid;grid-template-columns:minmax(240px,300px) 1fr;gap:16px;align-items:stretch;">
+    <!-- Score de santé -->
+    <div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:20px 22px;color:#fff;display:flex;flex-direction:column;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.6;margin-bottom:8px;">Santé financière</div>
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;line-height:1;color:\${scoreColor};">\${d.score}</span>
+        <span style="font-size:15px;opacity:.7;">/ 100 · \${scoreLabel}</span>
+      </div>
+      <div style="height:7px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin:12px 0 14px;">
+        <div style="height:100%;width:\${d.score}%;background:\${scoreColor};border-radius:4px;transition:width .6s;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        \${d.indics.map(i=>\`<div style="display:flex;align-items:center;gap:7px;font-size:11.5px;">
+          <i class="ti \${i.ok?'ti-check':'ti-alert-triangle'}" style="color:\${i.ok?'#7BE0AE':'#F6C664'};font-size:13px;"></i>
+          <span style="opacity:.85;">\${i.label} — \${i.val}</span>
+        </div>\`).join('')}
+      </div>
+    </div>
+
+    <!-- Briefing + insights -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="card" style="padding:16px 18px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:12px;">Bonjour 👋 · voici l'essentiel aujourd'hui</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+          \${brief.map(b=>\`<div style="display:flex;align-items:center;gap:9px;font-size:13px;">
+            <i class="ti \${b.ic}" style="color:var(--navy);font-size:16px;"></i><span>\${b.txt}</span>
+          </div>\`).join('')}
+        </div>
+      </div>
+      <div class="card" style="padding:16px 18px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:10px;"><i class="ti ti-bulb"></i> Ce qui compte maintenant</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          \${d.ins.slice(0,5).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;">
+            <i class="ti \${insIcon[i.t]}" style="color:\${insColor[i.t]};font-size:15px;margin-top:1px;flex:none;"></i>
+            <span>\${i.txt}</span>
+          </div>\`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Indicateurs clés -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px;">
+    \${wow.map(w=>\`<div class="card" style="padding:12px 14px;">
+      <div style="font-size:11px;color:var(--text-2);margin-bottom:3px;">\${w.ic} \${w.lab}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);">\${w.val}</div>
+    </div>\`).join('')}
+  </div>\`;
+}
+
 function loadDashboard(){
   const now=new Date();
   const y=now.getFullYear(),m=now.getMonth()+1;
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
   if(q('#dash-period'))q('#dash-period').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
+  try{renderCockpit();}catch(e){}
 
   const factures    = dbGet('factures');
   const depenses    = dbGet('depenses');
