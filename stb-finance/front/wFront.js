@@ -304,107 +304,50 @@ const HTML = `<!DOCTYPE html>
       <div class="page-header">
         <div class="page-header-left">
           <h1>Enveloppes</h1>
-          <div class="page-subtitle">Répartition réelle de ton argent entre tes comptes virtuels</div>
+          <div class="page-subtitle">Ton solde Qonto réel, réparti automatiquement d'après tes vraies transactions</div>
         </div>
         <div class="page-header-right" style="display:flex;gap:8px;">
-          <button class="btn btn-outline" onclick="syncQonto()"><i class="ti ti-refresh"></i> Sync Qonto</button>
-          <button class="btn btn-primary" onclick="openVirementModal()"><i class="ti ti-arrows-transfer-up"></i> Nouveau virement</button>
+          <button class="btn btn-outline" onclick="openEnvReglages()"><i class="ti ti-settings"></i> Réglages</button>
+          <button class="btn btn-primary" onclick="syncQonto()"><i class="ti ti-refresh"></i> Sync Qonto</button>
         </div>
       </div>
 
       <div id="enveloppes-banner" style="margin-bottom:20px;"></div>
-      <div id="enveloppes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;"></div>
+      <div id="enveloppes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
 
       <div class="card" style="margin-top:24px;">
-        <div class="card-title"><i class="ti ti-history"></i> Historique des virements</div>
-        <div id="virements-list"></div>
+        <div class="card-title"><i class="ti ti-inbox"></i> Opérations à ranger</div>
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ces dépenses Qonto ne sont pas encore reconnues. Range-les dans la bonne enveloppe — l'appli s'en souviendra.</div>
+        <div id="enveloppes-aranger"></div>
       </div>
     </section><!-- /enveloppes -->
 
-    <!-- Modal objectif enveloppe -->
-    <div class="modal-overlay" id="modal-objectif-env" style="display:none;">
-      <div class="modal" style="max-width:380px;">
+    <!-- Modal réglages enveloppes -->
+    <div class="modal-overlay" id="modal-env-reglages" style="display:none;">
+      <div class="modal" style="max-width:420px;">
         <div class="modal-header">
-          <div class="modal-title" id="modal-objectif-env-title">Fixer l'objectif</div>
-          <button class="modal-close" onclick="q('#modal-objectif-env').style.display='none'"><i class="ti ti-x"></i></button>
+          <div class="modal-title">Réglages des enveloppes</div>
+          <button class="modal-close" onclick="q('#modal-env-reglages').style.display='none'"><i class="ti ti-x"></i></button>
         </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
           <div>
-            <label class="form-label">Objectif (€)</label>
-            <input class="form-control" type="number" id="objectif-env-montant" min="0" step="1" placeholder="Ex: 1500">
+            <label class="form-label">Budget Formation (€ / an)</label>
+            <input class="form-control" type="number" id="env-budget-formation" min="0" step="50" placeholder="Ex: 2000">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Le seul montant que l'appli ne peut pas deviner.</div>
           </div>
-          <div style="font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:8px;padding:10px 12px;" id="objectif-env-hint"></div>
+          <div>
+            <label class="form-label">Matelas de trésorerie (€)</label>
+            <input class="form-control" type="number" id="env-cible-treso" min="0" step="100" placeholder="0 = désactivé">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Montant à garder en sécurité. Laisse 0 si tu n'en veux pas.</div>
+          </div>
+          <div>
+            <label class="form-label">Charges fixes à couvrir (mois d'avance)</label>
+            <input class="form-control" type="number" id="env-horizon-charges" min="0" max="12" step="1" placeholder="1">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Combien de mois d'abonnements garder de côté.</div>
+          </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
-            <button class="btn btn-outline" onclick="q('#modal-objectif-env').style.display='none'">Annuler</button>
-            <button class="btn btn-primary" id="btn-save-objectif-env" onclick="saveObjectifEnv()"><i class="ti ti-check"></i> Enregistrer</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal virement -->
-    <div class="modal-overlay" id="modal-virement" style="display:none;">
-      <div class="modal" style="max-width:440px;">
-        <div class="modal-header">
-          <div class="modal-title">Nouveau virement</div>
-          <button class="modal-close" onclick="closeVirementModal()"><i class="ti ti-x"></i></button>
-        </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
-          <div>
-            <label class="form-label">De</label>
-            <select class="form-control" id="virement-de"></select>
-          </div>
-          <div>
-            <label class="form-label">Vers</label>
-            <select class="form-control" id="virement-vers"></select>
-          </div>
-          <div>
-            <label class="form-label">Montant (€)</label>
-            <input class="form-control" type="number" id="virement-montant" min="0.01" step="0.01" placeholder="0,00">
-          </div>
-          <div>
-            <label class="form-label">Date</label>
-            <input class="form-control" type="date" id="virement-date">
-          </div>
-          <div>
-            <label class="form-label">Motif</label>
-            <input class="form-control" type="text" id="virement-motif" placeholder="Ex: Versement salaire juin">
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-            <button class="btn btn-outline" onclick="closeVirementModal()">Annuler</button>
-            <button class="btn btn-primary" onclick="saveVirement()"><i class="ti ti-check"></i> Valider</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal déduction (dépense depuis une enveloppe) -->
-    <div class="modal-overlay" id="modal-deduire-env" style="display:none;">
-      <div class="modal" style="max-width:440px;">
-        <div class="modal-header">
-          <div class="modal-title" id="modal-deduire-env-title">Déduire d'une enveloppe</div>
-          <button class="modal-close" onclick="closeDeduireEnvModal()"><i class="ti ti-x"></i></button>
-        </div>
-        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
-          <div style="font-size:12px;color:var(--text-2);background:var(--surface-2);border-radius:8px;padding:10px 12px;line-height:1.5;">
-            <i class="ti ti-info-circle"></i> Enregistre une dépense réelle <strong>déjà débitée sur Qonto</strong>.
-            Cela diminue uniquement cette enveloppe — le solde réel Qonto n'est pas touché (il a déjà baissé via la sync).
-          </div>
-          <div>
-            <label class="form-label">Montant (€)</label>
-            <input class="form-control" type="number" id="deduire-env-montant" min="0.01" step="0.01" placeholder="0,00">
-          </div>
-          <div>
-            <label class="form-label">Date</label>
-            <input class="form-control" type="date" id="deduire-env-date">
-          </div>
-          <div>
-            <label class="form-label">Motif</label>
-            <input class="form-control" type="text" id="deduire-env-motif" placeholder="Ex: Accompagnement prospection">
-          </div>
-          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px;">
-            <button class="btn btn-outline" onclick="closeDeduireEnvModal()">Annuler</button>
-            <button class="btn btn-primary" onclick="saveDeduireEnv()"><i class="ti ti-check"></i> Déduire</button>
+            <button class="btn btn-outline" onclick="q('#modal-env-reglages').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="saveEnvReglages()"><i class="ti ti-check"></i> Enregistrer</button>
           </div>
         </div>
       </div>
@@ -4497,232 +4440,198 @@ async function syncQonto(silent=false){
 }
 
 /* --- Enveloppes ------------------------------------------------------- */
-const ENVELOPPES_COULEURS={qonto:'#1A2E5A',charges:'#E8A838',formations:'#7C3AED',tresorerie:'#4CAF82',salaire:'#E05252'};
-const ENVELOPPES_ICONES={qonto:'ti-building-bank',charges:'ti-receipt',formations:'ti-school',tresorerie:'ti-safe',salaire:'ti-user'};
-let _enveloppes=[];
+/* Enveloppes = lecture des vraies transactions Qonto, jamais de virement manuel.
+   URSSAF & Charges se calculent seules ; Formation & Trésorerie = budgets que tu fixes. */
+const ENV_DEF=[
+  {id:'urssaf',    nom:'URSSAF + CFP',  icone:'ti-building-bank', couleur:'#E05252', auto:true },
+  {id:'charges',   nom:'Charges fixes', icone:'ti-receipt',       couleur:'#E8A838', auto:true },
+  {id:'formation', nom:'Formation',     icone:'ti-school',        couleur:'#7C3AED', auto:false},
+  {id:'tresorerie',nom:'Trésorerie',    icone:'ti-safe',          couleur:'#4CAF82', auto:false},
+];
+const ENV_LABELS={urssaf:'URSSAF',charges:'Charges',formation:'Formation',versement:'Versement perso',ignore:'Ignorer'};
+
+// Range une transaction Qonto : 'ca' (entrée), une enveloppe, 'versement', 'ignore', ou 'autre' (non reconnu)
+function classifyTx(t,overrides){
+  if(t.type==='credit')return 'ca';
+  const key=t.qontoId||t.id;
+  if(overrides&&overrides[key])return overrides[key];
+  const lib=(t.libelle||'').toLowerCase();
+  const cat=(t.categorie||'').toLowerCase();
+  if(/urssaf|dgfip|impot|impôt|cotisation|net-entreprises|carsat|rsi/.test(lib)||cat==='tax')return 'urssaf';
+  if(/formation|coaching|accompagnement|masterclass|bootcamp|webinaire|mentor/.test(lib))return 'formation';
+  if(cat==='subscription'||cat==='online_service'||/abonnement|adobe|google|microsoft|notion|canva|slack|zoom|figma|linkedin|ovh|hostinger|make\.com|zapier/.test(lib))return 'charges';
+  if(/salaire|versement perso|virement perso/.test(lib))return 'versement';
+  return 'autre';
+}
+
+let _envCtx=null;
 
 async function loadEnveloppes(){
-  // Sync silencieux puis chargement des enveloppes
   try{await syncQonto(true);}catch(e){}
-  try{
-    const res=await api('GET','/api/enveloppes');
-    _enveloppes=res.enveloppes||[];
-    renderEnveloppes();
-    renderVirements();
-  }catch(e){toast('Erreur chargement enveloppes','error');}
+  renderEnveloppes();
+}
+
+function computeEnveloppes(){
+  const settings=dbGetObj('settings');
+  const transactions=dbGet('transactions')||[];
+  const factures=dbGet('factures')||[];
+  const abonnements=dbGet('abonnements')||[];
+  const annee=new Date().getFullYear();
+  const overrides=settings.envTx||{};
+
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100;
+  const tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const budgetFormation=parseFloat(settings.budgetFormations)||2000;
+  const cibleTreso=parseFloat(settings.objectifTresorerie)||0;
+  const horizonCharges=settings.chargesHorizonMois!=null?parseInt(settings.chargesHorizonMois):1;
+
+  const soldeReel=settings.qontoSoldeReel!=null?parseFloat(settings.qontoSoldeReel):(typeof _qontoSoldeCalc!=='undefined'&&_qontoSoldeCalc!=null?_qontoSoldeCalc:0);
+
+  // CA réellement encaissé (factures payées de l'année) → base URSSAF
+  const caEncaisse=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(String(annee))).reduce((s,f)=>s+(f.montant||0),0);
+
+  // Dépenses réelles ventilées depuis les transactions Qonto
+  const paye={urssaf:0,charges:0,formation:0,versement:0};
+  const listes={urssaf:[],charges:[],formation:[],versement:[],autre:[]};
+  transactions.forEach(t=>{
+    if(t.type!=='debit')return;
+    const c=classifyTx(t,overrides);
+    if(c==='ignore')return;
+    if(c==='autre'){listes.autre.push(t);return;}
+    if(paye[c]!=null)paye[c]+=(t.montant||0);
+    if(listes[c])listes[c].push(t);
+  });
+
+  const aboMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const urssafDu=Math.round(caEncaisse*(tauxU+tauxC)*100)/100;
+  const chargesBudget=Math.round(aboMois*Math.max(0,horizonCharges)*100)/100;
+
+  const env={
+    urssaf:    {budget:urssafDu,        paye:paye.urssaf,    reste:Math.max(0,urssafDu-paye.urssaf),          liste:listes.urssaf},
+    charges:   {budget:chargesBudget,   paye:paye.charges,   reste:chargesBudget,                             liste:listes.charges},
+    formation: {budget:budgetFormation, paye:paye.formation, reste:Math.max(0,budgetFormation-paye.formation),liste:listes.formation},
+    tresorerie:{budget:cibleTreso,      paye:0,              reste:cibleTreso,                                liste:[]},
+  };
+  const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.tresorerie.reste;
+  return {settings,soldeReel,caEncaisse,env,totalReserve,disponible:soldeReel-totalReserve,aranger:listes.autre};
 }
 
 function renderEnveloppes(){
   const g=q('#enveloppes-grid');
   if(!g)return;
+  const ctx=computeEnveloppes();
+  _envCtx=ctx;
+  const {soldeReel,totalReserve,disponible,env,aranger}=ctx;
 
-  // Bandeau récap
-  const qonto=_enveloppes.find(e=>e.id==='qonto');
+  // Bandeau : Solde réel − Réservé = Disponible
   const banner=q('#enveloppes-banner');
-  if(banner&&qonto){
-    const soldeReel=qonto.soldeQontoReel??0;
-    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
-    const restant=soldeReel-totalAlloue;
-    const surplusColor=restant<0?'#E05252':restant===0?'#E8A838':'#4CAF82';
-    banner.innerHTML=\`<div style="background:var(--navy);border-radius:12px;padding:16px 24px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
-      <div style="color:#fff;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Solde reel Qonto</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(soldeReel)}</div>
-      </div>
-      <div style="color:#fff;opacity:.4;font-size:20px;">−</div>
-      <div style="color:#fff;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Total alloue</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(totalAlloue)}</div>
-      </div>
-      <div style="color:#fff;opacity:.4;font-size:20px;">=</div>
-      <div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);margin-bottom:3px;">\${restant<0?'Deficit':'Disponible a repartir'}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:\${surplusColor};">\${fmt(Math.abs(restant))}\${restant<0?' ⚠':''}</div>
+  if(banner){
+    const dispColor=disponible<0?'#F87171':'#7BE0AE';
+    const col=(lab,val,hint,color)=>\`<div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.09em;opacity:.6;margin-bottom:5px;">\${lab}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:\${color?700:600};\${color?'color:'+color+';':''}">\${fmt(val)}</div>
+      <div style="font-size:11px;opacity:.55;margin-top:4px;">\${hint}</div>
+    </div>\`;
+    banner.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:20px 26px;color:#fff;">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;">
+        \${col('Solde réel Qonto',soldeReel,'Synchronisé depuis ta banque')}
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;opacity:.4;text-align:center;">−</div>
+        \${col('Total réservé',totalReserve,'Somme des enveloppes')}
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;opacity:.4;text-align:center;">=</div>
+        \${col('Disponible à te verser',disponible,disponible<0?'Tes réserves dépassent ton solde':'Ce qui reste vraiment libre',dispColor)}
       </div>
     </div>\`;
   }
 
-  g.innerHTML=_enveloppes.map(env=>{
-    const couleur=ENVELOPPES_COULEURS[env.id]||'#888';
-    const icone=ENVELOPPES_ICONES[env.id]||'ti-wallet';
-    const txRecentes=env.transactions.slice(0,5);
-    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
-    const syncInfo=env.id==='qonto'&&env.soldeQontoReel!==null?\`
-      <div style="font-size:11px;color:var(--text-2);margin-top:2px;">
-        Solde reel Qonto : <strong>\${fmt(env.soldeQontoReel)}</strong>
-        &nbsp;·&nbsp; Deja alloue : <strong>\${fmt(totalAlloue)}</strong>
-      </div>
-      \${env.solde<0?\`<div style="margin-top:6px;background:#FEE2E2;border-radius:6px;padding:6px 10px;font-size:12px;color:#B91C1C;font-weight:600;">
-        <i class="ti ti-alert-triangle"></i> Tu as alloue \${fmt(Math.abs(env.solde))} de plus que ton solde reel. Retire des virements ou attends un encaissement.
-      </div>\`:''}
-    \`:'';
-    const txHtml=txRecentes.length
-      ? txRecentes.map(t=>\`
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
-            <div>
-              <div style="font-weight:500;color:var(--text-1);">\${t.motif||'Virement'}</div>
-              <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.contrepartie}</div>
-            </div>
-            <span style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:\${t.type==='credit'?'#4CAF82':'#E05252'};">
-              \${t.type==='credit'?'+':'−'}\${fmt(t.montant)}
-            </span>
-          </div>\`).join('')
-      : \`<div style="font-size:12px;color:var(--text-2);padding:10px 0;">Aucune transaction</div>\`;
+  // Cartes enveloppes
+  g.innerHTML=ENV_DEF.map(def=>{
+    const e=env[def.id];
+    const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
+    const badge=def.auto
+      ? '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#3E9E74;background:rgba(62,158,116,.13);">Automatique</span>'
+      : '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#7C3AED;background:rgba(124,58,237,.13);">'+(e.budget>0?'Budget défini':'À définir')+'</span>';
+    const row=(k,v)=>\`<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-2);">\${k}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(v)}</span></div>\`;
+    let detail='';
+    if(def.id==='urssaf')     detail=row('Dû sur ton CA encaissé',e.budget)+row('Déjà payé (Qonto)',e.paye);
+    else if(def.id==='formation')detail=row('Budget / an',e.budget)+row('Déjà payé (Qonto)',e.paye);
+    else if(def.id==='charges')  detail=row('Abonnements couverts',e.budget);
+    const txHtml=e.liste.length
+      ? e.liste.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,4).map(t=>\`<div style="display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:4px 0;">
+          <span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${fmtDate(t.date)} · \${escHtml(t.libelle||'—')}</span>
+          <span style="font-family:'Cormorant Garamond',serif;white-space:nowrap;">−\${fmt(t.montant)}</span>
+        </div>\`).join('')
+      : '';
+    const footer=(def.id==='tresorerie'&&e.budget===0)
+      ? '<button onclick="openEnvReglages()" style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--navy);"><i class="ti ti-plus"></i> Définir un montant</button>'
+      : (txHtml?\`<div style="border-top:1px dashed var(--border);padding-top:8px;">\${txHtml}</div>\`:'');
 
-    return \`<div class="card" style="border-top:3px solid \${couleur};padding:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <i class="ti \${icone}" style="color:\${couleur};font-size:18px;"></i>
-            <span style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${env.nom}</span>
-          </div>
-          \${syncInfo}
+    return \`<div class="card" style="border-top:3px solid \${def.couleur};padding:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <i class="ti \${def.icone}" style="color:\${def.couleur};font-size:17px;"></i>
+          <span style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${def.nom}</span>
         </div>
-        <div style="display:flex;gap:6px;">
-          \${env.objectif!=null?\`<button onclick="openObjectifModal('\${env.id}',\${env.objectif})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);"><i class="ti ti-target"></i> Objectif</button>\`:''}
-          <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
-            <i class="ti ti-arrows-transfer-up"></i> Virer
-          </button>
-          \${env.id!=='qonto'?\`<button onclick="openDeduireEnvModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
-            <i class="ti ti-arrow-down-circle"></i> Déduire
-          </button>\`:''}
-        </div>
+        \${badge}
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:8px;">
-        \${fmt(env.solde)}
+      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:\${def.couleur};">\${(def.id==='tresorerie'&&e.budget===0)?'—':fmt(e.reste)}</div>
+      <div style="font-size:11px;color:var(--text-2);margin-bottom:12px;">à garder de côté</div>
+      \${e.budget>0?\`<div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;transition:width .5s;"></div></div>\`:''}
+      \${detail?\`<div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px;margin-bottom:10px;">\${detail}</div>\`:''}
+      \${footer}
+    </div>\`;
+  }).join('');
+
+  renderAranger(aranger);
+}
+
+function renderAranger(list){
+  const el=q('#enveloppes-aranger');
+  if(!el)return;
+  const items=(list||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,20);
+  if(!items.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">✓ Tout est rangé — aucune opération en attente.</div>';return;}
+  const cats=['urssaf','charges','formation','versement','ignore'];
+  el.innerHTML=items.map(t=>{
+    const key=t.qontoId||t.id;
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+      <div style="min-width:160px;flex:1;">
+        <div style="font-size:12.5px;font-weight:500;">\${escHtml(t.libelle||'—')}</div>
+        <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · −\${fmt(t.montant)}</div>
       </div>
-      \${env.objectif!=null?\`
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;">
-          <span>Objectif : <strong>\${fmt(env.objectif)}</strong></span>
-          <span style="font-weight:600;color:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};">\${env.pct} %</span>
-        </div>
-        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-          <div style="height:100%;width:\${env.pct}%;background:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};border-radius:3px;transition:width .5s;"></div>
-        </div>
-        \${env.virer!=null&&env.pct<100?\`<div style="margin-top:6px;font-size:11px;color:var(--text-2);">
-          <i class="ti ti-arrow-up-circle" style="color:#4CAF82;"></i> Vire environ <strong>\${fmt(env.virer)}/mois</strong> pour atteindre l'objectif
-        </div>\`:''}
-      </div>\`:'<div style="margin-bottom:14px;"></div>'}
-      <div style="border-top:1px solid var(--border);padding-top:10px;">
-        \${txHtml}
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">
+        \${cats.map(c=>\`<button onclick="assignTx('\${key}','\${c}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;color:var(--text-2);">\${ENV_LABELS[c]}</button>\`).join('')}
       </div>
     </div>\`;
   }).join('');
 }
 
-function renderVirements(){
-  const el=q('#virements-list');
-  if(!el)return;
-  const tous=_enveloppes.flatMap(e=>e.transactions.filter(t=>t.type==='debit').map(t=>({
-    ...t,de:e.id,deNom:e.nom
-  }))).sort((a,b)=>b.date.localeCompare(a.date));
-  el.innerHTML=tous.length?tous.map(t=>\`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
-      <div>
-        <div style="font-size:13px;font-weight:500;">\${t.motif||'Virement'}</div>
-        <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.deNom} <i class="ti ti-arrow-right" style="font-size:10px;"></i> \${t.contrepartie}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-family:'Cormorant Garamond',serif;font-size:16px;">\${fmt(t.montant)}</span>
-        <button onclick="deleteVirement('\${t.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash" style="font-size:14px;"></i></button>
-      </div>
-    </div>\`).join(''):'<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Aucun virement pour le moment</p>';
-}
-
-const OBJECTIF_HINTS={
-  charges:"Recommande : 3 mois de tes abonnements actifs. Un matelas pour couvrir tes charges fixes sans stress.",
-  formations:"Recommande : ton budget annuel de formation. Vise 500 a 2000 par an selon tes projets.",
-  tresorerie:"Recommande : 2 a 3 mois de seuil de rentabilite. Ton filet de securite si un mois est creux.",
-  salaire:"Recommande : 2 a 3 mois de ton versement mensuel objectif. Pour te payer meme si une facture est en retard.",
-};
-const OBJECTIF_KEYS={charges:'objectifCharges',formations:'objectifFormations',tresorerie:'objectifTresorerie',salaire:'objectifSalaire'};
-let _objectifEnvId=null;
-
-function openObjectifModal(id,valActuelle){
-  _objectifEnvId=id;
-  const env=_enveloppes.find(e=>e.id===id);
-  if(q('#modal-objectif-env-title'))q('#modal-objectif-env-title').textContent='Objectif — '+(env?.nom||id);
-  if(q('#objectif-env-montant'))q('#objectif-env-montant').value=valActuelle||'';
-  if(q('#objectif-env-hint'))q('#objectif-env-hint').textContent=OBJECTIF_HINTS[id]||'';
-  q('#modal-objectif-env').style.display='flex';
-}
-
-async function saveObjectifEnv(){
-  const montant=parseFloat(q('#objectif-env-montant').value);
-  if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
-  const key=OBJECTIF_KEYS[_objectifEnvId];
-  if(!key){toast('Enveloppe inconnue','error');return;}
+async function assignTx(key,cat){
   try{
     const settings=dbGetObj('settings');
-    settings[key]=montant;
+    settings.envTx=settings.envTx||{};
+    settings.envTx[key]=cat;
     _cache.settings=await api('PUT','/api/settings',settings);
-    q('#modal-objectif-env').style.display='none';
-    toast('Objectif mis à jour','success');
-    await loadEnveloppes();
+    toast('Opération rangée dans « '+(ENV_LABELS[cat]||cat)+' »','success');
+    renderEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
-function openVirementModal(defaultDe='qonto'){
-  const opts=_enveloppes.map(e=>\`<option value="\${e.id}">\${e.nom} (\${fmt(e.solde)})</option>\`).join('');
-  q('#virement-de').innerHTML=opts;
-  q('#virement-vers').innerHTML=opts;
-  q('#virement-de').value=defaultDe;
-  q('#virement-vers').value=defaultDe==='qonto'?'salaire':'qonto';
-  q('#virement-date').value=new Date().toISOString().slice(0,10);
-  q('#virement-montant').value='';
-  q('#virement-motif').value='';
-  q('#modal-virement').style.display='flex';
+function openEnvReglages(){
+  const s=dbGetObj('settings');
+  q('#env-budget-formation').value=s.budgetFormations!=null?s.budgetFormations:2000;
+  q('#env-cible-treso').value=s.objectifTresorerie!=null?s.objectifTresorerie:'';
+  q('#env-horizon-charges').value=s.chargesHorizonMois!=null?s.chargesHorizonMois:1;
+  q('#modal-env-reglages').style.display='flex';
 }
-
-function closeVirementModal(){q('#modal-virement').style.display='none';}
-
-async function saveVirement(){
-  const de=q('#virement-de').value;
-  const vers=q('#virement-vers').value;
-  const montant=parseFloat(q('#virement-montant').value);
-  const date=q('#virement-date').value;
-  const motif=q('#virement-motif').value.trim();
-  if(!de||!vers||!date||isNaN(montant)||montant<=0){toast('Remplis tous les champs','error');return;}
-  if(de===vers){toast('Choisis deux comptes différents','error');return;}
+async function saveEnvReglages(){
   try{
-    await api('POST','/api/virements',{de,vers,montant,date,motif});
-    closeVirementModal();
-    toast('Virement enregistré','success');
-    await loadEnveloppes();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-
-async function deleteVirement(id){
-  if(!await confirmDialog('Supprimer ce virement ?','Cette action est irréversible.'))return;
-  try{
-    await api('DELETE',\`/api/virements/\${id}\`);
-    toast('Virement supprimé','success');
-    await loadEnveloppes();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-
-let _deduireEnvId=null;
-function openDeduireEnvModal(id){
-  _deduireEnvId=id;
-  const env=_enveloppes.find(e=>e.id===id);
-  if(q('#modal-deduire-env-title'))q('#modal-deduire-env-title').textContent='Déduire — '+(env?.nom||id);
-  q('#deduire-env-montant').value='';
-  q('#deduire-env-date').value=new Date().toISOString().slice(0,10);
-  q('#deduire-env-motif').value='';
-  q('#modal-deduire-env').style.display='flex';
-}
-function closeDeduireEnvModal(){q('#modal-deduire-env').style.display='none';}
-async function saveDeduireEnv(){
-  const montant=parseFloat(q('#deduire-env-montant').value);
-  const date=q('#deduire-env-date').value;
-  const motif=q('#deduire-env-motif').value.trim();
-  if(!_deduireEnvId||!date||isNaN(montant)||montant<=0){toast('Remplis le montant et la date','error');return;}
-  try{
-    await api('POST','/api/virements',{de:_deduireEnvId,vers:'depense',montant,date,motif});
-    closeDeduireEnvModal();
-    toast('Dépense déduite','success');
-    await loadEnveloppes();
+    const settings=dbGetObj('settings');
+    const bf=parseFloat(q('#env-budget-formation').value); if(!isNaN(bf))settings.budgetFormations=bf;
+    const tr=parseFloat(q('#env-cible-treso').value); settings.objectifTresorerie=isNaN(tr)?0:tr;
+    const hc=parseInt(q('#env-horizon-charges').value); settings.chargesHorizonMois=isNaN(hc)?1:hc;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-env-reglages').style.display='none';
+    toast('Réglages enregistrés','success');
+    renderEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
