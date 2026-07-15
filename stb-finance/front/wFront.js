@@ -37,115 +37,59 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v13 · objectifs</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v14 · navigation</span>
     </div>
 
     <nav id="sidebar-nav">
 
       <!-- TABLEAU DE BORD -->
       <div class="nav-group">
-        <a class="nav-item" data-section="dashboard">
-          <i class="ti ti-layout-dashboard"></i> Tableau de bord
-        </a>
+        <a class="nav-item" data-section="dashboard"><i class="ti ti-layout-dashboard"></i> Tableau de bord</a>
       </div>
 
-      <!-- MES FINANCES -->
+      <!-- ARGENT -->
       <div class="nav-group">
-        <span class="nav-group-label">Mes finances</span>
-        <a class="nav-item" data-section="comptes">
-          <i class="ti ti-building-bank"></i> Comptes
-        </a>
-        <a class="nav-item" data-section="enveloppes">
-          <i class="ti ti-wallet"></i> Enveloppes
-        </a>
-        <a class="nav-item" data-section="transactions">
-          <i class="ti ti-arrows-exchange"></i> Transactions
-        </a>
+        <span class="nav-group-label">Argent</span>
+        <a class="nav-item" data-section="enveloppes"><i class="ti ti-wallet"></i> Enveloppes</a>
+        <a class="nav-item" data-section="comptes"><i class="ti ti-building-bank"></i> Comptes</a>
+        <a class="nav-item" data-section="transactions"><i class="ti ti-arrows-exchange"></i> Transactions</a>
+        <a class="nav-item" data-section="depenses"><i class="ti ti-receipt"></i> Dépenses</a>
+        <a class="nav-item" data-section="abonnements"><i class="ti ti-repeat"></i> Charges fixes</a>
+        <a class="nav-item" data-section="charges-urssaf"><i class="ti ti-calendar-due"></i> URSSAF</a>
+        <a class="nav-item" data-section="objectifs-epargne"><i class="ti ti-target"></i> Objectifs</a>
       </div>
 
-      <!-- REVENUS -->
+      <!-- ACTIVITÉ -->
       <div class="nav-group">
-        <span class="nav-group-label">Revenus</span>
-        <a class="nav-item" data-section="factures">
-          <i class="ti ti-file-invoice"></i> CA &amp; Factures
-        </a>
-        <a class="nav-item" data-section="devis">
-          <i class="ti ti-file-description"></i> Devis
-        </a>
-        <a class="nav-item" data-section="projets">
-          <i class="ti ti-folders"></i> Projets
-        </a>
-        <a class="nav-item" data-section="tiers">
-          <i class="ti ti-users"></i> Clients &amp; tiers
-        </a>
+        <span class="nav-group-label">Activité</span>
+        <a class="nav-item" data-section="factures"><i class="ti ti-file-invoice"></i> CA &amp; Factures</a>
+        <a class="nav-item" data-section="devis"><i class="ti ti-file-description"></i> Devis</a>
+        <a class="nav-item" data-section="projets"><i class="ti ti-folders"></i> Projets</a>
       </div>
 
-      <!-- PROSPECTION -->
+      <!-- CLIENTS -->
       <div class="nav-group">
-        <span class="nav-group-label">Développement</span>
-        <a class="nav-item" data-section="crm">
-          <i class="ti ti-address-book"></i> Prospection CRM
-        </a>
-      </div>
-
-      <!-- DÉPENSES -->
-      <div class="nav-group">
-        <span class="nav-group-label">Dépenses</span>
-        <a class="nav-item" data-section="depenses">
-          <i class="ti ti-receipt"></i> Dépenses pro
-        </a>
-        <a class="nav-item" data-section="abonnements">
-          <i class="ti ti-repeat"></i> Charges fixes
-        </a>
-        <a class="nav-item" data-section="charges-urssaf">
-          <i class="ti ti-calendar-due"></i> Charges &amp; URSSAF
-        </a>
-      </div>
-
-      <!-- ÉPARGNE & INVESTISSEMENT -->
-      <div class="nav-group">
-        <span class="nav-group-label">Épargne &amp; Investissement</span>
-        <a class="nav-item" data-section="objectifs-epargne">
-          <i class="ti ti-piggy-bank"></i> Objectifs
-        </a>
+        <span class="nav-group-label">Clients</span>
+        <a class="nav-item" data-section="tiers"><i class="ti ti-users"></i> Clients</a>
+        <a class="nav-item" data-section="crm"><i class="ti ti-address-book"></i> Prospection</a>
       </div>
 
       <!-- RAPPORTS -->
       <div class="nav-group">
         <span class="nav-group-label">Rapports</span>
-        <a class="nav-item" data-section="rapport-prevision">
-          <i class="ti ti-chart-line"></i> Prévision
-        </a>
-        <a class="nav-item" data-section="rapport-mensuel">
-          <i class="ti ti-report"></i> Mensuel
-        </a>
-        <a class="nav-item" data-section="rapport-trimestriel">
-          <i class="ti ti-calendar-stats"></i> Trimestriel
-        </a>
-        <a class="nav-item" data-section="rapport-annuel">
-          <i class="ti ti-report-analytics"></i> Annuel
-        </a>
-        <a class="nav-item" data-section="rapport-fiscal">
-          <i class="ti ti-report-money"></i> Fiscal BNC
-        </a>
+        <a class="nav-item" data-section="rapport-prevision"><i class="ti ti-chart-line"></i> Prévision</a>
+        <a class="nav-item" data-section="rapport-mensuel"><i class="ti ti-report"></i> Mensuel</a>
+        <a class="nav-item" data-section="rapport-trimestriel"><i class="ti ti-calendar-stats"></i> Trimestriel</a>
+        <a class="nav-item" data-section="rapport-annuel"><i class="ti ti-report-analytics"></i> Annuel</a>
+        <a class="nav-item" data-section="rapport-fiscal"><i class="ti ti-report-money"></i> Fiscal BNC</a>
       </div>
 
-      <!-- OUTILS -->
+      <!-- PARAMÈTRES -->
       <div class="nav-group">
-        <span class="nav-group-label">Outils</span>
-        <a class="nav-item" data-section="simulateur">
-          <i class="ti ti-calculator"></i> Simulateur de versement
-        </a>
-        <a class="nav-item" data-section="import-export">
-          <i class="ti ti-database-import"></i> Import / Export
-        </a>
-      </div>
-
-      <!-- OPTIONS -->
-      <div class="nav-group">
-        <a class="nav-item" data-section="options">
-          <i class="ti ti-settings"></i> Options
-        </a>
+        <span class="nav-group-label">Paramètres</span>
+        <a class="nav-item" data-section="simulateur"><i class="ti ti-calculator"></i> Simulateur</a>
+        <a class="nav-item" data-section="import-export"><i class="ti ti-database-import"></i> Import / Export</a>
+        <a class="nav-item" data-section="options"><i class="ti ti-settings"></i> Options</a>
       </div>
 
     </nav><!-- /nav -->
@@ -2365,7 +2309,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=13"></script>
+<script src="/app.js?v=14"></script>
 </body>
 </html>
 `;
@@ -4357,7 +4301,8 @@ function computeTrends(){
   const pctV=(parseFloat(settings.pctVersement)||65)/100;
   const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
   const ca=[],charges=[],net=[],versement=[];
-  for(let k=11;k>=0;k--){
+  // 12 mois clôturés (on exclut le mois en cours, encore incomplet, pour ne pas fausser la tendance)
+  for(let k=12;k>=1;k--){
     let mm=m-k,yy=y;while(mm<1){mm+=12;yy--;}
     const key=yy+'-'+String(mm).padStart(2,'0');
     const c=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(key)).reduce((s,f)=>s+(f.montant||0),0);
@@ -4380,7 +4325,7 @@ function renderTrends(){
     {lab:'Versement possible',arr:t.versement,up:true},
   ];
   el.innerHTML=\`<div class="card" style="padding:18px 20px;">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:16px;">Tendances · 12 mois</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:16px;">Tendances · 12 mois clôturés <span style="text-transform:none;letter-spacing:0;opacity:.7;">(hors mois en cours)</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:22px;">
     \${tiles.map((ti,i)=>{
       const cur=ti.arr[ti.arr.length-1]||0, dl=delta(ti.arr);
