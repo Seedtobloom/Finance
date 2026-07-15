@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v11 · copilote</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v12 · tendances</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -239,6 +239,9 @@ const HTML = `<!DOCTYPE html>
           <span class="kpi-sub" id="kpi-urssaf-sub"></span>
         </div>
       </div>
+
+      <!-- Tendances (sparklines) -->
+      <div id="dash-trends" style="margin-bottom:16px;"></div>
 
       <!-- 2 colonnes -->
       <div class="grid-65-35">
@@ -2325,7 +2328,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=11"></script>
+<script src="/app.js?v=12"></script>
 </body>
 </html>
 `;
@@ -4288,6 +4291,77 @@ function drawStackedBarChart(canvas,labels,datasets){
 /* ─── 9. MODULES ─────────────────────────────────────────────────────── */
 
 /* --- Dashboard -------------------------------------------------------- */
+/* ═══ Tendances : sparklines épurées (SVG, sans axes ni grille) ═══ */
+function sparkline(data,idn){
+  const w=100,h=32,pad=3;
+  const vals=(data||[]).map(v=>+v||0);
+  if(!vals.length)return '';
+  const min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1,n=vals.length;
+  const xs=i=>n<=1?w/2:(i/(n-1))*w;
+  const ys=v=>h-pad-((v-min)/span)*(h-pad*2);
+  const pts=vals.map((v,i)=>xs(i).toFixed(1)+','+ys(v).toFixed(1));
+  const area='M '+xs(0).toFixed(1)+','+h+' L '+pts.join(' L ')+' L '+xs(n-1).toFixed(1)+','+h+' Z';
+  const lastX=xs(n-1).toFixed(1),lastY=ys(vals[n-1]).toFixed(1);
+  return \`<svg viewBox="0 0 \${w} \${h}" preserveAspectRatio="none" style="width:100%;height:38px;display:block;overflow:visible;">
+    <defs><linearGradient id="sg\${idn}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--navy)" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="var(--navy)" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="\${area}" fill="url(#sg\${idn})"/>
+    <polyline points="\${pts.join(' ')}" fill="none" stroke="var(--navy)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <circle cx="\${lastX}" cy="\${lastY}" r="2.2" fill="var(--navy)" vector-effect="non-scaling-stroke"/>
+  </svg>\`;
+}
+
+function computeTrends(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
+  const factures=dbGet('factures'),depenses=dbGet('depenses'),abonnements=dbGet('abonnements'),settings=dbGetObj('settings');
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100,tauxC=(parseFloat(settings.tauxCfp)||0.2)/100,pas=parseFloat(settings.pasFixe)||40;
+  const pctV=(parseFloat(settings.pctVersement)||65)/100;
+  const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const ca=[],charges=[],net=[],versement=[];
+  for(let k=11;k>=0;k--){
+    let mm=m-k,yy=y;while(mm<1){mm+=12;yy--;}
+    const key=yy+'-'+String(mm).padStart(2,'0');
+    const c=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(key)).reduce((s,f)=>s+(f.montant||0),0);
+    const dep=depenses.filter(d=>(d.date||'').startsWith(key)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
+    const ch=Math.round(c*(tauxU+tauxC))+abosMois+pas+dep;
+    const nt=Math.max(0,c-ch);
+    ca.push(c);charges.push(ch);net.push(nt);versement.push(Math.round(nt*pctV));
+  }
+  return {ca,charges,net,versement};
+}
+
+function renderTrends(){
+  const el=q('#dash-trends'); if(!el)return;
+  let t; try{t=computeTrends();}catch(e){el.innerHTML='';return;}
+  const delta=arr=>{const a=arr[arr.length-2]||0,b=arr[arr.length-1]||0;if(a<=0)return null;return Math.round((b-a)/a*100);};
+  const tiles=[
+    {lab:'CA encaissé',arr:t.ca,up:true},
+    {lab:'Charges',arr:t.charges,up:false},
+    {lab:'Résultat net',arr:t.net,up:true},
+    {lab:'Versement possible',arr:t.versement,up:true},
+  ];
+  el.innerHTML=\`<div class="card" style="padding:18px 20px;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:16px;">Tendances · 12 mois</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:22px;">
+    \${tiles.map((ti,i)=>{
+      const cur=ti.arr[ti.arr.length-1]||0, dl=delta(ti.arr);
+      const good=dl==null?null:(ti.up?dl>=0:dl<=0);
+      const chip=dl==null?'':\`<span style="font-size:11px;font-weight:600;color:\${good?'#3E9E74':'#E05252'};">\${dl>=0?'▲':'▼'} \${Math.abs(dl)}%</span>\`;
+      return \`<div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+          <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${ti.lab}</span>
+          \${chip}
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;color:var(--navy);margin-bottom:8px;">\${fmt(cur)}</div>
+        \${sparkline(ti.arr,i)}
+      </div>\`;
+    }).join('')}
+    </div>
+  </div>\`;
+}
+
 /* ═══ Copilote financier : analyse, score de santé, briefing, insights ═══ */
 function computeIntel(){
   const now=new Date();
@@ -4468,6 +4542,7 @@ function loadDashboard(){
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
   if(q('#dash-period'))q('#dash-period').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
   try{renderCockpit();}catch(e){}
+  try{renderTrends();}catch(e){}
 
   const factures    = dbGet('factures');
   const depenses    = dbGet('depenses');
