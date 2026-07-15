@@ -841,7 +841,7 @@ async function qontoSync(env, uid) {
   } while (page <= totalPages && page <= 50); // garde-fou : 50 pages max (5000 transactions)
 
   // Charge les transactions existantes pour ne pas dupliquer
-  const cle = `user:${uid}:transactions`;
+  const cle = `${uid}:transactions`;
   const existantes = await kvTableau(env, cle);
   const existanteIds = new Set(existantes.map(t => t.qontoId).filter(Boolean));
 
@@ -863,7 +863,7 @@ async function qontoSync(env, uid) {
   }
 
   // Met aussi à jour le solde du compte Qonto dans comptes (seulement si changé)
-  const cleComptes = `user:${uid}:comptes`;
+  const cleComptes = `${uid}:comptes`;
   const comptes = await kvTableau(env, cleComptes);
   const qIdx = comptes.findIndex(c => c.type === 'professionnel' || c.type === 'courant');
   const soldeChange = qIdx >= 0 && comptes[qIdx].solde !== main.balance;
@@ -874,12 +874,12 @@ async function qontoSync(env, uid) {
   }
 
   // Sauvegarde le solde réel Qonto (seulement si changé)
-  const settings = await kvLire(env, `user:${uid}:settings`) || {};
+  const settings = await kvLire(env, `${uid}:settings`) || {};
   const settingsChange = settings.qontoSoldeReel !== main.balance;
   if (settingsChange) {
     settings.qontoSoldeReel = main.balance;
     settings.qontoSyncAt   = iso();
-    await kvEcrire(env, `user:${uid}:settings`, settings);
+    await kvEcrire(env, `${uid}:settings`, settings);
   }
 
   // Sauvegarde les transactions (seulement si nouvelles)
