@@ -817,19 +817,28 @@ async function qontoSync(env, uid) {
   const main = accounts.find(a => a.status === 'activated') || accounts[0];
   if (!main) return jsonErr(404, 'Aucun compte Qonto actif');
 
-  // Toutes les transactions depuis 2026-01-01 (jusqu'à 100)
-  const params = new URLSearchParams({
-    slug: main.slug,
-    settled_at_from: '2026-01-01T00:00:00.000Z',
-    per_page: '100',
-    sort_by: 'settled_at:desc',
-  });
-  const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
-  if (!txRes.ok) {
-    const body = await txRes.text().catch(()=>'');
-    return jsonErr(txRes.status, `Erreur Qonto transactions (${txRes.status}) : ${body||txRes.statusText}`);
-  }
-  const txData = await txRes.json();
+  // Toutes les transactions depuis 2026-01-01 — pagination complète
+  // (Qonto plafonne à 100 par page, il faut donc parcourir toutes les pages)
+  const toutesTx = [];
+  let page = 1, totalPages = 1;
+  do {
+    const params = new URLSearchParams({
+      slug: main.slug,
+      settled_at_from: '2026-01-01T00:00:00.000Z',
+      per_page: '100',
+      current_page: String(page),
+      sort_by: 'settled_at:desc',
+    });
+    const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
+    if (!txRes.ok) {
+      const body = await txRes.text().catch(()=>'');
+      return jsonErr(txRes.status, `Erreur Qonto transactions (${txRes.status}) : ${body||txRes.statusText}`);
+    }
+    const txData = await txRes.json();
+    for (const t of (txData.transactions || [])) toutesTx.push(t);
+    totalPages = txData.meta?.total_pages || 1;
+    page++;
+  } while (page <= totalPages && page <= 50); // garde-fou : 50 pages max (5000 transactions)
 
   // Charge les transactions existantes pour ne pas dupliquer
   const cle = `user:${uid}:transactions`;
@@ -837,7 +846,7 @@ async function qontoSync(env, uid) {
   const existanteIds = new Set(existantes.map(t => t.qontoId).filter(Boolean));
 
   let ajoutees = 0;
-  for (const t of (txData.transactions || [])) {
+  for (const t of toutesTx) {
     if (existanteIds.has(t.transaction_id)) continue;
     existantes.push({
       id:       uid4(),
@@ -883,7 +892,7 @@ async function qontoSync(env, uid) {
       ? `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`
       : 'Sync Qonto OK — rien de nouveau',
     solde: main.balance,
-    totalTransactions: txData.transactions?.length || 0,
+    totalTransactions: toutesTx.length,
     ajoutees,
   });
 }
