@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v9 · enveloppes + prévision</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v10 · sous-traitance</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2022,6 +2022,7 @@ const HTML = `<!DOCTYPE html>
         <option>Logiciels &amp; abonnements</option>
         <option>Matériel</option>
         <option>Formation</option>
+        <option>Sous-traitance</option>
         <option>Communication</option>
         <option>Déplacement</option>
         <option>Comptabilité</option>
@@ -2321,7 +2322,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=9"></script>
+<script src="/app.js?v=10"></script>
 </body>
 </html>
 `;
