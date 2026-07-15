@@ -112,6 +112,9 @@ const HTML = `<!DOCTYPE html>
       <!-- RAPPORTS -->
       <div class="nav-group">
         <span class="nav-group-label">Rapports</span>
+        <a class="nav-item" data-section="rapport-prevision">
+          <i class="ti ti-chart-line"></i> Prévision
+        </a>
         <a class="nav-item" data-section="rapport-mensuel">
           <i class="ti ti-report"></i> Mensuel
         </a>
@@ -1144,6 +1147,23 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="goals-grid" id="epargne-goals-grid"></div>
     </section><!-- /objectifs-epargne -->
+
+
+    <!-- ═══════════════════════════
+         PRÉVISION FIN D'ANNÉE
+         ═══════════════════════════ -->
+    <section id="section-rapport-prevision" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Prévision fin d'année</h1>
+          <div class="page-subtitle">Ce que tu vas gagner d'ici décembre, d'après ce qu'il te reste à facturer</div>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-secondary" id="btn-prev-gen"><i class="ti ti-refresh"></i> Recalculer</button>
+        </div>
+      </div>
+      <div id="rapport-prevision-content"></div>
+    </section><!-- /rapport-prevision -->
 
 
     <!-- ═══════════════════════════
@@ -4074,6 +4094,7 @@ function loadSection(s){
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
+    'rapport-prevision':loadRapportPrevision,
     'rapport-trimestriel':loadRapportTrimestriel,
     'rapport-annuel':loadRapportAnnuel,'rapport-fiscal':loadRapportFiscal,
     'simulateur':loadSimulateur,'import-export':initImportExport,'options':loadOptions,
@@ -6616,6 +6637,135 @@ function renderRapportAnnuel(){
   },50);
 }
 
+/* --- Prévision fin d'année --------------------------------------------- */
+function loadRapportPrevision(){ renderRapportPrevision(); }
+
+function computePrevision(){
+  const factures=dbGet('factures')||[];
+  const projets=dbGet('projets')||[];
+  const abonnements=dbGet('abonnements')||[];
+  const settings=dbGetObj('settings');
+  const now=new Date();
+  const annee=now.getFullYear();
+  const moisCourant=now.getMonth()+1;      // 1..12
+  const moisRestants=12-moisCourant;        // mois pleins après le mois courant
+  const inY=ds=>((ds||'')+'').startsWith(String(annee));
+  const curYM=annee+'-'+String(moisCourant).padStart(2,'0');
+
+  // 1. Déjà encaissé (factures payées de l'année)
+  const encaisse=factures.filter(f=>f.statut==='payee'&&inY(f.datePaiement||f.date)).reduce((s,f)=>s+(f.montant||0),0);
+  // 2. Déjà facturé, en attente de paiement (émis, pas encore payé)
+  const enAttente=factures.filter(f=>f.statut!=='payee'&&inY(f.date)).reduce((s,f)=>s+(f.montant||0),0);
+
+  // 3. Reste à facturer (projets, mois restants de l'année)
+  let resteAFacturer=0;
+  const detailProjets=[];
+  projets.forEach(p=>{
+    const linked=factures.filter(f=>f.projetId===p.id);
+    let reste=0;
+    if(p.type==='mensuel'&&p.dureeIndeterminee){
+      const mm=p.montantTotal||0;
+      const curDone=linked.some(f=>(f.date||'').slice(0,7)===curYM);
+      reste=mm*(moisRestants+(curDone?0:1));
+    }else if(p.type==='mensuel'&&p.nombreMois&&p.dateDebut){
+      const mm=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
+      for(let i=0;i<p.nombreMois;i++){
+        const sd=new Date(p.dateDebut+'T00:00:00'); sd.setMonth(sd.getMonth()+i);
+        if(sd.getFullYear()!==annee)continue;
+        const ym=sd.toISOString().slice(0,7);
+        const done=linked.some(f=>(f.date||'').slice(0,7)===ym);
+        const passe=(sd.getMonth()+1)<moisCourant;
+        if(!done&&!passe)reste+=mm;
+      }
+    }else if(p.type==='mensuel'&&p.nombreMois){
+      const mm=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
+      const restantMois=Math.max(0,p.nombreMois-linked.length);
+      reste=mm*Math.min(restantMois,moisRestants+1);
+    }else{
+      const facture=linked.reduce((s,f)=>s+(f.montant||0),0);
+      reste=Math.max(0,(p.montantTotal||0)-facture);
+    }
+    if(reste>0){resteAFacturer+=reste;detailProjets.push({nom:p.nom,client:p.client||'',reste});}
+  });
+  detailProjets.sort((a,b)=>b.reste-a.reste);
+
+  const caProjete=encaisse+enAttente+resteAFacturer;
+
+  // Charges projetées sur l'année complète
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100;
+  const tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const pas=parseFloat(settings.pasFixe)||40;
+  const aboMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const cotisations=Math.round(caProjete*(tauxU+tauxC)*100)/100;
+  const abosAnnee=Math.round(aboMois*12*100)/100;
+  const pasAnnee=Math.round(pas*12*100)/100;
+  const chargesProjetees=cotisations+abosAnnee+pasAnnee;
+  const netProjete=Math.max(0,caProjete-chargesProjetees);
+
+  // Net déjà réalisé (sur l'encaissé) pour montrer « ce qu'il reste à gagner »
+  const netEncaisse=Math.max(0,encaisse-Math.round(encaisse*(tauxU+tauxC)*100)/100-Math.round(aboMois*moisCourant*100)/100-pas*moisCourant);
+  const resteAGagner=Math.max(0,netProjete-netEncaisse);
+
+  const objectifCA=parseFloat(settings.objectifCA)||0;
+  const pctObj=objectifCA>0?Math.round(caProjete/objectifCA*100):null;
+
+  return {annee,moisRestants,encaisse,enAttente,resteAFacturer,caProjete,cotisations,abosAnnee,pasAnnee,chargesProjetees,netProjete,netEncaisse,resteAGagner,objectifCA,pctObj,detailProjets};
+}
+
+function renderRapportPrevision(){
+  const el=q('#rapport-prevision-content');
+  if(!el)return;
+  const p=computePrevision();
+  const moisNom=MOIS_LONG?MOIS_LONG[new Date().getMonth()]:'';
+  const barSeg=(val,tot,color)=>tot>0?\`<div style="width:\${Math.max(2,Math.round(val/tot*100))}%;background:\${color};"></div>\`:'';
+
+  el.innerHTML=\`
+    <div class="rapport-phrase">D'ici fin \${p.annee}, en facturant ce qui est prévu, tu devrais atteindre <strong>\${fmt(p.caProjete)}</strong> de chiffre d'affaires, soit un résultat net d'environ <strong>\${fmt(p.netProjete)}</strong>. Il te reste encore <strong>\${fmt(p.resteAGagner)}</strong> à gagner d'ici décembre.</div>
+
+    <div class="kpi-grid kpi-grid-4 mb-16">
+      <div class="kpi-card"><span class="kpi-label">Reste à facturer</span><span class="kpi-value" style="color:var(--warning);">\${fmt(p.resteAFacturer)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">CA projeté \${p.annee}</span><span class="kpi-value">\${fmt(p.caProjete)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">Charges projetées</span><span class="kpi-value danger">\${fmt(p.chargesProjetees)}</span></div>
+      <div class="kpi-card"><span class="kpi-label">Net projeté fin d'année</span><span class="kpi-value green">\${fmt(p.netProjete)}</span></div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">Comment on arrive au CA projeté</div>
+      <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0 14px;background:var(--border);">
+        \${barSeg(p.encaisse,p.caProjete,'#4CAF82')}\${barSeg(p.enAttente,p.caProjete,'#E8A838')}\${barSeg(p.resteAFacturer,p.caProjete,'#7C3AED')}
+      </div>
+      <div class="charges-recap">
+        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#4CAF82;">●</span> Déjà encaissé</span><span class="charges-recap-amount">\${fmt(p.encaisse)}</span></div>
+        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#E8A838;">●</span> Facturé, en attente de paiement</span><span class="charges-recap-amount">\${fmt(p.enAttente)}</span></div>
+        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#7C3AED;">●</span> Reste à facturer (projets à venir)</span><span class="charges-recap-amount">\${fmt(p.resteAFacturer)}</span></div>
+        <div class="charges-recap-line" style="border-top:2px solid var(--border);font-weight:700;"><span class="charges-recap-label">= CA projeté \${p.annee}</span><span class="charges-recap-amount">\${fmt(p.caProjete)}</span></div>
+      </div>
+      \${p.pctObj!=null?\`<div style="margin-top:12px;font-size:12.5px;color:var(--text-2);"><i class="ti ti-target"></i> Objectif \${fmt(p.objectifCA)} → <strong style="color:\${p.pctObj>=100?'#4CAF82':'#E8A838'};">\${p.pctObj} %</strong> atteint en projection</div>\`:''}
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">Du CA projeté au net</div>
+      <div class="charges-recap">
+        <div class="charges-recap-line"><span class="charges-recap-label">CA projeté</span><span class="charges-recap-amount">\${fmt(p.caProjete)}</span></div>
+        <div class="charges-recap-line"><span class="charges-recap-label">− URSSAF + CFP</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.cotisations)}</span></div>
+        <div class="charges-recap-line"><span class="charges-recap-label">− Abonnements (12 mois)</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.abosAnnee)}</span></div>
+        <div class="charges-recap-line"><span class="charges-recap-label">− PAS (12 mois)</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.pasAnnee)}</span></div>
+        <div class="charges-recap-line" style="border-top:2px solid var(--border);font-weight:700;"><span class="charges-recap-label">= Net projeté</span><span class="charges-recap-amount" style="color:var(--success);">\${fmt(p.netProjete)}</span></div>
+      </div>
+    </div>
+
+    \${p.detailProjets.length?\`<div class="card mb-16">
+      <div class="card-title">Reste à facturer, par projet</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Projet</th><th>Client</th><th>Reste à facturer</th></tr></thead>
+        <tbody>\${p.detailProjets.map(d=>\`<tr><td>\${escHtml(d.nom)}</td><td>\${escHtml(d.client||'—')}</td><td class="td-amount" style="color:var(--warning);">\${fmt(d.reste)}</td></tr>\`).join('')}</tbody>
+      </table></div>
+    </div>\`:'<div class="alert info" style="margin-bottom:16px;"><i class="ti ti-info-circle"></i> Aucun projet avec du reste à facturer détecté. La prévision se base alors sur ton encaissé et tes factures en attente.</div>'}
+
+    <div style="font-size:11px;color:var(--text-2);">Estimation : le « reste à facturer » projette tes projets récurrents sur les mois restants de l'année et le solde des projets en cours. Les charges sont projetées sur 12 mois d'abonnements et de PAS.</div>
+  \`;
+}
+
 /* --- Rapport trimestriel ---------------------------------------------- */
 function loadRapportTrimestriel(){
   const y=new Date().getFullYear();
@@ -7194,6 +7344,7 @@ async function init(){
 
   // Rapports
   q('#btn-rm-gen')?.addEventListener('click',renderRapportMensuel);
+  q('#btn-prev-gen')?.addEventListener('click',renderRapportPrevision);
   q('#btn-rt-gen')?.addEventListener('click',renderRapportTrimestriel);
   q('#btn-ra-gen')?.addEventListener('click',renderRapportAnnuel);
   q('#btn-rf-gen')?.addEventListener('click',renderRapportFiscal);
