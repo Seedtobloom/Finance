@@ -319,8 +319,8 @@ const HTML = `<!DOCTYPE html>
       <div id="enveloppes-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
 
       <div class="card" style="margin-top:24px;">
-        <div class="card-title"><i class="ti ti-inbox"></i> Opérations à ranger</div>
-        <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ces dépenses Qonto ne sont pas encore reconnues. Range-les dans la bonne enveloppe — l'appli s'en souviendra.</div>
+        <div class="card-title"><i class="ti ti-inbox"></i> Catégoriser mes opérations</div>
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Chaque dépense Qonto est rangée automatiquement. Change la catégorie via le menu déroulant si besoin — l'appli s'en souviendra. « Voir toutes les opérations » pour en re-catégoriser une déjà classée.</div>
         <div id="enveloppes-aranger"></div>
       </div>
     </section><!-- /enveloppes -->
@@ -337,6 +337,11 @@ const HTML = `<!DOCTYPE html>
             <label class="form-label">Budget Formation (€ / an)</label>
             <input class="form-control" type="number" id="env-budget-formation" min="0" step="50" placeholder="Ex: 2000">
             <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Le seul montant que l'appli ne peut pas deviner.</div>
+          </div>
+          <div>
+            <label class="form-label">Budget Sous-traitance (€ / an)</label>
+            <input class="form-control" type="number" id="env-budget-soustraitance" min="0" step="50" placeholder="0 = juste suivi, sans réserve">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Prestataires (prospection, offre…). Laisse 0 pour seulement suivre le dépensé.</div>
           </div>
           <div>
             <label class="form-label">Matelas de trésorerie (€)</label>
@@ -4464,12 +4469,15 @@ async function syncQonto(silent=false){
 /* Enveloppes = lecture des vraies transactions Qonto, jamais de virement manuel.
    URSSAF & Charges se calculent seules ; Formation & Trésorerie = budgets que tu fixes. */
 const ENV_DEF=[
-  {id:'urssaf',    nom:'URSSAF + CFP',  icone:'ti-building-bank', couleur:'#E05252', auto:true },
-  {id:'charges',   nom:'Charges fixes', icone:'ti-receipt',       couleur:'#E8A838', auto:true },
-  {id:'formation', nom:'Formation',     icone:'ti-school',        couleur:'#7C3AED', auto:false},
-  {id:'tresorerie',nom:'Trésorerie',    icone:'ti-safe',          couleur:'#4CAF82', auto:false},
+  {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#E05252', auto:true },
+  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#E8A838', auto:true },
+  {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
+  {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
+  {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#4CAF82', auto:false},
 ];
-const ENV_LABELS={urssaf:'URSSAF',charges:'Charges',formation:'Formation',versement:'Versement perso',ignore:'Ignorer'};
+// Catégories assignables à une opération (dans l'ordre proposé au re-classement)
+const ENV_CATS=['urssaf','charges','formation','soustraitance','versement','ignore'];
+const ENV_LABELS={ca:'Entrée',urssaf:'URSSAF',charges:'Charges',formation:'Formation',soustraitance:'Sous-traitance',versement:'Versement perso',autre:'À ranger',ignore:'Ignorer'};
 
 // Range une transaction Qonto : 'ca' (entrée), une enveloppe, 'versement', 'ignore', ou 'autre' (non reconnu)
 function classifyTx(t,overrides){
@@ -4479,7 +4487,8 @@ function classifyTx(t,overrides){
   const lib=(t.libelle||'').toLowerCase();
   const cat=(t.categorie||'').toLowerCase();
   if(/urssaf|dgfip|impot|impôt|cotisation|net-entreprises|carsat|rsi/.test(lib)||cat==='tax')return 'urssaf';
-  if(/formation|coaching|accompagnement|masterclass|bootcamp|webinaire|mentor/.test(lib))return 'formation';
+  if(/formation|masterclass|bootcamp|webinaire|e-learning|certification/.test(lib))return 'formation';
+  if(/prestation|prestataire|freelance|sous-trait|accompagnement|coaching|prospection|consultant|mentor/.test(lib))return 'soustraitance';
   if(cat==='subscription'||cat==='online_service'||/abonnement|adobe|google|microsoft|notion|canva|slack|zoom|figma|linkedin|ovh|hostinger|make\.com|zapier/.test(lib))return 'charges';
   if(/salaire|versement perso|virement perso/.test(lib))return 'versement';
   return 'autre';
@@ -4512,11 +4521,14 @@ function computeEnveloppes(){
   const caEncaisse=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(String(annee))).reduce((s,f)=>s+(f.montant||0),0);
 
   // Dépenses réelles ventilées depuis les transactions Qonto
-  const paye={urssaf:0,charges:0,formation:0,versement:0};
-  const listes={urssaf:[],charges:[],formation:[],versement:[],autre:[]};
+  const budgetSoustraitance=parseFloat(settings.budgetSoustraitance)||0;
+  const paye={urssaf:0,charges:0,formation:0,soustraitance:0,versement:0};
+  const listes={urssaf:[],charges:[],formation:[],soustraitance:[],versement:[],autre:[]};
+  const debits=[]; // toutes les dépenses avec leur catégorie courante (pour re-classer)
   transactions.forEach(t=>{
     if(t.type!=='debit')return;
     const c=classifyTx(t,overrides);
+    debits.push({...t,cat:c});
     if(c==='ignore')return;
     if(c==='autre'){listes.autre.push(t);return;}
     if(paye[c]!=null)paye[c]+=(t.montant||0);
@@ -4528,13 +4540,14 @@ function computeEnveloppes(){
   const chargesBudget=Math.round(aboMois*Math.max(0,horizonCharges)*100)/100;
 
   const env={
-    urssaf:    {budget:urssafDu,        paye:paye.urssaf,    reste:Math.max(0,urssafDu-paye.urssaf),          liste:listes.urssaf},
-    charges:   {budget:chargesBudget,   paye:paye.charges,   reste:chargesBudget,                             liste:listes.charges},
-    formation: {budget:budgetFormation, paye:paye.formation, reste:Math.max(0,budgetFormation-paye.formation),liste:listes.formation},
-    tresorerie:{budget:cibleTreso,      paye:0,              reste:cibleTreso,                                liste:[]},
+    urssaf:      {budget:urssafDu,           paye:paye.urssaf,       reste:Math.max(0,urssafDu-paye.urssaf),                   liste:listes.urssaf},
+    charges:     {budget:chargesBudget,      paye:paye.charges,      reste:chargesBudget,                                      liste:listes.charges},
+    formation:   {budget:budgetFormation,    paye:paye.formation,    reste:Math.max(0,budgetFormation-paye.formation),         liste:listes.formation},
+    soustraitance:{budget:budgetSoustraitance,paye:paye.soustraitance,reste:budgetSoustraitance>0?Math.max(0,budgetSoustraitance-paye.soustraitance):0,liste:listes.soustraitance},
+    tresorerie:  {budget:cibleTreso,         paye:0,                 reste:cibleTreso,                                         liste:[]},
   };
-  const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.tresorerie.reste;
-  return {settings,soldeReel,caEncaisse,env,totalReserve,disponible:soldeReel-totalReserve,aranger:listes.autre};
+  const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.soustraitance.reste+env.tresorerie.reste;
+  return {settings,soldeReel,caEncaisse,env,totalReserve,disponible:soldeReel-totalReserve,aranger:listes.autre,debits};
 }
 
 function renderEnveloppes(){
@@ -4573,9 +4586,13 @@ function renderEnveloppes(){
       : '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#7C3AED;background:rgba(124,58,237,.13);">'+(e.budget>0?'Budget défini':'À définir')+'</span>';
     const row=(k,v)=>\`<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-2);">\${k}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(v)}</span></div>\`;
     let detail='';
-    if(def.id==='urssaf')     detail=row('Dû sur ton CA encaissé',e.budget)+row('Déjà payé (Qonto)',e.paye);
-    else if(def.id==='formation')detail=row('Budget / an',e.budget)+row('Déjà payé (Qonto)',e.paye);
-    else if(def.id==='charges')  detail=row('Abonnements couverts',e.budget);
+    if(def.id==='urssaf')          detail=row('Dû sur ton CA encaissé',e.budget)+row('Déjà payé (Qonto)',e.paye);
+    else if(def.id==='formation')  detail=row('Budget / an',e.budget)+row('Déjà payé (Qonto)',e.paye);
+    else if(def.id==='charges')    detail=row('Abonnements couverts',e.budget);
+    else if(def.id==='soustraitance')detail=(e.budget>0?row('Budget / an',e.budget):'')+row('Déjà payé (Qonto)',e.paye);
+    const noBudget=(def.id==='tresorerie'||def.id==='soustraitance')&&e.budget===0;
+    const bigVal=noBudget?(def.id==='soustraitance'?fmt(e.paye):'—'):fmt(e.reste);
+    const bigLab=noBudget?(def.id==='soustraitance'?'dépensé cette année':'aucun montant défini'):'à garder de côté';
     const txHtml=e.liste.length
       ? e.liste.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,4).map(t=>\`<div style="display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:4px 0;">
           <span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${fmtDate(t.date)} · \${escHtml(t.libelle||'—')}</span>
@@ -4594,33 +4611,44 @@ function renderEnveloppes(){
         </div>
         \${badge}
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:\${def.couleur};">\${(def.id==='tresorerie'&&e.budget===0)?'—':fmt(e.reste)}</div>
-      <div style="font-size:11px;color:var(--text-2);margin-bottom:12px;">à garder de côté</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:\${def.couleur};">\${bigVal}</div>
+      <div style="font-size:11px;color:var(--text-2);margin-bottom:12px;">\${bigLab}</div>
       \${e.budget>0?\`<div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;transition:width .5s;"></div></div>\`:''}
       \${detail?\`<div style="display:flex;flex-direction:column;gap:4px;font-size:11.5px;margin-bottom:10px;">\${detail}</div>\`:''}
       \${footer}
     </div>\`;
   }).join('');
 
-  renderAranger(aranger);
+  renderAranger(ctx);
 }
 
-function renderAranger(list){
+let _envShowAll=false;
+function toggleEnvShowAll(){_envShowAll=!_envShowAll;renderEnveloppes();}
+
+function renderAranger(ctx){
   const el=q('#enveloppes-aranger');
   if(!el)return;
-  const items=(list||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,20);
-  if(!items.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">✓ Tout est rangé — aucune opération en attente.</div>';return;}
-  const cats=['urssaf','charges','formation','versement','ignore'];
-  el.innerHTML=items.map(t=>{
+  const debits=(ctx.debits||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!debits.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">Aucune dépense Qonto pour le moment. Clique « Sync Qonto ».</div>';return;}
+  const aRanger=debits.filter(t=>t.cat==='autre');
+  const list=(_envShowAll?debits:aRanger).slice(0,80);
+  const opt=(cur)=>ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');
+  const header=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:12px;color:var(--text-2);">\${aRanger.length?aRanger.length+' opération(s) à ranger':'✓ Tout est rangé'}\${_envShowAll?' · toutes affichées':''}</span>
+    <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
+  </div>\`;
+  if(!list.length){el.innerHTML=header+'<div style="font-size:12.5px;color:var(--text-2);padding:8px 0;">✓ Rien à ranger. Clique « Voir toutes les opérations » pour re-catégoriser.</div>';return;}
+  el.innerHTML=header+list.map(t=>{
     const key=t.qontoId||t.id;
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">
-      <div style="min-width:160px;flex:1;">
+    const isRanger=t.cat==='autre';
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(232,168,56,.08);':''}">
+      <div style="min-width:150px;flex:1;">
         <div style="font-size:12.5px;font-weight:500;">\${escHtml(t.libelle||'—')}</div>
         <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · −\${fmt(t.montant)}</div>
       </div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;">
-        \${cats.map(c=>\`<button onclick="assignTx('\${key}','\${c}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;color:var(--text-2);">\${ENV_LABELS[c]}</button>\`).join('')}
-      </div>
+      <select onchange="assignTx('\${key}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--text-1);background:var(--surface-2);cursor:pointer;">
+        \${opt(t.cat)}
+      </select>
     </div>\`;
   }).join('');
 }
@@ -4631,7 +4659,7 @@ async function assignTx(key,cat){
     settings.envTx=settings.envTx||{};
     settings.envTx[key]=cat;
     _cache.settings=await api('PUT','/api/settings',settings);
-    toast('Opération rangée dans « '+(ENV_LABELS[cat]||cat)+' »','success');
+    toast('Rangé dans « '+(ENV_LABELS[cat]||cat)+' »','success');
     renderEnveloppes();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
@@ -4639,6 +4667,7 @@ async function assignTx(key,cat){
 function openEnvReglages(){
   const s=dbGetObj('settings');
   q('#env-budget-formation').value=s.budgetFormations!=null?s.budgetFormations:2000;
+  q('#env-budget-soustraitance').value=s.budgetSoustraitance!=null?s.budgetSoustraitance:'';
   q('#env-cible-treso').value=s.objectifTresorerie!=null?s.objectifTresorerie:'';
   q('#env-horizon-charges').value=s.chargesHorizonMois!=null?s.chargesHorizonMois:1;
   q('#modal-env-reglages').style.display='flex';
@@ -4647,6 +4676,7 @@ async function saveEnvReglages(){
   try{
     const settings=dbGetObj('settings');
     const bf=parseFloat(q('#env-budget-formation').value); if(!isNaN(bf))settings.budgetFormations=bf;
+    const bst=parseFloat(q('#env-budget-soustraitance').value); settings.budgetSoustraitance=isNaN(bst)?0:bst;
     const tr=parseFloat(q('#env-cible-treso').value); settings.objectifTresorerie=isNaN(tr)?0:tr;
     const hc=parseInt(q('#env-horizon-charges').value); settings.chargesHorizonMois=isNaN(hc)?1:hc;
     _cache.settings=await api('PUT','/api/settings',settings);
