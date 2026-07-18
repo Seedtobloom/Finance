@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v18 · revenus perso</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v19 · épargne</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -374,6 +374,7 @@ const HTML = `<!DOCTYPE html>
       <div id="perso-reste" style="margin-bottom:18px;"></div>
       <div id="perso-bridge" style="margin-bottom:18px;"></div>
       <div id="perso-revenus" style="margin-bottom:18px;"></div>
+      <div id="perso-epargne" style="margin-bottom:18px;"></div>
       <div id="perso-charges" style="margin-bottom:18px;"></div>
       <div id="perso-simulateur"></div>
     </section>
@@ -398,7 +399,6 @@ const HTML = `<!DOCTYPE html>
               <option value="transport">🚗 Transport</option>
               <option value="quotidien">🛒 Vie quotidienne</option>
               <option value="famille">👨‍👩‍👧 Famille</option>
-              <option value="epargne">💰 Épargne</option>
               <option value="loisirs">🎉 Loisirs</option>
             </select>
           </div>
@@ -416,6 +416,36 @@ const HTML = `<!DOCTYPE html>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-perso-charge').style.display='none'">Annuler</button>
             <button class="btn btn-primary" onclick="savePersoCharge()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal épargne mensuelle -->
+    <div class="modal-overlay" id="modal-perso-epargne" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title" id="perso-epargne-title">Nouveau support d'épargne</div>
+          <button class="modal-close" onclick="q('#modal-perso-epargne').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <input type="hidden" id="perso-epargne-id">
+          <div>
+            <label class="form-label">Support</label>
+            <input class="form-control" type="text" id="perso-epargne-nom" placeholder="Ex: Livret A, Assurance vie, PEA…">
+          </div>
+          <div>
+            <label class="form-label">À mettre de côté chaque mois (€)</label>
+            <input class="form-control" type="number" id="perso-epargne-montant" min="0" step="10" placeholder="Ex: 200">
+          </div>
+          <div>
+            <label class="form-label">Solde actuel (optionnel, €)</label>
+            <input class="form-control" type="number" id="perso-epargne-solde" min="0" step="100" placeholder="Ex: 5000">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Pour suivre combien tu as déjà et projeter la suite.</div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-perso-epargne').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="savePersoEpargne()"><i class="ti ti-check"></i> Enregistrer</button>
           </div>
         </div>
       </div>
@@ -2524,7 +2554,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=18"></script>
+<script src="/app.js?v=19"></script>
 </body>
 </html>
 `;
@@ -5290,7 +5320,6 @@ const PERSO_CATS=[
   {id:'transport',nom:'Transport',       emoji:'🚗', couleur:'#E8A838'},
   {id:'quotidien',nom:'Vie quotidienne', emoji:'🛒', couleur:'#4CAF82'},
   {id:'famille',  nom:'Famille',         emoji:'👨‍👩‍👧', couleur:'#E05252'},
-  {id:'epargne',  nom:'Épargne',         emoji:'💰', couleur:'#2AA9A0'},
   {id:'loisirs',  nom:'Loisirs',         emoji:'🎉', couleur:'#7C3AED'},
 ];
 
@@ -5308,7 +5337,11 @@ function computePerso(){
     c.items.push(ch); c.total+=mt;
     if(ch.type==='variable')variable+=mt; else fixe+=mt;
   });
-  const besoin=Math.round((fixe+variable)*100)/100;
+  // Épargne mensuelle choisie (Livret, assurance vie…) — fait partie du besoin
+  const epargne=Array.isArray(settings.persoEpargne)?settings.persoEpargne:[];
+  const epargneMensuel=Math.round(epargne.reduce((s,e)=>s+(parseFloat(e.montant)||0),0)*100)/100;
+  const epargneSolde=Math.round(epargne.reduce((s,e)=>s+(parseFloat(e.solde)||0),0)*100)/100;
+  const besoin=Math.round((fixe+variable+epargneMensuel)*100)/100;
   // Revenus perso hors entreprise (CAF, prime d'activité, pension, conjoint…)
   const revenus=Array.isArray(settings.persoRevenus)?settings.persoRevenus:[];
   const revenusPerso=Math.round(revenus.reduce((s,r)=>s+(parseFloat(r.montant)||0),0)*100)/100;
@@ -5329,7 +5362,7 @@ function computePerso(){
   const caRequis=besoinNet>0?Math.round((besoinNet+chargesProMensuel)/Math.max(0.01,1-tauxU-tauxC)):0;
   // Reste à vivre = salaire + revenus perso − besoin total
   const resteAVivre=Math.round((salaireConseille+revenusPerso-besoin)*100)/100;
-  return {settings,charges,cats,fixe,variable,besoin,revenus,revenusPerso,besoinNet,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
+  return {settings,charges,cats,fixe,variable,besoin,epargne,epargneMensuel,epargneSolde,revenus,revenusPerso,besoinNet,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
 }
 
 function loadBudgetPerso(){renderBudgetPerso();}
@@ -5339,6 +5372,7 @@ function renderBudgetPerso(){
   renderPersoReste(ctx);
   renderPersoBridge(ctx);
   renderPersoRevenus(ctx);
+  renderPersoEpargne(ctx);
   renderPersoCharges(ctx);
   renderPersoSimulateur(ctx);
 }
@@ -5402,6 +5436,78 @@ function renderPersoBridge(ctx){
     <div style="font-size:14px;line-height:1.5;margin-bottom:10px;">\${msg}</div>
     <div style="font-size:12.5px;color:var(--text-2);">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an)\${revenusPerso>0?', tes aides couvrant déjà '+fmt(revenusPerso):''}.</div>
   </div>\`;
+}
+
+function renderPersoEpargne(ctx){
+  const el=q('#perso-epargne'); if(!el)return;
+  const {epargne,epargneMensuel,epargneSolde}=ctx;
+  const rows=(epargne||[]).map(e=>{
+    const mt=parseFloat(e.montant)||0, sd=parseFloat(e.solde)||0;
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="min-width:120px;flex:1;">
+        <span style="font-size:12.5px;font-weight:500;">💰 \${escHtml(e.nom||'—')}</span>
+        \${sd>0?\`<span style="font-size:11px;color:var(--text-2);"> · solde \${fmt(sd)}</span>\`:''}
+      </span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#2AA9A0;">\${fmt(mt)} / mois</span>
+        <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+      </span>
+    </div>\`;
+  }).join('');
+  const proj=epargneMensuel>0?\`<div style="font-size:12px;color:var(--navy);margin-top:10px;font-weight:500;">📈 À ce rythme, dans 12 mois tu auras mis <strong>\${fmt(epargneMensuel*12)}</strong> de côté\${epargneSolde>0?\` (total ~\${fmt(epargneSolde+epargneMensuel*12)})\`:''}.</div>\`:'';
+  el.innerHTML=\`<div class="card" style="padding:16px;border-top:3px solid #2AA9A0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:13px;font-weight:700;color:var(--navy);">💰 Mon épargne mensuelle</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#2AA9A0;">\${fmt(epargneMensuel)} / mois</span>
+        <button class="btn btn-outline btn-xs" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter</button>
+      </div>
+    </div>
+    \${rows||'<div style="font-size:12px;color:var(--text-2);padding:6px 0;">Livret A, assurance vie, PEA, retraite… définis combien tu veux mettre de côté chaque mois. Ce montant est compté dans ton besoin de vie.</div>'}
+    \${proj}
+  </div>\`;
+}
+
+function openPersoEpargneModal(id){
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
+  const it=id?items.find(x=>x.id===id):null;
+  q('#perso-epargne-id').value=it?it.id:'';
+  q('#perso-epargne-nom').value=it?(it.nom||''):'';
+  q('#perso-epargne-montant').value=it&&it.montant!=null?it.montant:'';
+  q('#perso-epargne-solde').value=it&&it.solde!=null&&it.solde!==0?it.solde:'';
+  q('#perso-epargne-title').textContent=it?'Modifier le support':'Nouveau support d\\'épargne';
+  q('#modal-perso-epargne').style.display='flex';
+}
+async function savePersoEpargne(){
+  try{
+    const nom=q('#perso-epargne-nom').value.trim();
+    const montant=parseFloat(q('#perso-epargne-montant').value);
+    if(!nom){toast('Donne un nom au support','error');return;}
+    if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
+    let solde=parseFloat(q('#perso-epargne-solde').value); if(isNaN(solde)||solde<0)solde=0;
+    const settings=dbGetObj('settings');
+    const items=Array.isArray(settings.persoEpargne)?settings.persoEpargne.slice():[];
+    const id=q('#perso-epargne-id').value;
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,montant,solde};}
+    else{items.push({id:'pe_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,montant,solde});}
+    settings.persoEpargne=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-perso-epargne').style.display='none';
+    toast('Épargne enregistrée','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function deletePersoEpargne(id){
+  if(!confirm('Supprimer ce support ?'))return;
+  try{
+    const settings=dbGetObj('settings');
+    settings.persoEpargne=(Array.isArray(settings.persoEpargne)?settings.persoEpargne:[]).filter(x=>x.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Supprimé','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 function renderPersoRevenus(ctx){
