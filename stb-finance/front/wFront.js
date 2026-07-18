@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v22 · allocation</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v23 · cockpit épuré</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2498,7 +2498,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=22"></script>
+<script src="/app.js?v=23"></script>
 </body>
 </html>
 `;
@@ -4686,212 +4686,66 @@ function computeIntel(){
 function renderCockpit(){
   const el=q('#dash-cockpit'); if(!el)return;
   let d; try{d=computeIntel();}catch(e){el.innerHTML='';return;}
-  let p={besoin:0,salaireConseille:0,capacite:0,revenusPerso:0,epargneSolde:0,epargneMensuel:0,objectif:0}; try{p=computePerso();}catch(e){}
+  let p={besoin:0,salaireConseille:0,capacite:0,revenusPerso:0,resteAVivre:0,epargneSolde:0,epargneMensuel:0,confort:0,objectif:0}; try{p=computePerso();}catch(e){}
   let ce=null; try{ce=computeEnveloppes();}catch(e){}
   let prev=null; try{prev=computePrevision();}catch(e){}
   const settings=dbGetObj('settings');
   const now=new Date();
-  const scoreColor=d.score>=80?'#3E9E74':d.score>=55?'#E8A838':'#E05252';
-  const scoreLabel=d.score>=80?'Solide':d.score>=55?'Correct':'Fragile';
-  const insColor={good:'#3E9E74',warn:'#E05252',info:'#1A2E5A'};
-  const insIcon={good:'ti-circle-check',warn:'ti-alert-triangle',info:'ti-info-circle'};
+  const y=now.getFullYear(), m=now.getMonth()+1;
   const prenom=(settings.prenom||'').trim();
   const salut=now.getHours()<18?'Bonjour':'Bonsoir';
+  const scoreColor=d.score>=80?'#3E9E74':d.score>=55?'#E8A838':'#E05252';
+  const scoreLabel=d.score>=80?'Solide':d.score>=55?'Correct':'Fragile';
+  const scoreEmoji=d.score>=80?'🟢':d.score>=55?'🟠':'🔴';
+  const scoreHist=settings.scoreHist||{};
+  const pmk=(m===1?(y-1):y)+'-'+String(m===1?12:m-1).padStart(2,'0');
+  const scoreDelta=scoreHist[pmk]!=null?d.score-scoreHist[pmk]:null;
 
-  // ── Verdict en une phrase ─────────────────────────────────────────────
-  const versable=p.besoin>0?p.salaireConseille:d.disponible;
-  let verdict, vTon;
-  if(d.disponible<0){vTon='warn';verdict='Prudence : tes réserves (URSSAF, charges) dépassent ton solde de '+fmt(-d.disponible)+'. Attends une rentrée avant de te verser quoi que ce soit.';}
-  else if(p.besoin>0&&(p.capacite+p.revenusPerso)<p.besoin){vTon='warn';verdict='Ton activité ne couvre pas encore ton niveau de vie — il manque environ '+fmt(p.besoin-p.capacite-p.revenusPerso)+' / mois. Il faudra augmenter ton CA ou ajuster certaines dépenses.';}
-  else if(d.pctObjectif!=null&&d.ecartObjectif<0){vTon='warn';verdict='Tu es un peu en retard sur ton objectif de CA. Il te manque environ '+fmt(-d.ecartObjectif)+' pour rester dans le rythme.';}
-  else{vTon='good';verdict='Tu es en bonne santé financière.'+(versable>0?' Tu peux te verser '+fmt(versable)+' ce mois-ci sans mettre en danger ta trésorerie.':'');}
-  const vColor=vTon==='good'?'#7BE0AE':'#F6C664';
+  let verdict, vColor;
+  if(d.disponible<0){vColor='#F6C664';verdict=\`⚠️ Prudence : tes réserves (URSSAF, charges) dépassent ton solde de \${fmt(-d.disponible)}. Attends une rentrée avant de te verser.\`;}
+  else if(p.besoin>0&&(p.capacite+p.revenusPerso)<p.besoin){vColor='#F6C664';verdict=\`⚠️ Ton activité ne couvre pas encore ton niveau de vie — il manque environ \${fmt(p.besoin-p.capacite-p.revenusPerso)} par mois.\`;}
+  else if(d.pctObjectif!=null&&d.ecartObjectif<0){vColor='#F6C664';verdict=\`⚠️ Tu ralentis un peu sur ton objectif : il te manque environ \${fmt(-d.ecartObjectif)} pour rester dans le rythme.\`;}
+  else{vColor='#7BE0AE';verdict=\`🎉 Bonne nouvelle — \${p.besoin>0&&p.resteAVivre>0?\`il te reste \${fmt(p.resteAVivre)} pour toi ce mois-ci.\`:(d.disponible>0?\`tu peux te verser jusqu'à \${fmt(d.disponible)} sans toucher à tes réserves.\`:\`ta situation est saine.\`)}\`;}
 
-  // ── Bloc 1 : accueil + verdict ────────────────────────────────────────
-  const bloc1=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;">
-    <div style="font-size:20px;font-weight:600;margin-bottom:6px;">👋 \${salut}\${prenom?' '+escHtml(prenom):''}</div>
-    <div style="font-size:15.5px;line-height:1.5;color:\${vColor};font-weight:500;">\${verdict}</div>
+  const topBanner=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center;">
+    <div style="flex:1;min-width:240px;">
+      <div style="font-size:20px;font-weight:600;margin-bottom:6px;">👋 \${salut}\${prenom?' '+escHtml(prenom):''}</div>
+      <div style="font-size:14.5px;line-height:1.5;color:\${vColor};font-weight:500;">\${verdict}</div>
+    </div>
+    <div style="text-align:center;flex:none;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.55;">Santé financière</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</div>
+      <div style="font-size:11px;opacity:.7;">\${scoreEmoji} \${scoreLabel}</div>
+      \${scoreDelta!=null&&scoreDelta!==0?\`<div style="font-size:11px;color:\${scoreDelta>0?'#7BE0AE':'#F6C664'};margin-top:2px;">\${scoreDelta>0?'↗ +'+scoreDelta:'↘ '+scoreDelta} vs mois dernier</div>\`:''}
+    </div>
   </div>\`;
 
-  // ── Bloc 2 : puis-je me verser / besoins couverts ─────────────────────
-  const couvre=p.besoin>0&&(p.salaireConseille+p.revenusPerso)>=p.besoin;
-  const flow=(emoji,lab,val,color)=>\`<div style="flex:1;min-width:140px;text-align:center;">
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">\${emoji} \${lab}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;\${color?'color:'+color+';':'color:var(--navy);'}">\${fmt(val)}</div>
-  </div>\`;
-  const arrow='<div style="font-size:20px;color:var(--text-2);align-self:center;">→</div>';
-  let bloc2Verdict='';
+  const step=(t)=>\`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-2);font-weight:700;margin:12px 2px -4px;">\${t}</div>\`;
+
+  const fcell=(lab,val,color,sign)=>\`<div style="text-align:center;min-width:92px;"><div style="font-size:10.5px;color:var(--text-2);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;\${color?'color:'+color+';':'color:var(--navy);'}">\${sign||''}\${fmt(val)}</div></div>\`;
+  const arr='<div style="font-size:16px;color:var(--text-2);align-self:center;">→</div>';
+  const plus='<div style="font-size:16px;color:var(--text-2);align-self:center;">+</div>';
+  let situation;
   if(p.besoin>0){
-    bloc2Verdict=couvre
-      ? \`<div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(62,158,116,.12);color:#2F7D55;font-size:13px;font-weight:600;">✅ Tu couvres tes besoins\${(p.salaireConseille+p.revenusPerso-p.besoin)>0?' — '+fmt(p.salaireConseille+p.revenusPerso-p.besoin)+' de marge':''}.</div>\`
-      : \`<div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(224,82,82,.1);color:#C43030;font-size:13px;font-weight:600;">❌ Il manque environ \${fmt(p.besoin-p.salaireConseille-p.revenusPerso)} / mois. Il faudra augmenter ton CA ou réduire certaines dépenses.</div>\`;
+    const dispoVivre=p.salaireConseille+p.revenusPerso;
+    const reste=p.resteAVivre;
+    situation=\`<div class="card" style="padding:22px;">
+      <div class="dash-sec-title">💸 Ce mois-ci</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
+        \${fcell('Entreprise',d.disponible)}\${arr}\${fcell('Salaire conseillé',p.salaireConseille,'#2AA9A0')}\${p.revenusPerso>0?plus+fcell('Autres revenus',p.revenusPerso,'#2AA9A0'):''}\${arr}\${fcell('Pour vivre',dispoVivre)}\${arr}\${fcell('Dépenses perso',p.besoin,'#E8A838','−')}
+      </div>
+      <div style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:\${reste>=0?'#2F7D55':'#C43030'};">
+        \${reste>=0?\`✅ Il te reste \${fmt(reste)} ce mois-ci\`:\`⚠️ Il te manque \${fmt(-reste)} ce mois-ci\`}
+      </div>
+    </div>\`;
   }else{
-    bloc2Verdict=\`<div style="margin-top:14px;font-size:12.5px;color:var(--text-2);">Renseigne ton <a onclick="navigate('budget-perso')" style="color:var(--navy);cursor:pointer;text-decoration:underline;">budget perso</a> pour savoir si ton activité couvre ton niveau de vie.</div>\`;
-  }
-  const bloc2=\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">💸 Ce que je peux faire aujourd'hui</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;">
-      \${flow('💰','Disponible entreprise',d.disponible)}
-      \${arrow}
-      \${flow('💸','Salaire conseillé',p.salaireConseille,'#2AA9A0')}
-      \${p.revenusPerso>0?arrow+flow('🤝','Revenus perso',p.revenusPerso,'#2AA9A0'):''}
-      \${p.besoin>0?arrow+flow('🏠','Tes dépenses perso',p.besoin):''}
-    </div>
-    \${bloc2Verdict}
-  </div>\`;
-
-  // ── Bloc 3 : activité (une carte) ─────────────────────────────────────
-  const deltaTxt=d.deltaMois!=null?(d.deltaMois>=0?'📈 +'+d.deltaMois+'%':'📉 '+d.deltaMois+'%'):'';
-  const deltaColor=d.deltaMois!=null&&d.deltaMois<0?'#E05252':'#3E9E74';
-  const bloc3=\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">📈 Mon activité</div>
-    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
-      <span style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--navy);">\${fmt(d.caMois)}</span>
-      <span style="font-size:13px;color:var(--text-2);">CA encaissé ce mois</span>
-      \${deltaTxt?\`<span style="font-size:14px;font-weight:600;color:\${deltaColor};">\${deltaTxt}</span>\`:''}
-    </div>
-    \${d.pctObjectif!=null?\`<div style="margin-top:12px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:4px;"><span>Objectif annuel atteint à \${d.pctObjectif}%</span><span>\${fmt(d.caYTD)} / \${fmt(d.objectifCA)}</span></div>
-      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${Math.min(100,d.pctObjectif)}%;background:var(--navy);border-radius:5px;"></div></div>
-      \${d.ecartObjectif<0?\`<div style="font-size:12px;color:#E05252;margin-top:6px;">Encore \${fmt(-d.ecartObjectif)} pour être dans le rythme.</div>\`:\`<div style="font-size:12px;color:#3E9E74;margin-top:6px;">Tu es dans le rythme \${d.ecartObjectif>0?'(+'+fmt(d.ecartObjectif)+' d\\'avance)':''}.</div>\`}
-    </div>\`:'<div style="font-size:12px;color:var(--text-2);margin-top:8px;">Définis un objectif de CA dans Objectifs pour suivre ton rythme.</div>'}
-  </div>\`;
-
-  // ── Bloc 4 : trésorerie ───────────────────────────────────────────────
-  let bloc4='';
-  if(ce){
-    const tstat=(lab,val,color)=>\`<div style="flex:1;min-width:130px;">
-      <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;\${color?'color:'+color+';':'color:var(--navy);'}">\${fmt(val)}</div>
-    </div>\`;
-    bloc4=\`<div class="card" style="padding:20px;">
-      <div class="dash-sec-title">💳 Ma trésorerie</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        \${tstat('Solde Qonto',ce.soldeReel)}
-        \${tstat('URSSAF réservée',ce.env.urssaf.reste,'#E05252')}
-        \${tstat('Charges réservées',ce.env.charges.reste,'#E8A838')}
-        \${tstat('Disponible réel',ce.disponible,ce.disponible<0?'#E05252':'#3E9E74')}
-      </div>
+    situation=\`<div class="card" style="padding:22px;">
+      <div class="dash-sec-title">💸 Ce mois-ci</div>
+      <div style="text-align:center;font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--navy);">Tu peux te verser \${fmt(d.disponible)}</div>
+      <div style="text-align:center;font-size:12.5px;color:var(--text-2);margin-top:8px;">Renseigne ton <a onclick="navigate('budget-perso')" style="color:var(--navy);cursor:pointer;text-decoration:underline;">budget perso</a> pour voir ce qu'il te reste vraiment pour vivre.</div>
     </div>\`;
   }
 
-  // ── Bloc 5 : à faire aujourd'hui ──────────────────────────────────────
-  const todo=[];
-  if(d.retard.length)todo.push({ic:'⚠️',txt:d.retard.length+' facture'+(d.retard.length>1?'s':'')+' en retard de paiement',nav:'factures'});
-  if(d.devisRelance&&d.devisRelance.length)todo.push({ic:'📞',txt:d.devisRelance.length+' devis à relancer',nav:'devis'});
-  if(d.urssafProchain&&d.urssafProchain.jours<=45)todo.push({ic:'📅',txt:'URSSAF '+d.urssafProchain.t+' dans '+d.urssafProchain.jours+' jours',nav:'charges-urssaf'});
-  if(d.aRanger)todo.push({ic:'📄',txt:d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser',nav:'enveloppes'});
-  const bloc5=\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">📋 À faire aujourd'hui</div>
-    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 8px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">
-        <span style="font-size:13.5px;">\${t.ic} \${t.txt}</span>
-        <span style="color:var(--navy);">→</span>
-      </div>\`).join('')}</div>\`:'<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Rien d\\'urgent aujourd\\'hui. Profites-en.</div>'}
-  </div>\`;
-
-  // ── Bloc 6 : prévisions ───────────────────────────────────────────────
-  let bloc6='';
-  if(prev){
-    const pv=(lab,val,hint)=>\`<div style="flex:1;min-width:140px;">
-      <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--navy);">\${fmt(val)}</div>
-      <div style="font-size:10.5px;color:var(--text-2);">\${hint}</div>
-    </div>\`;
-    bloc6=\`<div class="card" style="padding:20px;">
-      <div class="dash-sec-title">🔮 Mes prévisions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-2);font-size:11px;">· si rien ne change</span></div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        \${pv('CA prévisionnel',prev.caProjete,'sur l\\'année')}
-        \${pv('Net estimé',prev.netProjete,'après charges & URSSAF')}
-        \${pv('Salaire moyen possible',Math.round(prev.netProjete/12),'par mois')}
-      </div>
-    </div>\`;
-  }
-
-  // ── Bloc 7 : objectifs (4 jauges) ─────────────────────────────────────
-  const objCA=parseFloat(settings.objectifCA)||0, objTreso=parseFloat(settings.objectifTresorerie)||0;
-  const objEp=parseFloat(settings.objectifEpargne)||0, objSal=parseFloat(settings.persoObjectif)||p.besoin||0;
-  const gauges=[
-    {lab:'Objectif CA',color:'#4C6FBF',pct:objCA>0?d.caYTD/objCA*100:0,txt:objCA>0?fmt(d.caYTD)+' / '+fmt(objCA):'non défini'},
-    {lab:'Objectif trésorerie',color:'#3E9E74',pct:objTreso>0?d.soldeReel/objTreso*100:0,txt:objTreso>0?fmt(d.soldeReel)+' / '+fmt(objTreso):'non défini'},
-    {lab:'Objectif épargne',color:'#2AA9A0',pct:objEp>0?p.epargneSolde/objEp*100:0,txt:objEp>0?fmt(p.epargneSolde)+' / '+fmt(objEp):'non défini'},
-    {lab:'Objectif salaire',color:'#7C3AED',pct:objSal>0?p.salaireConseille/objSal*100:0,txt:objSal>0?fmt(p.salaireConseille)+' / '+fmt(objSal):'non défini'},
-  ];
-  const bloc7=\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title" style="display:flex;justify-content:space-between;align-items:center;"><span>🎯 Mes objectifs</span><button class="btn btn-outline btn-xs" onclick="openObjectifsPilotage()"><i class="ti ti-adjustments"></i> Régler</button></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
-      \${gauges.map(g=>\`<div style="display:flex;align-items:center;gap:12px;">
-        <div style="flex:none;">\${ringGauge(g.pct,g.pct>=100?'#3E9E74':g.color)}</div>
-        <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);">\${g.lab}</div><div style="font-size:12px;">\${g.txt}</div></div>
-      </div>\`).join('')}
-    </div>
-  </div>\`;
-
-  // ── Bloc 8 : revenus récurrents ───────────────────────────────────────
-  const objMensuel=objCA>0?objCA/12:0;
-  const pctRec=objMensuel>0?Math.round(d.recMensuel/objMensuel*100):null;
-  const bloc8=d.recMensuel>0?\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">🔁 Mes revenus récurrents</div>
-    <div style="font-size:13px;color:var(--text-2);">Chaque mois, tu peux compter sur</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#3E9E74;">\${fmt(d.recMensuel)} <span style="font-size:14px;color:var(--text-2);">/ mois</span></div>
-    \${pctRec!=null?\`<div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">Soit \${pctRec}% de ton objectif mensuel.</div>\`:''}
-    \${(d.recDetail&&d.recDetail.length)?\`<div style="border-top:1px dashed var(--border);padding-top:8px;">\${d.recDetail.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;padding:3px 0;"><span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📁 \${escHtml(r.nom)} <span style="font-size:10.5px;opacity:.7;">(\${r.src})</span></span><span style="font-family:'Cormorant Garamond',serif;white-space:nowrap;">\${fmt(r.montant)}</span></div>\`).join('')}</div>\`:''}
-  </div>\`:'';
-
-  // ── Bloc 9 : projets ──────────────────────────────────────────────────
-  const projets=dbGet('projets')||[];
-  const txProjet=settings.txProjet||{};
-  const transactions=dbGet('transactions')||[];
-  const projMarge=projets.map(pr=>{
-    const ca=pr.montantTotal||0;
-    const cout=transactions.filter(t=>t.type==='debit'&&txProjet[t.qontoId||t.id]===pr.id).reduce((s,t)=>s+(t.montant||0),0);
-    return {nom:pr.nom||'Projet',ca,cout,marge:ca-cout,ratio:ca>0?(ca-cout)/ca:0};
-  }).filter(x=>x.ca>0);
-  let bloc9='';
-  if(projMarge.length){
-    const meilleur=projMarge.slice().sort((a,b)=>b.marge-a.marge)[0];
-    const surv=projMarge.slice().sort((a,b)=>a.ratio-b.ratio)[0];
-    const pcard=(titre,pr,color,note)=>\`<div style="flex:1;min-width:160px;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);">\${titre}</div>
-      <div style="font-size:14px;font-weight:600;color:var(--navy);margin:2px 0;">\${escHtml(pr.nom)}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:\${color};">\${(pr.marge>=0?'+':'')+fmt(pr.marge)}</div>
-      <div style="font-size:11px;color:var(--text-2);">\${note}</div>
-    </div>\`;
-    bloc9=\`<div class="card" style="padding:20px;">
-      <div class="dash-sec-title">📁 Mes projets</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        \${pcard('Le plus rentable',meilleur,'#3E9E74','marge dégagée')}
-        \${(surv&&surv.nom!==meilleur.nom)?pcard('À surveiller',surv,surv.ratio<0.3?'#E05252':'#E8A838',surv.ratio<0.3?'marge faible':'marge à surveiller'):''}
-      </div>
-    </div>\`;
-  }
-
-  // ── Bloc 10 : santé financière ────────────────────────────────────────
-  const bloc10=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:20px 24px;color:#fff;">
-    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
-      <span style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Santé financière</span>
-      <span style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</span>
-      <span style="font-size:14px;opacity:.7;">/ 100 · \${scoreLabel}</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;">
-      \${d.indics.map(i=>\`<div style="display:flex;align-items:center;gap:7px;font-size:12px;">
-        <i class="ti \${i.ok?'ti-circle-check':'ti-alert-triangle'}" style="color:\${i.ok?'#7BE0AE':'#F6C664'};font-size:14px;"></i>
-        <span style="opacity:.9;">\${i.label} — \${i.val}</span>
-      </div>\`).join('')}
-    </div>
-  </div>\`;
-
-  // ── Bloc 11 : conseils Finance ────────────────────────────────────────
-  const bloc11=\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">🤖 Les conseils de Finance</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      \${d.ins.slice(0,6).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;\${i.nav?'cursor:pointer;':''}" \${i.nav?'onclick="navigate(\\''+i.nav+'\\')"':''}>
-        <span style="flex:none;">💡</span>
-        <span>\${i.txt}\${i.nav?' <span style="color:var(--navy);white-space:nowrap;">→</span>':''}</span>
-      </div>\`).join('')}
-    </div>
-  </div>\`;
-
-  // ── Allocation du mois : où va chaque euro ────────────────────────────
   const epEmoji={liquidites:'🏦',longterme:'📈',immobilier:'🏠',autre:'🎯'};
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
   const pasM=parseFloat(settings.pasFixe)||40;
@@ -4906,77 +4760,119 @@ function renderCockpit(){
   const aFormation=Math.round((parseFloat(settings.budgetFormations)||0)/12);
   const aEpargne=supports.reduce((s,x)=>s+x.montant,0);
   const aTreso=Math.max(0,aDispo-aSalaire-aEpargne-aFormation);
-  const palette=['#2AA9A0','#7C3AED','#E8A838','#3B6DD4','#E0A3C0'];
-  let dests=[{emoji:'🏠',nom:'Salaire',montant:aSalaire,color:'#4C6FBF'}]
-    .concat(supports.map((x,i)=>({emoji:x.emoji,nom:x.nom,montant:x.montant,color:palette[i%palette.length]})))
-    .concat(aFormation>0?[{emoji:'🎓',nom:'Formation',montant:aFormation,color:'#E0A3C0'}]:[])
-    .concat([{emoji:'🛟',nom:'Trésorerie entreprise',montant:aTreso,color:'#3E9E74'}])
-    .filter(x=>x.montant>0);
-  let acc=0; const segs=dests.map(x=>{const from=aDispo>0?acc/aDispo*100:0;acc+=x.montant;const to=aDispo>0?acc/aDispo*100:0;return x.color+' '+from.toFixed(1)+'% '+to.toFixed(1)+'%';});
-  const donut=\`<div style="width:128px;height:128px;border-radius:50%;background:conic-gradient(\${segs.join(',')||'var(--border) 0 100%'});position:relative;flex:none;"><div style="position:absolute;inset:19px;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:10px;color:var(--text-2);">Disponible</div><div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);">\${fmt(aDispo)}</div></div></div>\`;
+  const niv1=[{emoji:'🏠',nom:'Salaire',montant:aSalaire,color:'#4C6FBF'},{emoji:'💰',nom:'Épargne',montant:aEpargne,color:'#2AA9A0'}].concat(aFormation>0?[{emoji:'🎓',nom:'Formation',montant:aFormation,color:'#E0A3C0'}]:[]).concat([{emoji:'🛟',nom:'Trésorerie',montant:aTreso,color:'#3E9E74'}]).filter(x=>x.montant>0);
+  let acc=0; const segs=niv1.map(x=>{const from=aDispo>0?acc/aDispo*100:0;acc+=x.montant;const to=aDispo>0?acc/aDispo*100:0;return x.color+' '+from.toFixed(1)+'% '+to.toFixed(1)+'%';});
+  const donut=\`<div style="width:120px;height:120px;border-radius:50%;background:conic-gradient(\${segs.join(',')||'var(--border) 0 100%'});position:relative;flex:none;"><div style="position:absolute;inset:18px;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:9px;color:var(--text-2);">Disponible</div><div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--navy);">\${fmt(aDispo)}</div></div></div>\`;
   const wf=(lab,val,neg)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;\${neg?'color:#E05252;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
   const blocAlloc=d.caMois>0?\`<div class="card" style="padding:20px;">
     <div class="dash-sec-title">💰 Où va mon argent ce mois-ci</div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:240px;">
-        \${wf('CA encaissé',d.caMois)}\${wf('URSSAF',aUrssaf,true)}\${wf('Charges fixes',aCharges,true)}
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+      <div style="flex:1;min-width:220px;">
+        \${wf('CA encaissé',d.caMois)}\${wf('URSSAF',aUrssaf,true)}\${wf('Charges',aCharges,true)}
         <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);margin:4px 0;font-weight:600;"><span>Disponible</span><span style="font-family:'Cormorant Garamond',serif;color:var(--navy);">\${fmt(aDispo)}</span></div>
-        \${dests.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.montant)}</span></div>\`).join('')}
+        \${niv1.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${x.nom}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.montant)}</span></div>\`).join('')}
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">\${donut}
-        <div style="display:flex;flex-direction:column;gap:4px;">\${dests.map(x=>\`<div style="display:flex;align-items:center;gap:6px;font-size:11px;"><span style="width:9px;height:9px;border-radius:2px;background:\${x.color};flex:none;"></span>\${escHtml(x.nom)} · \${aDispo>0?Math.round(x.montant/aDispo*100):0}%</div>\`).join('')}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">\${donut}
+        <div style="display:flex;flex-direction:column;gap:3px;">\${niv1.map(x=>\`<div style="display:flex;align-items:center;gap:6px;font-size:11px;"><span style="width:9px;height:9px;border-radius:2px;background:\${x.color};flex:none;"></span>\${x.nom} · \${aDispo>0?Math.round(x.montant/aDispo*100):0}%</div>\`).join('')}</div>
       </div>
     </div>
-    <div style="font-size:11px;color:var(--text-2);margin-top:10px;">Le salaire vient de ton budget perso, l'épargne de tes supports patrimoine. Ajuste-les pour piloter ta répartition.</div>
+    \${(supports.length&&aEpargne>0)?\`<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border);">
+      <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">💰 Ton épargne (\${fmt(aEpargne)}) se répartit ainsi</div>
+      \${supports.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.montant)}</span></div>\`).join('')}
+    </div>\`:''}
   </div>\`:'';
 
-  // ── Valeur nette + patrimoine ─────────────────────────────────────────
+  const entreprise=ce?ce.soldeReel:(d.soldeReel||0);
   const patriSolde=supAll.reduce((s,e)=>s+(parseFloat(e.solde)||0),0);
   const patriMensuel=supAll.reduce((s,e)=>s+(parseFloat(e.montant)||0),0);
-  const entreprise=ce?ce.soldeReel:(d.soldeReel||0);
   const valeurNette=entreprise+patriSolde;
-  const moisEcoules=now.getMonth()+1;
+  const moisEcoules=m;
   const misCetteAnnee=Math.round(patriMensuel*moisEcoules);
+  const vnCell=(emoji,lab,val)=>\`<div><div style="font-size:11px;opacity:.6;">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(val)}</div></div>\`;
   const blocValeur=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;">
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Ta valeur nette</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;margin:4px 0;">\${fmt(valeurNette)}</div>
     \${misCetteAnnee>0?\`<div style="font-size:12.5px;color:#7BE0AE;margin-bottom:12px;">↗ +\${fmt(misCetteAnnee)} mis de côté cette année</div>\`:'<div style="margin-bottom:8px;"></div>'}
     <div style="display:flex;gap:22px;flex-wrap:wrap;">
-      <div><div style="font-size:11px;opacity:.6;">🏢 Entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(entreprise)}</div></div>
-      \${supAll.filter(e=>(parseFloat(e.solde)||0)>0).map(e=>\`<div><div style="font-size:11px;opacity:.6;">\${epEmoji[e.cat]||'🎯'} \${escHtml(e.nom)}</div><div style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(parseFloat(e.solde)||0)}</div></div>\`).join('')}
+      \${vnCell('🏢','Entreprise',entreprise)}
+      \${supAll.filter(e=>(parseFloat(e.solde)||0)>0).map(e=>vnCell(epEmoji[e.cat]||'🎯',escHtml(e.nom),parseFloat(e.solde)||0)).join('')}
+    </div>
+    \${patriSolde===0?\`<div style="font-size:11.5px;opacity:.75;margin-top:10px;">Ajoute tes comptes perso, livrets et placements dans <span style="text-decoration:underline;cursor:pointer;" onclick="navigate('patrimoine')">Mon patrimoine</span> pour voir ta vraie valeur nette grandir.</div>\`:''}
+  </div>\`;
+
+  const objCA=parseFloat(settings.objectifCA)||0, objTreso=parseFloat(settings.objectifTresorerie)||0;
+  const objEp=parseFloat(settings.objectifEpargne)||0;
+  const cibleSal=parseFloat(settings.persoConfort)||parseFloat(settings.persoObjectif)||p.besoin||0;
+  const ressourcesVie=p.salaireConseille+p.revenusPerso;
+  const gauges=[
+    {lab:'Développer mon activité',color:'#4C6FBF',pct:objCA>0?d.caYTD/objCA*100:0,txt:objCA>0?fmt(d.caYTD)+' / '+fmt(objCA):'objectif CA non défini'},
+    {lab:'Sécuriser mon entreprise',color:'#3E9E74',pct:objTreso>0?d.soldeReel/objTreso*100:0,txt:objTreso>0?fmt(d.soldeReel)+' / '+fmt(objTreso):'objectif tréso non défini'},
+    {lab:'Vivre confortablement',color:'#E8A838',pct:cibleSal>0?ressourcesVie/cibleSal*100:0,txt:cibleSal>0?fmt(ressourcesVie)+' / '+fmt(cibleSal):'cible non définie'},
+    {lab:'Construire mon patrimoine',color:'#2AA9A0',pct:objEp>0?patriSolde/objEp*100:0,txt:objEp>0?fmt(patriSolde)+' / '+fmt(objEp):'objectif non défini'},
+  ];
+  const blocObj=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title" style="display:flex;justify-content:space-between;align-items:center;"><span>🎯 Mes objectifs</span><button class="btn btn-outline btn-xs" onclick="openObjectifsPilotage()"><i class="ti ti-adjustments"></i> Régler</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+      \${gauges.map(g=>\`<div style="display:flex;align-items:center;gap:12px;"><div style="flex:none;">\${ringGauge(g.pct,g.pct>=100?'#3E9E74':g.color)}</div><div><div style="font-size:12px;font-weight:600;color:var(--navy);">\${g.lab}</div><div style="font-size:11.5px;color:var(--text-2);">\${g.txt}</div></div></div>\`).join('')}
     </div>
   </div>\`;
 
-  // ── Projection patrimoine à 12 mois ───────────────────────────────────
-  const pj=(emoji,lab,val)=>\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);">\${fmt(val)}</div></div>\`;
-  const blocProjPat=(p.salaireConseille>0||patriMensuel>0)?\`<div class="card" style="padding:20px;">
-    <div class="dash-sec-title">🔭 À ce rythme, dans 12 mois</div>
+  const p12=(emoji,lab,val,hint)=>\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);">\${fmt(val)}</div>\${hint?\`<div style="font-size:10.5px;color:var(--text-2);">\${hint}</div>\`:''}</div>\`;
+  const bloc12=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">📅 Les 12 prochains mois</div>
     <div style="display:flex;gap:16px;flex-wrap:wrap;">
-      \${pj('💰','Salaire annuel',(p.salaireConseille||0)*12)}
-      \${pj('💼','Patrimoine',patriSolde+patriMensuel*12)}
-      \${supAll.filter(e=>(parseFloat(e.montant)||0)>0).slice(0,2).map(e=>pj(epEmoji[e.cat]||'🎯',escHtml(e.nom),(parseFloat(e.solde)||0)+(parseFloat(e.montant)||0)*12)).join('')}
+      \${prev?p12('💰','CA prévu',prev.caProjete):''}
+      \${prev?p12('💸','Salaire moyen',Math.round(prev.netProjete/12),'par mois'):''}
+      \${p12('💼','Patrimoine estimé',patriSolde+patriMensuel*12)}
+      \${d.recMensuel>0?p12('🔁','Revenus garantis',d.recMensuel,'par mois'):''}
     </div>
+    \${(d.recDetail&&d.recDetail.length)?\`<div style="margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:11.5px;color:var(--text-2);">Récurrents : \${d.recDetail.map(r=>escHtml(r.nom)+' '+fmt(r.montant)).join(' · ')}</div>\`:''}
+  </div>\`;
+
+  const encore=Math.max(0,cibleSal-ressourcesVie);
+  const moisAutonomie=p.besoin>0?Math.round(valeurNette/p.besoin):null;
+  const blocIndep=p.besoin>0?\`<div class="card" style="padding:22px;">
+    <div class="dash-sec-title">❤️ Mon indépendance financière</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;">
+      \${p12('💸','Ressources actuelles',ressourcesVie,'par mois')}
+      \${cibleSal>0?p12('🎯','Niveau confortable',cibleSal,'par mois'):''}
+      \${encore>0?p12('⬆️','Encore',encore,'à gagner par mois'):''}
+    </div>
+    \${moisAutonomie!=null?\`<div style="background:var(--surface-2);border-radius:10px;padding:12px 16px;font-size:13.5px;">🔥 Ton patrimoine (\${fmt(valeurNette)}) représente environ <strong>\${moisAutonomie} mois</strong> de tes dépenses personnelles. C'est ta réserve de liberté.</div>\`:''}
   </div>\`:'';
 
-  const step=(t)=>\`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-2);font-weight:700;margin:10px 2px -4px;">\${t}</div>\`;
+  const todo=[];
+  if(d.retard.length)todo.push({ic:'⚠️',txt:d.retard.length+' facture'+(d.retard.length>1?'s':'')+' en retard de paiement',nav:'factures'});
+  if(d.devisRelance&&d.devisRelance.length)todo.push({ic:'📞',txt:d.devisRelance.length+' devis à relancer',nav:'devis'});
+  if(d.urssafProchain&&d.urssafProchain.jours<=45)todo.push({ic:'📅',txt:'URSSAF '+d.urssafProchain.t+' dans '+d.urssafProchain.jours+' jours',nav:'charges-urssaf'});
+  if(d.aRanger)todo.push({ic:'📄',txt:d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser',nav:'enveloppes'});
+  const bloc5=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">📋 À faire aujourd'hui</div>
+    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 8px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${t.ic} \${t.txt}</span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Rien d'urgent aujourd'hui. Profites-en.</div>\`}
+  </div>\`;
+  const insEmoji={good:'🎉',warn:'⚠️',info:'💡'};
+  const bloc11=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">🤖 Les conseils de Finance</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      \${d.ins.slice(0,5).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;\${i.nav?'cursor:pointer;':''}" \${i.nav?\`onclick="navigate('\${i.nav}')"\`:''}><span style="flex:none;">\${insEmoji[i.t]||'💡'}</span><span>\${i.txt}\${i.nav?' <span style="color:var(--navy);white-space:nowrap;">→</span>':''}</span></div>\`).join('')}
+    </div>
+  </div>\`;
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
-    \${bloc1}
+    \${topBanner}
     \${step('① Ma situation')}
-    \${bloc2}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc3}\${bloc4}</div>
+    \${situation}
     \${step('② Où va mon argent')}
     \${blocAlloc}
     \${step('③ Ce que je construis')}
     \${blocValeur}
-    \${bloc7}
-    \${blocProjPat}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc6}\${bloc8}</div>
-    \${bloc9}
+    \${blocObj}
+    \${bloc12}
+    \${step('❤️ Mon indépendance')}
+    \${blocIndep}
     \${step('④ Ce que je dois faire')}
     \${bloc5}
     \${bloc11}
-    \${bloc10}
   </div>\`;
 }
 
@@ -4986,8 +4882,14 @@ function loadDashboard(){
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
   if(q('#dash-period'))q('#dash-period').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
   try{renderCockpit();}catch(e){}
-  try{renderPersoDash();}catch(e){}
   try{renderTrends();}catch(e){}
+  // Historise le score de santé une fois par mois (pour l'évolution ↗/↘)
+  try{
+    const ii=computeIntel();
+    const st=dbGetObj('settings'); st.scoreHist=st.scoreHist||{};
+    const ymNow=y+'-'+String(m).padStart(2,'0');
+    if(st.scoreHist[ymNow]==null){st.scoreHist[ymNow]=ii.score;api('PUT','/api/settings',st).then(r=>{if(r)_cache.settings=r;}).catch(()=>{});}
+  }catch(e){}
 
   const factures    = dbGet('factures');
   const depenses    = dbGet('depenses');
