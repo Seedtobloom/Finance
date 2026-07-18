@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v16 · engagements</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v17 · vie perso</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -47,9 +47,16 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="dashboard"><i class="ti ti-layout-dashboard"></i> Tableau de bord</a>
       </div>
 
-      <!-- ARGENT -->
+      <!-- PERSONNEL -->
       <div class="nav-group">
-        <span class="nav-group-label">Argent</span>
+        <span class="nav-group-label">🏠 Personnel</span>
+        <a class="nav-item" data-section="budget-perso"><i class="ti ti-home-heart"></i> Mon budget perso</a>
+        <a class="nav-item" data-section="projets-vie"><i class="ti ti-map-pin-heart"></i> Projets de vie</a>
+      </div>
+
+      <!-- ENTREPRISE · ARGENT -->
+      <div class="nav-group">
+        <span class="nav-group-label">🏢 Argent</span>
         <a class="nav-item" data-section="enveloppes"><i class="ti ti-wallet"></i> Enveloppes</a>
         <a class="nav-item" data-section="comptes"><i class="ti ti-building-bank"></i> Comptes</a>
         <a class="nav-item" data-section="transactions"><i class="ti ti-arrows-exchange"></i> Transactions</a>
@@ -127,6 +134,7 @@ const HTML = `<!DOCTYPE html>
 
       <!-- Cockpit : copilote financier (score, briefing, insights) -->
       <div id="dash-cockpit" style="margin-bottom:22px;"></div>
+      <div id="dash-perso" style="margin-bottom:22px;"></div>
 
       <!-- Ligne 1 KPIs -->
       <div class="kpi-grid kpi-grid-4 mb-16">
@@ -347,6 +355,151 @@ const HTML = `<!DOCTYPE html>
       </div>
     </div>
 
+
+    <!-- ═══════════════════════════
+         BUDGET PERSO
+         ═══════════════════════════ -->
+    <section id="section-budget-perso" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Mon budget perso</h1>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:2px;">De combien as-tu besoin pour vivre — et est-ce que ton activité suit&nbsp;?</p>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-outline" onclick="openPersoPaliersModal()"><i class="ti ti-adjustments"></i> Mes paliers</button>
+          <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une dépense</button>
+        </div>
+      </div>
+      <div id="perso-hero" style="margin-bottom:18px;"></div>
+      <div id="perso-reste" style="margin-bottom:18px;"></div>
+      <div id="perso-bridge" style="margin-bottom:18px;"></div>
+      <div id="perso-charges" style="margin-bottom:18px;"></div>
+      <div id="perso-simulateur"></div>
+    </section>
+
+    <!-- Modal dépense perso -->
+    <div class="modal-overlay" id="modal-perso-charge" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title" id="perso-charge-title">Nouvelle dépense perso</div>
+          <button class="modal-close" onclick="q('#modal-perso-charge').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <input type="hidden" id="perso-charge-id">
+          <div>
+            <label class="form-label">Intitulé</label>
+            <input class="form-control" type="text" id="perso-charge-nom" placeholder="Ex: Loyer, Courses, Netflix…">
+          </div>
+          <div>
+            <label class="form-label">Catégorie</label>
+            <select class="form-control" id="perso-charge-cat">
+              <option value="logement">🏡 Logement</option>
+              <option value="transport">🚗 Transport</option>
+              <option value="quotidien">🛒 Vie quotidienne</option>
+              <option value="famille">👨‍👩‍👧 Famille</option>
+              <option value="epargne">💰 Épargne</option>
+              <option value="loisirs">🎉 Loisirs</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Montant mensuel (€)</label>
+            <input class="form-control" type="number" id="perso-charge-montant" min="0" step="5" placeholder="Ex: 980">
+          </div>
+          <div>
+            <label class="form-label">Type</label>
+            <select class="form-control" id="perso-charge-type">
+              <option value="fixe">🔒 Fixe (tous les mois pareil)</option>
+              <option value="variable">🎯 Variable (fluctue)</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-perso-charge').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="savePersoCharge()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal paliers de salaire -->
+    <div class="modal-overlay" id="modal-perso-paliers" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title">Mes paliers de salaire</div>
+          <button class="modal-close" onclick="q('#modal-perso-paliers').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <div style="font-size:12px;color:var(--text-2);">Le minimum vital est calculé automatiquement depuis tes dépenses. Définis ici tes paliers de confort et d'objectif.</div>
+          <div>
+            <label class="form-label">🟡 Confort (€ / mois)</label>
+            <input class="form-control" type="number" id="perso-palier-confort" min="0" step="50" placeholder="Ex: 3000">
+          </div>
+          <div>
+            <label class="form-label">🔵 Objectif (€ / mois)</label>
+            <input class="form-control" type="number" id="perso-palier-objectif" min="0" step="50" placeholder="Ex: 3500">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-perso-paliers').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="savePersoPaliers()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════
+         PROJETS DE VIE
+         ═══════════════════════════ -->
+    <section id="section-projets-vie" class="section">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Projets de vie</h1>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:2px;">Vacances, voiture, apport immo… épargne à ton rythme et vois quand tu y arrives.</p>
+        </div>
+        <div class="page-header-right">
+          <button class="btn btn-primary" onclick="openProjetVieModal()"><i class="ti ti-plus"></i> Nouveau projet</button>
+        </div>
+      </div>
+      <div id="projets-vie-grid"></div>
+    </section>
+
+    <!-- Modal projet de vie -->
+    <div class="modal-overlay" id="modal-projet-vie" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title" id="projet-vie-title">Nouveau projet de vie</div>
+          <button class="modal-close" onclick="q('#modal-projet-vie').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <input type="hidden" id="projet-vie-id">
+          <div>
+            <label class="form-label">Nom du projet</label>
+            <input class="form-control" type="text" id="projet-vie-nom" placeholder="Ex: Apport immobilier">
+          </div>
+          <div>
+            <label class="form-label">Emoji</label>
+            <input class="form-control" type="text" id="projet-vie-icone" maxlength="4" placeholder="🏡" style="width:90px;">
+          </div>
+          <div>
+            <label class="form-label">Montant cible (€)</label>
+            <input class="form-control" type="number" id="projet-vie-cible" min="0" step="100" placeholder="Ex: 35000">
+          </div>
+          <div>
+            <label class="form-label">Déjà épargné (€)</label>
+            <input class="form-control" type="number" id="projet-vie-epargne" min="0" step="100" placeholder="Ex: 8000">
+          </div>
+          <div>
+            <label class="form-label">Épargne mensuelle prévue (€)</label>
+            <input class="form-control" type="number" id="projet-vie-mensualite" min="0" step="10" placeholder="Ex: 400">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
+            <button class="btn btn-ghost" style="color:#E05252;" onclick="deleteProjetVie(q('#projet-vie-id').value)"><i class="ti ti-trash"></i></button>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline" onclick="q('#modal-projet-vie').style.display='none'">Annuler</button>
+              <button class="btn btn-primary" onclick="saveProjetVie()"><i class="ti ti-check"></i> Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ═══════════════════════════
          TRANSACTIONS
@@ -2344,7 +2497,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=16"></script>
+<script src="/app.js?v=17"></script>
 </body>
 </html>
 `;
@@ -4117,6 +4270,7 @@ function navigate(section){
 function loadSection(s){
   const map={
     'dashboard':loadDashboard,
+    'budget-perso':loadBudgetPerso,'projets-vie':loadProjetsVie,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':loadTransactions,
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
@@ -4588,6 +4742,7 @@ function loadDashboard(){
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
   if(q('#dash-period'))q('#dash-period').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
   try{renderCockpit();}catch(e){}
+  try{renderPersoDash();}catch(e){}
   try{renderTrends();}catch(e){}
 
   const factures    = dbGet('factures');
@@ -5099,6 +5254,327 @@ async function saveEnvReglages(){
     q('#modal-env-reglages').style.display='none';
     toast('Réglages enregistrés','success');
     renderEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+/* --- Vie perso : budget, niveau de vie, projets ----------------------- */
+const PERSO_CATS=[
+  {id:'logement', nom:'Logement',        emoji:'🏡', couleur:'#3B6DD4'},
+  {id:'transport',nom:'Transport',       emoji:'🚗', couleur:'#E8A838'},
+  {id:'quotidien',nom:'Vie quotidienne', emoji:'🛒', couleur:'#4CAF82'},
+  {id:'famille',  nom:'Famille',         emoji:'👨‍👩‍👧', couleur:'#E05252'},
+  {id:'epargne',  nom:'Épargne',         emoji:'💰', couleur:'#2AA9A0'},
+  {id:'loisirs',  nom:'Loisirs',         emoji:'🎉', couleur:'#7C3AED'},
+];
+
+function moisEnDate(n){const d=new Date();d.setMonth(d.getMonth()+n);return MOIS_LONG[d.getMonth()]+' '+d.getFullYear();}
+
+function computePerso(){
+  const settings=dbGetObj('settings');
+  const charges=Array.isArray(settings.persoCharges)?settings.persoCharges:[];
+  const cats=PERSO_CATS.map(c=>({...c,items:[],total:0}));
+  const byId={}; cats.forEach(c=>byId[c.id]=c);
+  let fixe=0,variable=0;
+  charges.forEach(ch=>{
+    const mt=parseFloat(ch.montant)||0;
+    const c=byId[ch.cat]||byId.quotidien;
+    c.items.push(ch); c.total+=mt;
+    if(ch.type==='variable')variable+=mt; else fixe+=mt;
+  });
+  const besoin=Math.round((fixe+variable)*100)/100;
+  const confort=parseFloat(settings.persoConfort)||0;
+  const objectif=parseFloat(settings.persoObjectif)||0;
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const pas=parseFloat(settings.pasFixe)||40;
+  const abonnements=dbGet('abonnements')||[];
+  const aboMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  let revenuMoyen=0,disponible=0,soldeReel=0;
+  try{const it=computeIntel();revenuMoyen=it.revenuMoyen||0;disponible=it.disponible||0;soldeReel=it.soldeReel||0;}catch(e){}
+  const chargesProMensuel=Math.round((aboMois+pas)*100)/100;
+  const capacite=Math.max(0,Math.round((revenuMoyen*(1-tauxU-tauxC)-chargesProMensuel)*100)/100);
+  let salaireConseille=capacite;
+  if(objectif>0)salaireConseille=Math.min(salaireConseille,objectif);
+  const caRequis=besoin>0?Math.round((besoin+chargesProMensuel)/Math.max(0.01,1-tauxU-tauxC)):0;
+  const resteAVivre=Math.round((salaireConseille-besoin)*100)/100;
+  return {settings,charges,cats,fixe,variable,besoin,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
+}
+
+function loadBudgetPerso(){renderBudgetPerso();}
+function renderBudgetPerso(){
+  const ctx=computePerso();
+  renderPersoHero(ctx);
+  renderPersoReste(ctx);
+  renderPersoBridge(ctx);
+  renderPersoCharges(ctx);
+  renderPersoSimulateur(ctx);
+}
+
+function renderPersoHero(ctx){
+  const el=q('#perso-hero'); if(!el)return;
+  const {besoin,confort,objectif}=ctx;
+  if(besoin<=0){el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💡 Ton minimum vital</div>
+      <div style="font-size:14px;margin-top:8px;opacity:.85;">Renseigne tes dépenses perso ci-dessous pour découvrir de combien tu as besoin chaque mois pour vivre.</div>
+    </div>\`;return;}
+  const palier=(emoji,lab,val,color,hint)=>\`<div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;border-top:3px solid \${color};">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">\${emoji} \${lab}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:\${color};margin-top:4px;">\${val>0?fmt(val):'—'}</div>
+      <div style="font-size:11px;color:var(--text-2);">\${hint}</div>
+    </div>\`;
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;margin-bottom:16px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💡 Ton minimum vital</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;margin:6px 0;">\${fmt(besoin)}<span style="font-size:16px;opacity:.6;"> / mois</span></div>
+      <div style="font-size:12.5px;opacity:.75;">Pour couvrir ton niveau de vie actuel, tu dois te verser au moins \${fmt(besoin)} par mois.</div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      \${palier('🟢','Minimum vital',besoin,'#4CAF82','tes dépenses actuelles')}
+      \${palier('🟡','Confort',confort,'#E8A838',confort>0?'ta cible de confort':'à définir')}
+      \${palier('🔵','Objectif',objectif,'#3B6DD4',objectif>0?'ton objectif de vie':'à définir')}
+    </div>\`;
+}
+
+function renderPersoReste(ctx){
+  const el=q('#perso-reste'); if(!el)return;
+  const {salaireConseille,besoin,resteAVivre}=ctx;
+  if(besoin<=0){el.innerHTML='';return;}
+  const color=resteAVivre<200?'#E05252':resteAVivre<500?'#E8A838':'#4CAF82';
+  const emoji=resteAVivre<200?'🔴':resteAVivre<500?'🟠':'🟢';
+  const label=resteAVivre<200?'serré':resteAVivre<500?'correct':'confortable';
+  el.innerHTML=\`<div class="card" style="padding:18px;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">Ton reste à vivre estimé</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:\${color};">\${emoji} \${fmt(resteAVivre)}<span style="font-size:14px;color:var(--text-2);"> / mois · \${label}</span></div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">Salaire conseillé \${fmt(salaireConseille)} − ton besoin de vie \${fmt(besoin)}. Repères : 🔴 sous 200 € · 🟠 200–500 € · 🟢 au-delà.</div>
+  </div>\`;
+}
+
+function renderPersoBridge(ctx){
+  const el=q('#perso-bridge'); if(!el)return;
+  const {besoin,capacite,caRequis}=ctx;
+  if(besoin<=0){el.innerHTML='';return;}
+  const couvre=capacite>=besoin;
+  const msg=couvre
+    ? \`✅ Ton activité couvre ton niveau de vie. Elle peut te verser environ <strong>\${fmt(capacite)} / mois</strong>\${capacite>besoin?', soit '+fmt(capacite-besoin)+' de plus que ton besoin':''}.\`
+    : \`⚠️ Ton activité ne couvre pas encore ton besoin de vie. Elle soutient environ <strong>\${fmt(capacite)} / mois</strong>, il manque <strong>\${fmt(besoin-capacite)}</strong>.\`;
+  el.innerHTML=\`<div class="card" style="padding:18px;border-left:3px solid \${couvre?'#4CAF82':'#E05252'};">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;"><i class="ti ti-arrows-exchange"></i> Le pont entreprise ↔ perso</div>
+    <div style="font-size:14px;line-height:1.5;margin-bottom:10px;">\${msg}</div>
+    <div style="font-size:12.5px;color:var(--text-2);">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an).</div>
+  </div>\`;
+}
+
+function renderPersoCharges(ctx){
+  const el=q('#perso-charges'); if(!el)return;
+  const {cats,charges}=ctx;
+  if(!charges.length){el.innerHTML=\`<div class="card" style="padding:24px;text-align:center;color:var(--text-2);">
+    <div style="font-size:32px;">🏠</div>
+    <div style="font-size:14px;margin:8px 0;">Commence par renseigner tes dépenses perso : loyer, courses, abonnements, transport…</div>
+    <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter ma première dépense</button>
+  </div>\`;return;}
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">\`+cats.filter(c=>c.items.length).map(c=>{
+    const rows=c.items.map(it=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:12.5px;">\${it.type==='variable'?'🎯':'🔒'} \${escHtml(it.nom||'—')}</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:15px;">\${fmt(parseFloat(it.montant)||0)}</span>
+        <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+      </span>
+    </div>\`).join('');
+    return \`<div class="card" style="padding:16px;border-top:3px solid \${c.couleur};">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;color:var(--navy);">\${c.emoji} \${c.nom}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:\${c.couleur};">\${fmt(c.total)}</span>
+      </div>\${rows}
+    </div>\`;
+  }).join('')+\`</div>\`;
+}
+
+function renderPersoSimulateur(ctx){
+  const el=q('#perso-simulateur'); if(!el)return;
+  const def=ctx.objectif||ctx.confort||ctx.besoin||3000;
+  el.innerHTML=\`<div class="card" style="padding:18px;">
+    <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:4px;"><i class="ti ti-calculator"></i> Simulateur inversé</div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">Combien ton activité doit générer pour le salaire que tu veux te verser.</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+      <label style="font-size:13px;">Je veux me verser</label>
+      <input type="number" id="perso-sim-salaire" value="\${Math.round(def)}" min="0" step="100" oninput="renderPersoSimResult()" style="width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;"> <span style="font-size:13px;">€ / mois</span>
+    </div>
+    <div id="perso-sim-result"></div>
+  </div>\`;
+  renderPersoSimResult();
+}
+function renderPersoSimResult(){
+  const el=q('#perso-sim-result'); if(!el)return;
+  const ctx=computePerso();
+  const inp=q('#perso-sim-salaire');
+  const sal=inp?parseFloat(inp.value)||0:0;
+  const caM=Math.round((sal+ctx.chargesProMensuel)/Math.max(0.01,1-ctx.tauxU-ctx.tauxC));
+  const box=(lab,val,hint)=>\`<div style="flex:1;min-width:130px;background:var(--surface-2);border-radius:10px;padding:12px;">
+    <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;">\${lab}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);">\${fmt(val)}</div>
+    <div style="font-size:10.5px;color:var(--text-2);">\${hint}</div>
+  </div>\`;
+  el.innerHTML=\`<div style="display:flex;gap:10px;flex-wrap:wrap;">
+    \${box('CA mensuel requis',caM,'CA à facturer / mois')}
+    \${box('CA annuel requis',caM*12,'sur 12 mois')}
+    \${box('URSSAF estimée',Math.round(caM*(ctx.tauxU+ctx.tauxC)),'cotisations / mois')}
+  </div>\`;
+}
+
+function renderPersoDash(){
+  const el=q('#dash-perso'); if(!el)return;
+  const s=dbGetObj('settings');
+  const charges=Array.isArray(s.persoCharges)?s.persoCharges:[];
+  if(!charges.length){el.innerHTML='';return;}
+  const ctx=computePerso();
+  const {besoin,salaireConseille,resteAVivre,disponible}=ctx;
+  const rColor=resteAVivre<200?'#F87171':resteAVivre<500?'#F6C453':'#7BE0AE';
+  const cell=(emoji,lab,val,color)=>\`<div style="flex:1;min-width:140px;">
+    <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;">\${emoji} \${lab}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;\${color?'color:'+color+';':''}">\${fmt(val)}</div>
+  </div>\`;
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:18px 24px;color:#fff;cursor:pointer;" onclick="navigate('budget-perso')">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.55;margin-bottom:10px;">🏠 Ta vie perso en un coup d'œil</div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;">
+      \${cell('💰','Dispo entreprise',disponible)}
+      \${cell('🏠','Besoin de vie',besoin)}
+      \${cell('💸','Salaire conseillé',salaireConseille,'#7BE0AE')}
+      \${cell('🌱','Reste à vivre',resteAVivre,rColor)}
+    </div>
+  </div>\`;
+}
+
+function openPersoChargeModal(id){
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.persoCharges)?s.persoCharges:[];
+  const it=id?items.find(x=>x.id===id):null;
+  q('#perso-charge-id').value=it?it.id:'';
+  q('#perso-charge-nom').value=it?(it.nom||''):'';
+  q('#perso-charge-cat').value=it?(it.cat||'logement'):'logement';
+  q('#perso-charge-montant').value=it&&it.montant!=null?it.montant:'';
+  q('#perso-charge-type').value=it?(it.type||'fixe'):'fixe';
+  q('#perso-charge-title').textContent=it?'Modifier la dépense':'Nouvelle dépense perso';
+  q('#modal-perso-charge').style.display='flex';
+}
+async function savePersoCharge(){
+  try{
+    const nom=q('#perso-charge-nom').value.trim();
+    const montant=parseFloat(q('#perso-charge-montant').value);
+    if(!nom){toast('Donne un intitulé','error');return;}
+    if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
+    const cat=q('#perso-charge-cat').value, type=q('#perso-charge-type').value;
+    const settings=dbGetObj('settings');
+    const items=Array.isArray(settings.persoCharges)?settings.persoCharges.slice():[];
+    const id=q('#perso-charge-id').value;
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,montant,type};}
+    else{items.push({id:'pc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,montant,type});}
+    settings.persoCharges=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-perso-charge').style.display='none';
+    toast('Dépense enregistrée','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function deletePersoCharge(id){
+  if(!confirm('Supprimer cette dépense ?'))return;
+  try{
+    const settings=dbGetObj('settings');
+    settings.persoCharges=(Array.isArray(settings.persoCharges)?settings.persoCharges:[]).filter(x=>x.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Supprimée','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+function openPersoPaliersModal(){
+  const s=dbGetObj('settings');
+  q('#perso-palier-confort').value=s.persoConfort!=null&&s.persoConfort!==0?s.persoConfort:'';
+  q('#perso-palier-objectif').value=s.persoObjectif!=null&&s.persoObjectif!==0?s.persoObjectif:'';
+  q('#modal-perso-paliers').style.display='flex';
+}
+async function savePersoPaliers(){
+  try{
+    const settings=dbGetObj('settings');
+    const c=parseFloat(q('#perso-palier-confort').value); settings.persoConfort=isNaN(c)?0:c;
+    const o=parseFloat(q('#perso-palier-objectif').value); settings.persoObjectif=isNaN(o)?0:o;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-perso-paliers').style.display='none';
+    toast('Paliers enregistrés','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+function loadProjetsVie(){renderProjetsVie();}
+function renderProjetsVie(){
+  const el=q('#projets-vie-grid'); if(!el)return;
+  const s=dbGetObj('settings');
+  const projets=Array.isArray(s.projetsVie)?s.projetsVie:[];
+  if(!projets.length){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);">
+    <div style="font-size:32px;">🏖️</div>
+    <div style="font-size:14px;margin:8px 0;">Vacances, nouvelle voiture, apport immo, nouveau Mac… fixe un projet et vois quand tu y arrives.</div>
+    <button class="btn btn-primary" onclick="openProjetVieModal()"><i class="ti ti-plus"></i> Créer mon premier projet</button>
+  </div>\`;return;}
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">\`+projets.map(p=>{
+    const cible=parseFloat(p.cible)||0, epargne=parseFloat(p.epargne)||0, mens=parseFloat(p.mensualite)||0;
+    const reste=Math.max(0,cible-epargne);
+    const pct=cible>0?Math.min(100,Math.round(epargne/cible*100)):0;
+    const mois=mens>0?Math.ceil(reste/mens):null;
+    const eta=reste<=0?'🎉 Objectif atteint !':(mois!=null?'Atteint dans ~'+mois+' mois · '+moisEnDate(mois):'Ajoute une épargne mensuelle pour estimer la date');
+    return \`<div class="card" style="padding:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:15px;font-weight:700;color:var(--navy);">\${escHtml(p.icone||'🎯')} \${escHtml(p.nom||'Projet')}</span>
+        <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);">\${fmt(epargne)} <span style="font-size:14px;color:var(--text-2);">/ \${fmt(cible)}</span></div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;margin:10px 0;"><div style="height:100%;width:\${pct}%;background:linear-gradient(90deg,#4CAF82,#3B6DD4);border-radius:5px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);">
+        <span>\${pct}% · reste \${fmt(reste)}</span><span>\${mens>0?fmt(mens)+' / mois':''}</span>
+      </div>
+      <div style="font-size:12.5px;color:var(--navy);margin-top:8px;font-weight:500;">\${eta}</div>
+    </div>\`;
+  }).join('')+\`</div>\`;
+}
+function openProjetVieModal(id){
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.projetsVie)?s.projetsVie:[];
+  const it=id?items.find(x=>x.id===id):null;
+  q('#projet-vie-id').value=it?it.id:'';
+  q('#projet-vie-nom').value=it?(it.nom||''):'';
+  q('#projet-vie-icone').value=it?(it.icone||'🎯'):'🎯';
+  q('#projet-vie-cible').value=it&&it.cible!=null?it.cible:'';
+  q('#projet-vie-epargne').value=it&&it.epargne!=null?it.epargne:'';
+  q('#projet-vie-mensualite').value=it&&it.mensualite!=null?it.mensualite:'';
+  q('#projet-vie-title').textContent=it?'Modifier le projet':'Nouveau projet de vie';
+  q('#modal-projet-vie').style.display='flex';
+}
+async function saveProjetVie(){
+  try{
+    const nom=q('#projet-vie-nom').value.trim();
+    if(!nom){toast('Donne un nom','error');return;}
+    const cible=parseFloat(q('#projet-vie-cible').value)||0;
+    const epargne=parseFloat(q('#projet-vie-epargne').value)||0;
+    const mensualite=parseFloat(q('#projet-vie-mensualite').value)||0;
+    const icone=q('#projet-vie-icone').value.trim()||'🎯';
+    const settings=dbGetObj('settings');
+    const items=Array.isArray(settings.projetsVie)?settings.projetsVie.slice():[];
+    const id=q('#projet-vie-id').value;
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,icone,cible,epargne,mensualite};}
+    else{items.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,icone,cible,epargne,mensualite});}
+    settings.projetsVie=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-projet-vie').style.display='none';
+    toast('Projet enregistré','success');
+    renderProjetsVie();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function deleteProjetVie(id){
+  if(!id){q('#modal-projet-vie').style.display='none';return;}
+  if(!confirm('Supprimer ce projet ?'))return;
+  try{
+    const settings=dbGetObj('settings');
+    settings.projetsVie=(Array.isArray(settings.projetsVie)?settings.projetsVie:[]).filter(x=>x.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-projet-vie').style.display='none';
+    toast('Projet supprimé','success');
+    renderProjetsVie();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
