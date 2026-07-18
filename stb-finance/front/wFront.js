@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v17 · vie perso</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v18 · revenus perso</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -373,6 +373,7 @@ const HTML = `<!DOCTYPE html>
       <div id="perso-hero" style="margin-bottom:18px;"></div>
       <div id="perso-reste" style="margin-bottom:18px;"></div>
       <div id="perso-bridge" style="margin-bottom:18px;"></div>
+      <div id="perso-revenus" style="margin-bottom:18px;"></div>
       <div id="perso-charges" style="margin-bottom:18px;"></div>
       <div id="perso-simulateur"></div>
     </section>
@@ -415,6 +416,32 @@ const HTML = `<!DOCTYPE html>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-perso-charge').style.display='none'">Annuler</button>
             <button class="btn btn-primary" onclick="savePersoCharge()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal revenu perso (hors entreprise) -->
+    <div class="modal-overlay" id="modal-perso-revenu" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title" id="perso-revenu-title">Nouveau revenu perso</div>
+          <button class="modal-close" onclick="q('#modal-perso-revenu').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <input type="hidden" id="perso-revenu-id">
+          <div>
+            <label class="form-label">Intitulé</label>
+            <input class="form-control" type="text" id="perso-revenu-nom" placeholder="Ex: CAF, Prime d'activité, Pension…">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Un revenu qui rentre chaque mois en dehors de ton entreprise.</div>
+          </div>
+          <div>
+            <label class="form-label">Montant mensuel (€)</label>
+            <input class="form-control" type="number" id="perso-revenu-montant" min="0" step="10" placeholder="Ex: 350">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-perso-revenu').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="savePersoRevenu()"><i class="ti ti-check"></i> Enregistrer</button>
           </div>
         </div>
       </div>
@@ -2497,7 +2524,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=17"></script>
+<script src="/app.js?v=18"></script>
 </body>
 </html>
 `;
@@ -5282,6 +5309,10 @@ function computePerso(){
     if(ch.type==='variable')variable+=mt; else fixe+=mt;
   });
   const besoin=Math.round((fixe+variable)*100)/100;
+  // Revenus perso hors entreprise (CAF, prime d'activité, pension, conjoint…)
+  const revenus=Array.isArray(settings.persoRevenus)?settings.persoRevenus:[];
+  const revenusPerso=Math.round(revenus.reduce((s,r)=>s+(parseFloat(r.montant)||0),0)*100)/100;
+  const besoinNet=Math.max(0,Math.round((besoin-revenusPerso)*100)/100); // ce que ton salaire doit couvrir
   const confort=parseFloat(settings.persoConfort)||0;
   const objectif=parseFloat(settings.persoObjectif)||0;
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
@@ -5294,9 +5325,11 @@ function computePerso(){
   const capacite=Math.max(0,Math.round((revenuMoyen*(1-tauxU-tauxC)-chargesProMensuel)*100)/100);
   let salaireConseille=capacite;
   if(objectif>0)salaireConseille=Math.min(salaireConseille,objectif);
-  const caRequis=besoin>0?Math.round((besoin+chargesProMensuel)/Math.max(0.01,1-tauxU-tauxC)):0;
-  const resteAVivre=Math.round((salaireConseille-besoin)*100)/100;
-  return {settings,charges,cats,fixe,variable,besoin,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
+  // CA entreprise nécessaire pour couvrir la part NON couverte par tes aides
+  const caRequis=besoinNet>0?Math.round((besoinNet+chargesProMensuel)/Math.max(0.01,1-tauxU-tauxC)):0;
+  // Reste à vivre = salaire + revenus perso − besoin total
+  const resteAVivre=Math.round((salaireConseille+revenusPerso-besoin)*100)/100;
+  return {settings,charges,cats,fixe,variable,besoin,revenus,revenusPerso,besoinNet,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
 }
 
 function loadBudgetPerso(){renderBudgetPerso();}
@@ -5305,13 +5338,17 @@ function renderBudgetPerso(){
   renderPersoHero(ctx);
   renderPersoReste(ctx);
   renderPersoBridge(ctx);
+  renderPersoRevenus(ctx);
   renderPersoCharges(ctx);
   renderPersoSimulateur(ctx);
 }
 
 function renderPersoHero(ctx){
   const el=q('#perso-hero'); if(!el)return;
-  const {besoin,confort,objectif}=ctx;
+  const {besoin,confort,objectif,revenusPerso,besoinNet}=ctx;
+  const aidesLine=revenusPerso>0
+    ? \`<div style="font-size:12px;opacity:.85;margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);">Tes aides & revenus perso couvrent <strong>\${fmt(revenusPerso)}</strong> → ton entreprise n'a qu'à couvrir <strong>\${fmt(besoinNet)} / mois</strong>.</div>\`
+    : '';
   if(besoin<=0){el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💡 Ton minimum vital</div>
       <div style="font-size:14px;margin-top:8px;opacity:.85;">Renseigne tes dépenses perso ci-dessous pour découvrir de combien tu as besoin chaque mois pour vivre.</div>
@@ -5324,7 +5361,8 @@ function renderPersoHero(ctx){
   el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;margin-bottom:16px;">
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💡 Ton minimum vital</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;margin:6px 0;">\${fmt(besoin)}<span style="font-size:16px;opacity:.6;"> / mois</span></div>
-      <div style="font-size:12.5px;opacity:.75;">Pour couvrir ton niveau de vie actuel, tu dois te verser au moins \${fmt(besoin)} par mois.</div>
+      <div style="font-size:12.5px;opacity:.75;">Pour couvrir ton niveau de vie actuel, il te faut au moins \${fmt(besoin)} par mois.</div>
+      \${aidesLine}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
       \${palier('🟢','Minimum vital',besoin,'#4CAF82','tes dépenses actuelles')}
@@ -5335,31 +5373,97 @@ function renderPersoHero(ctx){
 
 function renderPersoReste(ctx){
   const el=q('#perso-reste'); if(!el)return;
-  const {salaireConseille,besoin,resteAVivre}=ctx;
+  const {salaireConseille,besoin,resteAVivre,revenusPerso}=ctx;
   if(besoin<=0){el.innerHTML='';return;}
   const color=resteAVivre<200?'#E05252':resteAVivre<500?'#E8A838':'#4CAF82';
   const emoji=resteAVivre<200?'🔴':resteAVivre<500?'🟠':'🟢';
   const label=resteAVivre<200?'serré':resteAVivre<500?'correct':'confortable';
+  const detail=revenusPerso>0
+    ? \`Salaire conseillé \${fmt(salaireConseille)} + aides \${fmt(revenusPerso)} − besoin de vie \${fmt(besoin)}.\`
+    : \`Salaire conseillé \${fmt(salaireConseille)} − ton besoin de vie \${fmt(besoin)}.\`;
   el.innerHTML=\`<div class="card" style="padding:18px;">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">Ton reste à vivre estimé</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:\${color};">\${emoji} \${fmt(resteAVivre)}<span style="font-size:14px;color:var(--text-2);"> / mois · \${label}</span></div>
-    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">Salaire conseillé \${fmt(salaireConseille)} − ton besoin de vie \${fmt(besoin)}. Repères : 🔴 sous 200 € · 🟠 200–500 € · 🟢 au-delà.</div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">\${detail} Repères : 🔴 sous 200 € · 🟠 200–500 € · 🟢 au-delà.</div>
   </div>\`;
 }
 
 function renderPersoBridge(ctx){
   const el=q('#perso-bridge'); if(!el)return;
-  const {besoin,capacite,caRequis}=ctx;
+  const {besoin,besoinNet,capacite,caRequis,revenusPerso}=ctx;
   if(besoin<=0){el.innerHTML='';return;}
-  const couvre=capacite>=besoin;
+  const ressources=capacite+revenusPerso;
+  const couvre=ressources>=besoin;
   const msg=couvre
-    ? \`✅ Ton activité couvre ton niveau de vie. Elle peut te verser environ <strong>\${fmt(capacite)} / mois</strong>\${capacite>besoin?', soit '+fmt(capacite-besoin)+' de plus que ton besoin':''}.\`
-    : \`⚠️ Ton activité ne couvre pas encore ton besoin de vie. Elle soutient environ <strong>\${fmt(capacite)} / mois</strong>, il manque <strong>\${fmt(besoin-capacite)}</strong>.\`;
+    ? \`✅ Ton activité\${revenusPerso>0?' et tes aides couvrent':' couvre'} ton niveau de vie. Ton entreprise peut te verser environ <strong>\${fmt(capacite)} / mois</strong>\${ressources>besoin?', soit '+fmt(ressources-besoin)+' de marge au-dessus de ton besoin':''}.\`
+    : \`⚠️ Tu ne couvres pas encore ton niveau de vie. Ton entreprise soutient ~<strong>\${fmt(capacite)} / mois</strong>\${revenusPerso>0?' (+ '+fmt(revenusPerso)+' d\\'aides)':''}, il manque <strong>\${fmt(besoin-ressources)}</strong>.\`;
   el.innerHTML=\`<div class="card" style="padding:18px;border-left:3px solid \${couvre?'#4CAF82':'#E05252'};">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;"><i class="ti ti-arrows-exchange"></i> Le pont entreprise ↔ perso</div>
     <div style="font-size:14px;line-height:1.5;margin-bottom:10px;">\${msg}</div>
-    <div style="font-size:12.5px;color:var(--text-2);">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an).</div>
+    <div style="font-size:12.5px;color:var(--text-2);">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an)\${revenusPerso>0?', tes aides couvrant déjà '+fmt(revenusPerso):''}.</div>
   </div>\`;
+}
+
+function renderPersoRevenus(ctx){
+  const el=q('#perso-revenus'); if(!el)return;
+  const {revenus,revenusPerso}=ctx;
+  const rows=(revenus||[]).map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:12.5px;">🤝 \${escHtml(r.nom||'—')}</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#2AA9A0;">+\${fmt(parseFloat(r.montant)||0)}</span>
+        <button onclick="openPersoRevenuModal('\${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+      </span>
+    </div>\`).join('');
+  el.innerHTML=\`<div class="card" style="padding:16px;border-top:3px solid #2AA9A0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:13px;font-weight:700;color:var(--navy);">🤝 Mes revenus perso (hors entreprise)</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#2AA9A0;">+\${fmt(revenusPerso)} / mois</span>
+        <button class="btn btn-outline btn-xs" onclick="openPersoRevenuModal()"><i class="ti ti-plus"></i> Ajouter</button>
+      </div>
+    </div>
+    \${rows||'<div style="font-size:12px;color:var(--text-2);padding:6px 0;">CAF, prime d\\'activité, pension… ajoute ce qui rentre chaque mois en dehors de ton activité. Ces revenus réduisent ce que ton entreprise doit te verser.</div>'}
+  </div>\`;
+}
+
+function openPersoRevenuModal(id){
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.persoRevenus)?s.persoRevenus:[];
+  const it=id?items.find(x=>x.id===id):null;
+  q('#perso-revenu-id').value=it?it.id:'';
+  q('#perso-revenu-nom').value=it?(it.nom||''):'';
+  q('#perso-revenu-montant').value=it&&it.montant!=null?it.montant:'';
+  q('#perso-revenu-title').textContent=it?'Modifier le revenu':'Nouveau revenu perso';
+  q('#modal-perso-revenu').style.display='flex';
+}
+async function savePersoRevenu(){
+  try{
+    const nom=q('#perso-revenu-nom').value.trim();
+    const montant=parseFloat(q('#perso-revenu-montant').value);
+    if(!nom){toast('Donne un intitulé','error');return;}
+    if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
+    const settings=dbGetObj('settings');
+    const items=Array.isArray(settings.persoRevenus)?settings.persoRevenus.slice():[];
+    const id=q('#perso-revenu-id').value;
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,montant};}
+    else{items.push({id:'pr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,montant});}
+    settings.persoRevenus=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-perso-revenu').style.display='none';
+    toast('Revenu enregistré','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function deletePersoRevenu(id){
+  if(!confirm('Supprimer ce revenu ?'))return;
+  try{
+    const settings=dbGetObj('settings');
+    settings.persoRevenus=(Array.isArray(settings.persoRevenus)?settings.persoRevenus:[]).filter(x=>x.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Supprimé','success');
+    renderBudgetPerso();
+  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 function renderPersoCharges(ctx){
