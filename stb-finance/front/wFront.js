@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v15 · alertes</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v16 · engagements</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -307,6 +307,41 @@ const HTML = `<!DOCTYPE html>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-env-reglages').style.display='none'">Annuler</button>
             <button class="btn btn-primary" onclick="saveEnvReglages()"><i class="ti ti-check"></i> Enregistrer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal engagement à venir -->
+    <div class="modal-overlay" id="modal-engagement" style="display:none;">
+      <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+          <div class="modal-title" id="engagement-modal-title">Nouvel engagement</div>
+          <button class="modal-close" onclick="q('#modal-engagement').style.display='none'"><i class="ti ti-x"></i></button>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+          <input type="hidden" id="engagement-id">
+          <div>
+            <label class="form-label">Intitulé de l'engagement</label>
+            <input class="form-control" type="text" id="engagement-nom" placeholder="Ex: Accompagnement entreprise">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">La prestation, l'accompagnement, la formation… que tu t'es engagée à payer.</div>
+          </div>
+          <div>
+            <label class="form-label">Montant total (€)</label>
+            <input class="form-control" type="number" id="engagement-total" min="0" step="10" placeholder="Ex: 3000">
+          </div>
+          <div>
+            <label class="form-label">Déjà payé — acompte (€)</label>
+            <input class="form-control" type="number" id="engagement-paye" min="0" step="10" placeholder="Ex: 900">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Ce que tu as déjà réglé. L'appli réservera le reste (total − acompte).</div>
+          </div>
+          <div>
+            <label class="form-label">Échéance prévue (optionnel)</label>
+            <input class="form-control" type="date" id="engagement-date">
+          </div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="q('#modal-engagement').style.display='none'">Annuler</button>
+            <button class="btn btn-primary" onclick="saveEngagement()"><i class="ti ti-check"></i> Enregistrer</button>
           </div>
         </div>
       </div>
@@ -2309,7 +2344,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=15"></script>
+<script src="/app.js?v=16"></script>
 </body>
 </html>
 `;
@@ -4739,6 +4774,7 @@ const ENV_DEF=[
   {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#E8A838', auto:true },
   {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
   {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
+  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#3B6DD4', auto:false},
   {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#4CAF82', auto:false},
 ];
 // Catégories assignables à une opération (dans l'ordre proposé au re-classement)
@@ -4805,14 +4841,21 @@ function computeEnveloppes(){
   const urssafDu=Math.round(caEncaisse*(tauxU+tauxC)*100)/100;
   const chargesBudget=Math.round(aboMois*Math.max(0,horizonCharges)*100)/100;
 
+  // Engagements à venir : réservations manuelles (total − acompte déjà payé)
+  const engagements=Array.isArray(settings.engagements)?settings.engagements:[];
+  const engTotal=engagements.reduce((s,e)=>s+(parseFloat(e.total)||0),0);
+  const engPaye=engagements.reduce((s,e)=>s+(parseFloat(e.paye)||0),0);
+  const engReste=engagements.reduce((s,e)=>s+Math.max(0,(parseFloat(e.total)||0)-(parseFloat(e.paye)||0)),0);
+
   const env={
     urssaf:      {budget:urssafDu,           paye:paye.urssaf,       reste:Math.max(0,urssafDu-paye.urssaf),                   liste:listes.urssaf},
     charges:     {budget:chargesBudget,      paye:paye.charges,      reste:chargesBudget,                                      liste:listes.charges},
     formation:   {budget:budgetFormation,    paye:paye.formation,    reste:Math.max(0,budgetFormation-paye.formation),         liste:listes.formation},
     soustraitance:{budget:budgetSoustraitance,paye:paye.soustraitance,reste:budgetSoustraitance>0?Math.max(0,budgetSoustraitance-paye.soustraitance):0,liste:listes.soustraitance},
+    engagements: {budget:engTotal,           paye:engPaye,           reste:engReste,                                           liste:[], items:engagements},
     tresorerie:  {budget:cibleTreso,         paye:0,                 reste:cibleTreso,                                         liste:[]},
   };
-  const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.soustraitance.reste+env.tresorerie.reste;
+  const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.soustraitance.reste+env.engagements.reste+env.tresorerie.reste;
   return {settings,soldeReel,caEncaisse,env,totalReserve,disponible:soldeReel-totalReserve,aranger:listes.autre,debits};
 }
 
@@ -4846,6 +4889,7 @@ function renderEnveloppes(){
   // Cartes enveloppes
   g.innerHTML=ENV_DEF.map(def=>{
     const e=env[def.id];
+    if(def.id==='engagements')return renderEngagementsCard(def,e);
     const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
     const badge=def.auto
       ? '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#3E9E74;background:rgba(62,158,116,.13);">Automatique</span>'
@@ -4890,6 +4934,91 @@ function renderEnveloppes(){
 
 let _envShowAll=false;
 function toggleEnvShowAll(){_envShowAll=!_envShowAll;renderEnveloppes();}
+
+function renderEngagementsCard(def,e){
+  const items=e.items||[];
+  const rows=items.map(it=>{
+    const total=parseFloat(it.total)||0,paye=parseFloat(it.paye)||0,reste=Math.max(0,total-paye);
+    const pct=total>0?Math.min(100,Math.round(paye/total*100)):0;
+    return \`<div style="padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;">
+        <span style="font-size:12.5px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escHtml(it.nom||'Engagement')}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:16px;white-space:nowrap;color:\${def.couleur};">\${fmt(reste)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px;">
+        <span style="font-size:10.5px;color:var(--text-2);">\${it.date?fmtDate(it.date)+' · ':''}payé \${fmt(paye)} / \${fmt(total)}</span>
+        <span style="display:flex;gap:8px;">
+          <button onclick="openEngagementModal('\${it.id}')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
+          <button onclick="deleteEngagement('\${it.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:13px;"><i class="ti ti-trash"></i></button>
+        </span>
+      </div>
+      \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;"></div></div>\`:''}
+    </div>\`;
+  }).join('');
+  const badge='<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#3B6DD4;background:rgba(59,109,212,.13);">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
+  return \`<div class="card" style="border-top:3px solid \${def.couleur};padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <i class="ti \${def.icone}" style="color:\${def.couleur};font-size:17px;"></i>
+        <span style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${def.nom}</span>
+      </div>
+      \${badge}
+    </div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;color:\${def.couleur};">\${fmt(e.reste)}</div>
+    <div style="font-size:11px;color:var(--text-2);margin-bottom:12px;">reste à réserver pour tes engagements</div>
+    \${rows?\`<div style="margin-bottom:10px;">\${rows}</div>\`:'<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">Aucun engagement pour le moment. Ajoute une prestation ou un accompagnement dont une partie seulement est payée.</div>'}
+    <button onclick="openEngagementModal()" style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--navy);"><i class="ti ti-plus"></i> Ajouter un engagement</button>
+  </div>\`;
+}
+
+function openEngagementModal(id){
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.engagements)?s.engagements:[];
+  const it=id?items.find(x=>x.id===id):null;
+  q('#engagement-id').value=it?it.id:'';
+  q('#engagement-nom').value=it?(it.nom||''):'';
+  q('#engagement-total').value=it&&it.total!=null?it.total:'';
+  q('#engagement-paye').value=it&&it.paye!=null?it.paye:'';
+  q('#engagement-date').value=it?(it.date||''):'';
+  q('#engagement-modal-title').textContent=it?'Modifier l\\'engagement':'Nouvel engagement';
+  q('#modal-engagement').style.display='flex';
+}
+
+async function saveEngagement(){
+  try{
+    const nom=q('#engagement-nom').value.trim();
+    const total=parseFloat(q('#engagement-total').value);
+    if(!nom){toast('Donne un intitulé','error');return;}
+    if(isNaN(total)||total<0){toast('Montant total invalide','error');return;}
+    let paye=parseFloat(q('#engagement-paye').value); if(isNaN(paye)||paye<0)paye=0;
+    const date=q('#engagement-date').value||'';
+    const settings=dbGetObj('settings');
+    const items=Array.isArray(settings.engagements)?settings.engagements.slice():[];
+    const id=q('#engagement-id').value;
+    if(id){
+      const i=items.findIndex(x=>x.id===id);
+      if(i>=0)items[i]={...items[i],nom,total,paye,date};
+    }else{
+      items.push({id:'eng_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,total,paye,date});
+    }
+    settings.engagements=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    q('#modal-engagement').style.display='none';
+    toast('Engagement enregistré','success');
+    renderEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+
+async function deleteEngagement(id){
+  if(!confirm('Supprimer cet engagement ?'))return;
+  try{
+    const settings=dbGetObj('settings');
+    settings.engagements=(Array.isArray(settings.engagements)?settings.engagements:[]).filter(x=>x.id!==id);
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Engagement supprimé','success');
+    renderEnveloppes();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
 
 function renderAranger(ctx){
   const el=q('#enveloppes-aranger');
