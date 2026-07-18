@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v21 · patrimoine</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v22 · allocation</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2498,7 +2498,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=21"></script>
+<script src="/app.js?v=22"></script>
 </body>
 </html>
 `;
@@ -4595,9 +4595,13 @@ function computeIntel(){
   // à leur montant mensuel réel (total ÷ nb de mois si durée définie), + ceux
   // déclarés à la main dans la Prévision.
   const _today=now.toISOString().slice(0,10);
-  const recMensuel=projets.filter(p=>p.type==='mensuel'&&p.statut!=='termine'&&p.statut!=='annule'&&(!p.dateFin||p.dateFin>=_today))
-    .reduce((s,p)=>s+(p.dureeIndeterminee?(p.montantTotal||0):((p.montantTotal||0)/Math.max(1,p.nombreMois||1))),0)
-    +(settings.revenusRecurrents||[]).reduce((s,r)=>s+(parseFloat(r.montant)||0),0);
+  const recDetail=[];
+  projets.filter(p=>p.type==='mensuel'&&p.statut!=='termine'&&p.statut!=='annule'&&(!p.dateFin||p.dateFin>=_today)).forEach(p=>{
+    const mm=p.dureeIndeterminee?(p.montantTotal||0):((p.montantTotal||0)/Math.max(1,p.nombreMois||1));
+    if(mm>0)recDetail.push({nom:p.nom||'Projet',montant:Math.round(mm*100)/100,src:p.dureeIndeterminee?'mensuel indéterminé':((p.nombreMois||1)+' mois')});
+  });
+  (settings.revenusRecurrents||[]).forEach(r=>{const mm=parseFloat(r.montant)||0;if(mm>0)recDetail.push({nom:r.nom||'Revenu',montant:mm,src:'déclaré'});});
+  const recMensuel=recDetail.reduce((s,r)=>s+r.montant,0);
 
   // Factures en retard / en attente
   // Une facture est « en retard » si elle est explicitement marquée retard,
@@ -4676,7 +4680,7 @@ function computeIntel(){
 
   // Opérations Qonto non catégorisées (pour la todo)
   let aRanger=0; try{const ce=computeEnveloppes();aRanger=(ce.aranger||[]).length;}catch(e){}
-  return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caMoisPrec,deltaMois,caYTD,objectifCA,pctObjectif,ecartObjectif,attenduYTD,projAnnuel,pctPlafond,retard,attente,urssafProchain,aRanger,devisRelance};
+  return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caMoisPrec,deltaMois,caYTD,objectifCA,pctObjectif,ecartObjectif,attenduYTD,projAnnuel,pctPlafond,retard,attente,urssafProchain,aRanger,devisRelance,recDetail};
 }
 
 function renderCockpit(){
@@ -4730,6 +4734,7 @@ function renderCockpit(){
       \${flow('💰','Disponible entreprise',d.disponible)}
       \${arrow}
       \${flow('💸','Salaire conseillé',p.salaireConseille,'#2AA9A0')}
+      \${p.revenusPerso>0?arrow+flow('🤝','Revenus perso',p.revenusPerso,'#2AA9A0'):''}
       \${p.besoin>0?arrow+flow('🏠','Tes dépenses perso',p.besoin):''}
     </div>
     \${bloc2Verdict}
@@ -4828,7 +4833,8 @@ function renderCockpit(){
     <div class="dash-sec-title">🔁 Mes revenus récurrents</div>
     <div style="font-size:13px;color:var(--text-2);">Chaque mois, tu peux compter sur</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#3E9E74;">\${fmt(d.recMensuel)} <span style="font-size:14px;color:var(--text-2);">/ mois</span></div>
-    \${pctRec!=null?\`<div style="font-size:12.5px;color:var(--text-2);">Soit \${pctRec}% de ton objectif mensuel.</div>\`:''}
+    \${pctRec!=null?\`<div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">Soit \${pctRec}% de ton objectif mensuel.</div>\`:''}
+    \${(d.recDetail&&d.recDetail.length)?\`<div style="border-top:1px dashed var(--border);padding-top:8px;">\${d.recDetail.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;padding:3px 0;"><span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📁 \${escHtml(r.nom)} <span style="font-size:10.5px;opacity:.7;">(\${r.src})</span></span><span style="font-family:'Cormorant Garamond',serif;white-space:nowrap;">\${fmt(r.montant)}</span></div>\`).join('')}</div>\`:''}
   </div>\`:'';
 
   // ── Bloc 9 : projets ──────────────────────────────────────────────────
@@ -4885,15 +4891,92 @@ function renderCockpit(){
     </div>
   </div>\`;
 
+  // ── Allocation du mois : où va chaque euro ────────────────────────────
+  const epEmoji={liquidites:'🏦',longterme:'📈',immobilier:'🏠',autre:'🎯'};
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const pasM=parseFloat(settings.pasFixe)||40;
+  const abosD=dbGet('abonnements')||[];
+  const abosMois=abosD.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const aUrssaf=Math.round(d.caMois*(tauxU+tauxC));
+  const aCharges=Math.round(abosMois+pasM);
+  const aDispo=Math.max(0,d.caMois-aUrssaf-aCharges);
+  const supAll=Array.isArray(settings.persoEpargne)?settings.persoEpargne:[];
+  const supports=supAll.map(e=>({emoji:epEmoji[e.cat]||'🎯',nom:e.nom||'Support',montant:parseFloat(e.montant)||0})).filter(x=>x.montant>0);
+  const aSalaire=Math.min(p.salaireConseille||0,aDispo);
+  const aFormation=Math.round((parseFloat(settings.budgetFormations)||0)/12);
+  const aEpargne=supports.reduce((s,x)=>s+x.montant,0);
+  const aTreso=Math.max(0,aDispo-aSalaire-aEpargne-aFormation);
+  const palette=['#2AA9A0','#7C3AED','#E8A838','#3B6DD4','#E0A3C0'];
+  let dests=[{emoji:'🏠',nom:'Salaire',montant:aSalaire,color:'#4C6FBF'}]
+    .concat(supports.map((x,i)=>({emoji:x.emoji,nom:x.nom,montant:x.montant,color:palette[i%palette.length]})))
+    .concat(aFormation>0?[{emoji:'🎓',nom:'Formation',montant:aFormation,color:'#E0A3C0'}]:[])
+    .concat([{emoji:'🛟',nom:'Trésorerie entreprise',montant:aTreso,color:'#3E9E74'}])
+    .filter(x=>x.montant>0);
+  let acc=0; const segs=dests.map(x=>{const from=aDispo>0?acc/aDispo*100:0;acc+=x.montant;const to=aDispo>0?acc/aDispo*100:0;return x.color+' '+from.toFixed(1)+'% '+to.toFixed(1)+'%';});
+  const donut=\`<div style="width:128px;height:128px;border-radius:50%;background:conic-gradient(\${segs.join(',')||'var(--border) 0 100%'});position:relative;flex:none;"><div style="position:absolute;inset:19px;background:var(--surface);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;"><div style="font-size:10px;color:var(--text-2);">Disponible</div><div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);">\${fmt(aDispo)}</div></div></div>\`;
+  const wf=(lab,val,neg)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;\${neg?'color:#E05252;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
+  const blocAlloc=d.caMois>0?\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">💰 Où va mon argent ce mois-ci</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:240px;">
+        \${wf('CA encaissé',d.caMois)}\${wf('URSSAF',aUrssaf,true)}\${wf('Charges fixes',aCharges,true)}
+        <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border);margin:4px 0;font-weight:600;"><span>Disponible</span><span style="font-family:'Cormorant Garamond',serif;color:var(--navy);">\${fmt(aDispo)}</span></div>
+        \${dests.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.montant)}</span></div>\`).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">\${donut}
+        <div style="display:flex;flex-direction:column;gap:4px;">\${dests.map(x=>\`<div style="display:flex;align-items:center;gap:6px;font-size:11px;"><span style="width:9px;height:9px;border-radius:2px;background:\${x.color};flex:none;"></span>\${escHtml(x.nom)} · \${aDispo>0?Math.round(x.montant/aDispo*100):0}%</div>\`).join('')}</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text-2);margin-top:10px;">Le salaire vient de ton budget perso, l'épargne de tes supports patrimoine. Ajuste-les pour piloter ta répartition.</div>
+  </div>\`:'';
+
+  // ── Valeur nette + patrimoine ─────────────────────────────────────────
+  const patriSolde=supAll.reduce((s,e)=>s+(parseFloat(e.solde)||0),0);
+  const patriMensuel=supAll.reduce((s,e)=>s+(parseFloat(e.montant)||0),0);
+  const entreprise=ce?ce.soldeReel:(d.soldeReel||0);
+  const valeurNette=entreprise+patriSolde;
+  const moisEcoules=now.getMonth()+1;
+  const misCetteAnnee=Math.round(patriMensuel*moisEcoules);
+  const blocValeur=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Ta valeur nette</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;margin:4px 0;">\${fmt(valeurNette)}</div>
+    \${misCetteAnnee>0?\`<div style="font-size:12.5px;color:#7BE0AE;margin-bottom:12px;">↗ +\${fmt(misCetteAnnee)} mis de côté cette année</div>\`:'<div style="margin-bottom:8px;"></div>'}
+    <div style="display:flex;gap:22px;flex-wrap:wrap;">
+      <div><div style="font-size:11px;opacity:.6;">🏢 Entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(entreprise)}</div></div>
+      \${supAll.filter(e=>(parseFloat(e.solde)||0)>0).map(e=>\`<div><div style="font-size:11px;opacity:.6;">\${epEmoji[e.cat]||'🎯'} \${escHtml(e.nom)}</div><div style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(parseFloat(e.solde)||0)}</div></div>\`).join('')}
+    </div>
+  </div>\`;
+
+  // ── Projection patrimoine à 12 mois ───────────────────────────────────
+  const pj=(emoji,lab,val)=>\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);">\${fmt(val)}</div></div>\`;
+  const blocProjPat=(p.salaireConseille>0||patriMensuel>0)?\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">🔭 À ce rythme, dans 12 mois</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      \${pj('💰','Salaire annuel',(p.salaireConseille||0)*12)}
+      \${pj('💼','Patrimoine',patriSolde+patriMensuel*12)}
+      \${supAll.filter(e=>(parseFloat(e.montant)||0)>0).slice(0,2).map(e=>pj(epEmoji[e.cat]||'🎯',escHtml(e.nom),(parseFloat(e.solde)||0)+(parseFloat(e.montant)||0)*12)).join('')}
+    </div>
+  </div>\`:'';
+
+  const step=(t)=>\`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-2);font-weight:700;margin:10px 2px -4px;">\${t}</div>\`;
+
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
-    \${bloc1}\${bloc2}
+    \${bloc1}
+    \${step('① Ma situation')}
+    \${bloc2}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc3}\${bloc4}</div>
-    \${bloc5}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc6}\${bloc8}</div>
+    \${step('② Où va mon argent')}
+    \${blocAlloc}
+    \${step('③ Ce que je construis')}
+    \${blocValeur}
     \${bloc7}
+    \${blocProjPat}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc6}\${bloc8}</div>
     \${bloc9}
-    \${bloc10}
+    \${step('④ Ce que je dois faire')}
+    \${bloc5}
     \${bloc11}
+    \${bloc10}
   </div>\`;
 }
 
