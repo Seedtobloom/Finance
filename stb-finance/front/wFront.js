@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v19 · épargne</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v20 · dashboard</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -132,103 +132,11 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Cockpit : copilote financier (score, briefing, insights) -->
-      <div id="dash-cockpit" style="margin-bottom:22px;"></div>
-      <div id="dash-perso" style="margin-bottom:22px;"></div>
+      <!-- Copilote financier : narration complète (4 questions) -->
+      <div id="dash-cockpit" style="margin-bottom:16px;"></div>
 
-      <!-- Ligne 1 KPIs -->
-      <div class="kpi-grid kpi-grid-4 mb-16">
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
-          <span class="kpi-label">CA encaissé ce mois</span>
-          <span class="kpi-value" id="kpi-ca-mois">—</span>
-          <span class="kpi-sub" id="kpi-ca-mois-sub"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon red"><i class="ti ti-receipt"></i></div>
-          <span class="kpi-label">Charges totales ce mois</span>
-          <span class="kpi-value danger" id="kpi-charges-mois">—</span>
-          <span class="kpi-sub" id="kpi-charges-mois-sub"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-wallet"></i></div>
-          <span class="kpi-label">Résultat net ce mois</span>
-          <span class="kpi-value green" id="kpi-net-mois">—</span>
-          <span class="kpi-sub" id="kpi-net-mois-sub"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-arrow-right"></i></div>
-          <span class="kpi-label">Versement estimé (65%)</span>
-          <span class="kpi-value violet" id="kpi-versement">—</span>
-          <span class="kpi-sub">du résultat net</span>
-        </div>
-      </div>
-
-      <!-- Ligne 2 KPIs -->
-      <div class="kpi-grid kpi-grid-4 mb-24">
-        <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-chart-bar"></i></div>
-          <span class="kpi-label">CA YTD</span>
-          <span class="kpi-value" id="kpi-ca-ytd">—</span>
-          <span class="kpi-sub">depuis le 1er janvier</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-target"></i></div>
-          <span class="kpi-label">Progression objectif annuel</span>
-          <span class="kpi-value" id="kpi-objectif-pct">—</span>
-          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-objectif-bar" style="width:0%"></div></div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon cream"><i class="ti ti-building-bank"></i></div>
-          <span class="kpi-label">Trésorerie Qonto</span>
-          <span class="kpi-value" id="kpi-treso-qonto">—</span>
-          <span class="kpi-sub" id="kpi-treso-upd"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-calendar-due"></i></div>
-          <span class="kpi-label">Prochain URSSAF</span>
-          <span class="kpi-value warning" id="kpi-urssaf-next">—</span>
-          <span class="kpi-sub" id="kpi-urssaf-sub"></span>
-        </div>
-      </div>
-
-      <!-- Tendances (sparklines) -->
-      <div id="dash-trends" style="margin-bottom:16px;"></div>
-
-      <!-- 2 colonnes -->
-      <div class="grid-65-35">
-        <!-- Gauche : graphiques -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div class="card">
-            <div class="card-title"><i class="ti ti-chart-bar"></i> CA mensuel (12 mois)</div>
-            <div class="chart-wrap"><canvas id="chart-dash-bar" height="200"></canvas></div>
-            <div class="chart-legend" id="chart-dash-bar-legend"></div>
-            <div id="dash-analyse-ca"></div>
-          </div>
-          <div class="card">
-            <div class="card-title"><i class="ti ti-chart-line"></i> Résultat net (12 mois)</div>
-            <div class="chart-wrap"><canvas id="chart-dash-line" height="140"></canvas></div>
-          </div>
-        </div>
-        <!-- Droite : widgets -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-              <span><i class="ti ti-arrows-exchange"></i> Dernières transactions</span>
-              <button class="btn btn-ghost btn-xs" data-section="transactions">Voir tout</button>
-            </div>
-            <div id="dash-transactions-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-              <span><i class="ti ti-repeat"></i> Prochains abonnements</span>
-              <button class="btn btn-ghost btn-xs" data-section="abonnements">Voir tout</button>
-            </div>
-            <div id="dash-abonnements-list"></div>
-          </div>
-          <div id="dash-urssaf-alert"></div>
-        </div>
-      </div>
+      <!-- Tendances (sparklines 12 mois) -->
+      <div id="dash-trends"></div>
     </section><!-- /dashboard -->
 
 
@@ -491,8 +399,13 @@ const HTML = `<!DOCTYPE html>
             <input class="form-control" type="number" id="perso-palier-confort" min="0" step="50" placeholder="Ex: 3000">
           </div>
           <div>
-            <label class="form-label">🔵 Objectif (€ / mois)</label>
+            <label class="form-label">🔵 Objectif salaire (€ / mois)</label>
             <input class="form-control" type="number" id="perso-palier-objectif" min="0" step="50" placeholder="Ex: 3500">
+          </div>
+          <div>
+            <label class="form-label">🎯 Objectif épargne total (€)</label>
+            <input class="form-control" type="number" id="perso-palier-epargne" min="0" step="500" placeholder="Ex: 20000">
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Le total que tu vises sur tes livrets / assurance vie (pour la jauge du tableau de bord).</div>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-perso-paliers').style.display='none'">Annuler</button>
@@ -2554,7 +2467,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=19"></script>
+<script src="/app.js?v=20"></script>
 </body>
 </html>
 `;
@@ -2896,6 +2809,14 @@ html, body {
   gap: 7px;
 }
 .card-title .ti { font-size: 14px; }
+.dash-sec-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
 
 /* ===========================
    KPI CARDS
@@ -4644,7 +4565,10 @@ function computeIntel(){
     +(settings.revenusRecurrents||[]).reduce((s,r)=>s+(parseFloat(r.montant)||0),0);
 
   // Factures en retard / en attente
-  const retard=factures.filter(f=>f.statut==='retard');
+  // Une facture est « en retard » si elle est explicitement marquée retard,
+  // OU si elle est impayée (attente) et que son échéance est dépassée.
+  const todayStr=now.toISOString().slice(0,10);
+  const retard=factures.filter(f=>f.statut!=='payee'&&(f.statut==='retard'||(f.dateEcheance&&f.dateEcheance<todayStr)));
   const attente=factures.filter(f=>f.statut==='attente');
   const retardTotal=retard.reduce((s,f)=>s+(f.montant||0),0);
 
@@ -4715,81 +4639,226 @@ function computeIntel(){
   const prio={warn:0,info:1,good:2};
   ins.sort((a,b)=>(prio[a.t]||9)-(prio[b.t]||9));
 
-  return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caYTD,pctObjectif,retard,attente,urssafProchain};
+  // Opérations Qonto non catégorisées (pour la todo)
+  let aRanger=0; try{const ce=computeEnveloppes();aRanger=(ce.aranger||[]).length;}catch(e){}
+  return {score,indics,ins,disponible,soldeReel,moisSecurite,joursRupture,burnMensuel,revenuMoyen,recMensuel,topClient,topClientPct,caMois,caMoisPrec,deltaMois,caYTD,objectifCA,pctObjectif,ecartObjectif,attenduYTD,projAnnuel,pctPlafond,retard,attente,urssafProchain,aRanger,devisRelance};
 }
 
 function renderCockpit(){
   const el=q('#dash-cockpit'); if(!el)return;
   let d; try{d=computeIntel();}catch(e){el.innerHTML='';return;}
+  let p={besoin:0,salaireConseille:0,capacite:0,revenusPerso:0,epargneSolde:0,epargneMensuel:0,objectif:0}; try{p=computePerso();}catch(e){}
+  let ce=null; try{ce=computeEnveloppes();}catch(e){}
+  let prev=null; try{prev=computePrevision();}catch(e){}
+  const settings=dbGetObj('settings');
   const now=new Date();
   const scoreColor=d.score>=80?'#3E9E74':d.score>=55?'#E8A838':'#E05252';
   const scoreLabel=d.score>=80?'Solide':d.score>=55?'Correct':'Fragile';
   const insColor={good:'#3E9E74',warn:'#E05252',info:'#1A2E5A'};
   const insIcon={good:'ti-circle-check',warn:'ti-alert-triangle',info:'ti-info-circle'};
+  const prenom=(settings.prenom||'').trim();
+  const salut=now.getHours()<18?'Bonjour':'Bonsoir';
 
-  // Briefing du jour (les 4-5 réponses essentielles)
-  const brief=[];
-  brief.push({ic:'ti-cash',txt:d.disponible>0?'Tu peux te verser <strong>'+fmt(d.disponible)+'</strong>':'Rien à te verser pour l\\'instant'});
-  brief.push({ic:'ti-calendar-due',txt:d.urssafProchain?('URSSAF '+d.urssafProchain.t+' dans <strong>'+d.urssafProchain.jours+' j</strong>'):'Rien à déclarer à l\\'URSSAF'});
-  brief.push({ic:'ti-file-invoice',txt:d.retard.length?('<strong>'+d.retard.length+'</strong> facture(s) en retard'):'Aucune facture en retard'});
-  brief.push({ic:'ti-target',txt:d.pctObjectif!=null?('<strong>'+d.pctObjectif+'%</strong> de ton objectif annuel'):'Objectif de CA non défini'});
+  // ── Verdict en une phrase ─────────────────────────────────────────────
+  const versable=p.besoin>0?p.salaireConseille:d.disponible;
+  let verdict, vTon;
+  if(d.disponible<0){vTon='warn';verdict='Prudence : tes réserves (URSSAF, charges) dépassent ton solde de '+fmt(-d.disponible)+'. Attends une rentrée avant de te verser quoi que ce soit.';}
+  else if(p.besoin>0&&(p.capacite+p.revenusPerso)<p.besoin){vTon='warn';verdict='Ton activité ne couvre pas encore ton niveau de vie — il manque environ '+fmt(p.besoin-p.capacite-p.revenusPerso)+' / mois. Il faudra augmenter ton CA ou ajuster certaines dépenses.';}
+  else if(d.pctObjectif!=null&&d.ecartObjectif<0){vTon='warn';verdict='Tu es un peu en retard sur ton objectif de CA. Il te manque environ '+fmt(-d.ecartObjectif)+' pour rester dans le rythme.';}
+  else{vTon='good';verdict='Tu es en bonne santé financière.'+(versable>0?' Tu peux te verser '+fmt(versable)+' ce mois-ci sans mettre en danger ta trésorerie.':'');}
+  const vColor=vTon==='good'?'#7BE0AE':'#F6C664';
 
-  const wow=[
-    {ic:'💸',lab:'Disponible réel',val:fmt(d.disponible)},
-    {ic:'🛟',lab:'Mois de sécurité',val:d.moisSecurite.toFixed(1)+' mois'},
-    {ic:'📊',lab:'Revenu moyen / mois',val:fmt(d.revenuMoyen)},
-    {ic:'📈',lab:'Récurrent garanti',val:fmt(d.recMensuel)+'/mois'},
-    {ic:'❤️',lab:'Meilleur client',val:d.topClient[0]==='—'?'—':d.topClient[0]},
-    {ic:'🔥',lab:'Burn rate',val:fmt(d.burnMensuel)+'/mois'},
+  // ── Bloc 1 : accueil + verdict ────────────────────────────────────────
+  const bloc1=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;">
+    <div style="font-size:20px;font-weight:600;margin-bottom:6px;">👋 \${salut}\${prenom?' '+escHtml(prenom):''}</div>
+    <div style="font-size:15.5px;line-height:1.5;color:\${vColor};font-weight:500;">\${verdict}</div>
+  </div>\`;
+
+  // ── Bloc 2 : puis-je me verser / besoins couverts ─────────────────────
+  const couvre=p.besoin>0&&(p.salaireConseille+p.revenusPerso)>=p.besoin;
+  const flow=(emoji,lab,val,color)=>\`<div style="flex:1;min-width:140px;text-align:center;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">\${emoji} \${lab}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;\${color?'color:'+color+';':'color:var(--navy);'}">\${fmt(val)}</div>
+  </div>\`;
+  const arrow='<div style="font-size:20px;color:var(--text-2);align-self:center;">→</div>';
+  let bloc2Verdict='';
+  if(p.besoin>0){
+    bloc2Verdict=couvre
+      ? \`<div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(62,158,116,.12);color:#2F7D55;font-size:13px;font-weight:600;">✅ Tu couvres tes besoins\${(p.salaireConseille+p.revenusPerso-p.besoin)>0?' — '+fmt(p.salaireConseille+p.revenusPerso-p.besoin)+' de marge':''}.</div>\`
+      : \`<div style="margin-top:14px;padding:10px 14px;border-radius:10px;background:rgba(224,82,82,.1);color:#C43030;font-size:13px;font-weight:600;">❌ Il manque environ \${fmt(p.besoin-p.salaireConseille-p.revenusPerso)} / mois. Il faudra augmenter ton CA ou réduire certaines dépenses.</div>\`;
+  }else{
+    bloc2Verdict=\`<div style="margin-top:14px;font-size:12.5px;color:var(--text-2);">Renseigne ton <a onclick="navigate('budget-perso')" style="color:var(--navy);cursor:pointer;text-decoration:underline;">budget perso</a> pour savoir si ton activité couvre ton niveau de vie.</div>\`;
+  }
+  const bloc2=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">💸 Ce que je peux faire aujourd'hui</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;">
+      \${flow('💰','Disponible entreprise',d.disponible)}
+      \${arrow}
+      \${flow('💸','Salaire conseillé',p.salaireConseille,'#2AA9A0')}
+      \${p.besoin>0?arrow+flow('🏠','Tes dépenses perso',p.besoin):''}
+    </div>
+    \${bloc2Verdict}
+  </div>\`;
+
+  // ── Bloc 3 : activité (une carte) ─────────────────────────────────────
+  const deltaTxt=d.deltaMois!=null?(d.deltaMois>=0?'📈 +'+d.deltaMois+'%':'📉 '+d.deltaMois+'%'):'';
+  const deltaColor=d.deltaMois!=null&&d.deltaMois<0?'#E05252':'#3E9E74';
+  const bloc3=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">📈 Mon activité</div>
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--navy);">\${fmt(d.caMois)}</span>
+      <span style="font-size:13px;color:var(--text-2);">CA encaissé ce mois</span>
+      \${deltaTxt?\`<span style="font-size:14px;font-weight:600;color:\${deltaColor};">\${deltaTxt}</span>\`:''}
+    </div>
+    \${d.pctObjectif!=null?\`<div style="margin-top:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:4px;"><span>Objectif annuel atteint à \${d.pctObjectif}%</span><span>\${fmt(d.caYTD)} / \${fmt(d.objectifCA)}</span></div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${Math.min(100,d.pctObjectif)}%;background:var(--navy);border-radius:5px;"></div></div>
+      \${d.ecartObjectif<0?\`<div style="font-size:12px;color:#E05252;margin-top:6px;">Encore \${fmt(-d.ecartObjectif)} pour être dans le rythme.</div>\`:\`<div style="font-size:12px;color:#3E9E74;margin-top:6px;">Tu es dans le rythme \${d.ecartObjectif>0?'(+'+fmt(d.ecartObjectif)+' d\\'avance)':''}.</div>\`}
+    </div>\`:'<div style="font-size:12px;color:var(--text-2);margin-top:8px;">Définis un objectif de CA dans Objectifs pour suivre ton rythme.</div>'}
+  </div>\`;
+
+  // ── Bloc 4 : trésorerie ───────────────────────────────────────────────
+  let bloc4='';
+  if(ce){
+    const tstat=(lab,val,color)=>\`<div style="flex:1;min-width:130px;">
+      <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;\${color?'color:'+color+';':'color:var(--navy);'}">\${fmt(val)}</div>
+    </div>\`;
+    bloc4=\`<div class="card" style="padding:20px;">
+      <div class="dash-sec-title">💳 Ma trésorerie</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        \${tstat('Solde Qonto',ce.soldeReel)}
+        \${tstat('URSSAF réservée',ce.env.urssaf.reste,'#E05252')}
+        \${tstat('Charges réservées',ce.env.charges.reste,'#E8A838')}
+        \${tstat('Disponible réel',ce.disponible,ce.disponible<0?'#E05252':'#3E9E74')}
+      </div>
+    </div>\`;
+  }
+
+  // ── Bloc 5 : à faire aujourd'hui ──────────────────────────────────────
+  const todo=[];
+  if(d.retard.length)todo.push({ic:'⚠️',txt:d.retard.length+' facture'+(d.retard.length>1?'s':'')+' en retard de paiement',nav:'factures'});
+  if(d.devisRelance&&d.devisRelance.length)todo.push({ic:'📞',txt:d.devisRelance.length+' devis à relancer',nav:'devis'});
+  if(d.urssafProchain&&d.urssafProchain.jours<=45)todo.push({ic:'📅',txt:'URSSAF '+d.urssafProchain.t+' dans '+d.urssafProchain.jours+' jours',nav:'charges-urssaf'});
+  if(d.aRanger)todo.push({ic:'📄',txt:d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser',nav:'enveloppes'});
+  const bloc5=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">📋 À faire aujourd'hui</div>
+    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 8px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">
+        <span style="font-size:13.5px;">\${t.ic} \${t.txt}</span>
+        <span style="color:var(--navy);">→</span>
+      </div>\`).join('')}</div>\`:'<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Rien d\\'urgent aujourd\\'hui. Profites-en.</div>'}
+  </div>\`;
+
+  // ── Bloc 6 : prévisions ───────────────────────────────────────────────
+  let bloc6='';
+  if(prev){
+    const pv=(lab,val,hint)=>\`<div style="flex:1;min-width:140px;">
+      <div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--navy);">\${fmt(val)}</div>
+      <div style="font-size:10.5px;color:var(--text-2);">\${hint}</div>
+    </div>\`;
+    bloc6=\`<div class="card" style="padding:20px;">
+      <div class="dash-sec-title">🔮 Mes prévisions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-2);font-size:11px;">· si rien ne change</span></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        \${pv('CA prévisionnel',prev.caProjete,'sur l\\'année')}
+        \${pv('Net estimé',prev.netProjete,'après charges & URSSAF')}
+        \${pv('Salaire moyen possible',Math.round(prev.netProjete/12),'par mois')}
+      </div>
+    </div>\`;
+  }
+
+  // ── Bloc 7 : objectifs (4 jauges) ─────────────────────────────────────
+  const objCA=parseFloat(settings.objectifCA)||0, objTreso=parseFloat(settings.objectifTresorerie)||0;
+  const objEp=parseFloat(settings.objectifEpargne)||0, objSal=parseFloat(settings.persoObjectif)||p.besoin||0;
+  const gauges=[
+    {lab:'Objectif CA',color:'#4C6FBF',pct:objCA>0?d.caYTD/objCA*100:0,txt:objCA>0?fmt(d.caYTD)+' / '+fmt(objCA):'non défini'},
+    {lab:'Objectif trésorerie',color:'#3E9E74',pct:objTreso>0?d.soldeReel/objTreso*100:0,txt:objTreso>0?fmt(d.soldeReel)+' / '+fmt(objTreso):'non défini'},
+    {lab:'Objectif épargne',color:'#2AA9A0',pct:objEp>0?p.epargneSolde/objEp*100:0,txt:objEp>0?fmt(p.epargneSolde)+' / '+fmt(objEp):'non défini'},
+    {lab:'Objectif salaire',color:'#7C3AED',pct:objSal>0?p.salaireConseille/objSal*100:0,txt:objSal>0?fmt(p.salaireConseille)+' / '+fmt(objSal):'non défini'},
   ];
-
-  el.innerHTML=\`
-  <div style="display:grid;grid-template-columns:minmax(240px,300px) 1fr;gap:16px;align-items:stretch;">
-    <!-- Score de santé -->
-    <div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:20px 22px;color:#fff;display:flex;flex-direction:column;">
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;opacity:.6;margin-bottom:8px;">Santé financière</div>
-      <div style="display:flex;align-items:baseline;gap:8px;">
-        <span style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;line-height:1;color:\${scoreColor};">\${d.score}</span>
-        <span style="font-size:15px;opacity:.7;">/ 100 · \${scoreLabel}</span>
-      </div>
-      <div style="height:7px;background:rgba(255,255,255,.15);border-radius:4px;overflow:hidden;margin:12px 0 14px;">
-        <div style="height:100%;width:\${d.score}%;background:\${scoreColor};border-radius:4px;transition:width .6s;"></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        \${d.indics.map(i=>\`<div style="display:flex;align-items:center;gap:7px;font-size:11.5px;">
-          <i class="ti \${i.ok?'ti-check':'ti-alert-triangle'}" style="color:\${i.ok?'#7BE0AE':'#F6C664'};font-size:13px;"></i>
-          <span style="opacity:.85;">\${i.label} — \${i.val}</span>
-        </div>\`).join('')}
-      </div>
+  const bloc7=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title" style="display:flex;justify-content:space-between;align-items:center;"><span>🎯 Mes objectifs</span><button class="btn btn-outline btn-xs" onclick="openObjectifsPilotage()"><i class="ti ti-adjustments"></i> Régler</button></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+      \${gauges.map(g=>\`<div style="display:flex;align-items:center;gap:12px;">
+        <div style="flex:none;">\${ringGauge(g.pct,g.pct>=100?'#3E9E74':g.color)}</div>
+        <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);">\${g.lab}</div><div style="font-size:12px;">\${g.txt}</div></div>
+      </div>\`).join('')}
     </div>
+  </div>\`;
 
-    <!-- Briefing + insights -->
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="card" style="padding:16px 18px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:12px;">Bonjour 👋 · voici l'essentiel aujourd'hui</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
-          \${brief.map(b=>\`<div style="display:flex;align-items:center;gap:9px;font-size:13px;">
-            <i class="ti \${b.ic}" style="color:var(--navy);font-size:16px;"></i><span>\${b.txt}</span>
-          </div>\`).join('')}
-        </div>
+  // ── Bloc 8 : revenus récurrents ───────────────────────────────────────
+  const objMensuel=objCA>0?objCA/12:0;
+  const pctRec=objMensuel>0?Math.round(d.recMensuel/objMensuel*100):null;
+  const bloc8=d.recMensuel>0?\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">🔁 Mes revenus récurrents</div>
+    <div style="font-size:13px;color:var(--text-2);">Chaque mois, tu peux compter sur</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:#3E9E74;">\${fmt(d.recMensuel)} <span style="font-size:14px;color:var(--text-2);">/ mois</span></div>
+    \${pctRec!=null?\`<div style="font-size:12.5px;color:var(--text-2);">Soit \${pctRec}% de ton objectif mensuel.</div>\`:''}
+  </div>\`:'';
+
+  // ── Bloc 9 : projets ──────────────────────────────────────────────────
+  const projets=dbGet('projets')||[];
+  const txProjet=settings.txProjet||{};
+  const transactions=dbGet('transactions')||[];
+  const projMarge=projets.map(pr=>{
+    const ca=pr.montantTotal||0;
+    const cout=transactions.filter(t=>t.type==='debit'&&txProjet[t.qontoId||t.id]===pr.id).reduce((s,t)=>s+(t.montant||0),0);
+    return {nom:pr.nom||'Projet',ca,cout,marge:ca-cout,ratio:ca>0?(ca-cout)/ca:0};
+  }).filter(x=>x.ca>0);
+  let bloc9='';
+  if(projMarge.length){
+    const meilleur=projMarge.slice().sort((a,b)=>b.marge-a.marge)[0];
+    const surv=projMarge.slice().sort((a,b)=>a.ratio-b.ratio)[0];
+    const pcard=(titre,pr,color,note)=>\`<div style="flex:1;min-width:160px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);">\${titre}</div>
+      <div style="font-size:14px;font-weight:600;color:var(--navy);margin:2px 0;">\${escHtml(pr.nom)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;color:\${color};">\${(pr.marge>=0?'+':'')+fmt(pr.marge)}</div>
+      <div style="font-size:11px;color:var(--text-2);">\${note}</div>
+    </div>\`;
+    bloc9=\`<div class="card" style="padding:20px;">
+      <div class="dash-sec-title">📁 Mes projets</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        \${pcard('Le plus rentable',meilleur,'#3E9E74','marge dégagée')}
+        \${(surv&&surv.nom!==meilleur.nom)?pcard('À surveiller',surv,surv.ratio<0.3?'#E05252':'#E8A838',surv.ratio<0.3?'marge faible':'marge à surveiller'):''}
       </div>
-      <div class="card" style="padding:16px 18px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2);margin-bottom:10px;"><i class="ti ti-bulb"></i> Ce qui compte maintenant</div>
-        <div style="display:flex;flex-direction:column;gap:9px;">
-          \${d.ins.slice(0,6).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;\${i.nav?'cursor:pointer;':''}" \${i.nav?'onclick="navigate(\\''+i.nav+'\\')"':''}>
-            <i class="ti \${insIcon[i.t]}" style="color:\${insColor[i.t]};font-size:15px;margin-top:1px;flex:none;"></i>
-            <span>\${i.txt}\${i.nav?' <span style="color:var(--navy);white-space:nowrap;">→</span>':''}</span>
-          </div>\`).join('')}
-        </div>
-      </div>
+    </div>\`;
+  }
+
+  // ── Bloc 10 : santé financière ────────────────────────────────────────
+  const bloc10=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:20px 24px;color:#fff;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+      <span style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Santé financière</span>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</span>
+      <span style="font-size:14px;opacity:.7;">/ 100 · \${scoreLabel}</span>
     </div>
-  </div>
-  <!-- Indicateurs clés -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px;">
-    \${wow.map(w=>\`<div class="card" style="padding:12px 14px;">
-      <div style="font-size:11px;color:var(--text-2);margin-bottom:3px;">\${w.ic} \${w.lab}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);">\${w.val}</div>
-    </div>\`).join('')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;">
+      \${d.indics.map(i=>\`<div style="display:flex;align-items:center;gap:7px;font-size:12px;">
+        <i class="ti \${i.ok?'ti-circle-check':'ti-alert-triangle'}" style="color:\${i.ok?'#7BE0AE':'#F6C664'};font-size:14px;"></i>
+        <span style="opacity:.9;">\${i.label} — \${i.val}</span>
+      </div>\`).join('')}
+    </div>
+  </div>\`;
+
+  // ── Bloc 11 : conseils Finance ────────────────────────────────────────
+  const bloc11=\`<div class="card" style="padding:20px;">
+    <div class="dash-sec-title">🤖 Les conseils de Finance</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      \${d.ins.slice(0,6).map(i=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.45;\${i.nav?'cursor:pointer;':''}" \${i.nav?'onclick="navigate(\\''+i.nav+'\\')"':''}>
+        <span style="flex:none;">💡</span>
+        <span>\${i.txt}\${i.nav?' <span style="color:var(--navy);white-space:nowrap;">→</span>':''}</span>
+      </div>\`).join('')}
+    </div>
+  </div>\`;
+
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
+    \${bloc1}\${bloc2}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc3}\${bloc4}</div>
+    \${bloc5}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">\${bloc6}\${bloc8}</div>
+    \${bloc7}
+    \${bloc9}
+    \${bloc10}
+    \${bloc11}
   </div>\`;
 }
 
@@ -5698,6 +5767,7 @@ function openPersoPaliersModal(){
   const s=dbGetObj('settings');
   q('#perso-palier-confort').value=s.persoConfort!=null&&s.persoConfort!==0?s.persoConfort:'';
   q('#perso-palier-objectif').value=s.persoObjectif!=null&&s.persoObjectif!==0?s.persoObjectif:'';
+  q('#perso-palier-epargne').value=s.objectifEpargne!=null&&s.objectifEpargne!==0?s.objectifEpargne:'';
   q('#modal-perso-paliers').style.display='flex';
 }
 async function savePersoPaliers(){
@@ -5705,6 +5775,7 @@ async function savePersoPaliers(){
     const settings=dbGetObj('settings');
     const c=parseFloat(q('#perso-palier-confort').value); settings.persoConfort=isNaN(c)?0:c;
     const o=parseFloat(q('#perso-palier-objectif').value); settings.persoObjectif=isNaN(o)?0:o;
+    const ep=parseFloat(q('#perso-palier-epargne').value); settings.objectifEpargne=isNaN(ep)?0:ep;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-perso-paliers').style.display='none';
     toast('Paliers enregistrés','success');
