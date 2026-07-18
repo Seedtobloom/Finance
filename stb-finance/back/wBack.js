@@ -771,16 +771,15 @@ async function qontoTransactions(env, url) {
     slug = main.slug;
   }
 
-  const params = new URLSearchParams({
+  const base = new URLSearchParams({
     slug,
     emitted_at_from: `${from}T00:00:00.000Z`,
     current_page: page,
     per_page,
     sort_by: 'emitted_at:desc',
   });
-  // Opérations en attente ET réglées (pas les refusées)
-  params.append('status[]', 'pending');
-  params.append('status[]', 'completed');
+  // Crochets littéraux (voir qontoSync) : sinon Qonto ignore le filtre statut.
+  const params = `${base.toString()}&status[]=pending&status[]=completed`;
 
   const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
   if (!txRes.ok) return jsonErr(txRes.status, `Erreur Qonto tx : ${txRes.statusText}`);
@@ -825,7 +824,7 @@ async function qontoSync(env, uid) {
   const toutesTx = [];
   let page = 1, totalPages = 1;
   do {
-    const params = new URLSearchParams({
+    const base = new URLSearchParams({
       slug: main.slug,
       // On filtre/trie sur emitted_at (date d'émission) et non settled_at :
       // une opération en attente (pending) n'a pas encore de settled_at et
@@ -835,9 +834,10 @@ async function qontoSync(env, uid) {
       current_page: String(page),
       sort_by: 'emitted_at:desc',
     });
-    // Inclut les opérations en attente ET réglées (mais pas les refusées)
-    params.append('status[]', 'pending');
-    params.append('status[]', 'completed');
+    // Crochets LITTÉRAUX (status[]=...) : URLSearchParams les encoderait en
+    // %5B%5D, forme que l'API Qonto n'interprète pas → le filtre serait ignoré
+    // et les opérations « en cours » (pending) exclues.
+    const params = `${base.toString()}&status[]=pending&status[]=completed`;
     const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
     if (!txRes.ok) {
       const body = await txRes.text().catch(()=>'');
