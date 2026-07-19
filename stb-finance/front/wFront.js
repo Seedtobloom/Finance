@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v25 · patrimoine vivant</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v26 · patrimoine build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -448,6 +448,7 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
       <div id="patrimoine-global" style="margin-bottom:18px;"></div>
+      <div id="patrimoine-alim" style="margin-bottom:18px;"></div>
       <div id="patrimoine-content"></div>
     </section>
 
@@ -458,7 +459,7 @@ const HTML = `<!DOCTYPE html>
       <div class="page-header">
         <div class="page-header-left">
           <h1>Projets de vie</h1>
-          <p style="font-size:12.5px;color:var(--text-2);margin-top:2px;">Vacances, voiture, apport immo… épargne à ton rythme et vois quand tu y arrives.</p>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:2px;">Donne une mission à ton épargne. Chaque mois, rapproche-toi un peu plus de tes projets de vie.</p>
         </div>
         <div class="page-header-right">
           <button class="btn btn-primary" onclick="openProjetVieModal()"><i class="ti ti-plus"></i> Nouveau projet</button>
@@ -480,9 +481,29 @@ const HTML = `<!DOCTYPE html>
             <label class="form-label">Nom du projet</label>
             <input class="form-control" type="text" id="projet-vie-nom" placeholder="Ex: Apport immobilier">
           </div>
-          <div>
-            <label class="form-label">Emoji</label>
-            <input class="form-control" type="text" id="projet-vie-icone" maxlength="4" placeholder="🏡" style="width:90px;">
+          <div style="display:flex;gap:12px;">
+            <div style="flex:1;">
+              <label class="form-label">Catégorie</label>
+              <select class="form-control" id="projet-vie-cat">
+                <option value="voyage">✈️ Voyages</option>
+                <option value="voiture">🚗 Voiture</option>
+                <option value="immo">🏡 Immobilier</option>
+                <option value="mariage">💍 Mariage</option>
+                <option value="formation">🎓 Formation</option>
+                <option value="materiel">💻 Matériel</option>
+                <option value="plaisir">🎁 Plaisir</option>
+                <option value="sante">❤️ Santé</option>
+                <option value="autre">🎯 Autre</option>
+              </select>
+            </div>
+            <div style="width:130px;">
+              <label class="form-label">Priorité</label>
+              <select class="form-control" id="projet-vie-priorite">
+                <option value="3">⭐⭐⭐ Haute</option>
+                <option value="2" selected>⭐⭐ Moyenne</option>
+                <option value="1">⭐ Basse</option>
+              </select>
+            </div>
           </div>
           <div>
             <label class="form-label">Montant cible (€)</label>
@@ -495,6 +516,11 @@ const HTML = `<!DOCTYPE html>
           <div>
             <label class="form-label">Épargne mensuelle prévue (€)</label>
             <input class="form-control" type="number" id="projet-vie-mensualite" min="0" step="10" placeholder="Ex: 400">
+          </div>
+          <div>
+            <label class="form-label">Support d'épargne (optionnel)</label>
+            <select class="form-control" id="projet-vie-support"><option value="">— Où est placé cet argent ? —</option></select>
+            <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Le projet dit <em>pourquoi</em> tu épargnes, le support dit <em>où</em> est placé l'argent.</div>
           </div>
           <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
             <button class="btn btn-ghost" style="color:#E05252;" onclick="deleteProjetVie(q('#projet-vie-id').value)"><i class="ti ti-trash"></i></button>
@@ -2503,7 +2529,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=25"></script>
+<script src="/app.js?v=26"></script>
 </body>
 </html>
 `;
@@ -5587,7 +5613,19 @@ const SUP_TYPES=[
 const SUP_EMOJI={liquidites:'🏦',longterme:'📈',immobilier:'🏠'}; SUP_TYPES.forEach(t=>{SUP_EMOJI[t.id]=t.emoji;});
 function supType(cat){return SUP_TYPES.find(t=>t.id===cat)||{id:'autre',nom:'Placement',emoji:SUP_EMOJI[cat]||'💰',couleur:'#2AA9A0'};}
 function supEmoji(cat){return SUP_EMOJI[cat]||'💰';}
-function loadPatrimoine(){renderPatrimoine();}
+const PVIE_CATS=[
+  {id:'voyage',   nom:'Voyages',    emoji:'✈️'},
+  {id:'voiture',  nom:'Voiture',    emoji:'🚗'},
+  {id:'immo',     nom:'Immobilier', emoji:'🏡'},
+  {id:'mariage',  nom:'Mariage',    emoji:'💍'},
+  {id:'formation',nom:'Formation',  emoji:'🎓'},
+  {id:'materiel', nom:'Matériel',   emoji:'💻'},
+  {id:'plaisir',  nom:'Plaisir',    emoji:'🎁'},
+  {id:'sante',    nom:'Santé',      emoji:'❤️'},
+  {id:'autre',    nom:'Autre',      emoji:'🎯'},
+];
+function pvieCat(cat){return PVIE_CATS.find(c=>c.id===cat)||PVIE_CATS[PVIE_CATS.length-1];}
+function loadPatrimoine(){renderPatrimoine();renderPatriAlim();}
 function renderPatrimoine(){
   const gEl=q('#patrimoine-global'), cEl=q('#patrimoine-content');
   if(!cEl)return;
@@ -5662,6 +5700,57 @@ function renderPatrimoine(){
   }).join('')+\`</div>\`;
 }
 
+function _ymNow(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');}
+function renderPatriAlim(){
+  const el=q('#patrimoine-alim'); if(!el)return;
+  const s=dbGetObj('settings');
+  const items=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
+  const ym=_ymNow();
+  const pending=items.filter(e=>(parseFloat(e.montant)||0)>0 && e.lastVersement!==ym);
+  if(!pending.length){el.innerHTML='';return;}
+  const total=pending.reduce((a,e)=>a+(parseFloat(e.montant)||0),0);
+  el.innerHTML=\`<div class="card" style="padding:20px;border-left:3px solid #E8A838;background:linear-gradient(135deg,#fff,#fbf7f0);">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+      <div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">💡 À alimenter ce mois-ci</div>
+      <div style="font-size:13.5px;color:var(--navy);margin-top:3px;">Tu avais prévu <strong>\${fmt(total)}</strong> à virer vers tes supports. As-tu fait les virements&nbsp;?</div></div>
+      <button class="btn btn-primary btn-sm" onclick="alimenterTout()"><i class="ti ti-check"></i> Tout alimenter</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      \${pending.map(e=>{const t=supType(e.cat);return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);">
+        <span style="font-size:13px;">\${t.emoji} \${escHtml(e.nom||t.nom)} · <strong>\${fmt(parseFloat(e.montant)||0)}</strong></span>
+        <button class="btn btn-outline btn-xs" onclick="alimenterSupport('\${e.id}')"><i class="ti ti-check"></i> Fait</button>
+      </div>\`;}).join('')}
+    </div>
+  </div>\`;
+}
+async function alimenterSupport(id){
+  try{
+    const ym=_ymNow();
+    const settings=dbGetObj('settings');
+    const items=(Array.isArray(settings.persoEpargne)?settings.persoEpargne:[]).slice();
+    const i=items.findIndex(x=>x.id===id); if(i<0)return;
+    const mens=parseFloat(items[i].montant)||0;
+    items[i]={...items[i],solde:(parseFloat(items[i].solde)||0)+mens,lastVersement:ym};
+    settings.persoEpargne=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Patrimoine +'+fmt(mens)+' 🎉','success');
+    renderPatrimoine(); renderPatriAlim();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function alimenterTout(){
+  try{
+    const ym=_ymNow();
+    const settings=dbGetObj('settings');
+    const items=(Array.isArray(settings.persoEpargne)?settings.persoEpargne:[]).slice();
+    let tot=0;
+    items.forEach((e,i)=>{const mens=parseFloat(e.montant)||0; if(mens>0&&e.lastVersement!==ym){items[i]={...e,solde:(parseFloat(e.solde)||0)+mens,lastVersement:ym}; tot+=mens;}});
+    if(tot===0)return;
+    settings.persoEpargne=items;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Patrimoine +'+fmt(tot)+' 🎉','success');
+    renderPatrimoine(); renderPatriAlim();
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
 function renderPersoEpargne(ctx){
   const el=q('#perso-epargne'); if(!el)return;
   const {epargne,epargneMensuel,epargneSolde}=ctx;
@@ -5719,13 +5808,13 @@ async function savePersoEpargne(){
     const items=Array.isArray(settings.persoEpargne)?settings.persoEpargne.slice():[];
     const id=q('#perso-epargne-id').value;
     if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,montant,solde,objectif};}
-    else{items.push({id:'pe_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,montant,solde,objectif});}
+    else{items.push({id:'pe_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,montant,solde,objectif,lastVersement:_ymNow()});}
     settings.persoEpargne=items;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-perso-epargne').style.display='none';
     toast('Épargne enregistrée','success');
     renderBudgetPerso();
-    try{renderPatrimoine();}catch(e){}
+    try{renderPatrimoine();renderPatriAlim();}catch(e){}
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 async function deletePersoEpargne(id){
@@ -5736,7 +5825,7 @@ async function deletePersoEpargne(id){
     _cache.settings=await api('PUT','/api/settings',settings);
     toast('Supprimé','success');
     renderBudgetPerso();
-    try{renderPatrimoine();}catch(e){}
+    try{renderPatrimoine();renderPatriAlim();}catch(e){}
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
@@ -5948,42 +6037,79 @@ function loadProjetsVie(){renderProjetsVie();}
 function renderProjetsVie(){
   const el=q('#projets-vie-grid'); if(!el)return;
   const s=dbGetObj('settings');
-  const projets=Array.isArray(s.projetsVie)?s.projetsVie:[];
-  if(!projets.length){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);">
-    <div style="font-size:32px;">🏖️</div>
-    <div style="font-size:14px;margin:8px 0;">Vacances, nouvelle voiture, apport immo, nouveau Mac… fixe un projet et vois quand tu y arrives.</div>
+  const projets=Array.isArray(s.projetsVie)?s.projetsVie.slice():[];
+  if(!projets.length){el.innerHTML=\`<div class="card" style="padding:32px;text-align:center;border:1.5px dashed var(--border);background:none;">
+    <div style="font-size:34px;">🎯</div>
+    <div style="font-size:17px;font-weight:600;color:var(--navy);margin:10px 0 6px;">Donne une mission à ton épargne</div>
+    <div style="font-size:13.5px;color:var(--text-2);max-width:440px;margin:0 auto 18px;line-height:1.55;">Vacances, nouvelle voiture, apport immo… crée un projet et on te dit quand il deviendra réalité.</div>
     <button class="btn btn-primary" onclick="openProjetVieModal()"><i class="ti ti-plus"></i> Créer mon premier projet</button>
   </div>\`;return;}
-  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">\`+projets.map(p=>{
+  const sup=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
+  const supName=id=>{const e=sup.find(x=>x.id===id);if(!e)return '';const t=supType(e.cat);return t.emoji+' '+(e.nom||t.nom);};
+  const enrich=projets.map(p=>{
     const cible=parseFloat(p.cible)||0, epargne=parseFloat(p.epargne)||0, mens=parseFloat(p.mensualite)||0;
     const reste=Math.max(0,cible-epargne);
-    const pct=cible>0?Math.min(100,Math.round(epargne/cible*100)):0;
-    const mois=mens>0?Math.ceil(reste/mens):null;
-    const eta=reste<=0?'🎉 Objectif atteint !':(mois!=null?'Atteint dans ~'+mois+' mois · '+moisEnDate(mois):'Ajoute une épargne mensuelle pour estimer la date');
-    return \`<div class="card" style="padding:18px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span style="font-size:15px;font-weight:700;color:var(--navy);">\${escHtml(p.icone||'🎯')} \${escHtml(p.nom||'Projet')}</span>
+    const eta=mens>0?Math.ceil(reste/mens):null;
+    return {...p,cible,epargne,mens,reste,eta,pct:cible>0?Math.min(100,Math.round(epargne/cible*100)):0,prio:parseInt(p.priorite)||2};
+  });
+  const totalReste=enrich.reduce((a,p)=>a+p.reste,0);
+  const totalMens=enrich.reduce((a,p)=>a+p.mens,0);
+  const etas=enrich.filter(p=>p.eta!=null&&p.reste>0).map(p=>p.eta);
+  const premEta=etas.length?Math.min.apply(null,etas):null;
+  const overview=\`<div style="background:linear-gradient(135deg,var(--navy),#2c4275);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
+    <div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">🎯 Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
+    <div><div style="font-size:11px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(totalReste)}</div></div>
+    <div><div style="font-size:11px;opacity:.6;">Épargne mensuelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(totalMens)} / mois</div></div>
+    \${premEta!=null?\`<div><div style="font-size:11px;opacity:.6;">Premier objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${moisEnDate(premEta)}</div></div>\`:''}
+  </div>\`;
+  enrich.sort((a,b)=>(b.prio-a.prio)||((a.eta==null?1e9:a.eta)-(b.eta==null?1e9:b.eta)));
+  const cards=enrich.map(p=>{
+    const c=pvieCat(p.cat);
+    const stars='⭐'.repeat(p.prio);
+    let timeBlock;
+    if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#3E9E74;">🎉 Objectif atteint</div>\`;}
+    else if(p.eta!=null){timeBlock=\`<div style="font-size:11px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:12px;color:var(--text-2);">\${moisEnDate(p.eta)}</div>\`;}
+    else{timeBlock=\`<div style="font-size:13px;color:var(--text-2);">Ajoute une épargne mensuelle pour estimer la date 🗓️</div>\`;}
+    let proj='';
+    if(p.mens>0&&p.reste>0){
+      const eta2=Math.ceil(p.reste/(p.mens*2));
+      const gain=p.eta-eta2;
+      if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:12px;color:var(--text-1);line-height:1.5;">💡 En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#3E9E74;font-weight:600;">tu gagnes \${gain} mois 🔥</span></div>\`;
+    }
+    const prioColor=p.prio>=3?'#E05252':p.prio===2?'#E8A838':'#8b98ad';
+    return \`<div class="card" style="padding:20px;border-top:3px solid \${prioColor};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:11px;color:#E8A838;margin-top:2px;">\${stars}</div></div>
         <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);">\${fmt(epargne)} <span style="font-size:14px;color:var(--text-2);">/ \${fmt(cible)}</span></div>
-      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;margin:10px 0;"><div style="height:100%;width:\${pct}%;background:linear-gradient(90deg,#4CAF82,#3B6DD4);border-radius:5px;"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);">
-        <span>\${pct}% · reste \${fmt(reste)}</span><span>\${mens>0?fmt(mens)+' / mois':''}</span>
+      <div style="margin-bottom:12px;">\${timeBlock}</div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:linear-gradient(90deg,#4CAF82,#3B6DD4);border-radius:5px;transition:width .5s;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);margin-top:6px;">
+        <span>\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%</span><span>\${p.mens>0?fmt(p.mens)+' / mois':''}</span>
       </div>
-      <div style="font-size:12.5px;color:var(--navy);margin-top:8px;font-weight:500;">\${eta}</div>
+      \${p.support?\`<div style="font-size:11px;color:var(--text-2);margin-top:6px;">📍 Placé sur \${escHtml(supName(p.support))}</div>\`:''}
+      \${proj}
     </div>\`;
-  }).join('')+\`</div>\`;
+  }).join('');
+  el.innerHTML=overview+\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">\`+cards+\`</div>\`;
 }
+
 function openProjetVieModal(id){
   const s=dbGetObj('settings');
   const items=Array.isArray(s.projetsVie)?s.projetsVie:[];
   const it=id?items.find(x=>x.id===id):null;
   q('#projet-vie-id').value=it?it.id:'';
   q('#projet-vie-nom').value=it?(it.nom||''):'';
-  q('#projet-vie-icone').value=it?(it.icone||'🎯'):'🎯';
+  q('#projet-vie-cat').value=it?(it.cat||'autre'):'autre';
+  q('#projet-vie-priorite').value=it&&it.priorite!=null?it.priorite:2;
   q('#projet-vie-cible').value=it&&it.cible!=null?it.cible:'';
   q('#projet-vie-epargne').value=it&&it.epargne!=null?it.epargne:'';
   q('#projet-vie-mensualite').value=it&&it.mensualite!=null?it.mensualite:'';
+  // Supports d'épargne pour le lien projet → support
+  const sup=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
+  const sel=q('#projet-vie-support');
+  sel.innerHTML='<option value="">— Où est placé cet argent ? —</option>'+sup.map(e=>{const t=supType(e.cat);return '<option value="'+e.id+'">'+t.emoji+' '+escHtml(e.nom||t.nom)+'</option>';}).join('');
+  sel.value=it&&it.support?it.support:'';
   q('#projet-vie-title').textContent=it?'Modifier le projet':'Nouveau projet de vie';
   q('#modal-projet-vie').style.display='flex';
 }
@@ -5994,12 +6120,14 @@ async function saveProjetVie(){
     const cible=parseFloat(q('#projet-vie-cible').value)||0;
     const epargne=parseFloat(q('#projet-vie-epargne').value)||0;
     const mensualite=parseFloat(q('#projet-vie-mensualite').value)||0;
-    const icone=q('#projet-vie-icone').value.trim()||'🎯';
+    const cat=q('#projet-vie-cat').value;
+    const priorite=parseInt(q('#projet-vie-priorite').value)||2;
+    const support=q('#projet-vie-support').value||'';
     const settings=dbGetObj('settings');
     const items=Array.isArray(settings.projetsVie)?settings.projetsVie.slice():[];
     const id=q('#projet-vie-id').value;
-    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,icone,cible,epargne,mensualite};}
-    else{items.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,icone,cible,epargne,mensualite});}
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,priorite,cible,epargne,mensualite,support};}
+    else{items.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,priorite,cible,epargne,mensualite,support});}
     settings.projetsVie=items;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-projet-vie').style.display='none';
