@@ -1422,8 +1422,8 @@ const HTML = `<!DOCTYPE html>
     <section id="section-simulateur" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Simulateur de versement</h1>
-          <div class="page-subtitle">Calcul net après cotisations et charges</div>
+          <h1>Simulateur</h1>
+          <div class="page-subtitle">Versement net · et « Mon TJM » : ton tarif calculé sur ta vraie situation financière.</div>
         </div>
       </div>
 
@@ -1431,6 +1431,31 @@ const HTML = `<!DOCTYPE html>
         <button class="sim-tab active" data-sim="mensuel">Mensuel</button>
         <button class="sim-tab" data-sim="trimestriel">Trimestriel</button>
         <button class="sim-tab" data-sim="annuel">Annuel</button>
+        <button class="sim-tab" data-sim="tjm">Mon TJM</button>
+      </div>
+
+      <!-- Panneau TJM / modèle économique -->
+      <div id="sim-panel-tjm" class="sim-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Ton modèle économique</div>
+            <div class="form-group">
+              <label class="form-label">Salaire net souhaité (€ / mois)</label>
+              <input type="number" id="tjm-salaire" class="form-input" min="0" step="50" oninput="renderTJM()" placeholder="Ex: 1800" />
+              <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Ce que tu veux te verser pour vivre.</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Épargne souhaitée (€ / mois)</label>
+              <input type="number" id="tjm-epargne" class="form-input" min="0" step="50" oninput="renderTJM()" placeholder="Ex: 300" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Jours facturables / an</label>
+              <input type="number" id="tjm-jours" class="form-input" min="1" max="300" step="1" oninput="renderTJM()" value="145" />
+              <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Jours réellement facturés (hors congés, admin, prospection). ~220 jours ouvrés − vacances − jours non facturés.</div>
+            </div>
+          </div>
+          <div id="sim-tjm-result"></div>
+        </div>
       </div>
 
       <!-- Panneau Mensuel -->
@@ -2480,7 +2505,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=34"></script>
+<script src="/app.js?v=35"></script>
 </body>
 </html>
 `;
@@ -8959,6 +8984,74 @@ function renderRapportFiscal(){
 }
 
 /* --- Simulateur ------------------------------------------------------- */
+function renderTJM(){
+  const el=q('#sim-tjm-result'); if(!el)return;
+  const settings=dbGetObj('settings');
+  let perso={besoin:0,revenusPerso:0,salaireConseille:0,capacite:0,epargneMensuel:0}; try{perso=computePerso();}catch(e){}
+  let intel={revenuMoyen:0}; try{intel=computeIntel();}catch(e){}
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const pas=parseFloat(settings.pasFixe)||40;
+  const abos=dbGet('abonnements')||[];
+  const aboMois=abos.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const chargesEnt=Math.round(aboMois+pas);
+
+  // Valeurs par défaut à partir des vraies données
+  const salIn=q('#tjm-salaire'), epIn=q('#tjm-epargne'), jrIn=q('#tjm-jours');
+  const salaire=salIn&&salIn.value!==''?parseFloat(salIn.value)||0:Math.round(perso.besoin||perso.salaireConseille||0);
+  const epargne=epIn&&epIn.value!==''?parseFloat(epIn.value)||0:Math.round(perso.epargneMensuel||0);
+  const jours=Math.max(1,jrIn&&jrIn.value!==''?parseInt(jrIn.value)||145:145);
+  if(salIn&&salIn.value==='')salIn.value=salaire;
+  if(epIn&&epIn.value==='')epIn.value=epargne;
+
+  // CA nécessaire : ce qu'il faut sortir net (salaire + épargne) + charges entreprise, brut d'URSSAF
+  const netSortir=salaire+epargne;
+  const caMois=Math.round((netSortir+chargesEnt)/Math.max(0.01,1-tauxU-tauxC));
+  const caAn=caMois*12;
+  const tjm=Math.round(caAn/jours);
+  // TJM actuel implicite (à partir du CA moyen réel)
+  const caActuelAn=Math.round((intel.revenuMoyen||0)*12);
+  const tjmActuel=caActuelAn>0?Math.round(caActuelAn/jours):0;
+  const ecart=tjm-tjmActuel;
+  // Durabilité : l'entreprise soutient-elle déjà ce salaire ?
+  const capacite=perso.capacite||0;
+  const durable=capacite>=salaire;
+  const haussePct=capacite>0&&!durable?Math.round((salaire/capacite-1)*100):null;
+
+  const stat=(lab,val,hint,color,big)=>\`<div style="\${big?'':'flex:1;min-width:150px;'}"><div style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${big?'40px':'26px'};font-weight:700;color:\${color||'var(--navy)'};line-height:1.05;">\${val}</div>\${hint?\`<div style="font-size:11px;color:var(--text-2);">\${hint}</div>\`:''}</div>\`;
+
+  const ecartBlock=tjmActuel>0?\`<div class="card" style="padding:20px;">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      \${stat('TJM actuel estimé',fmt(tjmActuel)+' /j','sur '+jours+' jours facturés')}
+      \${stat('TJM recommandé',fmt(tjm)+' /j','','#3E9E74')}
+      \${stat('Écart',(ecart>=0?'+':'')+fmt(ecart)+' /j','',ecart>0?'#E05252':'#3E9E74')}
+    </div>
+    \${ecart>0?\`<div style="font-size:12.5px;color:#8a6508;margin-top:10px;">Sur un projet de 10 jours, un tarif trop bas te coûte environ <strong>\${fmt(ecart*10)}</strong> de manque à gagner.</div>\`:''}
+  </div>\`:'';
+
+  const duraBlock=(salaire>0)?\`<div class="card" style="padding:20px;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;">🩺 Cohérence</div>
+    \${durable?\`<div style="font-size:13.5px;color:#2F7D55;">✅ Ton activité soutient déjà ce salaire (capacité ~\${fmt(capacite)} / mois).</div>\`:(capacite>0?\`<div style="font-size:13.5px;color:#C43030;">⚠️ Ton activité génère aujourd'hui de quoi te verser ~\${fmt(capacite)} / mois. Pour tenir \${fmt(salaire)} / mois durablement, il faudrait augmenter ton CA d'environ <strong>\${haussePct}%</strong>.</div>\`:\`<div style="font-size:13px;color:var(--text-2);">Ajoute des factures pour que Finance estime ta capacité actuelle.</div>\`)}
+  </div>\`:'';
+
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
+    <div style="background:var(--navy);border-radius:18px;padding:26px 30px;color:#fff;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Ton tarif recommandé</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:700;">\${fmt(tjm)} <span style="font-size:18px;opacity:.6;">/ jour</span></div>
+      <div style="font-size:13px;opacity:.85;margin-top:4px;">Pour te verser <strong>\${fmt(salaire)}</strong> et épargner <strong>\${fmt(epargne)}</strong> par mois, ton activité doit générer <strong>\${fmt(caAn)} / an</strong> (\${fmt(caMois)} / mois), sur \${jours} jours facturés.</div>
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">Ton modèle économique</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        \${stat('CA nécessaire',fmt(caAn)+' /an',fmt(caMois)+' /mois')}
+        \${stat('Dont URSSAF',fmt(Math.round(caAn*(tauxU+tauxC)))+' /an','cotisations')}
+        \${stat('Charges entreprise',fmt(chargesEnt*12)+' /an','abonnements + PAS')}
+      </div>
+    </div>
+    \${ecartBlock}
+    \${duraBlock}
+    <div style="font-size:12px;color:var(--text-2);font-style:italic;">Ton activité est calibrée pour te verser \${fmt(salaire)} / mois, épargner \${fmt(epargne)} / mois et couvrir tes charges. Change les curseurs à gauche pour voir comment ton tarif doit évoluer.</div>
+  </div>\`;
+}
 function loadSimulateur(){
   const s=dbGetObj('settings');
   if(q('#sim-versement-slider'))q('#sim-versement-slider').value=s.pctVersement||65;
@@ -9356,6 +9449,7 @@ async function init(){
     qa('.sim-panel').forEach(p=>p.classList.remove('active'));
     this.classList.add('active');
     q(\`#sim-panel-\${panel}\`)?.classList.add('active');
+    if(panel==='tjm')renderTJM();
   }));
 
   // Import/Export
