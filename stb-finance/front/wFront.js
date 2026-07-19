@@ -2529,7 +2529,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=27"></script>
+<script src="/app.js?v=28"></script>
 </body>
 </html>
 `;
@@ -4910,8 +4910,8 @@ function renderCockpit(){
   const exEp=exSup.reduce((s,x)=>s+x.montant,0);
   const exTreso=Math.max(0,exReste-exSal-exEp);
   const exLine=(emoji,lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span>\${emoji} \${escHtml(lab)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(val)}</span></div>\`;
-  const blocAllocId=(d.caMois>0||d.revenuMoyen>0)?\`<div class="card" style="padding:24px;">
-    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:6px;">🏦 Allocation conseillée</div>
+  const blocAllocId=(d.caMois>0||d.revenuMoyen>0)?\`<div class="card" style="padding:24px;background:var(--surface-2);">
+    <div style="display:flex;align-items:center;gap:7px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:6px;"><i class="ti ti-sparkles" style="color:var(--navy);font-size:14px;"></i> Allocation conseillée</div>
     <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Si tu encaisses <strong style="color:var(--navy);">\${fmt(amtEx)}</strong>, Finance te conseille de répartir ainsi :</div>
     \${exLine('🛡','Provision URSSAF',exU)}
     \${exLine('🏠','Salaire',exSal)}
@@ -4949,8 +4949,29 @@ function renderCockpit(){
   const philo=\`<div style="text-align:center;font-size:13px;color:var(--text-2);font-style:italic;padding:8px 0 4px;">Chaque euro a désormais une mission : vivre aujourd'hui, protéger demain et construire ton patrimoine.</div>\`;
   const step=(t)=>\`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-2);font-weight:700;margin:14px 2px -6px;">\${t}</div>\`;
 
+  // Onboarding : étapes de configuration restantes (profil qui démarre)
+  const nbTx=(dbGet('transactions')||[]).length;
+  const steps=[
+    {ok:nbTx>0||d.caYTD>0, txt:'Synchronise ton compte Qonto', nav:'comptes'},
+    {ok:p.besoin>0, txt:'Renseigne ton budget perso', nav:'budget-perso'},
+    {ok:(parseFloat(settings.objectifCA)||0)>0, txt:'Fixe ton objectif de CA', nav:'objectifs-epargne'},
+    {ok:supAll.length>0, txt:'Ajoute un support de patrimoine', nav:'patrimoine'},
+  ];
+  const nbTodo=steps.filter(s=>!s.ok).length;
+  const onboarding=nbTodo>=2?\`<div class="card" style="padding:24px;">
+    <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">👋 Configurons ton copilote</div>
+    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:14px;">Quelques étapes pour que Finance pilote vraiment ton argent. \${steps.length-nbTodo}/\${steps.length} fait.</div>
+    <div style="display:flex;flex-direction:column;gap:2px;">
+      \${steps.map(sT=>\`<div \${sT.ok?'':'onclick="navigate(\\''+sT.nav+'\\')" style="cursor:pointer;"'} style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 6px;border-bottom:1px solid var(--border);\${sT.ok?'':'cursor:pointer;'}">
+        <span style="display:flex;align-items:center;gap:9px;font-size:13.5px;\${sT.ok?'color:var(--text-2);text-decoration:line-through;':'color:var(--text-1);'}"><i class="ti \${sT.ok?'ti-circle-check':'ti-circle'}" style="color:\${sT.ok?'#3E9E74':'var(--text-2)'};font-size:16px;"></i> \${sT.txt}</span>
+        \${sT.ok?'':'<span style="color:var(--navy);">→</span>'}
+      </div>\`).join('')}
+    </div>
+  </div>\`:'';
+
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
     \${accueil}
+    \${onboarding}
     \${niveau2}
     \${blocCeMois}
     \${step('Où va mon argent')}
