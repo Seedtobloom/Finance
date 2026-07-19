@@ -1439,58 +1439,7 @@ const HTML = `<!DOCTYPE html>
       <!-- Panneau Chiffrage (projet → prix) -->
       <div id="sim-panel-chiffrage" class="sim-panel">
         <div class="grid-2">
-          <div class="card">
-            <div class="card-title">Décris ton projet</div>
-            <div class="form-group">
-              <label class="form-label">Type de projet</label>
-              <select id="ch-type" class="form-select" onchange="renderChiffrage()">
-                <option value="logo">Logo</option>
-                <option value="identite">Identité visuelle</option>
-                <option value="site">Site vitrine</option>
-                <option value="woo">Site WooCommerce</option>
-                <option value="flyer">Flyer / dépliant</option>
-                <option value="affiche">Affiche</option>
-                <option value="packaging">Packaging</option>
-                <option value="autre">Autre</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Estimation du temps</label>
-              <div style="display:flex;gap:8px;margin-bottom:8px;">
-                <button type="button" id="ch-mode-rapide" class="btn btn-secondary btn-sm" onclick="chSetMode('rapide')">🟢 Rapide</button>
-                <button type="button" id="ch-mode-expert" class="btn btn-ghost btn-sm" onclick="chSetMode('expert')">🔵 Expert</button>
-              </div>
-              <div id="ch-rapide">
-                <label class="form-label" style="font-weight:400;">Complexité</label>
-                <select id="ch-complexite" class="form-select" onchange="renderChiffrage()">
-                  <option value="s">Simple</option>
-                  <option value="n" selected>Standard</option>
-                  <option value="a">Avancé</option>
-                </select>
-              </div>
-              <div id="ch-expert" style="display:none;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><label class="form-label" style="font-weight:400;">Recherche (h)</label><input type="number" id="ch-h-recherche" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                  <div><label class="form-label" style="font-weight:400;">Conception (h)</label><input type="number" id="ch-h-conception" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                  <div><label class="form-label" style="font-weight:400;">Production (h)</label><input type="number" id="ch-h-production" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                  <div><label class="form-label" style="font-weight:400;">Révisions (h)</label><input type="number" id="ch-h-revisions" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                  <div><label class="form-label" style="font-weight:400;">Livraison (h)</label><input type="number" id="ch-h-livraison" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                  <div><label class="form-label" style="font-weight:400;">Admin (h)</label><input type="number" id="ch-h-admin" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
-                </div>
-              </div>
-            </div>
-            <div class="card-title" style="margin-top:14px;">Le cadre</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div class="form-group"><label class="form-label">Réunions</label><input type="number" id="ch-reunions" class="form-input" min="0" step="1" value="2" oninput="renderChiffrage()"></div>
-              <div class="form-group"><label class="form-label">Allers-retours inclus</label><input type="number" id="ch-ar" class="form-input" min="0" step="1" value="2" oninput="renderChiffrage()"></div>
-              <div class="form-group"><label class="form-label">Concepts</label><input type="number" id="ch-concepts" class="form-input" min="1" step="1" value="1" oninput="renderChiffrage()"></div>
-              <div class="form-group"><label class="form-label">Délai (semaines)</label><input type="number" id="ch-delai" class="form-input" min="1" step="1" value="4" oninput="renderChiffrage()"></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              <div class="form-group"><label class="form-label">Sous-traitance (€)</label><input type="number" id="ch-st" class="form-input" min="0" step="50" value="0" oninput="renderChiffrage()"></div>
-              <div class="form-group"><label class="form-label">Frais (€)</label><input type="number" id="ch-frais" class="form-input" min="0" step="10" value="0" oninput="renderChiffrage()"></div>
-            </div>
-          </div>
+          <div id="ch-builder"></div>
           <div id="sim-chiffrage-result"></div>
         </div>
       </div>
@@ -2596,7 +2545,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=37"></script>
+<script src="/app.js?v=38"></script>
 </body>
 </html>
 `;
@@ -9217,19 +9166,86 @@ function renderRentaProjet(){
     </div>\`:''}
   </div>\`;
 }
-let _chMode='rapide';
-const CH_HOURS={logo:{s:8,n:14,a:24},identite:{s:18,n:30,a:50},site:{s:20,n:40,a:70},woo:{s:35,n:60,a:110},flyer:{s:4,n:8,a:16},affiche:{s:5,n:10,a:18},packaging:{s:12,n:22,a:40},autre:{s:10,n:20,a:40}};
-const CH_LABELS={logo:'Logo',identite:'Identité visuelle',site:'Site vitrine',woo:'Site WooCommerce',flyer:'Flyer',affiche:'Affiche',packaging:'Packaging',autre:'Projet'};
-function chSetMode(m){
-  _chMode=m;
-  if(q('#ch-rapide'))q('#ch-rapide').style.display=m==='rapide'?'':'none';
-  if(q('#ch-expert'))q('#ch-expert').style.display=m==='expert'?'':'none';
-  if(q('#ch-mode-rapide'))q('#ch-mode-rapide').className='btn btn-sm '+(m==='rapide'?'btn-secondary':'btn-ghost');
-  if(q('#ch-mode-expert'))q('#ch-mode-expert').className='btn btn-sm '+(m==='expert'?'btn-secondary':'btn-ghost');
-  renderChiffrage();
+let _chState=null;
+const CH_HPD=7;
+function chDefault(){
+  return {bricks:[
+    {id:'b1',nom:'Découverte client',h:2,on:true},
+    {id:'b2',nom:'Atelier / brief',h:1,on:true},
+    {id:'b3',nom:'Recherche',h:2,on:false},
+    {id:'b4',nom:'Arborescence',h:1,on:false},
+    {id:'b5',nom:'Wireframes',h:2,on:false},
+    {id:'b6',nom:'Maquettes Figma',h:6,on:false},
+    {id:'b7',nom:'Direction artistique',h:2,on:false},
+    {id:'b8',nom:'Intégration WordPress',h:18,on:true},
+    {id:'b9',nom:'Responsive',h:3,on:true},
+    {id:'b10',nom:'Développement sur-mesure',h:0,on:false},
+    {id:'b11',nom:'Optimisations',h:2,on:true},
+    {id:'b12',nom:'Tests',h:2,on:true},
+    {id:'b13',nom:'Livraison / mise en ligne',h:1,on:true},
+    {id:'b14',nom:'Formation client',h:2,on:false},
+    {id:'b15',nom:'Administration',h:1,on:true},
+  ], arCount:2, arH:1.5, marge:10, st:0, frais:0};
 }
+function chInit(){ if(!_chState)_chState=chDefault(); }
+function chToggle(id){chInit();const b=_chState.bricks.find(x=>x.id===id);if(b)b.on=!b.on;renderChiffrage();}
+function chH(id,v){chInit();const b=_chState.bricks.find(x=>x.id===id);if(b)b.h=parseFloat(v)||0;chResult();}
+function chAdd(){chInit();const ni=q('#ch-new-nom');const hi=q('#ch-new-h');const nom=(ni&&ni.value||'').trim();const h=parseFloat(hi&&hi.value)||0;if(!nom)return;_chState.bricks.push({id:'bx'+Date.now().toString(36),nom,h,on:true});renderChiffrage();}
+function chDel(id){chInit();_chState.bricks=_chState.bricks.filter(x=>x.id!==id);renderChiffrage();}
+function chAR(f,v){chInit();_chState[f]=parseFloat(v)||0;chResult();}
+function chMarge(v){chInit();_chState.marge=parseFloat(v)||0;chResult();}
+function chExtra(f,v){chInit();_chState[f]=parseFloat(v)||0;chResult();}
+function chReset(){_chState=chDefault();renderChiffrage();}
+
 function renderChiffrage(){
+  chInit();
+  const el=q('#ch-builder'); if(!el)return;
+  const S=_chState;
+  const row=b=>\`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);\${b.on?'':'opacity:.45;'}">
+    <input type="checkbox" \${b.on?'checked':''} onchange="chToggle('\${b.id}')" style="width:16px;height:16px;cursor:pointer;flex:none;">
+    <span style="flex:1;font-size:13px;">\${escHtml(b.nom)}</span>
+    <input type="number" value="\${b.h}" min="0" step="0.5" \${b.on?'':'disabled'} oninput="chH('\${b.id}',this.value)" style="width:62px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;">
+    <span style="font-size:11px;color:var(--text-2);">h</span>
+    <button onclick="chDel('\${b.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;flex:none;" title="Supprimer">✕</button>
+  </div>\`;
+  el.innerHTML=\`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div class="card-title" style="margin:0;">🧱 Construis ton projet</div>
+      <button class="btn btn-ghost btn-xs" onclick="chReset()">Réinitialiser</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Active / désactive chaque brique, ajuste les heures. Décoche ou mets 0 h ce que tu ne fais pas.</div>
+    \${S.bricks.map(row).join('')}
+    <div style="display:flex;gap:6px;margin-top:10px;">
+      <input id="ch-new-nom" class="form-input" placeholder="Ajouter une tâche (ex: Migration ACF)" style="flex:1;">
+      <input id="ch-new-h" class="form-input" type="number" min="0" step="0.5" placeholder="h" style="width:66px;">
+      <button class="btn btn-secondary btn-sm" onclick="chAdd()">+</button>
+    </div>
+    <div class="card-title" style="margin-top:16px;">Révisions & marge</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label class="form-label">Allers-retours inclus</label><input type="number" value="\${S.arCount}" min="0" step="1" oninput="chAR('arCount',this.value)" class="form-input"></div>
+      <div><label class="form-label">Temps / A-R (h)</label><input type="number" value="\${S.arH}" min="0" step="0.5" oninput="chAR('arH',this.value)" class="form-input"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Marge de sécurité</label>
+      <select class="form-select" onchange="chMarge(this.value)">
+        <option value="0" \${S.marge==0?'selected':''}>0 %</option>
+        <option value="5" \${S.marge==5?'selected':''}>5 %</option>
+        <option value="10" \${S.marge==10?'selected':''}>10 %</option>
+        <option value="15" \${S.marge==15?'selected':''}>15 %</option>
+        <option value="20" \${S.marge==20?'selected':''}>20 %</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><label class="form-label">Sous-traitance (€)</label><input type="number" value="\${S.st}" min="0" step="50" oninput="chExtra('st',this.value)" class="form-input"></div>
+      <div><label class="form-label">Frais (€)</label><input type="number" value="\${S.frais}" min="0" step="10" oninput="chExtra('frais',this.value)" class="form-input"></div>
+    </div>
+  </div>\`;
+  chResult();
+}
+
+function chResult(){
+  chInit();
   const el=q('#sim-chiffrage-result'); if(!el)return;
+  const S=_chState;
   const settings=dbGetObj('settings');
   let perso={besoin:0,epargneMensuel:0,salaireConseille:0}; try{perso=computePerso();}catch(e){}
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
@@ -9239,47 +9255,35 @@ function renderChiffrage(){
   const aboMois=abos.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
   const chargesEnt=aboMois+pas;
   const joursAn=Math.max(1,parseInt(q('#tjm-jours')&&q('#tjm-jours').value)||145);
-  const hoursPerDay=7;
-  const type=q('#ch-type')&&q('#ch-type').value||'autre';
-  const arN=parseInt(q('#ch-ar')&&q('#ch-ar').value)||0;
-  const reuN=parseInt(q('#ch-reunions')&&q('#ch-reunions').value)||0;
-  const arHours=arN*2, reuHours=reuN*1;
-  let baseH=0;
-  if(_chMode==='rapide'){const cx=q('#ch-complexite')&&q('#ch-complexite').value||'n';baseH=(CH_HOURS[type]||CH_HOURS.autre)[cx]||0;}
-  else{['recherche','conception','production','revisions','livraison','admin'].forEach(k=>{baseH+=parseFloat(q('#ch-h-'+k)&&q('#ch-h-'+k).value)||0;});}
-  const totalH=baseH+arHours+reuHours;
-  const jours=totalH/hoursPerDay;
-  const st=parseFloat(q('#ch-st')&&q('#ch-st').value)||0, frais=parseFloat(q('#ch-frais')&&q('#ch-frais').value)||0;
-  const delai=parseInt(q('#ch-delai')&&q('#ch-delai').value)||0;
 
-  if(totalH<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;">🧮</div><div style="font-size:14px;margin-top:8px;">Choisis le type de projet et estime le temps — Finance te dit à combien le vendre, d'après tes objectifs.</div></div>\`;return;}
+  const brickH=S.bricks.filter(b=>b.on).reduce((s,b)=>s+(parseFloat(b.h)||0),0);
+  const arH=(parseFloat(S.arCount)||0)*(parseFloat(S.arH)||0);
+  const workH=brickH+arH;
+  const totalH=Math.round(workH*(1+(parseFloat(S.marge)||0)/100)*10)/10;
+  const jours=totalH/CH_HPD;
+  const add=(parseFloat(S.st)||0)+(parseFloat(S.frais)||0);
+
+  if(totalH<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;">🧱</div><div style="font-size:14px;margin-top:8px;">Assemble les briques de ton projet à gauche — Finance calcule le prix à vendre, d'après tes objectifs.</div></div>\`;return;}
 
   const salaireVital=Math.round(perso.besoin||perso.salaireConseille||0);
   const epargne=Math.round(perso.epargneMensuel||0);
   const confort=Math.round(parseFloat(settings.persoConfort)||salaireVital*1.2||0);
   const tjmFor=(sal,ep)=>((sal+ep+chargesEnt)/Math.max(0.01,1-taux)*12)/joursAn;
-  const tjmMin=tjmFor(salaireVital,0);
-  const tjmCons=tjmFor(salaireVital,epargne);
-  const tjmConf=tjmFor(confort,epargne);
-  const add=st+frais;
+  const tjmMin=tjmFor(salaireVital,0), tjmCons=tjmFor(salaireVital,epargne), tjmConf=tjmFor(confort,epargne);
   const prixMin=Math.round(tjmMin*jours+add);
   const prixCons=Math.round(tjmCons*jours+add);
   const prixConf=Math.round(tjmConf*jours+add);
-  const maxH=tjmCons>0?((prixCons-add)/tjmCons*hoursPerDay):null;
-  const coutAR=Math.round(tjmCons/hoursPerDay*2);
-  const avgN=CH_HOURS[type]?CH_HOURS[type].n:0;
-  const sousEstime=avgN>0&&baseH>0&&baseH<avgN*0.8;
-  const joursOuvresDispo=delai*5;
-  const delaiSerre=delai>0&&jours>joursOuvresDispo;
+  const maxH=tjmMin>0?Math.round((prixCons-add)/tjmMin*CH_HPD):null; // au-delà, sous le minimum vital
+  const coutAR=Math.round((parseFloat(S.arH)||1.5)*tjmCons/CH_HPD);
 
-  const priceCard=(lab,val,emphasis)=>\`<div style="flex:1;min-width:140px;\${emphasis?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emphasis?'40px':'26px'};font-weight:700;\${emphasis?'color:#7BE0AE;':''}">\${fmt(val)}</div></div>\`;
+  const priceCard=(lab,val,emph)=>\`<div style="flex:1;min-width:130px;\${emph?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emph?'40px':'26px'};font-weight:700;\${emph?'color:#7BE0AE;':''}">\${fmt(val)}</div></div>\`;
   const justif=(lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;">\${val}</span></div>\`;
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
     <div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💰 Combien vendre ce projet ?</div>
-      <div style="font-size:12.5px;opacity:.7;margin:2px 0 12px;">\${CH_LABELS[type]||'Projet'} · ~\${(Math.round(totalH*10)/10)} h (\${(Math.round(jours*10)/10)} j)</div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="font-size:12.5px;opacity:.7;margin:2px 0 12px;">\${totalH} h (\${(Math.round(jours*10)/10)} j)\${(parseFloat(S.marge)||0)>0?' · marge '+S.marge+'% incluse':''}</div>
+      <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;">
         \${priceCard('Prix minimum',prixMin,false)}
         \${priceCard('Prix conseillé',prixCons,true)}
         \${priceCard('Prix premium',prixConf,false)}
@@ -9298,19 +9302,16 @@ function renderChiffrage(){
     <div class="card" style="padding:20px;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">⏱️ Ton budget-temps</div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Temps prévu</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${(Math.round(totalH*10)/10)} h</div></div>
-        \${maxH!=null?\`<div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Max rentable (au prix conseillé)</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${Math.round(maxH)} h</div></div>\`:''}
-        \${maxH!=null?\`<div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#3E9E74':'#E05252'};">\${Math.round(maxH-totalH)} h</div></div>\`:''}
+        <div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Temps prévu</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${totalH} h</div></div>
+        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Max avant de perdre</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${maxH} h</div></div>\`:''}
+        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#3E9E74':'#E05252'};">\${Math.round((maxH-totalH)*10)/10} h</div></div>\`:''}
       </div>
-      \${arN>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu as inclus <strong>\${arN} aller\${arN>1?'s':''}-retour\${arN>1?'s':''}</strong> (~\${arHours} h). Chaque A/R supplémentaire réduit ton bénéfice d'environ <strong style="color:#E05252;">\${fmt(coutAR)}</strong> — pense à le facturer au-delà.</div>\`:''}
+      \${(parseFloat(S.arCount)||0)>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu inclus <strong>\${S.arCount} aller\${S.arCount>1?'s':''}-retour\${S.arCount>1?'s':''}</strong> (~\${Math.round(arH*10)/10} h). Chaque A-R supplémentaire réduit ton bénéfice d'environ <strong style="color:#E05252;">\${fmt(coutAR)}</strong> — facture-le au-delà.</div>\`:''}
+      \${maxH!=null?\`<div style="font-size:12px;color:var(--text-2);margin-top:6px;">Au-delà de \${maxH} h, ce projet passe sous ton minimum vital.</div>\`:''}
     </div>
-    \${(sousEstime||delaiSerre)?\`<div class="card" style="padding:18px;background:rgba(232,168,56,.1);">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#8a6508;margin-bottom:8px;">⚠️ Points de vigilance</div>
-      \${sousEstime?\`<div style="font-size:13px;color:#8a6508;margin-bottom:6px;">Un \${CH_LABELS[type]||'projet'} de ce type prend souvent autour de \${avgN} h — tu prévois \${Math.round(baseH)} h. Tu sous-estimes peut-être le temps.</div>\`:''}
-      \${delaiSerre?\`<div style="font-size:13px;color:#8a6508;">Le délai de \${delai} semaine\${delai>1?'s':''} semble court pour \${(Math.round(jours*10)/10)} jours de travail. Prévois de la marge.</div>\`:''}
-    </div>\`:''}
   </div>\`;
 }
+
 function loadSimulateur(){
   const s=dbGetObj('settings');
   if(q('#sim-versement-slider'))q('#sim-versement-slider').value=s.pctVersement||65;
