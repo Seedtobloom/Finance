@@ -1432,6 +1432,37 @@ const HTML = `<!DOCTYPE html>
         <button class="sim-tab" data-sim="trimestriel">Trimestriel</button>
         <button class="sim-tab" data-sim="annuel">Annuel</button>
         <button class="sim-tab" data-sim="tjm">Mon TJM</button>
+        <button class="sim-tab" data-sim="renta">Rentabilité projet</button>
+      </div>
+
+      <!-- Panneau Rentabilité projet -->
+      <div id="sim-panel-renta" class="sim-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Ce projet est-il rentable ?</div>
+            <div class="form-group">
+              <label class="form-label">Nom du projet (optionnel)</label>
+              <input type="text" id="renta-nom" class="form-input" placeholder="Ex: Identité visuelle" oninput="renderRentaProjet()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prix proposé (€ HT)</label>
+              <input type="number" id="renta-prix" class="form-input" min="0" step="50" placeholder="Ex: 1800" oninput="renderRentaProjet()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Temps estimé (jours)</label>
+              <input type="number" id="renta-jours" class="form-input" min="0" step="0.5" placeholder="Ex: 5" oninput="renderRentaProjet()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sous-traitance (€)</label>
+              <input type="number" id="renta-st" class="form-input" min="0" step="50" placeholder="0" oninput="renderRentaProjet()" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Frais / achats (€)</label>
+              <input type="number" id="renta-frais" class="form-input" min="0" step="10" placeholder="0" oninput="renderRentaProjet()" />
+            </div>
+          </div>
+          <div id="sim-renta-result"></div>
+        </div>
       </div>
 
       <!-- Panneau TJM / modèle économique -->
@@ -2505,7 +2536,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=35"></script>
+<script src="/app.js?v=36"></script>
 </body>
 </html>
 `;
@@ -9052,6 +9083,80 @@ function renderTJM(){
     <div style="font-size:12px;color:var(--text-2);font-style:italic;">Ton activité est calibrée pour te verser \${fmt(salaire)} / mois, épargner \${fmt(epargne)} / mois et couvrir tes charges. Change les curseurs à gauche pour voir comment ton tarif doit évoluer.</div>
   </div>\`;
 }
+function renderRentaProjet(){
+  const el=q('#sim-renta-result'); if(!el)return;
+  const settings=dbGetObj('settings');
+  let perso={besoin:0,epargneMensuel:0,salaireConseille:0}; try{perso=computePerso();}catch(e){}
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const taux=tauxU+tauxC;
+  const pas=parseFloat(settings.pasFixe)||40;
+  const abos=dbGet('abonnements')||[];
+  const aboMois=abos.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const chargesEnt=aboMois+pas;
+  const jrIn=q('#tjm-jours');
+  const joursAn=Math.max(1,jrIn&&jrIn.value!==''?parseInt(jrIn.value)||145:145);
+  const salaireCible=Math.round(perso.besoin||perso.salaireConseille||0);
+  const epargneCible=Math.round(perso.epargneMensuel||0);
+  const caAnReco=Math.round((salaireCible+epargneCible+chargesEnt)/Math.max(0.01,1-taux)*12);
+  const tjmReco=Math.round(caAnReco/joursAn);
+
+  const prix=parseFloat(q('#renta-prix')&&q('#renta-prix').value)||0;
+  const jours=parseFloat(q('#renta-jours')&&q('#renta-jours').value)||0;
+  const st=parseFloat(q('#renta-st')&&q('#renta-st').value)||0;
+  const frais=parseFloat(q('#renta-frais')&&q('#renta-frais').value)||0;
+  const nom=(q('#renta-nom')&&q('#renta-nom').value||'').trim();
+
+  if(prix<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;">🧮</div><div style="font-size:14px;margin-top:8px;">Saisis le prix et le temps estimé du projet — Finance te dit tout de suite s'il est rentable pour toi.</div></div>\`;return;}
+
+  const urssaf=Math.round(prix*taux);
+  const chargesProjet=jours>0?Math.round(chargesEnt*12/joursAn*jours):0;
+  const netEnt=Math.round(prix-urssaf-chargesProjet-st-frais);
+  const revJour=jours>0?Math.round(prix/jours):0;
+  const moisVie=perso.besoin>0?(netEnt/perso.besoin):null;
+  const ratioTjm=(tjmReco>0&&jours>0)?revJour/tjmReco:1;
+  const ecartPct=(tjmReco>0&&revJour>0)?Math.round((revJour/tjmReco-1)*100):null;
+  const prixReco=jours>0?Math.round(tjmReco*jours):0;
+  const maxJours=tjmReco>0?(prix/tjmReco):null; // au-delà, on passe sous l'objectif
+
+  let verdict,vColor,vLabel,vTxt;
+  if(netEnt<=0){verdict='🔴';vColor='#C43030';vLabel='Non rentable';vTxt='À ce prix, ce projet ne dégage quasiment rien pour toi.';}
+  else if(jours>0&&ratioTjm>=0.95){verdict='🟢';vColor='#2F7D55';vLabel='Excellente';vTxt='Tu peux accepter ce projet sereinement — il est cohérent avec tes objectifs financiers.';}
+  else if(moisVie!=null&&moisVie>=0.5){verdict='🟠';vColor='#8a6508';vLabel='Correcte';vTxt='Tu couvriras une partie de tes besoins, mais tu épargneras peu à ce tarif.';}
+  else{verdict='🔴';vColor='#C43030';vLabel='Faible';vTxt='À ce prix, tu risques de puiser dans ta trésorerie.';}
+
+  const line=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;\${strong?'border-top:1px solid var(--border);margin-top:4px;':''}"><span style="font-size:13px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};\${neg?'color:#E05252;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
+  const finance=[];
+  if(perso.besoin>0&&moisVie!=null)finance.push('✅ '+(moisVie>=1?moisVie.toFixed(1).replace('.',',')+' mois de tes dépenses personnelles':Math.round(moisVie*100)+'% d\\'un mois de dépenses'));
+
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
+    <div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Rentabilité\${nom?' · '+escHtml(nom):''}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:\${verdict==='🟢'?'#7BE0AE':verdict==='🟠'?'#F6C453':'#F8A9A9'};">\${verdict} \${vLabel}</div>
+      <div style="font-size:13.5px;opacity:.9;margin-top:4px;">\${vTxt}</div>
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;">💰 Ce qu'il te restera</div>
+      \${line('Prix vendu',prix)}
+      \${line('URSSAF',urssaf,true)}
+      \${chargesProjet>0?line('Charges entreprise (quote-part)',chargesProjet,true):''}
+      \${st>0?line('Sous-traitance',st,true):''}
+      \${frais>0?line('Frais / achats',frais,true):''}
+      \${line('Net pour ton entreprise',netEnt,false,true)}
+      \${revJour>0?\`<div style="font-size:12px;color:var(--text-2);margin-top:8px;">Soit environ <strong style="color:var(--navy);">\${fmt(revJour)} / jour</strong> sur \${jours} jour\${jours>1?'s':''}.</div>\`:''}
+      \${finance.length?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:10px 12px;font-size:13px;color:#2F7D55;margin-top:10px;">Ce projet finance \${finance.join(' · ')}.</div>\`:''}
+    </div>
+    \${(jours>0&&tjmReco>0)?\`<div class="card" style="padding:20px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">🎯 Face à ton tarif recommandé</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Ce projet</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${fmt(revJour)} /j</div></div>
+        <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Recommandé</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${fmt(tjmReco)} /j</div></div>
+        \${ecartPct!=null?\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Écart</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${ecartPct<0?'#E05252':'#3E9E74'};">\${ecartPct>=0?'+':''}\${ecartPct}%</div></div>\`:''}
+      </div>
+      \${(ecartPct!=null&&ecartPct<-5)?\`<div style="font-size:13px;color:#8a6508;margin-top:12px;">Pour atteindre tes objectifs, ce projet devrait plutôt être vendu autour de <strong>\${fmt(prixReco)}</strong> (entre \${fmt(prixReco)} et \${fmt(Math.round(prixReco*1.1))}).</div>\`:''}
+      \${maxJours!=null?\`<div style="font-size:13px;color:var(--text-1);margin-top:12px;background:var(--surface-2);border-radius:10px;padding:10px 12px;">⏳ À ce prix, ce projet reste rentable jusqu'à <strong>\${maxJours.toFixed(1).replace('.',',')} jours</strong> de travail. Au-delà, ton revenu passe sous ton objectif.</div>\`:''}
+    </div>\`:''}
+  </div>\`;
+}
 function loadSimulateur(){
   const s=dbGetObj('settings');
   if(q('#sim-versement-slider'))q('#sim-versement-slider').value=s.pctVersement||65;
@@ -9450,6 +9555,7 @@ async function init(){
     this.classList.add('active');
     q(\`#sim-panel-\${panel}\`)?.classList.add('active');
     if(panel==='tjm')renderTJM();
+    if(panel==='renta')renderRentaProjet();
   }));
 
   // Import/Export
