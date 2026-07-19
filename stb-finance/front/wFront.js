@@ -1433,6 +1433,66 @@ const HTML = `<!DOCTYPE html>
         <button class="sim-tab" data-sim="annuel">Annuel</button>
         <button class="sim-tab" data-sim="tjm">Mon TJM</button>
         <button class="sim-tab" data-sim="renta">Rentabilité projet</button>
+        <button class="sim-tab" data-sim="chiffrage">Chiffrer un devis</button>
+      </div>
+
+      <!-- Panneau Chiffrage (projet → prix) -->
+      <div id="sim-panel-chiffrage" class="sim-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Décris ton projet</div>
+            <div class="form-group">
+              <label class="form-label">Type de projet</label>
+              <select id="ch-type" class="form-select" onchange="renderChiffrage()">
+                <option value="logo">Logo</option>
+                <option value="identite">Identité visuelle</option>
+                <option value="site">Site vitrine</option>
+                <option value="woo">Site WooCommerce</option>
+                <option value="flyer">Flyer / dépliant</option>
+                <option value="affiche">Affiche</option>
+                <option value="packaging">Packaging</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estimation du temps</label>
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <button type="button" id="ch-mode-rapide" class="btn btn-secondary btn-sm" onclick="chSetMode('rapide')">🟢 Rapide</button>
+                <button type="button" id="ch-mode-expert" class="btn btn-ghost btn-sm" onclick="chSetMode('expert')">🔵 Expert</button>
+              </div>
+              <div id="ch-rapide">
+                <label class="form-label" style="font-weight:400;">Complexité</label>
+                <select id="ch-complexite" class="form-select" onchange="renderChiffrage()">
+                  <option value="s">Simple</option>
+                  <option value="n" selected>Standard</option>
+                  <option value="a">Avancé</option>
+                </select>
+              </div>
+              <div id="ch-expert" style="display:none;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                  <div><label class="form-label" style="font-weight:400;">Recherche (h)</label><input type="number" id="ch-h-recherche" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                  <div><label class="form-label" style="font-weight:400;">Conception (h)</label><input type="number" id="ch-h-conception" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                  <div><label class="form-label" style="font-weight:400;">Production (h)</label><input type="number" id="ch-h-production" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                  <div><label class="form-label" style="font-weight:400;">Révisions (h)</label><input type="number" id="ch-h-revisions" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                  <div><label class="form-label" style="font-weight:400;">Livraison (h)</label><input type="number" id="ch-h-livraison" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                  <div><label class="form-label" style="font-weight:400;">Admin (h)</label><input type="number" id="ch-h-admin" class="form-input" min="0" step="0.5" value="0" oninput="renderChiffrage()"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-title" style="margin-top:14px;">Le cadre</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="form-group"><label class="form-label">Réunions</label><input type="number" id="ch-reunions" class="form-input" min="0" step="1" value="2" oninput="renderChiffrage()"></div>
+              <div class="form-group"><label class="form-label">Allers-retours inclus</label><input type="number" id="ch-ar" class="form-input" min="0" step="1" value="2" oninput="renderChiffrage()"></div>
+              <div class="form-group"><label class="form-label">Concepts</label><input type="number" id="ch-concepts" class="form-input" min="1" step="1" value="1" oninput="renderChiffrage()"></div>
+              <div class="form-group"><label class="form-label">Délai (semaines)</label><input type="number" id="ch-delai" class="form-input" min="1" step="1" value="4" oninput="renderChiffrage()"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="form-group"><label class="form-label">Sous-traitance (€)</label><input type="number" id="ch-st" class="form-input" min="0" step="50" value="0" oninput="renderChiffrage()"></div>
+              <div class="form-group"><label class="form-label">Frais (€)</label><input type="number" id="ch-frais" class="form-input" min="0" step="10" value="0" oninput="renderChiffrage()"></div>
+            </div>
+          </div>
+          <div id="sim-chiffrage-result"></div>
+        </div>
       </div>
 
       <!-- Panneau Rentabilité projet -->
@@ -2536,7 +2596,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=36"></script>
+<script src="/app.js?v=37"></script>
 </body>
 </html>
 `;
@@ -9157,6 +9217,100 @@ function renderRentaProjet(){
     </div>\`:''}
   </div>\`;
 }
+let _chMode='rapide';
+const CH_HOURS={logo:{s:8,n:14,a:24},identite:{s:18,n:30,a:50},site:{s:20,n:40,a:70},woo:{s:35,n:60,a:110},flyer:{s:4,n:8,a:16},affiche:{s:5,n:10,a:18},packaging:{s:12,n:22,a:40},autre:{s:10,n:20,a:40}};
+const CH_LABELS={logo:'Logo',identite:'Identité visuelle',site:'Site vitrine',woo:'Site WooCommerce',flyer:'Flyer',affiche:'Affiche',packaging:'Packaging',autre:'Projet'};
+function chSetMode(m){
+  _chMode=m;
+  if(q('#ch-rapide'))q('#ch-rapide').style.display=m==='rapide'?'':'none';
+  if(q('#ch-expert'))q('#ch-expert').style.display=m==='expert'?'':'none';
+  if(q('#ch-mode-rapide'))q('#ch-mode-rapide').className='btn btn-sm '+(m==='rapide'?'btn-secondary':'btn-ghost');
+  if(q('#ch-mode-expert'))q('#ch-mode-expert').className='btn btn-sm '+(m==='expert'?'btn-secondary':'btn-ghost');
+  renderChiffrage();
+}
+function renderChiffrage(){
+  const el=q('#sim-chiffrage-result'); if(!el)return;
+  const settings=dbGetObj('settings');
+  let perso={besoin:0,epargneMensuel:0,salaireConseille:0}; try{perso=computePerso();}catch(e){}
+  const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
+  const taux=tauxU+tauxC;
+  const pas=parseFloat(settings.pasFixe)||40;
+  const abos=dbGet('abonnements')||[];
+  const aboMois=abos.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  const chargesEnt=aboMois+pas;
+  const joursAn=Math.max(1,parseInt(q('#tjm-jours')&&q('#tjm-jours').value)||145);
+  const hoursPerDay=7;
+  const type=q('#ch-type')&&q('#ch-type').value||'autre';
+  const arN=parseInt(q('#ch-ar')&&q('#ch-ar').value)||0;
+  const reuN=parseInt(q('#ch-reunions')&&q('#ch-reunions').value)||0;
+  const arHours=arN*2, reuHours=reuN*1;
+  let baseH=0;
+  if(_chMode==='rapide'){const cx=q('#ch-complexite')&&q('#ch-complexite').value||'n';baseH=(CH_HOURS[type]||CH_HOURS.autre)[cx]||0;}
+  else{['recherche','conception','production','revisions','livraison','admin'].forEach(k=>{baseH+=parseFloat(q('#ch-h-'+k)&&q('#ch-h-'+k).value)||0;});}
+  const totalH=baseH+arHours+reuHours;
+  const jours=totalH/hoursPerDay;
+  const st=parseFloat(q('#ch-st')&&q('#ch-st').value)||0, frais=parseFloat(q('#ch-frais')&&q('#ch-frais').value)||0;
+  const delai=parseInt(q('#ch-delai')&&q('#ch-delai').value)||0;
+
+  if(totalH<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;">🧮</div><div style="font-size:14px;margin-top:8px;">Choisis le type de projet et estime le temps — Finance te dit à combien le vendre, d'après tes objectifs.</div></div>\`;return;}
+
+  const salaireVital=Math.round(perso.besoin||perso.salaireConseille||0);
+  const epargne=Math.round(perso.epargneMensuel||0);
+  const confort=Math.round(parseFloat(settings.persoConfort)||salaireVital*1.2||0);
+  const tjmFor=(sal,ep)=>((sal+ep+chargesEnt)/Math.max(0.01,1-taux)*12)/joursAn;
+  const tjmMin=tjmFor(salaireVital,0);
+  const tjmCons=tjmFor(salaireVital,epargne);
+  const tjmConf=tjmFor(confort,epargne);
+  const add=st+frais;
+  const prixMin=Math.round(tjmMin*jours+add);
+  const prixCons=Math.round(tjmCons*jours+add);
+  const prixConf=Math.round(tjmConf*jours+add);
+  const maxH=tjmCons>0?((prixCons-add)/tjmCons*hoursPerDay):null;
+  const coutAR=Math.round(tjmCons/hoursPerDay*2);
+  const avgN=CH_HOURS[type]?CH_HOURS[type].n:0;
+  const sousEstime=avgN>0&&baseH>0&&baseH<avgN*0.8;
+  const joursOuvresDispo=delai*5;
+  const delaiSerre=delai>0&&jours>joursOuvresDispo;
+
+  const priceCard=(lab,val,emphasis)=>\`<div style="flex:1;min-width:140px;\${emphasis?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emphasis?'40px':'26px'};font-weight:700;\${emphasis?'color:#7BE0AE;':''}">\${fmt(val)}</div></div>\`;
+  const justif=(lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;">\${val}</span></div>\`;
+
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
+    <div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💰 Combien vendre ce projet ?</div>
+      <div style="font-size:12.5px;opacity:.7;margin:2px 0 12px;">\${CH_LABELS[type]||'Projet'} · ~\${(Math.round(totalH*10)/10)} h (\${(Math.round(jours*10)/10)} j)</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+        \${priceCard('Prix minimum',prixMin,false)}
+        \${priceCard('Prix conseillé',prixCons,true)}
+        \${priceCard('Prix premium',prixConf,false)}
+      </div>
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;">Pourquoi \${fmt(prixCons)} ?</div>
+      <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;">Ton tarif intègre tes objectifs financiers réels :</div>
+      \${justif('Salaire visé',fmt(salaireVital)+' /mois')}
+      \${epargne>0?justif('Épargne',fmt(epargne)+' /mois'):''}
+      \${justif('Charges entreprise',fmt(chargesEnt)+' /mois')}
+      \${justif('URSSAF',Math.round(taux*100)+'%')}
+      \${justif('Rythme de travail',joursAn+' jours facturés / an')}
+      \${add>0?justif('Sous-traitance + frais refacturés',fmt(add)):''}
+    </div>
+    <div class="card" style="padding:20px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">⏱️ Ton budget-temps</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Temps prévu</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${(Math.round(totalH*10)/10)} h</div></div>
+        \${maxH!=null?\`<div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Max rentable (au prix conseillé)</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${Math.round(maxH)} h</div></div>\`:''}
+        \${maxH!=null?\`<div style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#3E9E74':'#E05252'};">\${Math.round(maxH-totalH)} h</div></div>\`:''}
+      </div>
+      \${arN>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu as inclus <strong>\${arN} aller\${arN>1?'s':''}-retour\${arN>1?'s':''}</strong> (~\${arHours} h). Chaque A/R supplémentaire réduit ton bénéfice d'environ <strong style="color:#E05252;">\${fmt(coutAR)}</strong> — pense à le facturer au-delà.</div>\`:''}
+    </div>
+    \${(sousEstime||delaiSerre)?\`<div class="card" style="padding:18px;background:rgba(232,168,56,.1);">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#8a6508;margin-bottom:8px;">⚠️ Points de vigilance</div>
+      \${sousEstime?\`<div style="font-size:13px;color:#8a6508;margin-bottom:6px;">Un \${CH_LABELS[type]||'projet'} de ce type prend souvent autour de \${avgN} h — tu prévois \${Math.round(baseH)} h. Tu sous-estimes peut-être le temps.</div>\`:''}
+      \${delaiSerre?\`<div style="font-size:13px;color:#8a6508;">Le délai de \${delai} semaine\${delai>1?'s':''} semble court pour \${(Math.round(jours*10)/10)} jours de travail. Prévois de la marge.</div>\`:''}
+    </div>\`:''}
+  </div>\`;
+}
 function loadSimulateur(){
   const s=dbGetObj('settings');
   if(q('#sim-versement-slider'))q('#sim-versement-slider').value=s.pctVersement||65;
@@ -9556,6 +9710,7 @@ async function init(){
     q(\`#sim-panel-\${panel}\`)?.classList.add('active');
     if(panel==='tjm')renderTJM();
     if(panel==='renta')renderRentaProjet();
+    if(panel==='chiffrage')renderChiffrage();
   }));
 
   // Import/Export
