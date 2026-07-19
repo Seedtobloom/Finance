@@ -1053,7 +1053,7 @@ const HTML = `<!DOCTYPE html>
       <div class="page-header">
         <div class="page-header-left">
           <h1>Projets</h1>
-          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de facturation par projet — acomptes, jalons, mensuel.</p>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);" id="proj-portefeuille">Ton pipeline de chiffre d'affaires.</p>
         </div>
         <div class="page-header-right">
           <input type="text" id="projets-search" class="form-input" style="width:140px;" placeholder="Rechercher…" />
@@ -1087,28 +1087,29 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
         </div>
       </div>
-      <div class="kpi-grid kpi-grid-4 mb-24">
+      <div class="kpi-grid kpi-grid-4 mb-16">
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-folders"></i></div>
-          <span class="kpi-label">Projets en cours</span>
-          <span class="kpi-value" id="proj-kpi-actifs">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
-          <span class="kpi-label">CA contractualisé</span>
-          <span class="kpi-value" id="proj-kpi-contrat">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
-          <span class="kpi-label">CA facturé</span>
-          <span class="kpi-value green" id="proj-kpi-facture">—</span>
+          <div class="kpi-icon green"><i class="ti ti-shield-check"></i></div>
+          <span class="kpi-label">CA sécurisé (facturé)</span>
+          <span class="kpi-value green" id="proj-kpi-actifs">—</span>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
           <span class="kpi-label">Reste à facturer</span>
-          <span class="kpi-value warning" id="proj-kpi-reste">—</span>
+          <span class="kpi-value warning" id="proj-kpi-contrat">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
+          <span class="kpi-label">Factures à émettre</span>
+          <span class="kpi-value" id="proj-kpi-facture">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-hourglass"></i></div>
+          <span class="kpi-label">Paiements en attente</span>
+          <span class="kpi-value" id="proj-kpi-reste">—</span>
         </div>
       </div>
+      <div id="proj-forecast" class="mb-24"></div>
       <div id="projets-list"></div>
     </section><!-- /projets -->
 
@@ -2529,7 +2530,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=29"></script>
+<script src="/app.js?v=30"></script>
 </body>
 </html>
 `;
@@ -7428,20 +7429,75 @@ function refreshDevisSelect(){
 function loadProjets(){
   const projets=dbGet('projets');
   const factures=dbGet('factures');
+  const now=new Date();
   const enCours=projets.filter(p=>p.statut==='en_cours');
+  const termines=projets.filter(p=>p.statut==='termine');
   const totalContrat=enCours.reduce((s,p)=>s+(p.montantTotal||0),0);
-  let totalFacture=0;
-  projets.forEach(p=>{
+  let totalFacture=0, attente=0, aEmettre=0;
+  projets.forEach(p=>{const linked=factures.filter(f=>f.projetId===p.id);totalFacture+=linked.reduce((s,f)=>s+(f.montant||0),0);});
+  factures.forEach(f=>{if(f.statut!=='payee'&&f.projetId)attente+=(f.montant||0);});
+  const ymNow=now.toISOString().slice(0,7);
+  enCours.forEach(p=>{
     const linked=factures.filter(f=>f.projetId===p.id);
-    totalFacture+=linked.reduce((s,f)=>s+(f.montant||0),0);
+    if(p.type==='mensuel'){
+      if(p.dureeIndeterminee){ if(!linked.some(f=>(f.date||'').slice(0,7)===ymNow))aEmettre+=1; }
+      else if(p.nombreMois){ aEmettre+=Math.max(0,p.nombreMois-linked.length); }
+    }else{
+      const facd=linked.reduce((s,f)=>s+(f.montant||0),0);
+      if((p.montantTotal||0)-facd>0.5)aEmettre+=1;
+    }
   });
   const totalReste=Math.max(0,totalContrat-totalFacture);
-  if(q('#proj-kpi-actifs'))q('#proj-kpi-actifs').textContent=enCours.length;
-  if(q('#proj-kpi-contrat'))q('#proj-kpi-contrat').textContent=fmt(totalContrat);
-  if(q('#proj-kpi-facture'))q('#proj-kpi-facture').textContent=fmt(totalFacture);
-  if(q('#proj-kpi-reste'))q('#proj-kpi-reste').textContent=fmt(totalReste);
+  const pctSecu=totalContrat>0?Math.round(totalFacture/totalContrat*100):0;
+  if(q('#proj-kpi-actifs'))q('#proj-kpi-actifs').textContent=fmt(totalFacture);
+  if(q('#proj-kpi-contrat'))q('#proj-kpi-contrat').textContent=fmt(totalReste);
+  if(q('#proj-kpi-facture'))q('#proj-kpi-facture').textContent=aEmettre;
+  if(q('#proj-kpi-reste'))q('#proj-kpi-reste').textContent=fmt(attente);
+  if(q('#proj-portefeuille'))q('#proj-portefeuille').textContent=projets.length+' projets · '+enCours.length+' actifs · '+termines.length+' terminés'+(totalContrat>0?' · '+pctSecu+'% du CA contractualisé déjà facturé':'');
+  renderProjetsForecast();
   renderProjets();
 }
+function renderProjetsForecast(){
+  const el=q('#proj-forecast'); if(!el)return;
+  const projets=dbGet('projets').filter(p=>p.statut==='en_cours');
+  const factures=dbGet('factures');
+  const now=new Date();
+  const months=[];
+  for(let k=0;k<4;k++){const dt=new Date(now.getFullYear(),now.getMonth()+k,1);months.push({y:dt.getFullYear(),m:dt.getMonth(),label:MOIS_COURT[dt.getMonth()]+' '+dt.getFullYear(),total:0});}
+  let recMens=0;
+  projets.forEach(p=>{
+    if(p.type==='mensuel'){
+      const mensuel=p.dureeIndeterminee?(p.montantTotal||0):((p.montantTotal||0)/Math.max(1,p.nombreMois||1));
+      if(p.dureeIndeterminee)recMens+=mensuel;
+      months.forEach(mo=>{
+        let actif=true;
+        if(!p.dureeIndeterminee&&p.dateDebut){const start=new Date(p.dateDebut+'T00:00:00');const idx=(mo.y-start.getFullYear())*12+(mo.m-start.getMonth());actif=idx>=0&&idx<(p.nombreMois||0);}
+        if(actif)mo.total+=mensuel;
+      });
+    }else{
+      const linked=factures.filter(f=>f.projetId===p.id);
+      const facd=linked.reduce((s,f)=>s+(f.montant||0),0);
+      const reste=Math.max(0,(p.montantTotal||0)-facd);
+      if(reste>0)months[0].total+=reste;
+    }
+  });
+  const max=Math.max(1,months[0].total,months[1].total,months[2].total,months[3].total);
+  el.innerHTML=\`<div class="card" style="padding:22px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">📅 Revenus attendus · prochains mois</span>
+      \${recMens>0?\`<span style="font-size:12px;color:var(--text-2);">🔁 Récurrent sécurisé : <strong style="color:#3E9E74;">\${fmt(recMens)} / mois</strong></span>\`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:14px;align-items:end;">
+      \${months.map(mo=>\`<div style="text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy);">\${fmt(Math.round(mo.total))}</div>
+        <div style="height:\${Math.round(mo.total/max*90)+4}px;background:var(--navy);border-radius:6px 6px 0 0;margin:8px auto 6px;width:56%;opacity:.85;"></div>
+        <div style="font-size:11px;color:var(--text-2);">\${mo.label}</div>
+      </div>\`).join('')}
+    </div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:14px;">Basé sur tes projets mensuels et le reste à facturer. Un mois creux = le bon moment pour prospecter.</div>
+  </div>\`;
+}
+
 function renderProjets(){
   const search=q('#projets-search')?.value.toLowerCase()||'';
   const statut=q('#projets-filter-statut')?.value||'';
