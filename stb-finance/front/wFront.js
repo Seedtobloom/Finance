@@ -85,7 +85,7 @@ const HTML = `<!DOCTYPE html>
       <!-- RAPPORTS -->
       <div class="nav-group">
         <span class="nav-group-label">Rapports</span>
-        <a class="nav-item" data-section="rapport-prevision"><i class="ti ti-chart-line"></i> Prévision</a>
+        <a class="nav-item" data-section="rapport-prevision"><i class="ti ti-chart-line"></i> Prévisions</a>
         <a class="nav-item" data-section="rapport-mensuel"><i class="ti ti-report"></i> Mensuel</a>
         <a class="nav-item" data-section="rapport-trimestriel"><i class="ti ti-calendar-stats"></i> Trimestriel</a>
         <a class="nav-item" data-section="rapport-annuel"><i class="ti ti-report-analytics"></i> Annuel</a>
@@ -1319,8 +1319,8 @@ const HTML = `<!DOCTYPE html>
     <section id="section-rapport-prevision" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Prévision fin d'année</h1>
-          <div class="page-subtitle">Ce que tu vas gagner d'ici décembre, d'après ce qu'il te reste à facturer</div>
+          <h1>Prévisions &amp; scénarios</h1>
+          <div class="page-subtitle">Ton GPS financier : où tu vas finir l'année, ce qu'il te reste à signer, et quoi faire ensuite.</div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-secondary" id="btn-prev-gen"><i class="ti ti-refresh"></i> Recalculer</button>
@@ -2480,7 +2480,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=33"></script>
+<script src="/app.js?v=34"></script>
 </body>
 </html>
 `;
@@ -8586,74 +8586,155 @@ function computePrevision(){
 }
 
 function renderRapportPrevision(){
-  const el=q('#rapport-prevision-content');
-  if(!el)return;
-  const p=computePrevision();
-  const moisNom=MOIS_LONG?MOIS_LONG[new Date().getMonth()]:'';
-  const barSeg=(val,tot,color)=>tot>0?\`<div style="width:\${Math.max(2,Math.round(val/tot*100))}%;background:\${color};"></div>\`:'';
+  const el=q('#rapport-prevision-content'); if(!el)return;
+  const P=computePrevision();
+  const settings=dbGetObj('settings');
+  let perso={besoin:0,confort:0}; try{perso=computePerso();}catch(e){}
+  const confort=parseFloat(settings.persoConfort)||parseFloat(settings.persoObjectif)||perso.besoin||0;
+  const now=new Date(); const annee=P.annee; const moisCourant=now.getMonth()+1;
+  const salaireMois=Math.round(P.netProjete/12);
+  const manque=P.objectifCA>0?Math.max(0,P.objectifCA-P.caProjete):0;
 
-  el.innerHTML=\`
-    <div class="rapport-phrase">D'ici fin \${p.annee}, en facturant ce qui est prévu, tu devrais atteindre <strong>\${fmt(p.caProjete)}</strong> de chiffre d'affaires, soit un résultat net d'environ <strong>\${fmt(p.netProjete)}</strong>. Il te reste encore <strong>\${fmt(p.resteAGagner)}</strong> à gagner d'ici décembre.</div>
+  // Frise des mois restants (revenus déjà sécurisés : projets mensuels + récurrents)
+  const projets=dbGet('projets')||[];
+  const months=[]; for(let mo=moisCourant;mo<=12;mo++)months.push({m:mo,label:MOIS_COURT[mo-1],secure:0});
+  projets.filter(p=>p.statut==='en_cours'&&p.type==='mensuel').forEach(p=>{
+    const mm=p.dureeIndeterminee?(p.montantTotal||0):((p.montantTotal||0)/Math.max(1,p.nombreMois||1));
+    months.forEach(mo=>{let actif=true;if(!p.dureeIndeterminee&&p.dateDebut){const st=new Date(p.dateDebut+'T00:00:00');const idx=(annee-st.getFullYear())*12+(mo.m-1-st.getMonth());actif=idx>=0&&idx<(p.nombreMois||0);}if(actif)mo.secure+=mm;});
+  });
+  (settings.revenusRecurrents||[]).forEach(r=>{const m=parseFloat(r.montant)||0;months.forEach(mo=>{mo.secure+=m;});});
+  const totalSecure=months.reduce((s,mo)=>s+mo.secure,0);
+  const maxSec=Math.max(1,...months.map(mo=>mo.secure));
+  const trou=months.find(mo=>mo.secure<maxSec*0.35);
 
-    <div class="kpi-grid kpi-grid-4 mb-16">
-      <div class="kpi-card"><span class="kpi-label">Reste à facturer</span><span class="kpi-value" style="color:var(--warning);">\${fmt(p.resteAFacturer)}</span></div>
-      <div class="kpi-card"><span class="kpi-label">CA projeté \${p.annee}</span><span class="kpi-value">\${fmt(p.caProjete)}</span></div>
-      <div class="kpi-card"><span class="kpi-label">Charges projetées</span><span class="kpi-value danger">\${fmt(p.chargesProjetees)}</span></div>
-      <div class="kpi-card"><span class="kpi-label">Net projeté fin d'année</span><span class="kpi-value green">\${fmt(p.netProjete)}</span></div>
-    </div>
+  // Patrimoine fin d'année
+  const supAll=Array.isArray(settings.persoEpargne)?settings.persoEpargne:[];
+  const patriSolde=supAll.reduce((s,e)=>s+(parseFloat(e.solde)||0),0);
+  const patriMensuel=supAll.reduce((s,e)=>s+(parseFloat(e.montant)||0),0);
+  const patriFin=patriSolde+patriMensuel*(12-moisCourant+1);
+  const misAnnee=patriMensuel*12;
+  const liberte=perso.besoin>0?(patriFin/perso.besoin):null;
 
-    <div class="card mb-16">
-      <div class="card-title"><i class="ti ti-repeat"></i> Revenus récurrents (facturés chaque mois)</div>
-      <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Déclare tes revenus mensuels sans date de fin (ex : Envol 600 €/mois). Ils sont projetés sur les \${p.moisRestants} mois restants de l'année.</div>
-      \${p.revenusRec.length?p.revenusRec.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:13px;">\${escHtml(r.nom||'—')} · <strong>\${fmt(parseFloat(r.montant)||0)}/mois</strong></div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:12px;color:var(--text-2);">→ \${fmt(Math.round((parseFloat(r.montant)||0)*p.moisRestants*100)/100)} d'ici déc.</span>
-          <button onclick="deleteRevenuRecurrent('\${r.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash"></i></button>
-        </div>
-      </div>\`).join(''):'<div style="font-size:12px;color:var(--text-2);font-style:italic;padding:4px 0;">Aucun revenu récurrent déclaré.</div>'}
-      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
-        <input id="rec-nom" class="form-control" style="flex:2;min-width:140px;" placeholder="Nom (ex : Envol)">
-        <input id="rec-montant" class="form-control" type="number" style="flex:1;min-width:90px;" placeholder="€/mois">
-        <button class="btn btn-secondary" onclick="addRevenuRecurrent()"><i class="ti ti-plus"></i> Ajouter</button>
+  const big=(emoji,lab,val,hint,color)=>\`<div style="flex:1;min-width:150px;"><div style="font-size:11px;opacity:.6;">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;\${color?'color:'+color+';':''}">\${val}</div>\${hint?\`<div style="font-size:11px;opacity:.6;">\${hint}</div>\`:''}</div>\`;
+  const missions=n=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
+
+  let html='';
+
+  // 🎯 Que dois-je signer ?
+  if(P.objectifCA>0&&manque>0){
+    html+=\`<div style="background:var(--navy);border-radius:18px;padding:26px 30px;color:#fff;margin-bottom:18px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">🎯 Que dois-je signer d'ici décembre ?</div>
+      <div style="font-size:14px;opacity:.85;margin:6px 0 4px;">Pour atteindre ton objectif, il te faudrait encore sécuriser</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;">\${fmt(manque)}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px;">
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;"><div style="font-size:20px;font-family:'Cormorant Garamond',serif;">\${Math.max(1,Math.round(manque/4500))} mission(s)</div><div style="font-size:11px;opacity:.6;">à ~4 500 €</div></div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;"><div style="font-size:20px;font-family:'Cormorant Garamond',serif;">\${Math.max(1,Math.round(manque/2300))} mission(s)</div><div style="font-size:11px;opacity:.6;">à ~2 300 €</div></div>
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;"><div style="font-size:20px;font-family:'Cormorant Garamond',serif;">\${Math.max(1,Math.round(manque/500))} client(s)</div><div style="font-size:11px;opacity:.6;">récurrents à 500 €/mois</div></div>
       </div>
+    </div>\`;
+  }
+
+  // 🔮 Si rien ne change
+  html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:14px;">🔮 Si rien ne change · fin \${annee}</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
+      \${big('💰','CA estimé',fmt(P.caProjete),P.pctObj!=null?P.pctObj+'% de ton objectif':'objectif non défini','var(--navy)')}
+      \${big('🧾','Net estimé',fmt(P.netProjete),'après charges & URSSAF','var(--navy)')}
+      \${big('🏠','Salaire moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
     </div>
+    \${manque>0?\`<div style="background:rgba(232,168,56,.12);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#8a6508;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#2F7D55;margin-top:14px;">🎉 À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
+  </div>\`;
 
-    <div class="card mb-16">
-      <div class="card-title">Comment on arrive au CA projeté</div>
-      <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;margin:6px 0 14px;background:var(--border);">
-        \${barSeg(p.encaisse,p.caProjete,'#4CAF82')}\${barSeg(p.enAttente,p.caProjete,'#E8A838')}\${barSeg(p.resteAFacturer,p.caProjete,'#7C3AED')}
-      </div>
-      <div class="charges-recap">
-        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#4CAF82;">●</span> Déjà encaissé</span><span class="charges-recap-amount">\${fmt(p.encaisse)}</span></div>
-        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#E8A838;">●</span> Facturé, en attente de paiement</span><span class="charges-recap-amount">\${fmt(p.enAttente)}</span></div>
-        <div class="charges-recap-line"><span class="charges-recap-label"><span style="color:#7C3AED;">●</span> Reste à facturer (projets à venir)</span><span class="charges-recap-amount">\${fmt(p.resteAFacturer)}</span></div>
-        <div class="charges-recap-line" style="border-top:2px solid var(--border);font-weight:700;"><span class="charges-recap-label">= CA projeté \${p.annee}</span><span class="charges-recap-amount">\${fmt(p.caProjete)}</span></div>
-      </div>
-      \${p.pctObj!=null?\`<div style="margin-top:12px;font-size:12.5px;color:var(--text-2);"><i class="ti ti-target"></i> Objectif \${fmt(p.objectifCA)} → <strong style="color:\${p.pctObj>=100?'#4CAF82':'#E8A838'};">\${p.pctObj} %</strong> atteint en projection</div>\`:''}
+  // ② Pourquoi cette prévision (flux)
+  const flowLine=(lab,val,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;"><span style="font-size:13px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};">\${fmt(val)}</span></div>\`;
+  const fd='<div style="text-align:center;color:var(--text-2);opacity:.4;font-size:12px;line-height:.7;">+</div>';
+  html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">📊 D'où vient cette estimation</div>
+    \${flowLine('CA déjà encaissé',P.encaisse)}\${fd}\${flowLine('Factures en attente',P.enAttente)}\${fd}\${flowLine('Projets & récurrents à venir',P.resteAFacturer)}
+    <div style="border-top:1px solid var(--border);margin-top:6px;">\${flowLine('CA estimé fin d\\'année',P.caProjete,true)}</div>
+  </div>\`;
+
+  // 📅 Les prochains mois (frise sécurisée)
+  html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">📅 Revenus déjà sécurisés · prochains mois</span>
+      <span style="font-size:12px;color:var(--text-2);">Total sécurisé : <strong style="color:#3E9E74;">\${fmt(totalSecure)}</strong></span>
     </div>
-
-    <div class="card mb-16">
-      <div class="card-title">Du CA projeté au net</div>
-      <div class="charges-recap">
-        <div class="charges-recap-line"><span class="charges-recap-label">CA projeté</span><span class="charges-recap-amount">\${fmt(p.caProjete)}</span></div>
-        <div class="charges-recap-line"><span class="charges-recap-label">− URSSAF + CFP</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.cotisations)}</span></div>
-        <div class="charges-recap-line"><span class="charges-recap-label">− Abonnements (12 mois)</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.abosAnnee)}</span></div>
-        <div class="charges-recap-line"><span class="charges-recap-label">− PAS (12 mois)</span><span class="charges-recap-amount" style="color:var(--danger);">\${fmt(p.pasAnnee)}</span></div>
-        <div class="charges-recap-line" style="border-top:2px solid var(--border);font-weight:700;"><span class="charges-recap-label">= Net projeté</span><span class="charges-recap-amount" style="color:var(--success);">\${fmt(p.netProjete)}</span></div>
-      </div>
+    <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:8px;align-items:end;">
+      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:11px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#E8A838':'#3E9E74'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:10.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
     </div>
+    \${trou?\`<div style="font-size:12px;color:#8a6508;margin-top:12px;">⚠️ \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
+  </div>\`;
 
-    \${p.detailProjets.length?\`<div class="card mb-16">
-      <div class="card-title">Reste à facturer, par projet</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Projet</th><th>Client</th><th>Reste à facturer</th></tr></thead>
-        <tbody>\${p.detailProjets.map(d=>\`<tr><td>\${escHtml(d.nom)}</td><td>\${escHtml(d.client||'—')}</td><td class="td-amount" style="color:var(--warning);">\${fmt(d.reste)}</td></tr>\`).join('')}</tbody>
-      </table></div>
-    </div>\`:'<div class="alert info" style="margin-bottom:16px;"><i class="ti ti-info-circle"></i> Aucun projet avec du reste à facturer détecté. La prévision se base alors sur ton encaissé et tes factures en attente.</div>'}
+  // 💼 Fin d'année tu auras probablement
+  html+=\`<div style="background:var(--navy);border-radius:18px;padding:26px 30px;color:#fff;margin-bottom:18px;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;">🎯 Fin \${annee}, tu auras probablement</div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap;">
+      \${big('💰','Revenu net',fmt(P.netProjete))}
+      \${big('🏠','Salaire',fmt(salaireMois)+' /mois')}
+      \${(patriSolde>0||patriMensuel>0)?big('💼','Patrimoine',fmt(patriFin),misAnnee>0?'+ '+fmt(misAnnee)+' cette année':''):''}
+      \${liberte!=null?big('🔥','Liberté',liberte.toFixed(1).replace('.',',')+' mois','sans nouveau revenu'):''}
+    </div>
+  </div>\`;
 
-    <div style="font-size:11px;color:var(--text-2);">Estimation : le « reste à facturer » projette tes projets récurrents sur les mois restants de l'année et le solde des projets en cours. Les charges sont projetées sur 12 mois d'abonnements et de PAS.</div>
-  \`;
+  // 🏠 Salaire vs confort
+  if(perso.besoin>0){
+    const ecart=confort-salaireMois;
+    html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">🏠 Ton salaire vs ton niveau de vie</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        \${big('💸','Salaire possible',fmt(salaireMois)+' /mois','','var(--navy)')}
+        \${confort>0?big('🎯','Niveau confortable',fmt(confort)+' /mois','','var(--navy)'):''}
+      </div>
+      \${(confort>0&&ecart>0)?\`<div style="font-size:13.5px;color:#8a6508;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:13.5px;color:#2F7D55;margin-top:12px;">🎉 Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
+    </div>\`;
+  }
+
+  // ⚠️ Les risques
+  if(P.enAttente>0){
+    html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">⚠️ À surveiller</div>
+      <div style="font-size:13.5px;line-height:1.6;"><strong>\${fmt(P.enAttente)}</strong> de factures sont émises mais <strong>pas encore payées</strong>. Si elles n'étaient jamais réglées, ton CA estimé tomberait à <strong style="color:var(--navy);">\${fmt(P.caProjete-P.enAttente)}</strong>.</div>
+      <div style="font-size:12.5px;color:var(--text-2);margin-top:8px;">👉 Priorité : relancer ces factures.</div>
+    </div>\`;
+  }
+
+  // 🚀 Scénarios
+  const prudent=Math.max(0,P.caProjete-P.enAttente);
+  const realiste=P.caProjete;
+  const optimiste=(P.objectifCA>realiste)?P.objectifCA:Math.round(realiste*1.15);
+  const scen=(emoji,lab,val,desc)=>\`<div class="card" style="padding:20px;flex:1;min-width:180px;"><div style="font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);">\${fmt(val)}</div><div style="font-size:11.5px;color:var(--text-2);">\${desc}</div></div>\`;
+  html+=\`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-2);font-weight:700;margin:6px 2px 8px;">🚀 Scénarios de fin d'année</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+    \${scen('🛡','Prudent',prudent,'si les factures en attente ne sont pas payées')}
+    \${scen('🎯','Réaliste',realiste,'tout ce qui est signé se réalise')}
+    \${scen('🚀','Optimiste',optimiste,P.objectifCA>realiste?'tu atteins ton objectif':'+15% de signatures')}
+  </div>\`;
+
+  // 🧭 Ton plan jusqu'à décembre
+  const actions=[];
+  if(manque>0)actions.push('Sécuriser <strong>'+fmt(manque)+'</strong> de chiffre d\\'affaires supplémentaire.');
+  if(P.enAttente>0)actions.push('Relancer <strong>'+fmt(P.enAttente)+'</strong> de factures en attente.');
+  if(trou)actions.push('Prospecter dès <strong>'+MOIS_LONG[trou.m-1]+'</strong>, où seulement '+fmt(Math.round(trou.secure))+' sont sécurisés.');
+  actions.push('En l\\'état, tu pourras te verser environ <strong>'+fmt(salaireMois)+' / mois</strong> jusqu\\'à la fin de l\\'année.');
+  html+=\`<div class="card" style="padding:24px;margin-bottom:18px;background:var(--surface-2);">
+    <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;">🧭 Ton plan jusqu'à décembre</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      \${actions.map(a=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.5;"><span style="color:#3E9E74;flex:none;">✓</span><span>\${a}</span></div>\`).join('')}
+    </div>
+  </div>\`;
+
+  // Revenus récurrents (gestion compacte)
+  const rec=(settings.revenusRecurrents||[]);
+  html+=\`<div class="card" style="padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">🔁 Revenus récurrents déclarés</span>
+      <button class="btn btn-outline btn-xs" onclick="addRevenuRecurrent()"><i class="ti ti-plus"></i> Ajouter</button>
+    </div>
+    \${rec.length?rec.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;">\${escHtml(r.nom||'Revenu')}</span><span style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Cormorant Garamond',serif;">\${fmt(parseFloat(r.montant)||0)} /mois</span><button onclick="deleteRevenuRecurrent('\${r.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash"></i></button></span></div>\`).join(''):'<div style="font-size:12.5px;color:var(--text-2);">Un revenu mensuel que tu factures régulièrement mais qui n\\'est pas dans tes projets ? Ajoute-le pour affiner la prévision.</div>'}
+  </div>\`;
+
+  el.innerHTML=html;
 }
 
 async function addRevenuRecurrent(){
