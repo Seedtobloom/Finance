@@ -2473,7 +2473,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=31"></script>
+<script src="/app.js?v=32"></script>
 </body>
 </html>
 `;
@@ -4932,10 +4932,51 @@ function renderCockpit(){
     </div>
   </div>\`:'';
 
+
+  // ===== Ton plan du mois (coach de répartition) =====
+  const projVie=Array.isArray(settings.projetsVie)?settings.projetsVie:[];
+  const planEp=supAll.reduce((s,e)=>s+(parseFloat(e.montant)||0),0);
+  const planProj=projVie.reduce((s,pr)=>s+(parseFloat(pr.mensualite)||0),0);
+  const libre=p.resteAVivre;
+  const restePlaisir=Math.max(0,libre-planEp-planProj);
+  const manqueLibre=Math.max(0,(planEp+planProj)-Math.max(0,libre));
+  const planStep=(emoji,lab,val,opts)=>{opts=opts||{};return \`<div style="display:flex;justify-content:space-between;align-items:center;padding:\${opts.big?'8px':'6px'} 0;"><span style="font-size:\${opts.big?'14px':'13px'};\${opts.strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${emoji} \${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${opts.big?'22px':'16px'};\${opts.color?'color:'+opts.color+';':'color:var(--navy);'}">\${opts.sign||''}\${fmt(val)}</span></div>\`;};
+  const pDown='<div style="text-align:center;color:var(--text-2);opacity:.4;font-size:12px;line-height:.7;">↓</div>';
+  let blocPlan='';
+  if(p.besoin>0){
+    let repart='';
+    if(libre>0){
+      const phrase=\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:13px;color:#2F7D55;margin:12px 0;">Tes dépenses essentielles sont couvertes. Tu peux maintenant décider de la mission de <strong>\${fmt(libre)}</strong>.</div>\`;
+      const rows=supAll.filter(e=>(parseFloat(e.montant)||0)>0).map(e=>planStep(supEmoji(e.cat),escHtml(e.nom||supType(e.cat).nom),parseFloat(e.montant)||0))
+        .concat(projVie.filter(pr=>(parseFloat(pr.mensualite)||0)>0).map(pr=>planStep(pvieCat(pr.cat).emoji,escHtml(pr.nom||'Projet'),parseFloat(pr.mensualite)||0)))
+        .join('');
+      const alerte=manqueLibre>0?\`<div style="background:rgba(232,168,56,.12);border-radius:10px;padding:12px 14px;font-size:12.5px;color:#8a6508;margin-top:10px;">⚠️ Tes objectifs (\${fmt(planEp+planProj)}) dépassent ton argent libre de <strong>\${fmt(manqueLibre)}</strong>. Réduis un versement ou reporte un projet ce mois-ci.</div>\`:'';
+      const canApply=(pendSup&&pendSup.length)||(pendProj&&pendProj.length);
+      const bouton=manqueLibre>0?'':(canApply?\`<button class="btn btn-primary btn-sm" style="margin-top:14px;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider cette répartition</button>\`:\`<div style="margin-top:14px;font-size:12.5px;color:#3E9E74;">✔ Répartition déjà appliquée ce mois.</div>\`);
+      repart=\`\${phrase}
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:2px;">Finance te conseille</div>
+        \${rows}
+        \${planStep('😊','Reste plaisir & imprévus',restePlaisir,{color:'#3E9E74'})}
+        \${alerte}\${bouton}\`;
+    }else{
+      repart=\`<div style="background:rgba(224,82,82,.1);border-radius:10px;padding:12px 14px;font-size:13px;color:#C43030;margin-top:12px;">⚠️ Ce mois-ci, tes dépenses dépassent tes ressources de <strong>\${fmt(-libre)}</strong>. Priorité : rentrer du chiffre d'affaires avant d'épargner.</div>\`;
+    }
+    blocPlan=\`<div class="card" style="padding:24px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:10px;">💰 Ton plan de \${MOIS_LONG[m-1]}</div>
+      \${planStep('🏢','Disponible entreprise',d.disponible,{strong:true})}\${pDown}
+      \${planStep('🏠','À te verser (salaire)',p.salaireConseille)}\${p.revenusPerso>0?planStep('💶','Autres revenus',p.revenusPerso):''}\${pDown}
+      \${planStep('❤️','Argent disponible',p.salaireConseille+p.revenusPerso,{strong:true})}
+      \${planStep('🧾','Dépenses essentielles',p.besoin,{sign:'−',color:'#E8A838'})}\${pDown}
+      \${planStep('✨','Argent libre',libre,{big:true,strong:true,color:libre>=0?'#2F7D55':'#C43030'})}
+      \${repart}
+    </div>\`;
+  }
+
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
     \${accueil}
     \${onboarding}
     \${niveau2}
+    \${blocPlan}
     \${blocCeMois}
     \${step('Où va mon argent')}
     \${blocAlloc}
@@ -4944,7 +4985,6 @@ function renderCockpit(){
     \${blocCompo}
     \${blocObj}
     \${bloc12}
-    \${blocAllocId}
     \${blocMode?step('Mon mode de vie')+blocMode:''}
     \${step('Ce que je dois faire')}
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">\${bloc5}\${bloc11}</div>
