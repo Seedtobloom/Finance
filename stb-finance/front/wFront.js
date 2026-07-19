@@ -114,8 +114,15 @@ const HTML = `<!DOCTYPE html>
     </div>
   </aside>
 
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
   <!-- MAIN CONTENT -->
   <main id="main">
+
+    <div id="mobile-topbar">
+      <button id="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu"><i class="ti ti-menu-2"></i></button>
+      <span class="logo-name" style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);">Seed to Bloom</span>
+    </div>
 
     <!-- ═══════════════════════════
          TABLEAU DE BORD
@@ -2473,7 +2480,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=32"></script>
+<script src="/app.js?v=33"></script>
 </body>
 </html>
 `;
@@ -4000,6 +4007,53 @@ input[type="range"]::-moz-range-thumb {
   .comptes-grid { grid-template-columns: 1fr; }
   .scenarios-grid { grid-template-columns: 1fr; }
 }
+
+/* ===========================
+   FLUIDITÉ & MICRO-INTERACTIONS
+   =========================== */
+* { -webkit-tap-highlight-color: transparent; }
+#main { scroll-behavior: smooth; }
+.card { transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease; }
+.card:hover { box-shadow: 0 3px 16px rgba(5,24,51,.06); }
+.section.active { animation: sectionIn .24s cubic-bezier(.22,.61,.36,1); }
+@keyframes sectionIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
+.nav-item:active { transform: scale(.985); }
+.btn:active { transform: scale(.97); }
+
+/* Barre mobile + tiroir */
+#mobile-topbar { display: none; }
+#sidebar-overlay { display: none; }
+#mobile-menu-btn {
+  background: none; border: 1px solid var(--border); border-radius: 8px;
+  width: 36px; height: 36px; cursor: pointer; color: var(--navy);
+  display: inline-flex; align-items: center; justify-content: center; font-size: 18px;
+}
+@media (max-width: 860px) {
+  #mobile-topbar {
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 40;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    padding: 11px 16px;
+  }
+  #sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
+    width: 250px; min-width: 250px;
+    transform: translateX(-100%);
+    transition: transform .26s cubic-bezier(.22,.61,.36,1);
+    box-shadow: 0 0 44px rgba(0,0,0,.16);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar-overlay {
+    display: block; position: fixed; inset: 0; z-index: 55;
+    background: rgba(5,24,51,.38);
+    opacity: 0; pointer-events: none; transition: opacity .26s ease;
+  }
+  #sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+  .section { padding: 18px 16px 44px; }
+  .kpi-grid-4, .kpi-grid-3 { grid-template-columns: 1fr 1fr; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .page-header-right { width: 100%; flex-wrap: wrap; }
+}
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4249,7 +4303,20 @@ function navigate(section){
   const nav=q(\`.nav-item[data-section="\${section}"]\`);
   if(nav)nav.classList.add('active');
   currentSection=section;
+  const _main=q('#main'); if(_main)_main.scrollTop=0;
+  closeSidebar();
   loadSection(section);
+}
+function toggleSidebar(){
+  const sb=q('#sidebar'), ov=q('#sidebar-overlay');
+  if(!sb)return;
+  const open=sb.classList.toggle('open');
+  if(ov)ov.classList.toggle('open',open);
+}
+function closeSidebar(){
+  const sb=q('#sidebar'), ov=q('#sidebar-overlay');
+  if(sb)sb.classList.remove('open');
+  if(ov)ov.classList.remove('open');
 }
 function loadSection(s){
   const map={
