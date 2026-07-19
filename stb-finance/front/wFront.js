@@ -2529,7 +2529,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=28"></script>
+<script src="/app.js?v=29"></script>
 </body>
 </html>
 `;
@@ -4910,14 +4910,33 @@ function renderCockpit(){
   const exEp=exSup.reduce((s,x)=>s+x.montant,0);
   const exTreso=Math.max(0,exReste-exSal-exEp);
   const exLine=(emoji,lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span>\${emoji} \${escHtml(lab)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(val)}</span></div>\`;
-  const blocAllocId=(d.caMois>0||d.revenuMoyen>0)?\`<div class="card" style="padding:24px;background:var(--surface-2);">
-    <div style="display:flex;align-items:center;gap:7px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:6px;"><i class="ti ti-sparkles" style="color:var(--navy);font-size:14px;"></i> Allocation conseillée</div>
-    <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Si tu encaisses <strong style="color:var(--navy);">\${fmt(amtEx)}</strong>, Finance te conseille de répartir ainsi :</div>
-    \${exLine('🛡','Provision URSSAF',exU)}
-    \${exLine('🏠','Salaire',exSal)}
-    \${exSup.map(x=>exLine(x.emoji,x.nom,x.montant)).join('')}
-    \${exLine('🛟','Trésorerie entreprise',exTreso)}
-  </div>\`:'';
+  const ymC=y+'-'+String(m).padStart(2,'0');
+  const pendSup=supAll.filter(e=>(parseFloat(e.montant)||0)>0 && e.lastVersement!==ymC);
+  const pvieL=Array.isArray(settings.projetsVie)?settings.projetsVie:[];
+  const pendProj=pvieL.filter(pr=>(parseFloat(pr.mensualite)||0)>0 && pr.lastVersement!==ymC);
+  const pendTot=pendSup.reduce((a,e)=>a+(parseFloat(e.montant)||0),0)+pendProj.reduce((a,pr)=>a+(parseFloat(pr.mensualite)||0),0);
+  let blocAllocId;
+  if(pendSup.length||pendProj.length){
+    blocAllocId=\`<div class="card" style="padding:24px;background:var(--surface-2);">
+      <div style="display:flex;align-items:center;gap:7px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:6px;"><i class="ti ti-sparkles" style="color:var(--navy);font-size:14px;"></i> Alimenter mon avenir ce mois</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Ta répartition prévue — un clic et Finance fait avancer ton patrimoine et tes projets.</div>
+      \${pendSup.map(e=>exLine(supEmoji(e.cat),(e.nom||supType(e.cat).nom)+' · épargne',parseFloat(e.montant)||0)).join('')}
+      \${pendProj.map(pr=>exLine(pvieCat(pr.cat).emoji,(pr.nom||'Projet')+' · projet',parseFloat(pr.mensualite)||0)).join('')}
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:14px;">
+        <span style="font-size:13px;color:var(--text-2);">Total à mettre de côté : <strong style="color:var(--navy);">\${fmt(pendTot)}</strong></span>
+        <button class="btn btn-primary btn-sm" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Appliquer la répartition</button>
+      </div>
+    </div>\`;
+  } else {
+    blocAllocId=(d.caMois>0||d.revenuMoyen>0)?\`<div class="card" style="padding:24px;background:var(--surface-2);">
+      <div style="display:flex;align-items:center;gap:7px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:6px;"><i class="ti ti-sparkles" style="color:var(--navy);font-size:14px;"></i> Allocation conseillée</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Si tu encaisses <strong style="color:var(--navy);">\${fmt(amtEx)}</strong>, Finance te conseille de répartir ainsi :</div>
+      \${exLine('🛡','Provision URSSAF',exU)}
+      \${exLine('🏠','Salaire',exSal)}
+      \${exSup.map(x=>exLine(x.emoji,x.nom,x.montant)).join('')}
+      \${exLine('🛟','Trésorerie entreprise',exTreso)}
+    </div>\`:'';
+  }
 
   // Mode de vie (si dépenses perso renseignées)
   const blocMode=p.besoin>0?\`<div class="card" style="padding:24px;">
@@ -5792,6 +5811,24 @@ async function alimenterTout(){
     renderPatrimoine(); renderPatriAlim();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
+async function appliquerEpargneMois(){
+  try{
+    const ym=_ymNow();
+    const settings=dbGetObj('settings');
+    const sup=(Array.isArray(settings.persoEpargne)?settings.persoEpargne:[]).slice();
+    const pv=(Array.isArray(settings.projetsVie)?settings.projetsVie:[]).slice();
+    let touched=0;
+    sup.forEach((e,i)=>{const mm=parseFloat(e.montant)||0;if(mm>0&&e.lastVersement!==ym){sup[i]={...e,solde:(parseFloat(e.solde)||0)+mm,lastVersement:ym};touched++;}});
+    pv.forEach((pr,i)=>{const mm=parseFloat(pr.mensualite)||0;if(mm>0&&pr.lastVersement!==ym){pv[i]={...pr,epargne:(parseFloat(pr.epargne)||0)+mm,lastVersement:ym};touched++;}});
+    if(!touched)return;
+    settings.persoEpargne=sup; settings.projetsVie=pv;
+    _cache.settings=await api('PUT','/api/settings',settings);
+    toast('Répartition appliquée — patrimoine et projets ont avancé 🎉','success');
+    try{renderCockpit();}catch(e){}
+    try{renderPatrimoine();renderPatriAlim();}catch(e){}
+    try{renderProjetsVie();}catch(e){}
+  }catch(e){toast('Erreur : '+e.message,'error');}
+}
 function renderPersoEpargne(ctx){
   const el=q('#perso-epargne'); if(!el)return;
   const {epargne,epargneMensuel,epargneSolde}=ctx;
@@ -6168,7 +6205,7 @@ async function saveProjetVie(){
     const items=Array.isArray(settings.projetsVie)?settings.projetsVie.slice():[];
     const id=q('#projet-vie-id').value;
     if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,priorite,cible,epargne,mensualite,support};}
-    else{items.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,priorite,cible,epargne,mensualite,support});}
+    else{items.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,priorite,cible,epargne,mensualite,support,lastVersement:_ymNow()});}
     settings.projetsVie=items;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-projet-vie').style.display='none';
