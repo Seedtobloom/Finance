@@ -79,7 +79,7 @@ const HTML = `<!DOCTYPE html>
       <div class="nav-group">
         <span class="nav-group-label">Clients</span>
         <a class="nav-item" data-section="tiers"><i class="ti ti-users"></i> Clients</a>
-        <a class="nav-item" data-section="crm"><i class="ti ti-address-book"></i> Prospection</a>
+        <a class="nav-item" data-section="crm"><i class="ti ti-address-book"></i> Développement</a>
       </div>
 
       <!-- RAPPORTS -->
@@ -773,8 +773,8 @@ const HTML = `<!DOCTYPE html>
     <section id="section-crm" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Prospection CRM</h1>
-          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de la prospection commerciale — contacts, relances et conversion.</p>
+          <h1>Développement commercial</h1>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Ton copilote pour signer plus de clients — pipeline, relances et opportunités.</p>
         </div>
         <div class="page-header-right">
           <input type="text" id="crm-search" class="form-input" style="width:160px;" placeholder="Rechercher…" />
@@ -795,75 +795,14 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- KPIs -->
-      <div class="kpi-grid kpi-grid-4 mb-16">
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
-          <span class="kpi-label">Contacts total</span>
-          <span class="kpi-value" id="crm-kpi-total">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-thumb-up"></i></div>
-          <span class="kpi-label">Taux de réponse</span>
-          <span class="kpi-value" id="crm-kpi-reponse">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-trophy"></i></div>
-          <span class="kpi-label">Taux de conversion</span>
-          <span class="kpi-value" id="crm-kpi-conversion">—</span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
-          <span class="kpi-label">En attente / relance</span>
-          <span class="kpi-value" id="crm-kpi-attente">—</span>
-        </div>
+      <div id="crm-pipeline" style="margin-bottom:18px;"></div>
+      <div id="crm-kpis" style="margin-bottom:18px;"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-bottom:18px;">
+        <div id="crm-today"></div>
+        <div id="crm-objectif"></div>
       </div>
-
-      <!-- Relances à faire -->
-      <div id="crm-relances-banner" class="card mb-16" style="display:none;border-left:4px solid var(--warning);">
-        <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
-          <i class="ti ti-bell" style="font-size:20px;color:var(--warning);"></i>
-          <div id="crm-relances-banner-text" style="font-size:14px;"></div>
-        </div>
-      </div>
-
-      <!-- Charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">Répartition par statut</div>
-          <div style="position:relative;height:200px;">
-            <canvas id="crm-chart-statuts" height="200"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Contacts par secteur</div>
-          <div style="position:relative;height:200px;">
-            <canvas id="crm-chart-secteurs" height="200"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- Table -->
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Entreprise</th>
-                <th>Secteur</th>
-                <th>Contact</th>
-                <th>Statut</th>
-                <th>1re relance</th>
-                <th>2e relance</th>
-                <th>Finale</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="crm-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+      <div id="crm-kanban" style="margin-bottom:18px;"></div>
+      <div id="crm-relations"></div>
     </section><!-- /crm -->
 
     <!-- Modal prospect -->
@@ -900,6 +839,10 @@ const HTML = `<!DOCTYPE html>
                 <option value="converti">Converti client</option>
                 <option value="sans_suite">Sans suite</option>
               </select>
+            </label>
+            <label class="form-group">
+              <span>Valeur estimée (€)</span>
+              <input type="number" id="prospect-valeur" class="form-input" min="0" step="100" placeholder="Ex: 1800" />
             </label>
             <label class="form-group">
               <span>Email</span>
@@ -2530,7 +2473,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=30"></script>
+<script src="/app.js?v=31"></script>
 </body>
 </html>
 `;
@@ -7000,26 +6943,139 @@ const CRM_STATUTS={
   sans_suite:{label:'Sans suite',color:'#6B6B6B',cls:'annule'},
 };
 
+const CRM_PROBA={contact:15,en_attente:25,positif:55,proposition:65,converti:100,negatif:0,sans_suite:0};
+const CRM_OPEN=['contact','en_attente','positif','proposition'];
+const CRM_COLS=[{id:'contact',lab:'À contacter'},{id:'en_attente',lab:'Relancé / en attente'},{id:'positif',lab:'Intéressé'},{id:'proposition',lab:'Devis envoyé'},{id:'converti',lab:'Gagné'},{id:'perdu',lab:'Perdu'}];
+function openProspectById(id){const p=_prospectsCache.find(x=>x.id===id);if(p)openProspectModal(p);}
+
 async function loadCrm(){
-  try{
-    const res=await api('GET','/api/prospects');
-    _prospectsCache=Array.isArray(res)?res:[];
-  }catch(e){_prospectsCache=[];}
-  renderCrmKpis();
-  renderCrmBanner();
-  renderCrmCharts();
-  renderCrmTable();
-  refreshCrmSecteurFilter();
-  const btnNew=q('#btn-new-prospect');
-  if(btnNew)btnNew.onclick=()=>openProspectModal();
-  const btnSave=q('#btn-save-prospect');
-  if(btnSave)btnSave.onclick=saveProspectModal;
-  const searchEl=q('#crm-search');
-  if(searchEl)searchEl.oninput=renderCrmTable;
-  const filtStatut=q('#crm-filter-statut');
-  if(filtStatut)filtStatut.onchange=renderCrmTable;
-  const filtSecteur=q('#crm-filter-secteur');
-  if(filtSecteur)filtSecteur.onchange=renderCrmTable;
+  try{const res=await api('GET','/api/prospects');_prospectsCache=Array.isArray(res)?res:[];}catch(e){_prospectsCache=[];}
+  try{crmPipeline();}catch(e){}
+  try{crmKpis();}catch(e){}
+  try{crmToday();}catch(e){}
+  try{crmObjectif();}catch(e){}
+  try{crmKanban();}catch(e){}
+  try{crmRelations();}catch(e){}
+  const btnNew=q('#btn-new-prospect'); if(btnNew)btnNew.onclick=()=>openProspectModal();
+  const btnSave=q('#btn-save-prospect'); if(btnSave)btnSave.onclick=saveProspectModal;
+  const searchEl=q('#crm-search'); if(searchEl)searchEl.oninput=()=>{try{crmKanban();}catch(e){}};
+  try{refreshCrmSecteurFilter();}catch(e){}
+}
+
+function crmPipeline(){
+  const el=q('#crm-pipeline'); if(!el)return;
+  const ps=_prospectsCache;
+  const open=ps.filter(p=>CRM_OPEN.includes(p.statut));
+  const caPot=open.reduce((s,p)=>s+(parseFloat(p.valeur)||0),0);
+  const todayStr=today();
+  const relances=ps.filter(p=>!['negatif','converti','sans_suite'].includes(p.statut)&&((p.relance1&&!p.dateRelance1&&p.relance1<=todayStr)||(p.relance2&&!p.dateRelance2&&p.relance2<=todayStr)||(p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr))).length;
+  const devis=ps.filter(p=>p.statut==='proposition').length;
+  const cell=(lab,val)=>\`<div><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;">\${val}</div></div>\`;
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:26px 30px;color:#fff;display:flex;gap:38px;flex-wrap:wrap;align-items:center;">
+    <div style="min-width:150px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">🎯 Mon pipeline</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;">\${open.length} prospect\${open.length>1?'s':''} actif\${open.length>1?'s':''}</div></div>
+    \${cell('CA potentiel',fmt(caPot))}
+    \${cell('Relances à faire',relances)}
+    \${cell('Devis en cours',devis)}
+  </div>\`;
+}
+
+function crmKpis(){
+  const el=q('#crm-kpis'); if(!el)return;
+  const open=_prospectsCache.filter(p=>CRM_OPEN.includes(p.statut));
+  const caPot=open.reduce((s,p)=>s+(parseFloat(p.valeur)||0),0);
+  const caAtt=open.reduce((s,p)=>s+(parseFloat(p.valeur)||0)*(CRM_PROBA[p.statut]||0)/100,0);
+  const proba=caPot>0?Math.round(caAtt/caPot*100):0;
+  const k=(lab,val,hint)=>\`<div class="card" style="padding:18px;"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);">\${val}</div>\${hint?\`<div style="font-size:10.5px;color:var(--text-2);">\${hint}</div>\`:''}</div>\`;
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+    \${k('CA potentiel',fmt(caPot))}
+    \${k('Opportunités',open.length)}
+    \${k('Proba de signature',proba+'%','pondérée par étape')}
+    \${k('CA attendu',fmt(Math.round(caAtt)),'potentiel × probabilité')}
+  </div>\`;
+}
+
+function crmToday(){
+  const el=q('#crm-today'); if(!el)return;
+  const todayStr=today();
+  const items=[];
+  _prospectsCache.forEach(p=>{
+    if(['negatif','converti','sans_suite'].includes(p.statut))return;
+    const nom=escHtml(p.nom||'Prospect')+(p.entreprise?' · '+escHtml(p.entreprise):'');
+    if(p.relance1&&!p.dateRelance1&&p.relance1<=todayStr)items.push({txt:'📧 Relancer '+nom,sub:'relance prévue le '+fmtDate(p.relance1),id:p.id});
+    else if(p.relance2&&!p.dateRelance2&&p.relance2<=todayStr)items.push({txt:'📞 Recontacter '+nom,sub:'2e relance',id:p.id});
+    else if(p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr)items.push({txt:'📄 Dernière relance '+nom,sub:'relance finale',id:p.id});
+  });
+  el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">📋 À faire aujourd'hui</div>
+    \${items.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${items.slice(0,6).map(it=>\`<div onclick="openProspectById('\${it.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${it.txt}<div style="font-size:11px;color:var(--text-2);">\${it.sub}</div></span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Aucune relance urgente aujourd'hui.</div>\`}
+  </div>\`;
+}
+
+function crmObjectif(){
+  const el=q('#crm-objectif'); if(!el)return;
+  let d={}; try{d=computeIntel();}catch(e){}
+  const settings=dbGetObj('settings');
+  const objCA=parseFloat(settings.objectifCA)||0;
+  if(objCA<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div><div style="font-size:13px;color:var(--text-2);">Définis un objectif de CA (dans Objectifs) pour que Finance te dise combien signer.</div></div>\`;return;}
+  const now=new Date(); const rem=Math.max(0,12-(now.getMonth()+1));
+  const manque=Math.max(0,objCA-(d.caYTD||0)-(d.recMensuel||0)*rem);
+  if(manque<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div><div style="font-size:15px;color:#3E9E74;font-weight:600;margin-top:6px;">🎉 Ton objectif annuel est déjà sécurisé.</div></div>\`;return;}
+  const opt=n=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
+  el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
+    <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div>
+    <div style="font-size:13px;color:var(--text-2);">Il te manque</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--navy);">\${fmt(manque)}</div>
+    <div style="font-size:12.5px;color:var(--text-2);margin:10px 0 2px;">Finance estime qu'il te faudrait signer :</div>
+    \${opt(1)}\${opt(2)}\${opt(5)}
+  </div>\`;
+}
+
+function crmKanban(){
+  const el=q('#crm-kanban'); if(!el)return;
+  const search=(q('#crm-search')&&q('#crm-search').value||'').toLowerCase();
+  const colOf=p=>['negatif','sans_suite'].includes(p.statut)?'perdu':p.statut;
+  const list=_prospectsCache.filter(p=>!search||((p.nom||'')+(p.entreprise||'')).toLowerCase().includes(search));
+  el.innerHTML=\`<div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">🗂️ Pipeline commercial</div>
+  <div style="display:grid;grid-template-columns:repeat(\${CRM_COLS.length},minmax(180px,1fr));gap:12px;overflow-x:auto;padding-bottom:4px;">
+  \${CRM_COLS.map(c=>{
+    const items=list.filter(p=>colOf(p)===c.id);
+    return \`<div style="background:var(--surface-2);border-radius:12px;padding:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;"><span style="font-size:11.5px;font-weight:700;color:var(--navy);">\${c.lab}</span><span style="font-size:11px;color:var(--text-2);">\${items.length}</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        \${items.map(p=>\`<div onclick="openProspectById('\${p.id}')" class="card" style="padding:11px;cursor:pointer;">
+          <div style="font-size:12.5px;font-weight:600;color:var(--navy);">\${escHtml(p.nom||'—')}</div>
+          \${p.entreprise?\`<div style="font-size:11px;color:var(--text-2);">\${escHtml(p.entreprise)}</div>\`:''}
+          \${(parseFloat(p.valeur)||0)>0?\`<div style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--navy);margin-top:4px;">\${fmt(parseFloat(p.valeur)||0)}</div>\`:''}
+        </div>\`).join('')||'<div style="font-size:11px;color:var(--text-2);opacity:.55;padding:4px 0;">—</div>'}
+      </div>
+    </div>\`;
+  }).join('')}
+  </div>\`;
+}
+
+function crmRelations(){
+  const el=q('#crm-relations'); if(!el)return;
+  const projets=dbGet('projets')||[]; const factures=dbGet('factures')||[];
+  const byClient={};
+  const ensure=c=>{byClient[c]=byClient[c]||{missions:0,ca:0,last:''};return byClient[c];};
+  projets.forEach(p=>{if(p.client)ensure(p.client).missions++;});
+  factures.forEach(f=>{if(!f.client)return;const o=ensure(f.client);if(f.statut==='payee')o.ca+=(f.montant||0);const dt=f.datePaiement||f.date||'';if(dt>o.last)o.last=dt;});
+  const arr=Object.keys(byClient).map(nom=>({nom,...byClient[nom]}));
+  if(!arr.length){el.innerHTML='';return;}
+  const fideles=arr.slice().sort((a,b)=>b.ca-a.ca).slice(0,3);
+  const todayStr=today();
+  const moisDepuis=ds=>ds?Math.round((new Date(todayStr)-new Date(ds))/(86400000*30.44)):null;
+  const inactifs=arr.filter(c=>c.last&&moisDepuis(c.last)>=5).sort((a,b)=>(a.last||'').localeCompare(b.last||'')).slice(0,3);
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
+    <div class="card" style="padding:22px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">❤️ Clients fidèles</div>
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;font-weight:500;">\${escHtml(c.nom)}<div style="font-size:11px;color:var(--text-2);">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:12px;color:var(--text-2);">—</div>'}
+    </div>
+    <div class="card" style="padding:22px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">⚠️ Clients à réactiver</div>
+      \${inactifs.length?inactifs.map(c=>\`<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">\${escHtml(c.nom)}</div><div style="font-size:11px;color:var(--text-2);">Dernière mission il y a \${moisDepuis(c.last)} mois — pourquoi ne pas reprendre contact ?</div></div>\`).join(''):'<div style="font-size:12px;color:#3E9E74;">Tous tes clients sont actifs 👍</div>'}
+    </div>
+  </div>\`;
 }
 
 function renderCrmKpis(){
@@ -7188,6 +7244,7 @@ function openProspectModal(data={}){
   q('#prospect-telephone').value=data.telephone||'';
   q('#prospect-siteweb').value=data.siteWeb||'';
   q('#prospect-statut').value=data.statut||'contact';
+  q('#prospect-valeur').value=data.valeur!=null&&data.valeur!==0?data.valeur:'';
   const dc=data.dateContact||today();
   q('#prospect-datecontact').value=dc;
   // Auto-calcul relances si nouveau
@@ -7222,6 +7279,7 @@ async function saveProspectModal(){
     telephone:q('#prospect-telephone').value.trim(),
     siteWeb:q('#prospect-siteweb').value.trim(),
     statut:q('#prospect-statut').value,
+    valeur:parseFloat(q('#prospect-valeur').value)||0,
     dateContact:q('#prospect-datecontact').value,
     relance1:q('#prospect-relance1').value,
     relance2:q('#prospect-relance2').value,
