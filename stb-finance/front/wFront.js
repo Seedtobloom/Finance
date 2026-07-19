@@ -37,7 +37,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v24 · cockpit premium</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v25 · patrimoine vivant</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -340,16 +340,21 @@ const HTML = `<!DOCTYPE html>
         <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
           <input type="hidden" id="perso-epargne-id">
           <div>
-            <label class="form-label">Support</label>
-            <input class="form-control" type="text" id="perso-epargne-nom" placeholder="Ex: Livret A, Assurance vie, PEA…">
+            <label class="form-label">Nom (optionnel)</label>
+            <input class="form-control" type="text" id="perso-epargne-nom" placeholder="Laisse vide pour utiliser le type (ex : Livret A)">
           </div>
           <div>
-            <label class="form-label">Nature</label>
+            <label class="form-label">Type de support</label>
             <select class="form-control" id="perso-epargne-cat">
-              <option value="liquidites">🏦 Liquidités (Livret A, LDDS…)</option>
-              <option value="longterme">📈 Long terme (Assurance vie, PEA, CTO…)</option>
-              <option value="immobilier">🏠 Immobilier (apport, SCPI…)</option>
-              <option value="autre">🎯 Autre</option>
+              <option value="livreta">🏦 Livret A</option>
+              <option value="ldds">🌿 LDDS</option>
+              <option value="av">📈 Assurance vie</option>
+              <option value="pea">📊 PEA</option>
+              <option value="cto">💹 CTO</option>
+              <option value="immo">🏠 Immobilier</option>
+              <option value="crypto">🪙 Crypto</option>
+              <option value="compte">💳 Compte perso</option>
+              <option value="autre">➕ Autre placement</option>
             </select>
           </div>
           <div>
@@ -2498,7 +2503,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=24"></script>
+<script src="/app.js?v=25"></script>
 </body>
 </html>
 `;
@@ -4759,7 +4764,7 @@ function renderCockpit(){
   const niveau2=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">\${santeCard}\${situationCard}</div>\`;
 
   // ===== ② Où va mon argent =====
-  const epEmoji={liquidites:'🏦',longterme:'📈',immobilier:'🏠',autre:'🎯'};
+  const epEmoji=SUP_EMOJI;
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100, tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
   const pasM=parseFloat(settings.pasFixe)||40;
   const abosD=dbGet('abonnements')||[];
@@ -5568,12 +5573,20 @@ function renderPersoBridge(ctx){
   </div>\`;
 }
 
-const PATRI_CATS=[
-  {id:'liquidites',nom:'Liquidités',emoji:'🏦',couleur:'#3B6DD4'},
-  {id:'longterme', nom:'Long terme', emoji:'📈',couleur:'#2AA9A0'},
-  {id:'immobilier',nom:'Immobilier', emoji:'🏠',couleur:'#E8A838'},
-  {id:'autre',     nom:'Autre',       emoji:'🎯',couleur:'#7C3AED'},
+const SUP_TYPES=[
+  {id:'livreta',nom:'Livret A',      emoji:'🏦',couleur:'#3B6DD4'},
+  {id:'ldds',   nom:'LDDS',          emoji:'🌿',couleur:'#4CAF82'},
+  {id:'av',     nom:'Assurance vie', emoji:'📈',couleur:'#2AA9A0'},
+  {id:'pea',    nom:'PEA',           emoji:'📊',couleur:'#4C6FBF'},
+  {id:'cto',    nom:'CTO',           emoji:'💹',couleur:'#7C3AED'},
+  {id:'immo',   nom:'Immobilier',    emoji:'🏠',couleur:'#E8A838'},
+  {id:'crypto', nom:'Crypto',        emoji:'🪙',couleur:'#E0A3C0'},
+  {id:'compte', nom:'Compte perso',  emoji:'💳',couleur:'#6B7A99'},
+  {id:'autre',  nom:'Autre placement',emoji:'➕',couleur:'#9AA4B5'},
 ];
+const SUP_EMOJI={liquidites:'🏦',longterme:'📈',immobilier:'🏠'}; SUP_TYPES.forEach(t=>{SUP_EMOJI[t.id]=t.emoji;});
+function supType(cat){return SUP_TYPES.find(t=>t.id===cat)||{id:'autre',nom:'Placement',emoji:SUP_EMOJI[cat]||'💰',couleur:'#2AA9A0'};}
+function supEmoji(cat){return SUP_EMOJI[cat]||'💰';}
 function loadPatrimoine(){renderPatrimoine();}
 function renderPatrimoine(){
   const gEl=q('#patrimoine-global'), cEl=q('#patrimoine-content');
@@ -5582,45 +5595,69 @@ function renderPatrimoine(){
   const items=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
   const totalSolde=items.reduce((a,e)=>a+(parseFloat(e.solde)||0),0);
   const totalMensuel=items.reduce((a,e)=>a+(parseFloat(e.montant)||0),0);
-  const catTot={}; PATRI_CATS.forEach(c=>catTot[c.id]=0);
-  items.forEach(e=>{const k=catTot[e.cat]!=null?e.cat:'autre';catTot[k]+=(parseFloat(e.solde)||0);});
+  const now=new Date(); const m=now.getMonth()+1;
+  const misCetteAnnee=Math.round(totalMensuel*m);
+  let besoin=0; try{besoin=computePerso().besoin;}catch(e){}
+  const moisLib=besoin>0?(totalSolde/besoin):null;
+
+  let chart='';
+  if(totalSolde>0||totalMensuel>0){
+    const base=Math.max(0,totalSolde-totalMensuel*m);
+    const pts=[]; for(let i=0;i<12;i++)pts.push(base+totalMensuel*(i+1));
+    const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts.concat(min+1));
+    const W=320,H=70;
+    const X=i=>(i/11*W).toFixed(1);
+    const Y=v=>(H-(max===min?H/2:((v-min)/(max-min))*(H-10)+5)).toFixed(1);
+    const cur=Math.max(0,m-1);
+    const solid=pts.slice(0,cur+1).map((v,i)=>X(i)+','+Y(v));
+    const dash=pts.slice(cur).map((v,i)=>X(cur+i)+','+Y(v));
+    const area='M'+X(0)+','+H+' L'+solid.join(' L')+' L'+X(cur)+','+H+' Z';
+    chart=\`<svg viewBox="0 0 \${W} \${H}" preserveAspectRatio="none" style="width:100%;height:70px;margin-top:16px;overflow:visible;">
+      <path d="\${area}" fill="rgba(123,224,174,.18)"/>
+      <polyline points="\${solid.join(' ')}" fill="none" stroke="#7BE0AE" stroke-width="2.5"/>
+      <polyline points="\${dash.join(' ')}" fill="none" stroke="#7BE0AE" stroke-width="2" stroke-dasharray="4 4" opacity=".55"/>
+      <circle cx="\${X(cur)}" cy="\${Y(pts[cur])}" r="3.5" fill="#fff" stroke="#7BE0AE" stroke-width="2"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:10px;opacity:.5;margin-top:2px;"><span>Jan</span><span>Avr</span><span>Juil</span><span>Oct</span><span>Déc</span></div>\`;
+  }
+
   if(gEl){
-    gEl.innerHTML=\`<div style="background:linear-gradient(160deg,var(--navy),#24386a);border-radius:16px;padding:22px 26px;color:#fff;">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Ton patrimoine</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:700;margin:4px 0 12px;">\${fmt(totalSolde)}</div>
-      <div style="display:flex;gap:22px;flex-wrap:wrap;">
-        \${PATRI_CATS.filter(c=>catTot[c.id]>0).map(c=>\`<div><div style="font-size:11px;opacity:.6;">\${c.emoji} \${c.nom}</div><div style="font-family:'Cormorant Garamond',serif;font-size:20px;">\${fmt(catTot[c.id])}</div></div>\`).join('')||'<div style="font-size:12.5px;opacity:.75;">Ajoute tes supports (Livret, assurance vie…) pour voir ton patrimoine.</div>'}
-      </div>
-      \${totalMensuel>0?\`<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;opacity:.85;">Tu alimentes ton patrimoine de <strong>\${fmt(totalMensuel)} / mois</strong>, soit \${fmt(totalMensuel*12)} sur l'année.</div>\`:''}
+    gEl.innerHTML=\`<div style="background:linear-gradient(135deg,var(--navy),#2c4275);border-radius:20px;padding:28px 32px;color:#fff;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Mon patrimoine</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
+      \${misCetteAnnee>0?\`<div style="font-size:13px;color:#7BE0AE;">↗ +\${fmt(misCetteAnnee)} cette année · <span style="opacity:.85;">tu construis ton patrimoine chaque mois.</span></div>\`:\`<div style="font-size:13px;opacity:.75;">Chaque euro mis de côté fait grandir ta richesse.</div>\`}
+      \${chart}
+      \${(totalMensuel>0||moisLib!=null)?\`<div style="display:flex;gap:32px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
+        \${totalMensuel>0?\`<div><div style="font-size:11px;opacity:.6;">💰 Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:10.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} par an ajoutés à ton patrimoine</div></div>\`:''}
+        \${moisLib!=null?\`<div><div style="font-size:11px;opacity:.6;">🔥 Ton patrimoine couvre</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;">\${moisLib.toFixed(1).replace('.',',')} mois</div><div style="font-size:10.5px;opacity:.6;">de tes dépenses personnelles</div></div>\`:''}
+      </div>\`:''}
     </div>\`;
   }
-  if(!items.length){cEl.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:32px;">💼</div><div style="font-size:14px;margin:8px 0;">Livret A, assurance vie, PEA, apport immo… ajoute tes supports, fixe un objectif, et suis ta progression.</div><button class="btn btn-primary" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter mon premier support</button></div>\`;return;}
-  cEl.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">\`+PATRI_CATS.filter(c=>items.some(e=>(e.cat||'autre')===c.id)).map(c=>{
-    const list=items.filter(e=>(e.cat||'autre')===c.id);
-    const rows=list.map(e=>{
-      const solde=parseFloat(e.solde)||0, obj=parseFloat(e.objectif)||0, mens=parseFloat(e.montant)||0;
-      const pct=obj>0?Math.min(100,Math.round(solde/obj*100)):0;
-      const reste=Math.max(0,obj-solde);
-      const conseil=obj>0&&mens>0&&reste>0?' · objectif dans ~'+Math.ceil(reste/mens)+' mois':'';
-      return \`<div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
-          <span style="font-size:13px;font-weight:600;color:var(--navy);">\${escHtml(e.nom||'—')}</span>
-          <span style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:'Cormorant Garamond',serif;font-size:17px;">\${fmt(solde)}\${obj>0?' <span style="font-size:12px;color:var(--text-2);">/ '+fmt(obj)+'</span>':''}</span>
-            <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
-            <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
-          </span>
-        </div>
-        \${obj>0?\`<div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin:6px 0;"><div style="height:100%;width:\${pct}%;background:\${c.couleur};border-radius:4px;"></div></div>\`:''}
-        <div style="font-size:11px;color:var(--text-2);">\${mens>0?fmt(mens)+' / mois':'pas de versement mensuel'}\${obj>0?' · '+pct+'% · encore '+fmt(reste):''}\${conseil}</div>
-      </div>\`;
-    }).join('');
-    const catSolde=list.reduce((a,e)=>a+(parseFloat(e.solde)||0),0);
-    return \`<div class="card" style="padding:18px;border-top:3px solid \${c.couleur};">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
-        <span style="font-size:13px;font-weight:700;color:var(--navy);">\${c.emoji} \${c.nom}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:18px;color:\${c.couleur};">\${fmt(catSolde)}</span>
-      </div>\${rows}
+
+  if(!items.length){cEl.innerHTML=\`<div class="card" style="padding:32px;text-align:center;border:1.5px dashed var(--border);background:none;">
+    <div style="font-size:34px;">🌱</div>
+    <div style="font-size:17px;font-weight:600;color:var(--navy);margin:10px 0 6px;">Commence à construire ton patrimoine</div>
+    <div style="font-size:13.5px;color:var(--text-2);max-width:440px;margin:0 auto 18px;line-height:1.55;">Ajoute ton Livret A, ton assurance vie ou tes autres placements pour suivre ta richesse grandir au fil du temps.</div>
+    <button class="btn btn-primary" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter mon premier support</button>
+  </div>\`;return;}
+
+  cEl.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">\`+items.map(e=>{
+    const t=supType(e.cat);
+    const solde=parseFloat(e.solde)||0, obj=parseFloat(e.objectif)||0, mens=parseFloat(e.montant)||0;
+    const pct=obj>0?Math.min(100,Math.round(solde/obj*100)):0;
+    const reste=Math.max(0,obj-solde);
+    const nom=escHtml(e.nom||t.nom);
+    return \`<div class="card" style="padding:20px;border-top:3px solid \${t.couleur};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <span style="font-size:13px;font-weight:700;color:var(--navy);">\${t.emoji} \${nom}</span>
+        <span style="display:flex;gap:6px;">
+          <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
+          <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:13px;"><i class="ti ti-trash"></i></button>
+        </span>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--navy);margin:8px 0 2px;">\${fmt(solde)}</div>
+      \${mens>0?\`<div style="font-size:12px;color:#3E9E74;font-weight:600;">+\${fmt(mens)} / mois</div>\`:\`<div style="font-size:12px;color:var(--text-2);">pas de versement mensuel</div>\`}
+      \${obj>0?\`<div style="margin-top:12px;"><div style="height:7px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${t.couleur};border-radius:5px;transition:width .5s;"></div></div><div style="font-size:10.5px;color:var(--text-2);margin-top:5px;">\${pct}% de ton objectif (\${fmt(obj)})\${reste>0?' · encore '+fmt(reste):''}\${(mens>0&&reste>0)?' · ~'+Math.ceil(reste/mens)+' mois':''}</div></div>\`:''}
     </div>\`;
   }).join('')+\`</div>\`;
 }
@@ -5662,7 +5699,7 @@ function openPersoEpargneModal(id){
   const it=id?items.find(x=>x.id===id):null;
   q('#perso-epargne-id').value=it?it.id:'';
   q('#perso-epargne-nom').value=it?(it.nom||''):'';
-  q('#perso-epargne-cat').value=it?(it.cat||'liquidites'):'liquidites';
+  q('#perso-epargne-cat').value=it?(it.cat||'livreta'):'livreta';
   q('#perso-epargne-montant').value=it&&it.montant!=null?it.montant:'';
   q('#perso-epargne-solde').value=it&&it.solde!=null&&it.solde!==0?it.solde:'';
   q('#perso-epargne-objectif').value=it&&it.objectif!=null&&it.objectif!==0?it.objectif:'';
@@ -5671,13 +5708,13 @@ function openPersoEpargneModal(id){
 }
 async function savePersoEpargne(){
   try{
-    const nom=q('#perso-epargne-nom').value.trim();
     const montant=parseFloat(q('#perso-epargne-montant').value);
-    if(!nom){toast('Donne un nom au support','error');return;}
+    const cat=q('#perso-epargne-cat').value;
+    let nom=q('#perso-epargne-nom').value.trim();
+    if(!nom){nom=supType(cat).nom;}
     if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
     let solde=parseFloat(q('#perso-epargne-solde').value); if(isNaN(solde)||solde<0)solde=0;
     let objectif=parseFloat(q('#perso-epargne-objectif').value); if(isNaN(objectif)||objectif<0)objectif=0;
-    const cat=q('#perso-epargne-cat').value;
     const settings=dbGetObj('settings');
     const items=Array.isArray(settings.persoEpargne)?settings.persoEpargne.slice():[];
     const id=q('#perso-epargne-id').value;
