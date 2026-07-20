@@ -2545,7 +2545,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=38"></script>
+<script src="/app.js?v=39"></script>
 </body>
 </html>
 `;
@@ -9185,7 +9185,7 @@ function chDefault(){
     {id:'b13',nom:'Livraison / mise en ligne',h:1,on:true},
     {id:'b14',nom:'Formation client',h:2,on:false},
     {id:'b15',nom:'Administration',h:1,on:true},
-  ], arCount:2, arH:1.5, marge:10, st:0, frais:0};
+  ], arCount:2, arH:1.5, arPrix:0, marge:10, st:0, frais:0};
 }
 function chInit(){ if(!_chState)_chState=chDefault(); }
 function chToggle(id){chInit();const b=_chState.bricks.find(x=>x.id===id);if(b)b.on=!b.on;renderChiffrage();}
@@ -9225,6 +9225,7 @@ function renderChiffrage(){
       <div><label class="form-label">Allers-retours inclus</label><input type="number" value="\${S.arCount}" min="0" step="1" oninput="chAR('arCount',this.value)" class="form-input"></div>
       <div><label class="form-label">Temps / A-R (h)</label><input type="number" value="\${S.arH}" min="0" step="0.5" oninput="chAR('arH',this.value)" class="form-input"></div>
     </div>
+    <div class="form-group"><label class="form-label">Prix d'un A-R supplémentaire (€)</label><input type="number" value="\${S.arPrix||''}" min="0" step="10" oninput="chExtra('arPrix',this.value)" class="form-input" placeholder="Auto d'après ton tarif si vide"></div>
     <div class="form-group"><label class="form-label">Marge de sécurité</label>
       <select class="form-select" onchange="chMarge(this.value)">
         <option value="0" \${S.marge==0?'selected':''}>0 %</option>
@@ -9274,7 +9275,8 @@ function chResult(){
   const prixCons=Math.round(tjmCons*jours+add);
   const prixConf=Math.round(tjmConf*jours+add);
   const maxH=tjmMin>0?Math.round((prixCons-add)/tjmMin*CH_HPD):null; // au-delà, sous le minimum vital
-  const coutAR=Math.round((parseFloat(S.arH)||1.5)*tjmCons/CH_HPD);
+  const coutAR=(parseFloat(S.arPrix)||0)>0?Math.round(parseFloat(S.arPrix)):Math.round((parseFloat(S.arH)||1.5)*tjmCons/CH_HPD);
+  const arManuel=(parseFloat(S.arPrix)||0)>0;
 
   const priceCard=(lab,val,emph)=>\`<div style="flex:1;min-width:130px;\${emph?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emph?'40px':'26px'};font-weight:700;\${emph?'color:#7BE0AE;':''}">\${fmt(val)}</div></div>\`;
   const justif=(lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;">\${val}</span></div>\`;
@@ -9306,7 +9308,7 @@ function chResult(){
         \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Max avant de perdre</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${maxH} h</div></div>\`:''}
         \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#3E9E74':'#E05252'};">\${Math.round((maxH-totalH)*10)/10} h</div></div>\`:''}
       </div>
-      \${(parseFloat(S.arCount)||0)>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu inclus <strong>\${S.arCount} aller\${S.arCount>1?'s':''}-retour\${S.arCount>1?'s':''}</strong> (~\${Math.round(arH*10)/10} h). Chaque A-R supplémentaire réduit ton bénéfice d'environ <strong style="color:#E05252;">\${fmt(coutAR)}</strong> — facture-le au-delà.</div>\`:''}
+      \${(parseFloat(S.arCount)||0)>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu inclus <strong>\${S.arCount} aller\${S.arCount>1?'s':''}-retour\${S.arCount>1?'s':''}</strong> (~\${Math.round(arH*10)/10} h). \${arManuel?'Au-delà, facture <strong style=\"color:var(--navy);\">'+fmt(coutAR)+'</strong> par aller-retour supplémentaire.':'Chaque A-R supplémentaire réduit ton bénéfice d\\'environ <strong style=\"color:#E05252;\">'+fmt(coutAR)+'</strong> — pense à le facturer.'}</div>\`:''}
       \${maxH!=null?\`<div style="font-size:12px;color:var(--text-2);margin-top:6px;">Au-delà de \${maxH} h, ce projet passe sous ton minimum vital.</div>\`:''}
     </div>
   </div>\`;
