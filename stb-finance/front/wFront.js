@@ -2545,7 +2545,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=39"></script>
+<script src="/app.js?v=40"></script>
 </body>
 </html>
 `;
@@ -9185,7 +9185,7 @@ function chDefault(){
     {id:'b13',nom:'Livraison / mise en ligne',h:1,on:true},
     {id:'b14',nom:'Formation client',h:2,on:false},
     {id:'b15',nom:'Administration',h:1,on:true},
-  ], arCount:2, arH:1.5, arPrix:0, marge:10, st:0, frais:0};
+  ], salaire:'', epargne:'', arCount:2, arH:1.5, arPrix:0, marge:10, st:0, frais:0};
 }
 function chInit(){ if(!_chState)_chState=chDefault(); }
 function chToggle(id){chInit();const b=_chState.bricks.find(x=>x.id===id);if(b)b.on=!b.on;renderChiffrage();}
@@ -9195,12 +9195,14 @@ function chDel(id){chInit();_chState.bricks=_chState.bricks.filter(x=>x.id!==id)
 function chAR(f,v){chInit();_chState[f]=parseFloat(v)||0;chResult();}
 function chMarge(v){chInit();_chState.marge=parseFloat(v)||0;chResult();}
 function chExtra(f,v){chInit();_chState[f]=parseFloat(v)||0;chResult();}
+function chObjectif(f,v){chInit();_chState[f]=v;chResult();}
 function chReset(){_chState=chDefault();renderChiffrage();}
 
 function renderChiffrage(){
   chInit();
   const el=q('#ch-builder'); if(!el)return;
   const S=_chState;
+  let perso={besoin:0,epargneMensuel:0}; try{perso=computePerso();}catch(e){}
   const row=b=>\`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);\${b.on?'':'opacity:.45;'}">
     <input type="checkbox" \${b.on?'checked':''} onchange="chToggle('\${b.id}')" style="width:16px;height:16px;cursor:pointer;flex:none;">
     <span style="flex:1;font-size:13px;">\${escHtml(b.nom)}</span>
@@ -9214,6 +9216,13 @@ function renderChiffrage(){
       <button class="btn btn-ghost btn-xs" onclick="chReset()">Réinitialiser</button>
     </div>
     <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Active / désactive chaque brique, ajuste les heures. Décoche ou mets 0 h ce que tu ne fais pas.</div>
+    <div style="background:var(--surface-2);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;">🎯 Tes objectifs pour ce tarif</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div><label class="form-label">Salaire visé (€ / mois)</label><input type="number" value="\${S.salaire}" min="0" step="50" oninput="chObjectif('salaire',this.value)" class="form-input" placeholder="auto : \${Math.round(perso.besoin||0)}"></div>
+        <div><label class="form-label">Épargne visée (€ / mois)</label><input type="number" value="\${S.epargne}" min="0" step="50" oninput="chObjectif('epargne',this.value)" class="form-input" placeholder="auto : \${Math.round(perso.epargneMensuel||0)}"></div>
+      </div>
+    </div>
     \${S.bricks.map(row).join('')}
     <div style="display:flex;gap:6px;margin-top:10px;">
       <input id="ch-new-nom" class="form-input" placeholder="Ajouter une tâche (ex: Migration ACF)" style="flex:1;">
@@ -9266,8 +9275,8 @@ function chResult(){
 
   if(totalH<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;">🧱</div><div style="font-size:14px;margin-top:8px;">Assemble les briques de ton projet à gauche — Finance calcule le prix à vendre, d'après tes objectifs.</div></div>\`;return;}
 
-  const salaireVital=Math.round(perso.besoin||perso.salaireConseille||0);
-  const epargne=Math.round(perso.epargneMensuel||0);
+  const salaireVital=(S.salaire!==''&&S.salaire!=null)?(parseFloat(S.salaire)||0):Math.round(perso.besoin||perso.salaireConseille||0);
+  const epargne=(S.epargne!==''&&S.epargne!=null)?(parseFloat(S.epargne)||0):Math.round(perso.epargneMensuel||0);
   const confort=Math.round(parseFloat(settings.persoConfort)||salaireVital*1.2||0);
   const tjmFor=(sal,ep)=>((sal+ep+chargesEnt)/Math.max(0.01,1-taux)*12)/joursAn;
   const tjmMin=tjmFor(salaireVital,0), tjmCons=tjmFor(salaireVital,epargne), tjmConf=tjmFor(confort,epargne);
