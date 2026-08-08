@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=48" />
+  <link rel="stylesheet" href="/style.css?v=49" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v48 · texte XL, sidebar marron foncé build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v49 · montants agrandis build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2546,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=48"></script>
+<script src="/app.js?v=49"></script>
 </body>
 </html>
 `;
@@ -2988,7 +2988,7 @@ html, body {
 }
 .kpi-value {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 32px;
+  font-size: 38px;
   font-weight: 500;
   color: var(--navy);
   line-height: 1;
@@ -3085,7 +3085,7 @@ tbody tr:hover td { background: var(--surface-2); }
 }
 .td-amount {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--navy);
   white-space: nowrap;
@@ -3391,7 +3391,7 @@ canvas { display: block; width: 100%; }
 }
 .progress-amount {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--navy);
   width: 90px;
@@ -3479,7 +3479,7 @@ canvas { display: block; width: 100%; }
 }
 .urssaf-montant {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 500;
   color: var(--navy);
   margin: 6px 0 4px;
@@ -3540,7 +3540,7 @@ canvas { display: block; width: 100%; }
 }
 .goal-current {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 500;
   color: var(--navy);
 }
@@ -3621,7 +3621,7 @@ canvas { display: block; width: 100%; }
 .sim-line-amount.pos { color: var(--success); }
 .sim-total { background: rgba(65,47,33,0.03); }
 .sim-total .sim-line-label { color: var(--navy); font-weight: 600; }
-.sim-total .sim-line-amount { font-size: 24px; color: var(--navy); }
+.sim-total .sim-line-amount { font-size: 28px; color: var(--navy); }
 .sim-section-label {
   font-size: 11px;
   font-weight: 600;
@@ -3636,7 +3636,7 @@ canvas { display: block; width: 100%; }
 .slider-wrap { display: flex; flex-direction: column; gap: 8px; }
 .slider-header { display: flex; justify-content: space-between; align-items: center; }
 .slider-label { font-size: 14px; color: var(--text-2); }
-.slider-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--navy); }
+.slider-value { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 500; color: var(--navy); }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -3680,7 +3680,7 @@ input[type="range"]::-moz-range-thumb {
 .scenario-card.realiste  { border-color: rgba(65,47,33,0.2);   background: var(--blue-10); }
 .scenario-card.pessimiste{ border-color: rgba(138,100,20,0.3); background: var(--warning-10); }
 .scenario-label { font-size: 13px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--navy); }
+.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--navy); }
 .scenario-sub   { font-size: 13px; color: var(--text-2); margin-top: 2px; }
 
 /* ===========================
@@ -3862,7 +3862,7 @@ input[type="range"]::-moz-range-thumb {
 .pot-icon { font-size: 22px; margin-bottom: 6px; }
 .pot-solde {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 30px;
+  font-size: 35px;
   font-weight: 500;
   margin: 2px 0 4px;
 }
@@ -3884,7 +3884,7 @@ input[type="range"]::-moz-range-thumb {
 .compte-nom { font-size: 15px; font-weight: 600; color: var(--navy); }
 .compte-solde {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 34px;
+  font-size: 39px;
   font-weight: 500;
   color: var(--navy);
   margin: 4px 0 6px;
@@ -4030,7 +4030,7 @@ input[type="range"]::-moz-range-thumb {
 .fiscal-plafond-fill.danger  { background: var(--danger); }
 .fiscal-plafond-pct {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 500;
   color: var(--navy);
   white-space: nowrap;
@@ -4056,7 +4056,7 @@ input[type="range"]::-moz-range-thumb {
 .charges-recap-label { color: var(--text-2); }
 .charges-recap-amount {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 16px;
+  font-size: 18px;
   color: var(--navy);
 }
 .charges-recap-total {
@@ -4098,7 +4098,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .result-card-value {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
+  font-size: 31px;
   font-weight: 500;
 }
 
@@ -4949,7 +4949,7 @@ function renderCockpit(){
       \${recit}
     </div>
     <div style="text-align:center;flex:none;align-self:center;">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:54px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</div>
       <div style="font-size:12px;opacity:.7;">\${dot(d.score>=80?'#b7d3ad':d.score>=55?'#e9cf87':'#e0796e')}Santé · \${scoreLabel}</div>
       \${scoreDelta!=null&&scoreDelta!==0?\`<div style="font-size:12px;color:\${scoreDelta>0?'#b7d3ad':'#e9cf87'};">\${scoreDelta>0?'<i class=\"ti ti-trending-up\"></i> +'+scoreDelta:'<i class=\"ti ti-trending-down\"></i> '+scoreDelta} ce mois</div>\`:''}
     </div>
@@ -4958,7 +4958,7 @@ function renderCockpit(){
   // ═══ ② Ton plan financier ═══
   let planBloc='';
   if(p.besoin>0){
-    const eLine=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px;\${strong?'border-top:1px solid var(--border);margin-top:3px;font-weight:600;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'16px':'14px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
+    const eLine=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:14px;\${strong?'border-top:1px solid var(--border);margin-top:3px;font-weight:600;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'19px':'16px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
     const propose=[];
     supAll.filter(e=>(parseFloat(e.montant)||0)>0).forEach(e=>propose.push({emoji:supEmoji(e.cat),nom:e.nom||supType(e.cat).nom,val:parseFloat(e.montant)||0}));
     projVie.filter(pr=>(parseFloat(pr.mensualite)||0)>0).forEach(pr=>propose.push({emoji:pvieCat(pr.cat).emoji,nom:pr.nom||'Projet',val:parseFloat(pr.mensualite)||0}));
@@ -4990,9 +4990,9 @@ function renderCockpit(){
   const activite=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title"><i class="ti ti-chart-line"></i> Mon activité</div>
     <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:\${objCA>0?'14px':'0'};">
-      <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">CA du mois</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);">\${fmt(d.caMois)}</div></div>
-      <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">CA annuel</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);">\${fmt(d.caYTD)}</div></div>
-      \${d.recMensuel>0?\`<div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);"><i class="ti ti-repeat"></i> Récurrent</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#456039;">\${fmt(d.recMensuel)}<span style="font-size:13px;color:var(--text-2);"> /mois</span></div></div>\`:''}
+      <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">CA du mois</div><div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--navy);">\${fmt(d.caMois)}</div></div>
+      <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">CA annuel</div><div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--navy);">\${fmt(d.caYTD)}</div></div>
+      \${d.recMensuel>0?\`<div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);"><i class="ti ti-repeat"></i> Récurrent</div><div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:#456039;">\${fmt(d.recMensuel)}<span style="font-size:13px;color:var(--text-2);"> /mois</span></div></div>\`:''}
     </div>
     \${objCA>0?\`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:5px;"><span>Objectif \${fmt(objCA)}</span><span>\${pctO}%</span></div>
     <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pctO}%;background:var(--navy);border-radius:5px;"></div></div>
@@ -5006,7 +5006,7 @@ function renderCockpit(){
     const parts=[{emoji:'<i class=\"ti ti-building\"></i>',nom:'Entreprise',val:entreprise}].concat(supAll.filter(e=>(parseFloat(e.solde)||0)>0).map(e=>({emoji:supEmoji(e.cat),nom:e.nom||supType(e.cat).nom,val:parseFloat(e.solde)||0}))).sort((a,b)=>b.val-a.val);
     avenir=\`<div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-briefcase"></i> Mon avenir</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;margin:2px 0;">\${fmt(valeurNette)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;margin:2px 0;">\${fmt(valeurNette)}</div>
       \${misCetteAnnee>0?\`<div style="font-size:13.5px;color:#b7d3ad;margin-bottom:12px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:'<div style="margin-bottom:8px;"></div>'}
       <div style="display:flex;flex-direction:column;gap:5px;">\${parts.slice(0,4).map(x=>\`<div style="display:flex;justify-content:space-between;font-size:14px;"><span style="opacity:.85;">\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.val)}</span></div>\`).join('')}</div>
       \${moisAutonomie!=null?\`<div style="font-size:14px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);"><i class="ti ti-lifebuoy"></i> \${moisAutonomie} mois de dépenses couverts</div>\`:''}
