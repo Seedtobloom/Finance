@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=45" />
+  <link rel="stylesheet" href="/style.css?v=46" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v45 · fidélité Écrin build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v46 · marron·violet, sans dégradé build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -426,7 +426,7 @@ const HTML = `<!DOCTYPE html>
             <input class="form-control" type="number" id="perso-palier-confort" min="0" step="50" placeholder="Ex: 3000">
           </div>
           <div>
-            <label class="form-label">🔵 Objectif salaire (€ / mois)</label>
+            <label class="form-label">🟣 Objectif salaire (€ / mois)</label>
             <input class="form-control" type="number" id="perso-palier-objectif" min="0" step="50" placeholder="Ex: 3500">
           </div>
           <div>
@@ -2546,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=45"></script>
+<script src="/app.js?v=46"></script>
 </body>
 </html>
 `;
@@ -2571,7 +2571,7 @@ const CSS  = `/* =============================================
   --vert:#456039;  --vert-bg:#e6f0e2;
   --ambre:#8a6414; --ambre-bg:#f6ead2;
   --rouge:#8d2b21; --rouge-bg:#f6e4de;
-  --bleu:#305277;  --bleu-bg:#eef3f6;
+  --bleu:#59409a;  --bleu-bg:#efe1ff;
   --violet-ink:#59409a; --violet-bg:#efe1ff;
 
   /* ── typographie ── */
@@ -2591,7 +2591,7 @@ const CSS  = `/* =============================================
   --surface-2:  #efe7d7;
   --cream:      #F2E5C2;
   --navy:       #412F21;
-  --blue:       #305277;
+  --blue:       #59409a;
   --violet:     #E4D1FE;
   --brown:      #412F21;
   --success:    #456039;
@@ -2601,7 +2601,7 @@ const CSS  = `/* =============================================
   --text-2:     #6b533b;
   --border:     #eae5dc;
 
-  --blue-10:    #eef3f6;
+  --blue-10:    #efe1ff;
   --violet-10:  #efe1ff;
   --success-10: #e6f0e2;
   --warning-10: #f6ead2;
@@ -2700,8 +2700,8 @@ html, body {
 #sidebar {
   width: 240px;
   min-width: 240px;
-  background: var(--bg);
-  border-right: 1px solid var(--border);
+  background: var(--terre);
+  border-right: 1px solid rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -2710,13 +2710,13 @@ html, body {
 
 .sidebar-logo {
   padding: 20px 20px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 .sidebar-logo .logo-name {
   font-family: 'Cormorant Garamond', serif;
   font-size: 18px;
   font-weight: 600;
-  color: var(--navy);
+  color: var(--paille);
   display: block;
   line-height: 1.2;
 }
@@ -2724,7 +2724,7 @@ html, body {
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.5);
   margin-top: 2px;
   display: block;
 }
@@ -2738,7 +2738,7 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.4);
   padding: 0 20px 4px;
   display: block;
 }
@@ -2750,7 +2750,7 @@ html, body {
   gap: 9px;
   padding: 7px 20px;
   cursor: pointer;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.72);
   font-size: 13px;
   font-weight: 400;
   border-left: 2px solid transparent;
@@ -2760,14 +2760,14 @@ html, body {
   user-select: none;
 }
 .nav-item:hover {
-  color: var(--text);
-  background: var(--surface-2);
+  color: #fff;
+  background: rgba(255,255,255,0.07);
 }
 .nav-item.active {
-  color: var(--navy);
+  color: #fff;
   font-weight: 500;
-  border-left-color: var(--blue);
-  background: rgba(169,139,214,0.15);
+  border-left-color: var(--glycine);
+  background: rgba(255,255,255,0.12);
 }
 .nav-item .ti {
   font-size: 15px;
@@ -2776,14 +2776,14 @@ html, body {
 }
 .nav-item.active .ti {
   opacity: 1;
-  color: var(--navy);
+  color: var(--glycine);
 }
 
 /* Bas de sidebar — profil */
 .sidebar-footer {
   margin-top: auto;
   padding: 14px 20px 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 .sidebar-user {
   display: flex;
@@ -2794,8 +2794,8 @@ html, body {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background: var(--navy);
-  color: #fff;
+  background: var(--paille);
+  color: var(--terre);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -2808,12 +2808,12 @@ html, body {
 .user-info .user-name {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text);
+  color: #fff;
   line-height: 1.2;
 }
 .user-info .user-company {
   font-size: 11px;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.55);
 }
 .btn-logout {
   display: flex;
@@ -2822,18 +2822,18 @@ html, body {
   padding: 7px 12px;
   border-radius: 7px;
   font-size: 12px;
-  color: var(--text-2);
+  color: rgba(255,255,255,0.7);
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
   font-family: 'Inter Tight', sans-serif;
   transition: all 0.12s;
   width: 100%;
 }
 .btn-logout:hover {
-  color: var(--danger);
-  border-color: rgba(141,43,33,0.3);
-  background: var(--danger-10);
+  color: #fff;
+  border-color: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.1);
 }
 
 /* ===========================
@@ -2962,7 +2962,7 @@ html, body {
   justify-content: center;
   font-size: 17px;
 }
-.kpi-icon.blue   { background: var(--blue-10);    color: #305277; }
+.kpi-icon.blue   { background: var(--blue-10);    color: #59409a; }
 .kpi-icon.violet { background: var(--violet-10);  color: #8e68d5; }
 .kpi-icon.green  { background: var(--success-10); color: var(--success); }
 .kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
@@ -2989,7 +2989,7 @@ html, body {
   margin-bottom: 4px;
   display: block;
 }
-.kpi-value.blue    { color: #305277; }
+.kpi-value.blue    { color: #59409a; }
 .kpi-value.green   { color: var(--success); }
 .kpi-value.danger  { color: var(--danger); }
 .kpi-value.violet  { color: #7c5cbf; }
@@ -3125,12 +3125,12 @@ tbody tr:hover td { background: var(--surface-2); }
 .badge-pause     { background: var(--warning-10); color: #8a6414; }
 .badge-annule    { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
 /* URSSAF */
-.badge-a-venir   { background: var(--blue-10);    color: #305277; }
+.badge-a-venir   { background: var(--blue-10);    color: #59409a; }
 .badge-a-payer   { background: var(--warning-10); color: #8a6414; }
 .badge-paye      { background: var(--success-10); color: #456039; }
 /* Génériques */
 .badge-neutral   { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
-.badge-blue      { background: var(--blue-10);    color: #305277; }
+.badge-blue      { background: var(--blue-10);    color: #59409a; }
 .badge-violet    { background: var(--violet-10);  color: #7c5cbf; }
 .badge-success   { background: var(--success-10); color: #456039; }
 .badge-warning   { background: var(--warning-10); color: #8a6414; }
@@ -3796,7 +3796,7 @@ input[type="range"]::-moz-range-thumb {
   font-family: 'Inter Tight', sans-serif;
 }
 .pdf-btn.vide    { color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); }
-.pdf-btn.present { color: #305277;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
+.pdf-btn.present { color: #59409a;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
 .pdf-btn.vide:hover    { background: var(--border); }
 .pdf-btn.present:hover { background: rgba(169,139,214,0.3); }
 
@@ -3931,7 +3931,7 @@ input[type="range"]::-moz-range-thumb {
 .alert.danger  { background: var(--danger-10);  color: #8d2b21; border: 1px solid rgba(141,43,33,0.2); }
 .alert.warning { background: var(--warning-10); color: #8a6414; border: 1px solid rgba(138,100,20,0.2); }
 .alert.success { background: var(--success-10); color: #456039; border: 1px solid rgba(69,96,57,0.2); }
-.alert.info    { background: var(--blue-10);    color: #305277; border: 1px solid rgba(169,139,214,0.4); }
+.alert.info    { background: var(--blue-10);    color: #59409a; border: 1px solid rgba(169,139,214,0.4); }
 
 /* ===========================
    SKELETON LOADERS
@@ -3941,7 +3941,7 @@ input[type="range"]::-moz-range-thumb {
   100% { background-position:  200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, var(--surface-2) 25%, #e8e8e3 50%, var(--surface-2) 75%);
+  background: var(--surface-2);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   border-radius: 6px;
@@ -4289,11 +4289,11 @@ const PAS_FIXE    = 40;
 const MOIS_COURT  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const MOIS_LONG   = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const COLORS = {
-  navy:'#412F21', blue:'#305277', violet:'#59409a',
+  navy:'#412F21', blue:'#59409a', violet:'#59409a',
   success:'#456039', warning:'#8a6414', danger:'#8d2b21',
   muted:'#eae5dc', text2:'#6b533b'
 };
-const PALETTE = ['#305277','#59409a','#456039','#8a6414','#8d2b21','#412F21','#8a6f54','#c8b29a'];
+const PALETTE = ['#59409a','#8a6414','#456039','#8d2b21','#412F21','#8a6f54','#c8b29a','#a98bd6'];
 
 /* ─── 2. UTILS ───────────────────────────────────────────────────────── */
 const fmt     = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Math.round((v||0)*100)/100);
@@ -4519,9 +4519,7 @@ function drawBarChart(canvas,labels,datasets,opts={}){
         const ratio=v/opts.targetLine;
         color=ratio>=1?'#456039':ratio>=0.8?'#8a6414':'#8d2b21';
       }
-      const grad=ctx.createLinearGradient(0,y,0,y+bH);
-      grad.addColorStop(0,color);grad.addColorStop(1,color+'cc');
-      ctx.fillStyle=grad;
+      ctx.fillStyle=color;
       roundTopRect(ctx,x,y,bw,bH,Math.min(6,bw/2));
       ctx.fill();
       if(single&&bH>14){
@@ -4579,11 +4577,9 @@ function drawLineChart(canvas,labels,data,color=COLORS.navy,dashed=false){
     ctx.quadraticCurveTo(pts[pts.length-1].x,pts[pts.length-1].y,pts[pts.length-1].x,pts[pts.length-1].y);
   };
   if(!dashed){
-    const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
-    grad.addColorStop(0,color+'38');grad.addColorStop(1,color+'00');
     tracePath();
     ctx.lineTo(pts[pts.length-1].x,pad.top+cH);ctx.lineTo(pts[0].x,pad.top+cH);
-    ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    ctx.closePath();ctx.fillStyle=color+'1f';ctx.fill();
   }
   ctx.save();if(dashed)ctx.setLineDash([5,5]);
   ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
@@ -4963,8 +4959,8 @@ function renderCockpit(){
     planBloc=\`<div class="card" style="padding:24px;">
       <div class="dash-sec-title">💰 Ton plan financier de \${MOIS_LONG[m-1]}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
-        <div style="background:var(--bleu-bg);border:1px solid #d8e4ec;border-radius:14px;padding:16px;">
-          <div style="font-size:12px;font-weight:700;color:#305277;margin-bottom:8px;">🏢 Côté entreprise</div>
+        <div style="background:var(--surface);border:1px solid #e2d9c8;border-radius:14px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:var(--terre);margin-bottom:8px;">🏢 Côté entreprise</div>
           \${eLine('CA encaissé',d.caMois)}\${eLine('URSSAF',aUrssaf,true)}\${eLine('Charges',aCharges,true)}\${eLine('Disponible entreprise',aDispo,false,true)}
         </div>
         <div style="background:var(--violet-bg);border:1px solid #e3d4f5;border-radius:14px;padding:16px;">
@@ -4973,7 +4969,7 @@ function renderCockpit(){
         </div>
       </div>
       \${reste>0&&propose.length?\`<div style="margin-top:16px;background:var(--paille);border:1px solid #e7d7ab;border-radius:14px;padding:15px 16px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8a6414;margin-bottom:6px;">✨ Finance te propose (de tes \${fmt(reste)} libres)</div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre);margin-bottom:6px;">✨ Finance te propose (de tes \${fmt(reste)} libres)</div>
         \${propose.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.val)}</span></div>\`).join('')}
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--border);margin-top:3px;"><span>😊 Reste libre</span><span style="font-family:'Cormorant Garamond',serif;color:#456039;">\${fmt(restePlaisir)}</span></div>
         \${canApply?\`<button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<div style="margin-top:10px;font-size:12.5px;color:#456039;">✔ Plan déjà appliqué ce mois.</div>\`}
@@ -5250,7 +5246,7 @@ const ENV_DEF=[
   {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#8a6414', auto:true },
   {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
   {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
-  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#305277', auto:false},
+  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#59409a', auto:false},
   {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#456039', auto:false},
 ];
 // Catégories assignables à une opération (dans l'ordre proposé au re-classement)
@@ -5431,7 +5427,7 @@ function renderEngagementsCard(def,e){
       \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;"></div></div>\`:''}
     </div>\`;
   }).join('');
-  const badge='<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#305277;background:#eef3f6;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
+  const badge='<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#59409a;background:#efe1ff;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
   return \`<div class="card" style="padding:18px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -5580,7 +5576,7 @@ async function saveEnvReglages(){
 
 /* --- Vie perso : budget, niveau de vie, projets ----------------------- */
 const PERSO_CATS=[
-  {id:'logement', nom:'Logement',        emoji:'🏡', couleur:'#305277'},
+  {id:'logement', nom:'Logement',        emoji:'🏡', couleur:'#59409a'},
   {id:'transport',nom:'Transport',       emoji:'🚗', couleur:'#8a6414'},
   {id:'quotidien',nom:'Vie quotidienne', emoji:'🛒', couleur:'#456039'},
   {id:'famille',  nom:'Famille',         emoji:'👨‍👩‍👧', couleur:'#8d2b21'},
@@ -5665,7 +5661,7 @@ function renderPersoHero(ctx){
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
       \${palier('🟢','Minimum vital',besoin,'#456039','tes dépenses actuelles')}
       \${palier('🟡','Confort',confort,'#8a6414',confort>0?'ta cible de confort':'à définir')}
-      \${palier('🔵','Objectif',objectif,'#305277',objectif>0?'ton objectif de vie':'à définir')}
+      \${palier('🟣','Objectif',objectif,'#59409a',objectif>0?'ton objectif de vie':'à définir')}
     </div>\`;
 }
 
@@ -5703,14 +5699,14 @@ function renderPersoBridge(ctx){
 }
 
 const SUP_TYPES=[
-  {id:'livreta',nom:'Livret A',      emoji:'🏦',couleur:'#305277'},
+  {id:'livreta',nom:'Livret A',      emoji:'🏦',couleur:'#59409a'},
   {id:'ldds',   nom:'LDDS',          emoji:'🌿',couleur:'#456039'},
   {id:'av',     nom:'Assurance vie', emoji:'📈',couleur:'#2AA9A0'},
-  {id:'pea',    nom:'PEA',           emoji:'📊',couleur:'#4C6FBF'},
+  {id:'pea',    nom:'PEA',           emoji:'📊',couleur:'#59409a'},
   {id:'cto',    nom:'CTO',           emoji:'💹',couleur:'#7C3AED'},
   {id:'immo',   nom:'Immobilier',    emoji:'🏠',couleur:'#8a6414'},
   {id:'crypto', nom:'Crypto',        emoji:'🪙',couleur:'#E0A3C0'},
-  {id:'compte', nom:'Compte perso',  emoji:'💳',couleur:'#6B7A99'},
+  {id:'compte', nom:'Compte perso',  emoji:'💳',couleur:'#8a6f54'},
   {id:'autre',  nom:'Autre placement',emoji:'➕',couleur:'#9AA4B5'},
 ];
 const SUP_EMOJI={liquidites:'🏦',longterme:'📈',immobilier:'🏠'}; SUP_TYPES.forEach(t=>{SUP_EMOJI[t.id]=t.emoji;});
@@ -5763,7 +5759,7 @@ function renderPatrimoine(){
   }
 
   if(gEl){
-    gEl.innerHTML=\`<div style="background:linear-gradient(135deg,var(--navy),#2c4275);border-radius:20px;padding:28px 32px;color:#fff;">
+    gEl.innerHTML=\`<div style="background:var(--navy);border-radius:20px;padding:28px 32px;color:#fff;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Mon patrimoine</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
       \${misCetteAnnee>0?\`<div style="font-size:13px;color:#b7d3ad;">↗ +\${fmt(misCetteAnnee)} cette année · <span style="opacity:.85;">tu construis ton patrimoine chaque mois.</span></div>\`:\`<div style="font-size:13px;opacity:.75;">Chaque euro mis de côté fait grandir ta richesse.</div>\`}
@@ -5812,7 +5808,7 @@ function renderPatriAlim(){
   const pending=items.filter(e=>(parseFloat(e.montant)||0)>0 && e.lastVersement!==ym);
   if(!pending.length){el.innerHTML='';return;}
   const total=pending.reduce((a,e)=>a+(parseFloat(e.montant)||0),0);
-  el.innerHTML=\`<div class="card" style="padding:20px;background:linear-gradient(135deg,#fff,#fbf7f0);">
+  el.innerHTML=\`<div class="card" style="padding:20px;background:var(--card);">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
       <div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">💡 À alimenter ce mois-ci</div>
       <div style="font-size:13.5px;color:var(--navy);margin-top:3px;">Tu avais prévu <strong>\${fmt(total)}</strong> à virer vers tes supports. As-tu fait les virements&nbsp;?</div></div>
@@ -6177,7 +6173,7 @@ function renderProjetsVie(){
   const totalMens=enrich.reduce((a,p)=>a+p.mens,0);
   const etas=enrich.filter(p=>p.eta!=null&&p.reste>0).map(p=>p.eta);
   const premEta=etas.length?Math.min.apply(null,etas):null;
-  const overview=\`<div style="background:linear-gradient(135deg,var(--navy),#2c4275);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
+  const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
     <div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">🎯 Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
     <div><div style="font-size:11px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(totalReste)}</div></div>
     <div><div style="font-size:11px;opacity:.6;">Épargne mensuelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(totalMens)} / mois</div></div>
@@ -6204,7 +6200,7 @@ function renderProjetsVie(){
         <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
       <div style="margin-bottom:12px;">\${timeBlock}</div>
-      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:linear-gradient(90deg,#456039,#305277);border-radius:5px;transition:width .5s;"></div></div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:var(--navy);border-radius:5px;transition:width .5s;"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);margin-top:6px;">
         <span>\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%</span><span>\${p.mens>0?fmt(p.mens)+' / mois':''}</span>
       </div>
@@ -6492,13 +6488,13 @@ function renderQontoCalc(){
       potCard('📚','Formation', Math.max(0,resteFormation), '#7B4DD4',
         'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
         pctUsedFormation)+
-      potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#305277',
+      potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#59409a',
         Math.round(pctTreso*100)+'% du disponible net · sécurité',
         100)+
       potCard('💸','Versement perso', versementSolde, '#456039',
         fmt(depVers)+' versé · reste à te virer',
         depVers>0?Math.min(100,depVers/(Math.round(disponibleBrut*pctVers*100)/100)*100):0)+
-      (pctEpargne>0.001?potCard('💰','Épargne', provEpargne, '#6B8DD4','Buffer long terme',0):'');
+      (pctEpargne>0.001?potCard('💰','Épargne', provEpargne, '#7c5cbf','Buffer long terme',0):'');
   }
 }
 function renderDepensesPrevues(){
@@ -6514,7 +6510,7 @@ function renderDepensesPrevues(){
     list.map(d=>{
       const isMens=d.type==='mensuel';
       const badge=isMens
-        ?'<span class="badge" style="background:#e8f0fe;color:#305277;">Mensuelle</span>'
+        ?'<span class="badge" style="background:#efe1ff;color:#59409a;">Mensuelle</span>'
         :'<span class="badge" style="background:#f0e8fe;color:#7b4dd4;">Ponctuelle</span>';
       const periode=isMens
         ?(fmtDate(d.dateDebut||'')+(d.dateFin?' → '+fmtDate(d.dateFin):''))
@@ -6806,7 +6802,7 @@ function renderFactures(){
       <td class="td-amount">\${fmt(f.montant||0)}</td>
       <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
       <td style="white-space:nowrap;">
-        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#305277;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#efe1ff;color:#59409a;border:1px solid #d8c4f2;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7482,7 +7478,7 @@ function renderDevis(){
       <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:11px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
-        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#305277;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#efe1ff;color:#59409a;border:1px solid #d8c4f2;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
@@ -8250,7 +8246,7 @@ function renderObjectifsPilotage(){
   const objRec=parseFloat(s.objectifRecurrent)||0;
   const caYTD=d.caYTD||0, soldeReel=d.soldeReel||0, moisSecu=d.moisSecurite||0, rec=d.recMensuel||0;
   const tiles=[
-    {lab:'CA annuel',      color:'#4C6FBF',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
+    {lab:'CA annuel',      color:'#59409a',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
     {lab:'Matelas trésorerie',color:'#456039',cur:soldeReel,cible:objTreso,txt:objTreso>0?fmt(soldeReel)+' / '+fmt(objTreso):'objectif non défini',        pct:objTreso>0?soldeReel/objTreso*100:0},
     {lab:'Mois de sécurité',color:'#8a6414',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
     {lab:'Revenus récurrents',color:'#7C3AED',cur:rec,   cible:objRec,  txt:objRec>0?fmt(rec)+' / '+fmt(objRec)+'/mois':'objectif non défini',              pct:objRec>0?rec/objRec*100:0},
