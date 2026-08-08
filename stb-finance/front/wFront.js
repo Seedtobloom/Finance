@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=44" />
+  <link rel="stylesheet" href="/style.css?v=45" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v44 · bleu Écrin build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v45 · fidélité Écrin build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2546,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=44"></script>
+<script src="/app.js?v=45"></script>
 </body>
 </html>
 `;
@@ -2659,7 +2659,7 @@ html, body {
   margin-bottom: 36px;
 }
 .login-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 28px;
   font-weight: 600;
   color: var(--navy);
@@ -2713,7 +2713,7 @@ html, body {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 18px;
   font-weight: 600;
   color: var(--navy);
@@ -2800,7 +2800,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
@@ -2871,7 +2871,7 @@ html, body {
   margin-bottom: 28px;
 }
 .page-header-left h1 {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 30px;
   font-weight: 500;
   color: var(--navy);
@@ -2981,7 +2981,7 @@ html, body {
   display: block;
 }
 .kpi-value {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 32px;
   font-weight: 500;
   color: var(--navy);
@@ -3078,7 +3078,7 @@ tbody tr:hover td { background: var(--surface-2); }
   font-variant-numeric: tabular-nums;
 }
 .td-amount {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
@@ -3143,11 +3143,13 @@ tbody tr:hover td { background: var(--surface-2); }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 9px 18px;
+  padding: 10px 17px;
   border-radius: var(--r-ctrl);
-  font-size: 13px;
+  font-size: 11.5px;
   font-family: 'Inter Tight', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
   border: none;
   transition: all 0.12s ease;
@@ -3190,9 +3192,15 @@ tbody tr:hover td { background: var(--surface-2); }
   border: 1px solid rgba(69,96,57,0.2);
 }
 
-.btn-sm  { padding: 6px 12px; font-size: 12px; border-radius: 10px; }
-.btn-xs  { padding: 4px 9px;  font-size: 11px; border-radius: 8px; }
-.btn-icon { padding: 6px; border-radius: 8px; }
+.btn-sm  { padding: 7px 13px; font-size: 10.5px; border-radius: 10px; }
+.btn-xs  { padding: 4px 9px;  font-size: 9.5px;  border-radius: 8px; }
+.btn-icon { padding: 6px; border-radius: 8px; letter-spacing: 0; }
+
+/* Titres en italique (règle d'or Écrin) — les chiffres restent droits */
+.login-logo .logo-name,
+.sidebar-logo .logo-name,
+.page-header-left h1,
+.modal-title { font-style: italic; }
 
 /* ===========================
    FORMULAIRES
@@ -3279,7 +3287,7 @@ tbody tr:hover td { background: var(--surface-2); }
   margin-bottom: 22px;
 }
 .modal-title {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3376,7 +3384,7 @@ canvas { display: block; width: 100%; }
   flex-shrink: 0;
 }
 .progress-amount {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 15px;
   font-weight: 500;
   color: var(--navy);
@@ -3464,7 +3472,7 @@ canvas { display: block; width: 100%; }
   margin-top: 2px;
 }
 .urssaf-montant {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 26px;
   font-weight: 500;
   color: var(--navy);
@@ -3525,7 +3533,7 @@ canvas { display: block; width: 100%; }
   margin-bottom: 8px;
 }
 .goal-current {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3598,7 +3606,7 @@ canvas { display: block; width: 100%; }
 .sim-line-label { color: var(--text-2); }
 .sim-line-label.strong { color: var(--text); font-weight: 500; }
 .sim-line-amount {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
@@ -3622,7 +3630,7 @@ canvas { display: block; width: 100%; }
 .slider-wrap { display: flex; flex-direction: column; gap: 8px; }
 .slider-header { display: flex; justify-content: space-between; align-items: center; }
 .slider-label { font-size: 13px; color: var(--text-2); }
-.slider-value { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; font-weight: 500; color: var(--navy); }
+.slider-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--navy); }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -3666,7 +3674,7 @@ input[type="range"]::-moz-range-thumb {
 .scenario-card.realiste  { border-color: rgba(65,47,33,0.2);   background: var(--blue-10); }
 .scenario-card.pessimiste{ border-color: rgba(138,100,20,0.3); background: var(--warning-10); }
 .scenario-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; color: var(--navy); }
+.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--navy); }
 .scenario-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
 /* ===========================
@@ -3698,7 +3706,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 4px;
 }
 .rep-recommande span {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
   color: var(--navy);
   font-weight: 500;
@@ -3847,7 +3855,7 @@ input[type="range"]::-moz-range-thumb {
 .pot-nom { font-size: 13px; font-weight: 600; color: var(--navy); }
 .pot-icon { font-size: 22px; margin-bottom: 6px; }
 .pot-solde {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 30px;
   font-weight: 500;
   margin: 2px 0 4px;
@@ -3869,7 +3877,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .compte-nom { font-size: 14px; font-weight: 600; color: var(--navy); }
 .compte-solde {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 34px;
   font-weight: 500;
   color: var(--navy);
@@ -4015,7 +4023,7 @@ input[type="range"]::-moz-range-thumb {
 .fiscal-plafond-fill.warning { background: var(--warning); }
 .fiscal-plafond-fill.danger  { background: var(--danger); }
 .fiscal-plafond-pct {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 20px;
   font-weight: 500;
   color: var(--navy);
@@ -4041,7 +4049,7 @@ input[type="range"]::-moz-range-thumb {
 .charges-recap-line:last-child { border-bottom: none; }
 .charges-recap-label { color: var(--text-2); }
 .charges-recap-amount {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
   color: var(--navy);
 }
@@ -4056,7 +4064,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .charges-recap-total .label { font-weight: 600; color: var(--navy); }
 .charges-recap-total .amount {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -4083,7 +4091,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 6px;
 }
 .result-card-value {
-  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 26px;
   font-weight: 500;
 }
