@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=43" />
+  <link rel="stylesheet" href="/style.css?v=44" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v43 · graphiques + accents build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v44 · bleu Écrin build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2546,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=43"></script>
+<script src="/app.js?v=44"></script>
 </body>
 </html>
 `;
@@ -2591,7 +2591,7 @@ const CSS  = `/* =============================================
   --surface-2:  #efe7d7;
   --cream:      #F2E5C2;
   --navy:       #412F21;
-  --blue:       #F0E8FF;
+  --blue:       #305277;
   --violet:     #E4D1FE;
   --brown:      #412F21;
   --success:    #456039;
@@ -2962,7 +2962,7 @@ html, body {
   justify-content: center;
   font-size: 17px;
 }
-.kpi-icon.blue   { background: var(--blue-10);    color: #4a78d9; }
+.kpi-icon.blue   { background: var(--blue-10);    color: #305277; }
 .kpi-icon.violet { background: var(--violet-10);  color: #8e68d5; }
 .kpi-icon.green  { background: var(--success-10); color: var(--success); }
 .kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
@@ -2989,7 +2989,7 @@ html, body {
   margin-bottom: 4px;
   display: block;
 }
-.kpi-value.blue    { color: #3b6dd4; }
+.kpi-value.blue    { color: #305277; }
 .kpi-value.green   { color: var(--success); }
 .kpi-value.danger  { color: var(--danger); }
 .kpi-value.violet  { color: #7c5cbf; }
@@ -3125,12 +3125,12 @@ tbody tr:hover td { background: var(--surface-2); }
 .badge-pause     { background: var(--warning-10); color: #8a6414; }
 .badge-annule    { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
 /* URSSAF */
-.badge-a-venir   { background: var(--blue-10);    color: #3b6dd4; }
+.badge-a-venir   { background: var(--blue-10);    color: #305277; }
 .badge-a-payer   { background: var(--warning-10); color: #8a6414; }
 .badge-paye      { background: var(--success-10); color: #456039; }
 /* Génériques */
 .badge-neutral   { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
-.badge-blue      { background: var(--blue-10);    color: #3b6dd4; }
+.badge-blue      { background: var(--blue-10);    color: #305277; }
 .badge-violet    { background: var(--violet-10);  color: #7c5cbf; }
 .badge-success   { background: var(--success-10); color: #456039; }
 .badge-warning   { background: var(--warning-10); color: #8a6414; }
@@ -3788,7 +3788,7 @@ input[type="range"]::-moz-range-thumb {
   font-family: 'Inter Tight', sans-serif;
 }
 .pdf-btn.vide    { color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); }
-.pdf-btn.present { color: #3b6dd4;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
+.pdf-btn.present { color: #305277;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
 .pdf-btn.vide:hover    { background: var(--border); }
 .pdf-btn.present:hover { background: rgba(169,139,214,0.3); }
 
@@ -3923,7 +3923,7 @@ input[type="range"]::-moz-range-thumb {
 .alert.danger  { background: var(--danger-10);  color: #8d2b21; border: 1px solid rgba(141,43,33,0.2); }
 .alert.warning { background: var(--warning-10); color: #8a6414; border: 1px solid rgba(138,100,20,0.2); }
 .alert.success { background: var(--success-10); color: #456039; border: 1px solid rgba(69,96,57,0.2); }
-.alert.info    { background: var(--blue-10);    color: #2c5aad; border: 1px solid rgba(169,139,214,0.4); }
+.alert.info    { background: var(--blue-10);    color: #305277; border: 1px solid rgba(169,139,214,0.4); }
 
 /* ===========================
    SKELETON LOADERS
@@ -6484,7 +6484,7 @@ function renderQontoCalc(){
       potCard('📚','Formation', Math.max(0,resteFormation), '#7B4DD4',
         'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
         pctUsedFormation)+
-      potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#3b6dd4',
+      potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#305277',
         Math.round(pctTreso*100)+'% du disponible net · sécurité',
         100)+
       potCard('💸','Versement perso', versementSolde, '#456039',
@@ -6506,7 +6506,7 @@ function renderDepensesPrevues(){
     list.map(d=>{
       const isMens=d.type==='mensuel';
       const badge=isMens
-        ?'<span class="badge" style="background:#e8f0fe;color:#3b6dd4;">Mensuelle</span>'
+        ?'<span class="badge" style="background:#e8f0fe;color:#305277;">Mensuelle</span>'
         :'<span class="badge" style="background:#f0e8fe;color:#7b4dd4;">Ponctuelle</span>';
       const periode=isMens
         ?(fmtDate(d.dateDebut||'')+(d.dateFin?' → '+fmtDate(d.dateFin):''))
@@ -6798,7 +6798,7 @@ function renderFactures(){
       <td class="td-amount">\${fmt(f.montant||0)}</td>
       <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
       <td style="white-space:nowrap;">
-        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#305277;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7474,7 +7474,7 @@ function renderDevis(){
       <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:11px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
-        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#305277;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
