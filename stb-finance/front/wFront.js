@@ -21,9 +21,10 @@ const HTML = `<!DOCTYPE html>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Seed to Bloom — Finance</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23412F21'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-style='italic' font-weight='600' font-size='19' fill='%23F2E5C2' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -37,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v41 · dashboard clair build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v42 · design Écrin build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -530,7 +531,7 @@ const HTML = `<!DOCTYPE html>
             <div style="font-size:11px;color:var(--text-2);margin-top:4px;">Le projet dit <em>pourquoi</em> tu épargnes, le support dit <em>où</em> est placé l'argent.</div>
           </div>
           <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;">
-            <button class="btn btn-ghost" style="color:#E05252;" onclick="deleteProjetVie(q('#projet-vie-id').value)"><i class="ti ti-trash"></i></button>
+            <button class="btn btn-ghost" style="color:#8d2b21;" onclick="deleteProjetVie(q('#projet-vie-id').value)"><i class="ti ti-trash"></i></button>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-outline" onclick="q('#modal-projet-vie').style.display='none'">Annuler</button>
               <button class="btn btn-primary" onclick="saveProjetVie()"><i class="ti ti-check"></i> Enregistrer</button>
@@ -1933,7 +1934,7 @@ const HTML = `<!DOCTYPE html>
         <option value="">— Aucun projet —</option>
       </select>
       <!-- Bloc contextuel devis + avancement -->
-      <div id="f-projet-context" style="display:none;margin-top:8px;padding:10px 12px;background:#f5f3ef;border-radius:8px;border-left:3px solid #BAD1FD;font-size:12px;line-height:1.7;"></div>
+      <div id="f-projet-context" style="display:none;margin-top:8px;padding:10px 12px;background:#f5f3ef;border-radius:8px;border-left:3px solid #F0E8FF;font-size:12px;line-height:1.7;"></div>
     </div>
     <div class="form-grid-2">
       <div class="form-group">
@@ -2113,7 +2114,7 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="form-group" id="pr-montant-mois-group" style="display:none;">
         <label class="form-label">Montant mensuel</label>
-        <input type="text" id="pr-montant-mois" class="form-input" readonly style="background:#f5f3ef;color:#6B6B6B;" placeholder="—" />
+        <input type="text" id="pr-montant-mois" class="form-input" readonly style="background:#f5f3ef;color:#6b533b;" placeholder="—" />
       </div>
     </div>
     <div class="form-grid-2">
@@ -2545,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=41"></script>
+<script src="/app.js?v=42"></script>
 </body>
 </html>
 `;
@@ -2558,28 +2559,55 @@ const CSS  = `/* =============================================
    VARIABLES
    =========================== */
 :root {
-  --bg:         #F8F8F6;
-  --surface:    #FFFFFF;
-  --surface-2:  #F2F2EF;
-  --cream:      #EFE1B0;
-  --navy:       #051833;
-  --blue:       #BAD1FD;
+  /* ── Écrin · neutres (biais brun, jamais de gris pur) ── */
+  --terre:#412F21; --terre-600:#6b533b; --terre-400:#8a6f54; --terre-200:#c8b29a;
+  --nuit:#1C1205; --ivoire:#f6efe6;
+  --bone:#ffffff; --card:#F8F6F2; --line:#eae5dc;
+
+  /* ── accents ── */
+  --glycine:#E4D1FE; --brume:#F0E8FF; --paille:#F2E5C2;
+
+  /* ── sémantique [encre · fond] ── */
+  --vert:#456039;  --vert-bg:#e6f0e2;
+  --ambre:#8a6414; --ambre-bg:#f6ead2;
+  --rouge:#8d2b21; --rouge-bg:#f6e4de;
+  --bleu:#305277;  --bleu-bg:#eef3f6;
+  --violet-ink:#59409a; --violet-bg:#efe1ff;
+
+  /* ── typographie ── */
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'Alegreya',Georgia,serif;
+  --font-ui:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
+
+  /* ── rayons ── */
+  --r-panel:20px; --r-block:14px; --r-ctrl:12px; --r-pill:999px;
+
+  /* ── focus ── */
+  --focus:#a98bd6;
+
+  /* ── alias de compatibilité (mappés sur Écrin) ── */
+  --bg:         #ffffff;
+  --surface:    #F8F6F2;
+  --surface-2:  #efe7d7;
+  --cream:      #F2E5C2;
+  --navy:       #412F21;
+  --blue:       #F0E8FF;
   --violet:     #E4D1FE;
   --brown:      #412F21;
-  --success:    #4CAF82;
-  --warning:    #E8A838;
-  --danger:     #E85454;
-  --text:       #1A1A1A;
-  --text-2:     #6B6B6B;
-  --border:     #E8E8E4;
+  --success:    #456039;
+  --warning:    #8a6414;
+  --danger:     #8d2b21;
+  --text:       #412F21;
+  --text-2:     #6b533b;
+  --border:     #eae5dc;
 
-  --blue-10:    rgba(186,209,253,0.15);
-  --violet-10:  rgba(228,209,254,0.15);
-  --success-10: rgba(76,175,130,0.12);
-  --warning-10: rgba(232,168,56,0.12);
-  --danger-10:  rgba(232,84,84,0.10);
-  --navy-10:    rgba(5,24,51,0.08);
-  --cream-10:   rgba(239,225,176,0.25);
+  --blue-10:    #eef3f6;
+  --violet-10:  #efe1ff;
+  --success-10: #e6f0e2;
+  --warning-10: #f6ead2;
+  --danger-10:  #f6e4de;
+  --navy-10:    rgba(65,47,33,0.08);
+  --cream-10:   #f6efe6;
 }
 
 /* ===========================
@@ -2589,7 +2617,7 @@ const CSS  = `/* =============================================
 
 html, body {
   height: 100%;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 14px;
   line-height: 1.6;
   background: var(--bg);
@@ -2602,7 +2630,7 @@ html, body {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #d0d0cc; }
+::-webkit-scrollbar-thumb:hover { background: #c8b29a; }
 
 /* ===========================
    ÉCRAN DE CONNEXION
@@ -2631,7 +2659,7 @@ html, body {
   margin-bottom: 36px;
 }
 .login-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 28px;
   font-weight: 600;
   color: var(--navy);
@@ -2648,7 +2676,7 @@ html, body {
 
 .login-error {
   background: var(--danger-10);
-  border: 1px solid rgba(232,84,84,0.25);
+  border: 1px solid rgba(141,43,33,0.25);
   border-radius: 8px;
   color: var(--danger);
   font-size: 13px;
@@ -2685,7 +2713,7 @@ html, body {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 18px;
   font-weight: 600;
   color: var(--navy);
@@ -2739,7 +2767,7 @@ html, body {
   color: var(--navy);
   font-weight: 500;
   border-left-color: var(--blue);
-  background: rgba(186,209,253,0.15);
+  background: rgba(169,139,214,0.15);
 }
 .nav-item .ti {
   font-size: 15px;
@@ -2772,7 +2800,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
@@ -2798,13 +2826,13 @@ html, body {
   background: transparent;
   border: 1px solid var(--border);
   cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.12s;
   width: 100%;
 }
 .btn-logout:hover {
   color: var(--danger);
-  border-color: rgba(232,84,84,0.3);
+  border-color: rgba(141,43,33,0.3);
   background: var(--danger-10);
 }
 
@@ -2843,7 +2871,7 @@ html, body {
   margin-bottom: 28px;
 }
 .page-header-left h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 30px;
   font-weight: 500;
   color: var(--navy);
@@ -2868,12 +2896,12 @@ html, body {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: var(--r-panel);
   padding: 24px;
 }
 .card-cream {
-  background: var(--cream-10);
-  border-color: rgba(239,225,176,0.5);
+  background: var(--paille);
+  border-color: rgba(226,209,161,0.6);
 }
 .card-title {
   font-size: 11px;
@@ -2947,7 +2975,7 @@ html, body {
   display: block;
 }
 .kpi-value {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 32px;
   font-weight: 500;
   color: var(--navy);
@@ -3044,7 +3072,7 @@ tbody tr:hover td { background: var(--surface-2); }
   font-variant-numeric: tabular-nums;
 }
 .td-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
@@ -3081,26 +3109,26 @@ tbody tr:hover td { background: var(--surface-2); }
   flex-shrink: 0;
 }
 /* Factures */
-.badge-payee     { background: var(--success-10); color: #2d8b5e; }
-.badge-attente   { background: var(--warning-10); color: #9a6010; }
-.badge-en-attente { background: var(--warning-10); color: #9a6010; }
-.badge-retard    { background: var(--danger-10);  color: #c43030; }
-.badge-en-retard { background: var(--danger-10);  color: #c43030; }
+.badge-payee     { background: var(--success-10); color: #456039; }
+.badge-attente   { background: var(--warning-10); color: #8a6414; }
+.badge-en-attente { background: var(--warning-10); color: #8a6414; }
+.badge-retard    { background: var(--danger-10);  color: #8d2b21; }
+.badge-en-retard { background: var(--danger-10);  color: #8d2b21; }
 /* Abonnements */
-.badge-actif     { background: var(--success-10); color: #2d8b5e; }
-.badge-pause     { background: var(--warning-10); color: #9a6010; }
+.badge-actif     { background: var(--success-10); color: #456039; }
+.badge-pause     { background: var(--warning-10); color: #8a6414; }
 .badge-annule    { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
 /* URSSAF */
 .badge-a-venir   { background: var(--blue-10);    color: #3b6dd4; }
-.badge-a-payer   { background: var(--warning-10); color: #9a6010; }
-.badge-paye      { background: var(--success-10); color: #2d8b5e; }
+.badge-a-payer   { background: var(--warning-10); color: #8a6414; }
+.badge-paye      { background: var(--success-10); color: #456039; }
 /* Génériques */
 .badge-neutral   { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
 .badge-blue      { background: var(--blue-10);    color: #3b6dd4; }
 .badge-violet    { background: var(--violet-10);  color: #7c5cbf; }
-.badge-success   { background: var(--success-10); color: #2d8b5e; }
-.badge-warning   { background: var(--warning-10); color: #9a6010; }
-.badge-danger    { background: var(--danger-10);  color: #c43030; }
+.badge-success   { background: var(--success-10); color: #456039; }
+.badge-warning   { background: var(--warning-10); color: #8a6414; }
+.badge-danger    { background: var(--danger-10);  color: #8d2b21; }
 
 /* ===========================
    BOUTONS
@@ -3110,9 +3138,9 @@ tbody tr:hover td { background: var(--surface-2); }
   align-items: center;
   gap: 7px;
   padding: 9px 18px;
-  border-radius: 8px;
+  border-radius: var(--r-ctrl);
   font-size: 13px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-weight: 500;
   cursor: pointer;
   border: none;
@@ -3123,11 +3151,11 @@ tbody tr:hover td { background: var(--surface-2); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(186,209,253,0.4);
+  box-shadow: 0 0 0 3px rgba(169,139,214,0.5);
 }
 
-.btn-primary { background: var(--navy); color: #fff; }
-.btn-primary:hover { background: #0b2d53; }
+.btn-primary { background: var(--nuit); color: var(--paille); }
+.btn-primary:hover { background: var(--terre); }
 
 .btn-secondary {
   background: transparent;
@@ -3146,19 +3174,19 @@ tbody tr:hover td { background: var(--surface-2); }
 .btn-danger {
   background: var(--danger-10);
   color: var(--danger);
-  border: 1px solid rgba(232,84,84,0.2);
+  border: 1px solid rgba(141,43,33,0.2);
 }
-.btn-danger:hover { background: rgba(232,84,84,0.18); }
+.btn-danger:hover { background: rgba(141,43,33,0.18); }
 
 .btn-success {
-  background: var(--success-10);
-  color: #2d8b5e;
-  border: 1px solid rgba(76,175,130,0.2);
+  background: var(--vert-bg);
+  color: var(--vert);
+  border: 1px solid rgba(69,96,57,0.2);
 }
 
-.btn-sm  { padding: 6px 12px; font-size: 12px; border-radius: 7px; }
-.btn-xs  { padding: 4px 9px;  font-size: 11px; border-radius: 6px; }
-.btn-icon { padding: 6px; border-radius: 6px; }
+.btn-sm  { padding: 6px 12px; font-size: 12px; border-radius: 10px; }
+.btn-xs  { padding: 4px 9px;  font-size: 11px; border-radius: 8px; }
+.btn-icon { padding: 6px; border-radius: 8px; }
 
 /* ===========================
    FORMULAIRES
@@ -3183,7 +3211,7 @@ tbody tr:hover td { background: var(--surface-2); }
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 14px;
   padding: 10px 14px;
   outline: none;
@@ -3194,7 +3222,7 @@ tbody tr:hover td { background: var(--surface-2); }
 .form-select:focus,
 .form-textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(186,209,253,0.2);
+  box-shadow: 0 0 0 3px rgba(169,139,214,0.2);
 }
 .form-input::placeholder,
 .form-textarea::placeholder { color: var(--text-2); opacity: 0.6; }
@@ -3245,7 +3273,7 @@ tbody tr:hover td { background: var(--surface-2); }
   margin-bottom: 22px;
 }
 .modal-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3342,7 +3370,7 @@ canvas { display: block; width: 100%; }
   flex-shrink: 0;
 }
 .progress-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 15px;
   font-weight: 500;
   color: var(--navy);
@@ -3401,16 +3429,16 @@ canvas { display: block; width: 100%; }
   padding: 18px 20px;
 }
 .urssaf-card.alerte-rouge  {
-  border-color: rgba(232,84,84,0.4);
-  background: rgba(232,84,84,0.04);
+  border-color: rgba(141,43,33,0.4);
+  background: rgba(141,43,33,0.04);
 }
 .urssaf-card.alerte-orange {
-  border-color: rgba(232,168,56,0.4);
-  background: rgba(232,168,56,0.05);
+  border-color: rgba(138,100,20,0.4);
+  background: rgba(138,100,20,0.05);
 }
 .urssaf-card.paye {
-  border-color: rgba(76,175,130,0.35);
-  background: rgba(76,175,130,0.04);
+  border-color: rgba(69,96,57,0.35);
+  background: rgba(69,96,57,0.04);
 }
 
 .urssaf-header {
@@ -3430,7 +3458,7 @@ canvas { display: block; width: 100%; }
   margin-top: 2px;
 }
 .urssaf-montant {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 26px;
   font-weight: 500;
   color: var(--navy);
@@ -3491,7 +3519,7 @@ canvas { display: block; width: 100%; }
   margin-bottom: 8px;
 }
 .goal-current {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3534,7 +3562,7 @@ canvas { display: block; width: 100%; }
   color: var(--text-2);
   background: transparent;
   border: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.12s;
 }
 .sim-tab.active {
@@ -3564,14 +3592,14 @@ canvas { display: block; width: 100%; }
 .sim-line-label { color: var(--text-2); }
 .sim-line-label.strong { color: var(--text); font-weight: 500; }
 .sim-line-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
 }
 .sim-line-amount.neg { color: var(--danger); }
 .sim-line-amount.pos { color: var(--success); }
-.sim-total { background: rgba(5,24,51,0.03); }
+.sim-total { background: rgba(65,47,33,0.03); }
 .sim-total .sim-line-label { color: var(--navy); font-weight: 600; }
 .sim-total .sim-line-amount { font-size: 24px; color: var(--navy); }
 .sim-section-label {
@@ -3588,7 +3616,7 @@ canvas { display: block; width: 100%; }
 .slider-wrap { display: flex; flex-direction: column; gap: 8px; }
 .slider-header { display: flex; justify-content: space-between; align-items: center; }
 .slider-label { font-size: 13px; color: var(--text-2); }
-.slider-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--navy); }
+.slider-value { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; font-weight: 500; color: var(--navy); }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -3628,11 +3656,11 @@ input[type="range"]::-moz-range-thumb {
   padding: 16px 18px;
   border: 1px solid var(--border);
 }
-.scenario-card.optimiste { border-color: rgba(76,175,130,0.3); background: var(--success-10); }
-.scenario-card.realiste  { border-color: rgba(5,24,51,0.2);   background: var(--blue-10); }
-.scenario-card.pessimiste{ border-color: rgba(232,168,56,0.3); background: var(--warning-10); }
+.scenario-card.optimiste { border-color: rgba(69,96,57,0.3); background: var(--success-10); }
+.scenario-card.realiste  { border-color: rgba(65,47,33,0.2);   background: var(--blue-10); }
+.scenario-card.pessimiste{ border-color: rgba(138,100,20,0.3); background: var(--warning-10); }
 .scenario-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--navy); }
+.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; color: var(--navy); }
 .scenario-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
 /* ===========================
@@ -3664,7 +3692,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 4px;
 }
 .rep-recommande span {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 16px;
   color: var(--navy);
   font-weight: 500;
@@ -3732,7 +3760,7 @@ input[type="range"]::-moz-range-thumb {
   cursor: pointer;
   font-size: 13px;
   color: var(--text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   transition: all 0.12s;
 }
 .export-btn:hover { background: var(--surface-2); border-color: var(--blue); }
@@ -3751,12 +3779,12 @@ input[type="range"]::-moz-range-thumb {
   text-decoration: none;
   border: none;
   transition: all 0.12s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
 }
 .pdf-btn.vide    { color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); }
-.pdf-btn.present { color: #3b6dd4;       background: var(--blue-10);   border: 1px solid rgba(186,209,253,0.4); }
+.pdf-btn.present { color: #3b6dd4;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
 .pdf-btn.vide:hover    { background: var(--border); }
-.pdf-btn.present:hover { background: rgba(186,209,253,0.3); }
+.pdf-btn.present:hover { background: rgba(169,139,214,0.3); }
 
 /* ===========================
    MOIS SÉLECTEUR
@@ -3774,7 +3802,7 @@ input[type="range"]::-moz-range-thumb {
   border: 1px solid var(--border);
   border-radius: 7px;
   padding: 5px 10px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter Tight', sans-serif;
   font-size: 14px;
   color: var(--navy);
   outline: none;
@@ -3813,7 +3841,7 @@ input[type="range"]::-moz-range-thumb {
 .pot-nom { font-size: 13px; font-weight: 600; color: var(--navy); }
 .pot-icon { font-size: 22px; margin-bottom: 6px; }
 .pot-solde {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 30px;
   font-weight: 500;
   margin: 2px 0 4px;
@@ -3835,7 +3863,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .compte-nom { font-size: 14px; font-weight: 600; color: var(--navy); }
 .compte-solde {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 34px;
   font-weight: 500;
   color: var(--navy);
@@ -3865,7 +3893,7 @@ input[type="range"]::-moz-range-thumb {
    =========================== */
 .rapport-phrase {
   background: var(--cream-10);
-  border: 1px solid rgba(239,225,176,0.6);
+  border: 1px solid rgba(226,209,161,0.6);
   border-radius: 10px;
   padding: 16px 20px;
   font-size: 14px;
@@ -3886,10 +3914,10 @@ input[type="range"]::-moz-range-thumb {
   font-size: 13px;
   margin-bottom: 16px;
 }
-.alert.danger  { background: var(--danger-10);  color: #c43030; border: 1px solid rgba(232,84,84,0.2); }
-.alert.warning { background: var(--warning-10); color: #9a6010; border: 1px solid rgba(232,168,56,0.2); }
-.alert.success { background: var(--success-10); color: #2d8b5e; border: 1px solid rgba(76,175,130,0.2); }
-.alert.info    { background: var(--blue-10);    color: #2c5aad; border: 1px solid rgba(186,209,253,0.4); }
+.alert.danger  { background: var(--danger-10);  color: #8d2b21; border: 1px solid rgba(141,43,33,0.2); }
+.alert.warning { background: var(--warning-10); color: #8a6414; border: 1px solid rgba(138,100,20,0.2); }
+.alert.success { background: var(--success-10); color: #456039; border: 1px solid rgba(69,96,57,0.2); }
+.alert.info    { background: var(--blue-10);    color: #2c5aad; border: 1px solid rgba(169,139,214,0.4); }
 
 /* ===========================
    SKELETON LOADERS
@@ -3981,7 +4009,7 @@ input[type="range"]::-moz-range-thumb {
 .fiscal-plafond-fill.warning { background: var(--warning); }
 .fiscal-plafond-fill.danger  { background: var(--danger); }
 .fiscal-plafond-pct {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 20px;
   font-weight: 500;
   color: var(--navy);
@@ -4007,7 +4035,7 @@ input[type="range"]::-moz-range-thumb {
 .charges-recap-line:last-child { border-bottom: none; }
 .charges-recap-label { color: var(--text-2); }
 .charges-recap-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 16px;
   color: var(--navy);
 }
@@ -4022,7 +4050,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .charges-recap-total .label { font-weight: 600; color: var(--navy); }
 .charges-recap-total .amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -4049,7 +4077,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 6px;
 }
 .result-card-value {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
   font-size: 26px;
   font-weight: 500;
 }
@@ -4079,7 +4107,7 @@ input[type="range"]::-moz-range-thumb {
 * { -webkit-tap-highlight-color: transparent; }
 #main { scroll-behavior: smooth; }
 .card { transition: box-shadow .18s ease, transform .18s ease, border-color .18s ease; }
-.card:hover { box-shadow: 0 3px 16px rgba(5,24,51,.06); }
+.card:hover { box-shadow: 0 3px 16px rgba(65,47,33,.06); }
 .section.active { animation: sectionIn .24s cubic-bezier(.22,.61,.36,1); }
 @keyframes sectionIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
 .nav-item:active { transform: scale(.985); }
@@ -4110,7 +4138,7 @@ input[type="range"]::-moz-range-thumb {
   #sidebar.open { transform: translateX(0); }
   #sidebar-overlay {
     display: block; position: fixed; inset: 0; z-index: 55;
-    background: rgba(5,24,51,.38);
+    background: rgba(65,47,33,.38);
     opacity: 0; pointer-events: none; transition: opacity .26s ease;
   }
   #sidebar-overlay.open { opacity: 1; pointer-events: auto; }
@@ -4129,16 +4157,16 @@ function injectLoginOverlay() {
   div.id = 'login-overlay';
   div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:none;align-items:center;justify-content:center;z-index:9999;';
   div.innerHTML = \`
-    <div style="background:#fff;border:1px solid #E8E8E4;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#051833;margin-bottom:4px;">STB Finance</div>
-      <div style="font-size:13px;color:#6B6B6B;margin-bottom:32px;">Seed to Bloom</div>
+    <div style="background:#fff;border:1px solid #eae5dc;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:36px;color:#412F21;margin-bottom:4px;">STB Finance</div>
+      <div style="font-size:13px;color:#6b533b;margin-bottom:32px;">Seed to Bloom</div>
       <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password"
-        style="width:100%;padding:10px 14px;border:1px solid #E8E8E4;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box;outline:none;">
+        style="width:100%;padding:10px 14px;border:1px solid #eae5dc;border-radius:8px;font-size:14px;margin-bottom:12px;box-sizing:border-box;outline:none;">
       <button id="login-btn"
-        style="width:100%;padding:10px;background:#051833;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;">
+        style="width:100%;padding:10px;background:#412F21;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;">
         Se connecter
       </button>
-      <div id="login-error" style="margin-top:12px;font-size:13px;color:#E85454;min-height:18px;"></div>
+      <div id="login-error" style="margin-top:12px;font-size:13px;color:#8d2b21;min-height:18px;"></div>
     </div>\`;
   document.body.appendChild(div);
   q('#login-pwd').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -4247,11 +4275,11 @@ const PAS_FIXE    = 40;
 const MOIS_COURT  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const MOIS_LONG   = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const COLORS = {
-  navy:'#051833', blue:'#BAD1FD', violet:'#E4D1FE',
-  success:'#4CAF82', warning:'#E8A838', danger:'#E85454',
-  muted:'#E8E8E4', text2:'#6B6B6B'
+  navy:'#412F21', blue:'#305277', violet:'#59409a',
+  success:'#456039', warning:'#8a6414', danger:'#8d2b21',
+  muted:'#eae5dc', text2:'#6b533b'
 };
-const PALETTE = ['#BAD1FD','#E4D1FE','#4CAF82','#E8A838','#E85454','#051833','#EFE1B0','#412F21'];
+const PALETTE = ['#305277','#59409a','#456039','#8a6414','#8d2b21','#412F21','#8a6f54','#c8b29a'];
 
 /* ─── 2. UTILS ───────────────────────────────────────────────────────── */
 const fmt     = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Math.round((v||0)*100)/100);
@@ -4425,7 +4453,7 @@ function drawGrid(ctx,pad,cW,cH,yMax,step){
   for(let v=0;v<=yMax;v+=step){
     const y=pad.top+cH-(v/yMax)*cH;
     ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
-    ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='right';
+    ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='right';
     ctx.fillText(fmtShort(v),pad.left-5,y+4);
   }
 }
@@ -4455,7 +4483,7 @@ function drawBarChart(canvas,labels,datasets,opts={}){
       let color=ds.color||COLORS.navy;
       if(di===0&&opts.targetLine){
         const ratio=v/opts.targetLine;
-        color=ratio>=1?'#4CAF82':ratio>=0.8?'#E8A838':'#E05252';
+        color=ratio>=1?'#456039':ratio>=0.8?'#8a6414':'#8d2b21';
       }
       ctx.fillStyle=color;
       ctx.beginPath();
@@ -4466,10 +4494,10 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   // Seuil de rentabilité (ligne pointillée grise)
   if(opts.seuilLine&&opts.seuilLine>0&&opts.seuilLine<=yMax){
     const sy=pad.top+cH-(opts.seuilLine/yMax)*cH;
-    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#9CA3AF';ctx.lineWidth=1.5;
+    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#8a6f54';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(pad.left,sy);ctx.lineTo(pad.left+cW,sy);ctx.stroke();
     ctx.setLineDash([]);ctx.restore();
-    ctx.fillStyle='#9CA3AF';ctx.font='10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillStyle='#8a6f54';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='left';
     ctx.fillText('Seuil',pad.left+cW+4,sy+4);
   }
   // Ligne objectif (pointillé bleu)
@@ -4478,10 +4506,10 @@ function drawBarChart(canvas,labels,datasets,opts={}){
     ctx.save();ctx.setLineDash([6,3]);ctx.strokeStyle=COLORS.blue;ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(pad.left,ty);ctx.lineTo(pad.left+cW,ty);ctx.stroke();
     ctx.setLineDash([]);ctx.restore();
-    ctx.fillStyle=COLORS.blue;ctx.font='bold 10px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillStyle=COLORS.blue;ctx.font='bold 10px Inter Tight,sans-serif';ctx.textAlign='left';
     ctx.fillText('Objectif',pad.left+cW+4,ty+4);
   }
-  ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='center';
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,pad.top+cH+16));
 }
 
@@ -4514,7 +4542,7 @@ function drawLineChart(canvas,labels,data,color=COLORS.navy,dashed=false){
   ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
   ctx.stroke();ctx.restore();
   if(!dashed)pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();});
-  ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='center';
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+(i/n)*cW,pad.top+cH+16));
 }
 
@@ -4538,7 +4566,7 @@ function drawDonutChart(canvas,labels,data,colors){
   labels.forEach((l,i)=>{
     const ly=16+i*22;
     ctx.fillStyle=colors[i%colors.length];ctx.fillRect(lx,ly,10,10);
-    ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='left';
+    ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='left';
     ctx.fillText(l.slice(0,16),lx+14,ly+9);
   });
 }
@@ -4570,7 +4598,7 @@ function drawStackedBarChart(canvas,labels,datasets){
       base+=v;
     });
   });
-  ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='center';
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,pad.top+cH+16));
 }
 
@@ -4635,7 +4663,7 @@ function renderTrends(){
     \${tiles.map((ti,i)=>{
       const cur=ti.arr[ti.arr.length-1]||0, dl=delta(ti.arr);
       const good=dl==null?null:(ti.up?dl>=0:dl<=0);
-      const chip=dl==null?'':\`<span style="font-size:11px;font-weight:600;color:\${good?'#3E9E74':'#E05252'};">\${dl>=0?'▲':'▼'} \${Math.abs(dl)}%</span>\`;
+      const chip=dl==null?'':\`<span style="font-size:11px;font-weight:600;color:\${good?'#456039':'#8d2b21'};">\${dl>=0?'▲':'▼'} \${Math.abs(dl)}%</span>\`;
       return \`<div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
           <span style="font-size:11px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${ti.lab}</span>
@@ -4798,7 +4826,7 @@ function renderCockpit(){
   const settings=dbGetObj('settings');
   const now=new Date();
   const y=now.getFullYear(), m=now.getMonth()+1;
-  const scoreColor=d.score>=80?'#3E9E74':d.score>=55?'#E8A838':'#E05252';
+  const scoreColor=d.score>=80?'#456039':d.score>=55?'#8a6414':'#8d2b21';
   const scoreLabel=d.score>=80?'Solide':d.score>=55?'Correct':'Fragile';
   const scoreEmoji=d.score>=80?'🟢':d.score>=55?'🟠':'🔴';
   const scoreHist=settings.scoreHist||{};
@@ -4840,7 +4868,7 @@ function renderCockpit(){
   else phrase=\`🟢 Tu peux vivre sereinement ce mois-ci.\`;
   let recit='';
   if(p.besoin>0){
-    recit=\`<div style="font-size:14px;line-height:1.6;opacity:.9;margin-top:10px;">Ton entreprise peut te verser <strong>\${fmt(p.salaireConseille)}</strong>.\${p.revenusPerso>0?\` Avec tes autres revenus, tu disposes de <strong>\${fmt(dispoVivre)}</strong> pour vivre.\`:''} Tes dépenses prévues sont de <strong>\${fmt(p.besoin)}</strong> — il te restera <strong>\${fmt(reste)}</strong>.\${d.ecartObjectif<0?\` <span style="color:#F6C664;">⚠️ Ton objectif CA est en retard de \${fmt(-d.ecartObjectif)}.</span>\`:''}</div>\`;
+    recit=\`<div style="font-size:14px;line-height:1.6;opacity:.9;margin-top:10px;">Ton entreprise peut te verser <strong>\${fmt(p.salaireConseille)}</strong>.\${p.revenusPerso>0?\` Avec tes autres revenus, tu disposes de <strong>\${fmt(dispoVivre)}</strong> pour vivre.\`:''} Tes dépenses prévues sont de <strong>\${fmt(p.besoin)}</strong> — il te restera <strong>\${fmt(reste)}</strong>.\${d.ecartObjectif<0?\` <span style="color:#e9cf87;">⚠️ Ton objectif CA est en retard de \${fmt(-d.ecartObjectif)}.</span>\`:''}</div>\`;
   }else{
     recit=\`<div style="font-size:14px;line-height:1.6;opacity:.9;margin-top:10px;">Ton entreprise peut te verser <strong>\${fmt(d.disponible)}</strong> ce mois-ci. Renseigne ton <span style="text-decoration:underline;cursor:pointer;" onclick="navigate('budget-perso')">budget perso</span> pour voir ce qu'il te reste pour vivre.</div>\`;
   }
@@ -4853,14 +4881,14 @@ function renderCockpit(){
     <div style="text-align:center;flex:none;align-self:center;">
       <div style="font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;color:\${scoreColor};line-height:1;">\${d.score}</div>
       <div style="font-size:11px;opacity:.7;">\${scoreEmoji} Santé · \${scoreLabel}</div>
-      \${scoreDelta!=null&&scoreDelta!==0?\`<div style="font-size:11px;color:\${scoreDelta>0?'#7BE0AE':'#F6C664'};">\${scoreDelta>0?'↗ +'+scoreDelta:'↘ '+scoreDelta} ce mois</div>\`:''}
+      \${scoreDelta!=null&&scoreDelta!==0?\`<div style="font-size:11px;color:\${scoreDelta>0?'#b7d3ad':'#e9cf87'};">\${scoreDelta>0?'↗ +'+scoreDelta:'↘ '+scoreDelta} ce mois</div>\`:''}
     </div>
   </div>\`;
 
   // ═══ ② Ton plan financier ═══
   let planBloc='';
   if(p.besoin>0){
-    const eLine=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;\${strong?'border-top:1px solid var(--border);margin-top:3px;font-weight:600;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'16px':'14px'};\${neg?'color:#E05252;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
+    const eLine=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;\${strong?'border-top:1px solid var(--border);margin-top:3px;font-weight:600;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'16px':'14px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
     const propose=[];
     supAll.filter(e=>(parseFloat(e.montant)||0)>0).forEach(e=>propose.push({emoji:supEmoji(e.cat),nom:e.nom||supType(e.cat).nom,val:parseFloat(e.montant)||0}));
     projVie.filter(pr=>(parseFloat(pr.mensualite)||0)>0).forEach(pr=>propose.push({emoji:pvieCat(pr.cat).emoji,nom:pr.nom||'Projet',val:parseFloat(pr.mensualite)||0}));
@@ -4880,8 +4908,8 @@ function renderCockpit(){
       \${reste>0&&propose.length?\`<div style="margin-top:16px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:6px;">✨ Finance te propose (de tes \${fmt(reste)} libres)</div>
         \${propose.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.val)}</span></div>\`).join('')}
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--border);margin-top:3px;"><span>😊 Reste libre</span><span style="font-family:'Cormorant Garamond',serif;color:#3E9E74;">\${fmt(restePlaisir)}</span></div>
-        \${canApply?\`<button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<div style="margin-top:10px;font-size:12.5px;color:#3E9E74;">✔ Plan déjà appliqué ce mois.</div>\`}
+        <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--border);margin-top:3px;"><span>😊 Reste libre</span><span style="font-family:'Cormorant Garamond',serif;color:#456039;">\${fmt(restePlaisir)}</span></div>
+        \${canApply?\`<button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<div style="margin-top:10px;font-size:12.5px;color:#456039;">✔ Plan déjà appliqué ce mois.</div>\`}
       </div>\`:''}
     </div>\`;
   }
@@ -4894,11 +4922,11 @@ function renderCockpit(){
     <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:\${objCA>0?'14px':'0'};">
       <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">CA du mois</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);">\${fmt(d.caMois)}</div></div>
       <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">CA annuel</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--navy);">\${fmt(d.caYTD)}</div></div>
-      \${d.recMensuel>0?\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">🔁 Récurrent</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#3E9E74;">\${fmt(d.recMensuel)}<span style="font-size:12px;color:var(--text-2);"> /mois</span></div></div>\`:''}
+      \${d.recMensuel>0?\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">🔁 Récurrent</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#456039;">\${fmt(d.recMensuel)}<span style="font-size:12px;color:var(--text-2);"> /mois</span></div></div>\`:''}
     </div>
     \${objCA>0?\`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);margin-bottom:5px;"><span>Objectif \${fmt(objCA)}</span><span>\${pctO}%</span></div>
     <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pctO}%;background:var(--navy);border-radius:5px;"></div></div>
-    \${d.ecartObjectif<0?\`<div style="font-size:13px;color:#8a6508;margin-top:8px;">⚠️ \${fmt(-d.ecartObjectif)} à rattraper pour rester dans le rythme.</div>\`:\`<div style="font-size:13px;color:#2F7D55;margin-top:8px;">✅ Tu es dans le rythme.</div>\`}\`:''}
+    \${d.ecartObjectif<0?\`<div style="font-size:13px;color:#8a6414;margin-top:8px;">⚠️ \${fmt(-d.ecartObjectif)} à rattraper pour rester dans le rythme.</div>\`:\`<div style="font-size:13px;color:#456039;margin-top:8px;">✅ Tu es dans le rythme.</div>\`}\`:''}
     <button class="btn btn-outline btn-sm" style="margin-top:14px;" onclick="navigate('rapport-prevision')">Voir mes prévisions →</button>
   </div>\`;
 
@@ -4909,7 +4937,7 @@ function renderCockpit(){
     avenir=\`<div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Mon avenir</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;margin:2px 0;">\${fmt(valeurNette)}</div>
-      \${misCetteAnnee>0?\`<div style="font-size:12.5px;color:#7BE0AE;margin-bottom:12px;">↗ +\${fmt(misCetteAnnee)} cette année</div>\`:'<div style="margin-bottom:8px;"></div>'}
+      \${misCetteAnnee>0?\`<div style="font-size:12.5px;color:#b7d3ad;margin-bottom:12px;">↗ +\${fmt(misCetteAnnee)} cette année</div>\`:'<div style="margin-bottom:8px;"></div>'}
       <div style="display:flex;flex-direction:column;gap:5px;">\${parts.slice(0,4).map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;"><span style="opacity:.85;">\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.val)}</span></div>\`).join('')}</div>
       \${moisAutonomie!=null?\`<div style="font-size:13px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);">🛟 \${moisAutonomie} mois de dépenses couverts</div>\`:''}
       <button class="btn btn-sm" style="margin-top:14px;background:rgba(255,255,255,.14);color:#fff;border:none;" onclick="navigate('patrimoine')">Voir mon patrimoine →</button>
@@ -4932,7 +4960,7 @@ function renderCockpit(){
   if(d.aRanger)todo.push({c:'🟢',txt:d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser',nav:'enveloppes'});
   const afaire=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title">📋 À faire</div>
-    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.slice(0,4).map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 6px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${t.c} \${t.txt}</span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Rien d'urgent aujourd'hui. Profites-en.</div>\`}
+    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.slice(0,4).map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 6px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${t.c} \${t.txt}</span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#456039;padding:6px 0;">🎉 Rien d'urgent aujourd'hui. Profites-en.</div>\`}
   </div>\`;
 
   // Onboarding (profil qui démarre)
@@ -4942,7 +4970,7 @@ function renderCockpit(){
   const onboarding=nbTodo>=2?\`<div class="card" style="padding:22px;">
     <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px;">👋 Configurons ton copilote</div>
     <div style="font-size:12.5px;color:var(--text-2);margin-bottom:12px;">\${steps.length-nbTodo}/\${steps.length} fait — quelques étapes pour que Finance pilote vraiment ton argent.</div>
-    \${steps.map(sT=>\`<div \${sT.ok?'':\`onclick="navigate('\${sT.nav}')" style="cursor:pointer;"\`} style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--border);"><span style="display:flex;align-items:center;gap:9px;font-size:13.5px;\${sT.ok?'color:var(--text-2);text-decoration:line-through;':''}"><i class="ti \${sT.ok?'ti-circle-check':'ti-circle'}" style="color:\${sT.ok?'#3E9E74':'var(--text-2)'};font-size:16px;"></i> \${sT.txt}</span>\${sT.ok?'':'<span style="color:var(--navy);">→</span>'}</div>\`).join('')}
+    \${steps.map(sT=>\`<div \${sT.ok?'':\`onclick="navigate('\${sT.nav}')" style="cursor:pointer;"\`} style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--border);"><span style="display:flex;align-items:center;gap:9px;font-size:13.5px;\${sT.ok?'color:var(--text-2);text-decoration:line-through;':''}"><i class="ti \${sT.ok?'ti-circle-check':'ti-circle'}" style="color:\${sT.ok?'#456039':'var(--text-2)'};font-size:16px;"></i> \${sT.txt}</span>\${sT.ok?'':'<span style="color:var(--navy);">→</span>'}</div>\`).join('')}
   </div>\`:'';
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:18px;">
@@ -5052,9 +5080,9 @@ function loadDashboard(){
   if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue}],{targetLine:objectifMensuel,seuilLine:seuilMensuel});
   const leg=q('#chart-dash-bar-legend');
   if(leg)leg.innerHTML=
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4CAF82"></div>CA objectif atteint</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E8A838"></div>CA proche</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E05252"></div>CA insuffisant</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#456039"></div>CA objectif atteint</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#8a6414"></div>CA proche</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#8d2b21"></div>CA insuffisant</div>\`+
     \`<div class="chart-legend-item"><div style="border-top:2px dashed #1A2E5A;width:16px;margin-top:4px;"></div>Objectif</div>\`+
     \`<div class="chart-legend-item"><div style="border-top:2px dashed #9e9e9e;width:16px;margin-top:4px;"></div>Seuil</div>\`;
 
@@ -5067,8 +5095,8 @@ function loadDashboard(){
     alertEl.innerHTML=
       \`<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">\`+
       \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Objectif mensuel</div><div style="font-size:16px;font-weight:700;color:var(--navy);">\${fmt(objectifMensuel)}</div><div style="font-size:11px;color:var(--text-2);">pour \${settings.objectifCA||60000} €/an</div></div>\`+
-      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#E8A838;">\${fmt(seuilMensuel)}</div><div style="font-size:11px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
-      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Mois en vert</div><div style="font-size:16px;font-weight:700;color:#4CAF82;">\${moisOk} / \${12-moisVide}</div><div style="font-size:11px;color:var(--text-2);">\${moisKo>0?moisKo+' mois sous le seuil':'Tous les mois couverts'}</div></div>\`+
+      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#8a6414;">\${fmt(seuilMensuel)}</div><div style="font-size:11px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
+      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Mois en vert</div><div style="font-size:16px;font-weight:700;color:#456039;">\${moisOk} / \${12-moisVide}</div><div style="font-size:11px;color:var(--text-2);">\${moisKo>0?moisKo+' mois sous le seuil':'Tous les mois couverts'}</div></div>\`+
       \`</div>\`;
   }
 
@@ -5151,12 +5179,12 @@ async function syncQonto(silent=false){
 /* Enveloppes = lecture des vraies transactions Qonto, jamais de virement manuel.
    URSSAF & Charges se calculent seules ; Formation & Trésorerie = budgets que tu fixes. */
 const ENV_DEF=[
-  {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#E05252', auto:true },
-  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#E8A838', auto:true },
+  {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#8d2b21', auto:true },
+  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#8a6414', auto:true },
   {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
   {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
-  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#3B6DD4', auto:false},
-  {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#4CAF82', auto:false},
+  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#305277', auto:false},
+  {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#456039', auto:false},
 ];
 // Catégories assignables à une opération (dans l'ordre proposé au re-classement)
 const ENV_CATS=['urssaf','charges','formation','soustraitance','versement','ignore'];
@@ -5250,7 +5278,7 @@ function renderEnveloppes(){
   // Bandeau : Solde réel − Réservé = Disponible
   const banner=q('#enveloppes-banner');
   if(banner){
-    const dispColor=disponible<0?'#F87171':'#7BE0AE';
+    const dispColor=disponible<0?'#F87171':'#b7d3ad';
     const col=(lab,val,hint,color)=>\`<div>
       <div style="font-size:10px;text-transform:uppercase;letter-spacing:.09em;opacity:.6;margin-bottom:5px;">\${lab}</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:27px;font-weight:\${color?700:600};\${color?'color:'+color+';':''}">\${fmt(val)}</div>
@@ -5273,7 +5301,7 @@ function renderEnveloppes(){
     if(def.id==='engagements')return renderEngagementsCard(def,e);
     const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
     const badge=def.auto
-      ? '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#3E9E74;background:rgba(62,158,116,.13);">Automatique</span>'
+      ? '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#456039;background:rgba(62,158,116,.13);">Automatique</span>'
       : '<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#7C3AED;background:rgba(124,58,237,.13);">'+(e.budget>0?'Budget défini':'À définir')+'</span>';
     const row=(k,v)=>\`<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-2);">\${k}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(v)}</span></div>\`;
     let detail='';
@@ -5330,13 +5358,13 @@ function renderEngagementsCard(def,e){
         <span style="font-size:10.5px;color:var(--text-2);">\${it.date?fmtDate(it.date)+' · ':''}payé \${fmt(paye)} / \${fmt(total)}</span>
         <span style="display:flex;gap:8px;">
           <button onclick="openEngagementModal('\${it.id}')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
-          <button onclick="deleteEngagement('\${it.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:13px;"><i class="ti ti-trash"></i></button>
+          <button onclick="deleteEngagement('\${it.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:13px;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
       \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;"></div></div>\`:''}
     </div>\`;
   }).join('');
-  const badge='<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#3B6DD4;background:rgba(59,109,212,.13);">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
+  const badge='<span style="font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#305277;background:#eef3f6;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
   return \`<div class="card" style="padding:18px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -5426,7 +5454,7 @@ function renderAranger(ctx){
           \${projets.map(p=>\`<option value="\${p.id}"\${txProjet[key]===p.id?' selected':''}>\${escHtml(p.nom)}</option>\`).join('')}
         </select>\`
       : '';
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(232,168,56,.08);':''}">
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(138,100,20,.08);':''}">
       <div style="min-width:150px;flex:1;">
         <div style="font-size:12.5px;font-weight:500;">\${escHtml(t.libelle||'—')}</div>
         <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · −\${fmt(t.montant)}</div>
@@ -5485,10 +5513,10 @@ async function saveEnvReglages(){
 
 /* --- Vie perso : budget, niveau de vie, projets ----------------------- */
 const PERSO_CATS=[
-  {id:'logement', nom:'Logement',        emoji:'🏡', couleur:'#3B6DD4'},
-  {id:'transport',nom:'Transport',       emoji:'🚗', couleur:'#E8A838'},
-  {id:'quotidien',nom:'Vie quotidienne', emoji:'🛒', couleur:'#4CAF82'},
-  {id:'famille',  nom:'Famille',         emoji:'👨‍👩‍👧', couleur:'#E05252'},
+  {id:'logement', nom:'Logement',        emoji:'🏡', couleur:'#305277'},
+  {id:'transport',nom:'Transport',       emoji:'🚗', couleur:'#8a6414'},
+  {id:'quotidien',nom:'Vie quotidienne', emoji:'🛒', couleur:'#456039'},
+  {id:'famille',  nom:'Famille',         emoji:'👨‍👩‍👧', couleur:'#8d2b21'},
   {id:'loisirs',  nom:'Loisirs',         emoji:'🎉', couleur:'#7C3AED'},
 ];
 
@@ -5568,9 +5596,9 @@ function renderPersoHero(ctx){
       \${aidesLine}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      \${palier('🟢','Minimum vital',besoin,'#4CAF82','tes dépenses actuelles')}
-      \${palier('🟡','Confort',confort,'#E8A838',confort>0?'ta cible de confort':'à définir')}
-      \${palier('🔵','Objectif',objectif,'#3B6DD4',objectif>0?'ton objectif de vie':'à définir')}
+      \${palier('🟢','Minimum vital',besoin,'#456039','tes dépenses actuelles')}
+      \${palier('🟡','Confort',confort,'#8a6414',confort>0?'ta cible de confort':'à définir')}
+      \${palier('🔵','Objectif',objectif,'#305277',objectif>0?'ton objectif de vie':'à définir')}
     </div>\`;
 }
 
@@ -5578,7 +5606,7 @@ function renderPersoReste(ctx){
   const el=q('#perso-reste'); if(!el)return;
   const {salaireConseille,besoin,resteAVivre,revenusPerso}=ctx;
   if(besoin<=0){el.innerHTML='';return;}
-  const color=resteAVivre<200?'#E05252':resteAVivre<500?'#E8A838':'#4CAF82';
+  const color=resteAVivre<200?'#8d2b21':resteAVivre<500?'#8a6414':'#456039';
   const emoji=resteAVivre<200?'🔴':resteAVivre<500?'🟠':'🟢';
   const label=resteAVivre<200?'serré':resteAVivre<500?'correct':'confortable';
   const detail=revenusPerso>0
@@ -5608,12 +5636,12 @@ function renderPersoBridge(ctx){
 }
 
 const SUP_TYPES=[
-  {id:'livreta',nom:'Livret A',      emoji:'🏦',couleur:'#3B6DD4'},
-  {id:'ldds',   nom:'LDDS',          emoji:'🌿',couleur:'#4CAF82'},
+  {id:'livreta',nom:'Livret A',      emoji:'🏦',couleur:'#305277'},
+  {id:'ldds',   nom:'LDDS',          emoji:'🌿',couleur:'#456039'},
   {id:'av',     nom:'Assurance vie', emoji:'📈',couleur:'#2AA9A0'},
   {id:'pea',    nom:'PEA',           emoji:'📊',couleur:'#4C6FBF'},
   {id:'cto',    nom:'CTO',           emoji:'💹',couleur:'#7C3AED'},
-  {id:'immo',   nom:'Immobilier',    emoji:'🏠',couleur:'#E8A838'},
+  {id:'immo',   nom:'Immobilier',    emoji:'🏠',couleur:'#8a6414'},
   {id:'crypto', nom:'Crypto',        emoji:'🪙',couleur:'#E0A3C0'},
   {id:'compte', nom:'Compte perso',  emoji:'💳',couleur:'#6B7A99'},
   {id:'autre',  nom:'Autre placement',emoji:'➕',couleur:'#9AA4B5'},
@@ -5660,9 +5688,9 @@ function renderPatrimoine(){
     const area='M'+X(0)+','+H+' L'+solid.join(' L')+' L'+X(cur)+','+H+' Z';
     chart=\`<svg viewBox="0 0 \${W} \${H}" preserveAspectRatio="none" style="width:100%;height:70px;margin-top:16px;overflow:visible;">
       <path d="\${area}" fill="rgba(123,224,174,.18)"/>
-      <polyline points="\${solid.join(' ')}" fill="none" stroke="#7BE0AE" stroke-width="2.5"/>
-      <polyline points="\${dash.join(' ')}" fill="none" stroke="#7BE0AE" stroke-width="2" stroke-dasharray="4 4" opacity=".55"/>
-      <circle cx="\${X(cur)}" cy="\${Y(pts[cur])}" r="3.5" fill="#fff" stroke="#7BE0AE" stroke-width="2"/>
+      <polyline points="\${solid.join(' ')}" fill="none" stroke="#b7d3ad" stroke-width="2.5"/>
+      <polyline points="\${dash.join(' ')}" fill="none" stroke="#b7d3ad" stroke-width="2" stroke-dasharray="4 4" opacity=".55"/>
+      <circle cx="\${X(cur)}" cy="\${Y(pts[cur])}" r="3.5" fill="#fff" stroke="#b7d3ad" stroke-width="2"/>
     </svg>
     <div style="display:flex;justify-content:space-between;font-size:10px;opacity:.5;margin-top:2px;"><span>Jan</span><span>Avr</span><span>Juil</span><span>Oct</span><span>Déc</span></div>\`;
   }
@@ -5671,7 +5699,7 @@ function renderPatrimoine(){
     gEl.innerHTML=\`<div style="background:linear-gradient(135deg,var(--navy),#2c4275);border-radius:20px;padding:28px 32px;color:#fff;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Mon patrimoine</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
-      \${misCetteAnnee>0?\`<div style="font-size:13px;color:#7BE0AE;">↗ +\${fmt(misCetteAnnee)} cette année · <span style="opacity:.85;">tu construis ton patrimoine chaque mois.</span></div>\`:\`<div style="font-size:13px;opacity:.75;">Chaque euro mis de côté fait grandir ta richesse.</div>\`}
+      \${misCetteAnnee>0?\`<div style="font-size:13px;color:#b7d3ad;">↗ +\${fmt(misCetteAnnee)} cette année · <span style="opacity:.85;">tu construis ton patrimoine chaque mois.</span></div>\`:\`<div style="font-size:13px;opacity:.75;">Chaque euro mis de côté fait grandir ta richesse.</div>\`}
       \${chart}
       \${(totalMensuel>0||moisLib!=null)?\`<div style="display:flex;gap:32px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
         \${totalMensuel>0?\`<div><div style="font-size:11px;opacity:.6;">💰 Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:10.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} par an ajoutés à ton patrimoine</div></div>\`:''}
@@ -5698,11 +5726,11 @@ function renderPatrimoine(){
         <span style="font-size:13px;font-weight:700;color:var(--navy);">\${t.emoji} \${nom}</span>
         <span style="display:flex;gap:6px;">
           <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
-          <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:13px;"><i class="ti ti-trash"></i></button>
+          <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:13px;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--navy);margin:8px 0 2px;">\${fmt(solde)}</div>
-      \${mens>0?\`<div style="font-size:12px;color:#3E9E74;font-weight:600;">+\${fmt(mens)} / mois</div>\`:\`<div style="font-size:12px;color:var(--text-2);">pas de versement mensuel</div>\`}
+      \${mens>0?\`<div style="font-size:12px;color:#456039;font-weight:600;">+\${fmt(mens)} / mois</div>\`:\`<div style="font-size:12px;color:var(--text-2);">pas de versement mensuel</div>\`}
       \${obj>0?\`<div style="margin-top:12px;"><div style="height:7px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${t.couleur};border-radius:5px;transition:width .5s;"></div></div><div style="font-size:10.5px;color:var(--text-2);margin-top:5px;">\${pct}% de ton objectif (\${fmt(obj)})\${reste>0?' · encore '+fmt(reste):''}\${(mens>0&&reste>0)?' · ~'+Math.ceil(reste/mens)+' mois':''}</div></div>\`:''}
     </div>\`;
   }).join('')+\`</div>\`;
@@ -5790,7 +5818,7 @@ function renderPersoEpargne(ctx){
       <span style="display:flex;align-items:center;gap:8px;">
         <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#2AA9A0;">\${fmt(mt)} / mois</span>
         <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
-        <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+        <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:12px;"><i class="ti ti-trash"></i></button>
       </span>
     </div>\`;
   }).join('');
@@ -5863,7 +5891,7 @@ function renderPersoRevenus(ctx){
       <span style="display:flex;align-items:center;gap:8px;">
         <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:#2AA9A0;">+\${fmt(parseFloat(r.montant)||0)}</span>
         <button onclick="openPersoRevenuModal('\${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
-        <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+        <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:12px;"><i class="ti ti-trash"></i></button>
       </span>
     </div>\`).join('');
   el.innerHTML=\`<div class="card" style="padding:16px;">
@@ -5931,7 +5959,7 @@ function renderPersoCharges(ctx){
       <span style="display:flex;align-items:center;gap:8px;">
         <span style="font-family:'Cormorant Garamond',serif;font-size:15px;">\${fmt(parseFloat(it.montant)||0)}</span>
         <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:12px;"><i class="ti ti-pencil"></i></button>
-        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#E05252;font-size:12px;"><i class="ti ti-trash"></i></button>
+        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:12px;"><i class="ti ti-trash"></i></button>
       </span>
     </div>\`).join('');
     return \`<div class="card" style="padding:16px;">
@@ -5982,7 +6010,7 @@ function renderPersoDash(){
   if(!charges.length){el.innerHTML='';return;}
   const ctx=computePerso();
   const {besoin,salaireConseille,resteAVivre,disponible}=ctx;
-  const rColor=resteAVivre<200?'#F87171':resteAVivre<500?'#F6C453':'#7BE0AE';
+  const rColor=resteAVivre<200?'#F87171':resteAVivre<500?'#F6C453':'#b7d3ad';
   const cell=(emoji,lab,val,color)=>\`<div style="flex:1;min-width:140px;">
     <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;">\${emoji} \${lab}</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;\${color?'color:'+color+';':''}">\${fmt(val)}</div>
@@ -5992,7 +6020,7 @@ function renderPersoDash(){
     <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;">
       \${cell('💰','Dispo entreprise',disponible)}
       \${cell('🏠','Besoin de vie',besoin)}
-      \${cell('💸','Salaire conseillé',salaireConseille,'#7BE0AE')}
+      \${cell('💸','Salaire conseillé',salaireConseille,'#b7d3ad')}
       \${cell('🌱','Reste à vivre',resteAVivre,rColor)}
     </div>
   </div>\`;
@@ -6093,23 +6121,23 @@ function renderProjetsVie(){
     const c=pvieCat(p.cat);
     const stars='⭐'.repeat(p.prio);
     let timeBlock;
-    if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#3E9E74;">🎉 Objectif atteint</div>\`;}
+    if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:#456039;">🎉 Objectif atteint</div>\`;}
     else if(p.eta!=null){timeBlock=\`<div style="font-size:11px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:12px;color:var(--text-2);">\${moisEnDate(p.eta)}</div>\`;}
     else{timeBlock=\`<div style="font-size:13px;color:var(--text-2);">Ajoute une épargne mensuelle pour estimer la date 🗓️</div>\`;}
     let proj='';
     if(p.mens>0&&p.reste>0){
       const eta2=Math.ceil(p.reste/(p.mens*2));
       const gain=p.eta-eta2;
-      if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:12px;color:var(--text-1);line-height:1.5;">💡 En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#3E9E74;font-weight:600;">tu gagnes \${gain} mois 🔥</span></div>\`;
+      if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:12px;color:var(--text-1);line-height:1.5;">💡 En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#456039;font-weight:600;">tu gagnes \${gain} mois 🔥</span></div>\`;
     }
-    const prioColor=p.prio>=3?'#E05252':p.prio===2?'#E8A838':'#8b98ad';
+    const prioColor=p.prio>=3?'#8d2b21':p.prio===2?'#8a6414':'#8b98ad';
     return \`<div class="card" style="padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:11px;color:#E8A838;margin-top:2px;">\${stars}</div></div>
+        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:11px;color:#8a6414;margin-top:2px;">\${stars}</div></div>
         <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
       <div style="margin-bottom:12px;">\${timeBlock}</div>
-      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:linear-gradient(90deg,#4CAF82,#3B6DD4);border-radius:5px;transition:width .5s;"></div></div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:linear-gradient(90deg,#456039,#305277);border-radius:5px;transition:width .5s;"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-2);margin-top:6px;">
         <span>\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%</span><span>\${p.mens>0?fmt(p.mens)+' / mois':''}</span>
       </div>
@@ -6281,7 +6309,7 @@ function renderQontoCalc(){
   function provCard(icon,label,provision,depense,restant,couleur,depList){
     const pct=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
     const overshot=restant<0;
-    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid '+(overshot?'#E05252':couleur)+';">'+
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid '+(overshot?'#8d2b21':couleur)+';">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'+
         '<div style="display:flex;align-items:center;gap:8px;">'+
           '<span style="font-size:18px;">'+icon+'</span>'+
@@ -6295,15 +6323,15 @@ function renderQontoCalc(){
       '<div style="display:flex;gap:12px;margin-bottom:8px;">'+
         '<div style="flex:1;background:'+(overshot?'#FEE':'#fff')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
           '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">À garder de côté</div>'+
-          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#E05252':restant===0?'#4CAF82':couleur)+';">'+(restant===0?'✓ Couvert':fmt(restant))+'</div>'+
+          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#8d2b21':restant===0?'#456039':couleur)+';">'+(restant===0?'✓ Couvert':fmt(restant))+'</div>'+
         '</div>'+
         '<div style="flex:1;background:#fff;border-radius:8px;padding:8px 10px;text-align:center;">'+
           '<div style="font-size:10px;color:var(--text-2);margin-bottom:2px;">Déjà réglé</div>'+
           '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
         '</div>'+
       '</div>'+
-      '<div style="height:5px;background:#E8E8E4;border-radius:3px;margin-bottom:8px;">'+
-        '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#E05252':pct>=100?'#4CAF82':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
+      '<div style="height:5px;background:#eae5dc;border-radius:3px;margin-bottom:8px;">'+
+        '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#8d2b21':pct>=100?'#456039':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
       depLines(depList)+
     '</div>';
   }
@@ -6352,15 +6380,15 @@ function renderQontoCalc(){
     +'</div>'+
     // ── Zone 2 : Provisions ──────────────────────────────────────────────
     '<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;">🔒 Provisions à sécuriser</div>'+
-    provCard('🔴','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#E05252',listCharges)+
-    provCard('📋','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#E8A838',listFixes)+
+    provCard('🔴','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#8d2b21',listCharges)+
+    provCard('📋','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#8a6414',listFixes)+
     provCard('📚','Formation',provFormation,depFormation,resteFormation,'#7B4DD4',listFormation)+
     // ── Zone 3 : Versements perso ────────────────────────────────────────
     '<div style="grid-column:1/-1;font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;">💸 Versements perso effectués</div>'+
-    '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid #4CAF82;">'+
+    '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid #456039;">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
         '<span style="font-size:12px;font-weight:700;color:var(--navy);">Total versé depuis '+fmtDate(dateDebut)+'</span>'+
-        '<span style="font-size:20px;font-weight:700;color:#4CAF82;">'+fmt(depVers)+'</span>'+
+        '<span style="font-size:20px;font-weight:700;color:#456039;">'+fmt(depVers)+'</span>'+
       '</div>'+
       depLines(listVers)+
     '</div>';
@@ -6388,10 +6416,10 @@ function renderQontoCalc(){
     const pctUsedFormation= provFormation>0 ? depFormation/provFormation*100 : 0;
     const versementSolde  = Math.max(0,Math.round(disponibleBrut*pctVers*100)/100 - depVers);
     potsGrid.innerHTML=
-      potCard('🔴','URSSAF & Charges sociales', Math.max(0,resteCharges), '#E05252',
+      potCard('🔴','URSSAF & Charges sociales', Math.max(0,resteCharges), '#8d2b21',
         depCharges>0?fmt(depCharges)+' deja regle · provision '+fmt(provCharges):'Provision sur CA encaisse',
         pctUsedCharges)+
-      potCard('📋','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#E8A838',
+      potCard('📋','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#8a6414',
         'Budget annuel '+fmt(provChargesFixes)+' · '+fmt(depFixes)+' dépensé',
         pctUsedFixes)+
       potCard('📚','Formation', Math.max(0,resteFormation), '#7B4DD4',
@@ -6400,7 +6428,7 @@ function renderQontoCalc(){
       potCard('🏦','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#3b6dd4',
         Math.round(pctTreso*100)+'% du disponible net · sécurité',
         100)+
-      potCard('💸','Versement perso', versementSolde, '#4CAF82',
+      potCard('💸','Versement perso', versementSolde, '#456039',
         fmt(depVers)+' versé · reste à te virer',
         depVers>0?Math.min(100,depVers/(Math.round(disponibleBrut*pctVers*100)/100)*100):0)+
       (pctEpargne>0.001?potCard('💰','Épargne', provEpargne, '#6B8DD4','Buffer long terme',0):'');
@@ -6698,7 +6726,7 @@ function renderFactures(){
     const dv=proj?.devisId?dbGet('devis').find(x=>x.id===proj.devisId):null;
     const projetCell=proj?proj.nom:(f.description||'<span style="color:var(--text-2);">—</span>');
     const devisCell=dv
-      ?\`<button class="btn btn-ghost btn-xs" style="color:#4CAF82;font-weight:600;gap:4px;" title="Voir le devis \${dv.numero}" onclick="navigate('devis');setTimeout(()=>highlightDevis('\${dv.id}'),300)"><i class="ti ti-file-description"></i> \${dv.numero}</button>\`
+      ?\`<button class="btn btn-ghost btn-xs" style="color:#456039;font-weight:600;gap:4px;" title="Voir le devis \${dv.numero}" onclick="navigate('devis');setTimeout(()=>highlightDevis('\${dv.id}'),300)"><i class="ti ti-file-description"></i> \${dv.numero}</button>\`
       :'<span style="color:var(--text-2);font-size:12px;">—</span>';
     return\`<tr>
       <td>\${fmtDate(f.date)}</td>
@@ -6798,7 +6826,7 @@ function onFactureProjetChange(keepValues=false){
   let lines=[];
   if(devis)lines.push(\`📄 Devis \${devis.numero} · signé · \${fmt(devis.montant)}\`);
   lines.push(\`📁 \${projet.nom} · \${typeLabel[projet.type]||projet.type}\${projet.type==='mensuel'?(projet.dureeIndeterminee?' · indéterminé':' · '+projet.nombreMois+' mois'):''}\`);
-  lines.push(\`Facturé : \${fmt(montantFacture)}\${!projet.dureeIndeterminee?' / '+fmt(projet.montantTotal||0):''} · <strong style="color:\${reste>0?'#E8A838':'#4CAF82'};">\${projet.dureeIndeterminee?(linked.length+' facture(s) émise(s)'):(reste>0?'Reste : '+fmt(reste):'✓ Complet')}</strong>\`);
+  lines.push(\`Facturé : \${fmt(montantFacture)}\${!projet.dureeIndeterminee?' / '+fmt(projet.montantTotal||0):''} · <strong style="color:\${reste>0?'#8a6414':'#456039'};">\${projet.dureeIndeterminee?(linked.length+' facture(s) émise(s)'):(reste>0?'Reste : '+fmt(reste):'✓ Complet')}</strong>\`);
   // Suggest type & montant
   let sugType='standard',sugMontant=null,sugNote='';
   if(projet.type==='mensuel'&&projet.dureeIndeterminee){
@@ -6938,13 +6966,13 @@ function deleteTiers(id){
 let _prospectsCache=[];
 
 const CRM_STATUTS={
-  contact:{label:'Premier contact',color:'#BAD1FD',cls:'attente'},
-  en_attente:{label:'En attente',color:'#E8A838',cls:'retard'},
-  positif:{label:'Positif',color:'#4CAF82',cls:'payee'},
-  negatif:{label:'Négatif',color:'#E85454',cls:'annule'},
+  contact:{label:'Premier contact',color:'#F0E8FF',cls:'attente'},
+  en_attente:{label:'En attente',color:'#8a6414',cls:'retard'},
+  positif:{label:'Positif',color:'#456039',cls:'payee'},
+  negatif:{label:'Négatif',color:'#8d2b21',cls:'annule'},
   proposition:{label:'Proposition',color:'#E4D1FE',cls:'brouillon'},
-  converti:{label:'Converti',color:'#4CAF82',cls:'payee'},
-  sans_suite:{label:'Sans suite',color:'#6B6B6B',cls:'annule'},
+  converti:{label:'Converti',color:'#456039',cls:'payee'},
+  sans_suite:{label:'Sans suite',color:'#6b533b',cls:'annule'},
 };
 
 const CRM_PROBA={contact:15,en_attente:25,positif:55,proposition:65,converti:100,negatif:0,sans_suite:0};
@@ -7011,7 +7039,7 @@ function crmToday(){
   });
   el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">📋 À faire aujourd'hui</div>
-    \${items.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${items.slice(0,6).map(it=>\`<div onclick="openProspectById('\${it.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${it.txt}<div style="font-size:11px;color:var(--text-2);">\${it.sub}</div></span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#3E9E74;padding:6px 0;">🎉 Aucune relance urgente aujourd'hui.</div>\`}
+    \${items.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${items.slice(0,6).map(it=>\`<div onclick="openProspectById('\${it.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${it.txt}<div style="font-size:11px;color:var(--text-2);">\${it.sub}</div></span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#456039;padding:6px 0;">🎉 Aucune relance urgente aujourd'hui.</div>\`}
   </div>\`;
 }
 
@@ -7023,7 +7051,7 @@ function crmObjectif(){
   if(objCA<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div><div style="font-size:13px;color:var(--text-2);">Définis un objectif de CA (dans Objectifs) pour que Finance te dise combien signer.</div></div>\`;return;}
   const now=new Date(); const rem=Math.max(0,12-(now.getMonth()+1));
   const manque=Math.max(0,objCA-(d.caYTD||0)-(d.recMensuel||0)*rem);
-  if(manque<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div><div style="font-size:15px;color:#3E9E74;font-weight:600;margin-top:6px;">🎉 Ton objectif annuel est déjà sécurisé.</div></div>\`;return;}
+  if(manque<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div><div style="font-size:15px;color:#456039;font-weight:600;margin-top:6px;">🎉 Ton objectif annuel est déjà sécurisé.</div></div>\`;return;}
   const opt=n=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
   el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;">🎯 Objectif CA</div>
@@ -7077,7 +7105,7 @@ function crmRelations(){
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:12px;">⚠️ Clients à réactiver</div>
-      \${inactifs.length?inactifs.map(c=>\`<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">\${escHtml(c.nom)}</div><div style="font-size:11px;color:var(--text-2);">Dernière mission il y a \${moisDepuis(c.last)} mois — pourquoi ne pas reprendre contact ?</div></div>\`).join(''):'<div style="font-size:12px;color:#3E9E74;">Tous tes clients sont actifs 👍</div>'}
+      \${inactifs.length?inactifs.map(c=>\`<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-size:13px;font-weight:500;">\${escHtml(c.nom)}</div><div style="font-size:11px;color:var(--text-2);">Dernière mission il y a \${moisDepuis(c.last)} mois — pourquoi ne pas reprendre contact ?</div></div>\`).join(''):'<div style="font-size:12px;color:#456039;">Tous tes clients sont actifs 👍</div>'}
     </div>
   </div>\`;
 }
@@ -7144,7 +7172,7 @@ function _drawDonutChart(canvas,labels,vals,colors){
   if(!ctx)return;
   ctx.clearRect(0,0,W,H);
   const total=vals.reduce((s,v)=>s+v,0);
-  if(total===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  if(total===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
   const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-20,ri=r*0.55;
   let angle=-Math.PI/2;
   vals.forEach((v,i)=>{
@@ -7160,7 +7188,7 @@ function _drawDonutChart(canvas,labels,vals,colors){
     const y=legendY0+i*legendStep;
     ctx.fillStyle=colors[i%colors.length];
     ctx.fillRect(legendX-20,y-8,12,12);
-    ctx.fillStyle='#222';ctx.font="12px DM Sans";ctx.textAlign="left";
+    ctx.fillStyle='#412F21';ctx.font="12px Inter Tight";ctx.textAlign="left";
     ctx.fillText(l+" ("+vals[i]+")",legendX-4,y+2);
   });
 }
@@ -7169,7 +7197,7 @@ function _drawBarChartCRM(canvas,labels,vals,colors){
   const {ctx,W,H}=setupCanvas(canvas);
   if(!ctx)return;
   ctx.clearRect(0,0,W,H);
-  if(vals.length===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  if(vals.length===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
   const maxV=Math.max(...vals)||1;
   const pad={l:10,r:10,t:10,b:50};
   const bw=Math.max(16,Math.floor((W-pad.l-pad.r)/labels.length*0.6));
@@ -7181,9 +7209,9 @@ function _drawBarChartCRM(canvas,labels,vals,colors){
     const y=pad.t+chartH-bh;
     ctx.fillStyle=colors[i%colors.length];
     ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
-    ctx.fillStyle='#222';ctx.font="bold 12px DM Sans";ctx.textAlign="center";
+    ctx.fillStyle='#412F21';ctx.font="bold 12px Inter Tight";ctx.textAlign="center";
     ctx.fillText(vals[i],x+bw/2,y-4);
-    ctx.fillStyle='#555';ctx.font="11px DM Sans";
+    ctx.fillStyle='#6b533b';ctx.font="11px Inter Tight";
     const short=label.length>10?label.slice(0,9)+"…":label;
     ctx.fillText(short,x+bw/2,H-pad.b+14);
   });
@@ -7405,7 +7433,7 @@ function renderDevis(){
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
         \${d.pdfKey?\`<button class="btn btn-sm" style="background:#e8f0fe;color:#3b6dd4;border:1px solid #bad1fd;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
-        \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#4CAF82;border:1px solid #4CAF82;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
+        \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7547,7 +7575,7 @@ function renderProjetsForecast(){
   el.innerHTML=\`<div class="card" style="padding:22px;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">📅 Revenus attendus · prochains mois</span>
-      \${recMens>0?\`<span style="font-size:12px;color:var(--text-2);">🔁 Récurrent sécurisé : <strong style="color:#3E9E74;">\${fmt(recMens)} / mois</strong></span>\`:''}
+      \${recMens>0?\`<span style="font-size:12px;color:var(--text-2);">🔁 Récurrent sécurisé : <strong style="color:#456039;">\${fmt(recMens)} / mois</strong></span>\`:''}
     </div>
     <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:14px;align-items:end;">
       \${months.map(mo=>\`<div style="text-align:center;">
@@ -7604,10 +7632,10 @@ function renderProjets(){
   const typeFacLabel={standard:'Standard',acompte:'Acompte',intermediaire:'Intermédiaire',solde:'Solde',mensuel:'Mensuel'};
   const statIcon={payee:'✅',attente:'⏳',retard:'🔴'};
   function facRow(f,extra=''){
-    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;">
+    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:10px;background:#eae5dc;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;">
       <span>\${statIcon[f.statut]||'⏳'}</span>
-      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${fmtDate(f.date)}</span>
+      <span style="font-size:12px;color:#6b533b;min-width:80px;">\${fmtDate(f.date)}</span>
       <span style="font-size:12px;flex:1;">\${f.numero||'—'}\${badge}</span>
       <span style="font-size:12px;font-weight:500;">\${fmt(f.montant||0)}</span>
       <span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}" style="font-size:10px;">\${f.statut==='payee'?'Payée':f.statut==='retard'?'Retard':'Attente'}</span>
@@ -7615,9 +7643,9 @@ function renderProjets(){
     </div>\`;
   }
   function emptyRow(label,montant){
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;">
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;">
       <span>📋</span>
-      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${label}</span>
+      <span style="font-size:12px;color:#6b533b;min-width:80px;">\${label}</span>
       <span style="font-size:12px;flex:1;font-style:italic;">À émettre</span>
       \${montant?'<span style="font-size:12px;font-weight:500;">'+fmt(montant)+'</span>':''}
       <span></span>
@@ -7652,7 +7680,7 @@ function renderProjets(){
           facsHtml+=facRow(slotFacs[0]);
         }else{
           // Doublon détecté
-          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:11px;color:#8a6508;"><i class="ti ti-alert-triangle"></i> ⚠️ \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
+          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:11px;color:#8a6414;"><i class="ti ti-alert-triangle"></i> ⚠️ \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
           slotFacs.forEach(f=>facsHtml+=facRow(f));
         }
       }
@@ -7679,20 +7707,20 @@ function renderProjets(){
       facsHtml=sorted.map(f=>facRow(f)).join('');
       const hasAcompte=linked.some(f=>f.typeFacture==='acompte');
       const hasSolde=linked.some(f=>f.typeFacture==='solde');
-      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
-      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#eae5dc;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#eae5dc;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
     }else{
       const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
       facsHtml=sorted.map(f=>facRow(f)).join('');
       if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
     }
     return\`<div class="card mb-16" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #E8E8E4;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eae5dc;">
         <div style="display:flex;align-items:center;gap:12px;">
           <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
           <div>
             <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
-            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            <div style="font-size:12px;color:#6b533b;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#456039;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
             </div>
           </div>
         </div>
@@ -7703,19 +7731,19 @@ function renderProjets(){
         </div>
       </div>
       <div style="padding:16px 20px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6B6B6B;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6b533b;margin-bottom:6px;">
           <span>\${fmt(montantFacture)} facturé</span>
           <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'✓ Complet'}</span></span>
         </div>
-        <div style="background:#E8E8E4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
-          <div style="background:\${pct>=100?'var(--success)':'#BAD1FD'};height:100%;width:\${pct}%;border-radius:4px;"></div>
+        <div style="background:#eae5dc;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
+          <div style="background:\${pct>=100?'var(--success)':'#F0E8FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
         </div>
         \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
           <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:#2AA9A0;">− \${fmt(stLiee)} sous-traitance</span></span>
           <span style="font-weight:700;color:\${marge>=0?'var(--success)':'var(--danger)'};">Marge \${fmt(marge)}</span>
         </div>\`:''}
         \${facsHtml?'<div>'+facsHtml+'</div>':''}
-        \${p.notes?'<div style="margin-top:10px;font-size:12px;color:#6B6B6B;font-style:italic;">'+p.notes+'</div>':''}
+        \${p.notes?'<div style="margin-top:10px;font-size:12px;color:#6b533b;font-style:italic;">'+p.notes+'</div>':''}
       </div>
     </div>\`;
   }).join('');
@@ -7990,7 +8018,7 @@ function drawAboTimeline(){
   const dayW=(W-padL-padR)/31;
   ctx.strokeStyle=COLORS.muted;ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(padL,trackY);ctx.lineTo(W-padR,trackY);ctx.stroke();
-  ctx.fillStyle=COLORS.text2;ctx.font='10px DM Sans,sans-serif';ctx.textAlign='center';
+  ctx.fillStyle=COLORS.text2;ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='center';
   for(let d=1;d<=31;d++){
     const x=padL+(d-1)*dayW+dayW/2;
     if(d%5===0||d===1||d===31)ctx.fillText(d,x,H-4);
@@ -8001,9 +8029,9 @@ function drawAboTimeline(){
     const x=padL+((a.jour||1)-1)*dayW+dayW/2;
     const col=PALETTE[i%PALETTE.length];
     ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,trackY,10,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='bold 8px DM Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillStyle='#fff';ctx.font='bold 8px Inter Tight,sans-serif';ctx.textAlign='center';
     ctx.fillText(a.nom.slice(0,2).toUpperCase(),x,trackY+3);
-    ctx.fillStyle=COLORS.text2;ctx.font='9px DM Sans,sans-serif';
+    ctx.fillStyle=COLORS.text2;ctx.font='9px Inter Tight,sans-serif';
     ctx.fillText(a.nom.slice(0,10),x,i%2===0?trackY-18:trackY+24);
   });
 }
@@ -8173,8 +8201,8 @@ function renderObjectifsPilotage(){
   const caYTD=d.caYTD||0, soldeReel=d.soldeReel||0, moisSecu=d.moisSecurite||0, rec=d.recMensuel||0;
   const tiles=[
     {lab:'CA annuel',      color:'#4C6FBF',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
-    {lab:'Matelas trésorerie',color:'#3E9E74',cur:soldeReel,cible:objTreso,txt:objTreso>0?fmt(soldeReel)+' / '+fmt(objTreso):'objectif non défini',        pct:objTreso>0?soldeReel/objTreso*100:0},
-    {lab:'Mois de sécurité',color:'#E8A838',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
+    {lab:'Matelas trésorerie',color:'#456039',cur:soldeReel,cible:objTreso,txt:objTreso>0?fmt(soldeReel)+' / '+fmt(objTreso):'objectif non défini',        pct:objTreso>0?soldeReel/objTreso*100:0},
+    {lab:'Mois de sécurité',color:'#8a6414',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
     {lab:'Revenus récurrents',color:'#7C3AED',cur:rec,   cible:objRec,  txt:objRec>0?fmt(rec)+' / '+fmt(objRec)+'/mois':'objectif non défini',              pct:objRec>0?rec/objRec*100:0},
   ];
   el.innerHTML=\`<div class="card" style="padding:20px;">
@@ -8182,11 +8210,11 @@ function renderObjectifsPilotage(){
     \${tiles.map(t=>{
       const atteint=t.cible>0&&t.cur>=t.cible;
       return \`<div style="display:flex;align-items:center;gap:14px;">
-        <div style="flex:none;">\${ringGauge(t.pct,atteint?'#3E9E74':t.color)}</div>
+        <div style="flex:none;">\${ringGauge(t.pct,atteint?'#456039':t.color)}</div>
         <div>
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2);margin-bottom:3px;">\${t.lab}</div>
           <div style="font-size:12.5px;color:var(--text-1);">\${t.txt}</div>
-          \${atteint?'<div style="font-size:11px;color:#3E9E74;font-weight:600;margin-top:2px;"><i class="ti ti-circle-check"></i> Atteint</div>':''}
+          \${atteint?'<div style="font-size:11px;color:#456039;font-weight:600;margin-top:2px;"><i class="ti ti-circle-check"></i> Atteint</div>':''}
         </div>
       </div>\`;
     }).join('')}
@@ -8539,7 +8567,7 @@ function renderRapportPrevision(){
       \${big('🧾','Net estimé',fmt(P.netProjete),'après charges & URSSAF','var(--navy)')}
       \${big('🏠','Salaire moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
     </div>
-    \${manque>0?\`<div style="background:rgba(232,168,56,.12);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#8a6508;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#2F7D55;margin-top:14px;">🎉 À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
+    \${manque>0?\`<div style="background:rgba(138,100,20,.12);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#8a6414;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:13.5px;color:#456039;margin-top:14px;">🎉 À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
   </div>\`;
 
   // ② Pourquoi cette prévision (flux)
@@ -8555,12 +8583,12 @@ function renderRapportPrevision(){
   html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">📅 Revenus déjà sécurisés · prochains mois</span>
-      <span style="font-size:12px;color:var(--text-2);">Total sécurisé : <strong style="color:#3E9E74;">\${fmt(totalSecure)}</strong></span>
+      <span style="font-size:12px;color:var(--text-2);">Total sécurisé : <strong style="color:#456039;">\${fmt(totalSecure)}</strong></span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:8px;align-items:end;">
-      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:11px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#E8A838':'#3E9E74'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:10.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
+      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:11px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#8a6414':'#456039'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:10.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
     </div>
-    \${trou?\`<div style="font-size:12px;color:#8a6508;margin-top:12px;">⚠️ \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
+    \${trou?\`<div style="font-size:12px;color:#8a6414;margin-top:12px;">⚠️ \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
   </div>\`;
 
   // 💼 Fin d'année tu auras probablement
@@ -8583,7 +8611,7 @@ function renderRapportPrevision(){
         \${big('💸','Salaire possible',fmt(salaireMois)+' /mois','','var(--navy)')}
         \${confort>0?big('🎯','Niveau confortable',fmt(confort)+' /mois','','var(--navy)'):''}
       </div>
-      \${(confort>0&&ecart>0)?\`<div style="font-size:13.5px;color:#8a6508;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:13.5px;color:#2F7D55;margin-top:12px;">🎉 Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
+      \${(confort>0&&ecart>0)?\`<div style="font-size:13.5px;color:#8a6414;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:13.5px;color:#456039;margin-top:12px;">🎉 Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
     </div>\`;
   }
 
@@ -8617,7 +8645,7 @@ function renderRapportPrevision(){
   html+=\`<div class="card" style="padding:24px;margin-bottom:18px;background:var(--surface-2);">
     <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;">🧭 Ton plan jusqu'à décembre</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      \${actions.map(a=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.5;"><span style="color:#3E9E74;flex:none;">✓</span><span>\${a}</span></div>\`).join('')}
+      \${actions.map(a=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.5;"><span style="color:#456039;flex:none;">✓</span><span>\${a}</span></div>\`).join('')}
     </div>
   </div>\`;
 
@@ -8628,7 +8656,7 @@ function renderRapportPrevision(){
       <span style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">🔁 Revenus récurrents déclarés</span>
       <button class="btn btn-outline btn-xs" onclick="addRevenuRecurrent()"><i class="ti ti-plus"></i> Ajouter</button>
     </div>
-    \${rec.length?rec.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;">\${escHtml(r.nom||'Revenu')}</span><span style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Cormorant Garamond',serif;">\${fmt(parseFloat(r.montant)||0)} /mois</span><button onclick="deleteRevenuRecurrent('\${r.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash"></i></button></span></div>\`).join(''):'<div style="font-size:12.5px;color:var(--text-2);">Un revenu mensuel que tu factures régulièrement mais qui n\\'est pas dans tes projets ? Ajoute-le pour affiner la prévision.</div>'}
+    \${rec.length?rec.map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:13px;">\${escHtml(r.nom||'Revenu')}</span><span style="display:flex;align-items:center;gap:10px;"><span style="font-family:'Cormorant Garamond',serif;">\${fmt(parseFloat(r.montant)||0)} /mois</span><button onclick="deleteRevenuRecurrent('\${r.id}')" style="background:none;border:none;color:#8d2b21;cursor:pointer;"><i class="ti ti-trash"></i></button></span></div>\`).join(''):'<div style="font-size:12.5px;color:var(--text-2);">Un revenu mensuel que tu factures régulièrement mais qui n\\'est pas dans tes projets ? Ajoute-le pour affiner la prévision.</div>'}
   </div>\`;
 
   el.innerHTML=html;
@@ -8894,15 +8922,15 @@ function renderTJM(){
   const ecartBlock=tjmActuel>0?\`<div class="card" style="padding:20px;">
     <div style="display:flex;gap:20px;flex-wrap:wrap;">
       \${stat('TJM actuel estimé',fmt(tjmActuel)+' /j','sur '+jours+' jours facturés')}
-      \${stat('TJM recommandé',fmt(tjm)+' /j','','#3E9E74')}
-      \${stat('Écart',(ecart>=0?'+':'')+fmt(ecart)+' /j','',ecart>0?'#E05252':'#3E9E74')}
+      \${stat('TJM recommandé',fmt(tjm)+' /j','','#456039')}
+      \${stat('Écart',(ecart>=0?'+':'')+fmt(ecart)+' /j','',ecart>0?'#8d2b21':'#456039')}
     </div>
-    \${ecart>0?\`<div style="font-size:12.5px;color:#8a6508;margin-top:10px;">Sur un projet de 10 jours, un tarif trop bas te coûte environ <strong>\${fmt(ecart*10)}</strong> de manque à gagner.</div>\`:''}
+    \${ecart>0?\`<div style="font-size:12.5px;color:#8a6414;margin-top:10px;">Sur un projet de 10 jours, un tarif trop bas te coûte environ <strong>\${fmt(ecart*10)}</strong> de manque à gagner.</div>\`:''}
   </div>\`:'';
 
   const duraBlock=(salaire>0)?\`<div class="card" style="padding:20px;">
     <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;">🩺 Cohérence</div>
-    \${durable?\`<div style="font-size:13.5px;color:#2F7D55;">✅ Ton activité soutient déjà ce salaire (capacité ~\${fmt(capacite)} / mois).</div>\`:(capacite>0?\`<div style="font-size:13.5px;color:#C43030;">⚠️ Ton activité génère aujourd'hui de quoi te verser ~\${fmt(capacite)} / mois. Pour tenir \${fmt(salaire)} / mois durablement, il faudrait augmenter ton CA d'environ <strong>\${haussePct}%</strong>.</div>\`:\`<div style="font-size:13px;color:var(--text-2);">Ajoute des factures pour que Finance estime ta capacité actuelle.</div>\`)}
+    \${durable?\`<div style="font-size:13.5px;color:#456039;">✅ Ton activité soutient déjà ce salaire (capacité ~\${fmt(capacite)} / mois).</div>\`:(capacite>0?\`<div style="font-size:13.5px;color:#C43030;">⚠️ Ton activité génère aujourd'hui de quoi te verser ~\${fmt(capacite)} / mois. Pour tenir \${fmt(salaire)} / mois durablement, il faudrait augmenter ton CA d'environ <strong>\${haussePct}%</strong>.</div>\`:\`<div style="font-size:13px;color:var(--text-2);">Ajoute des factures pour que Finance estime ta capacité actuelle.</div>\`)}
   </div>\`:'';
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
@@ -8961,18 +8989,18 @@ function renderRentaProjet(){
 
   let verdict,vColor,vLabel,vTxt;
   if(netEnt<=0){verdict='🔴';vColor='#C43030';vLabel='Non rentable';vTxt='À ce prix, ce projet ne dégage quasiment rien pour toi.';}
-  else if(jours>0&&ratioTjm>=0.95){verdict='🟢';vColor='#2F7D55';vLabel='Excellente';vTxt='Tu peux accepter ce projet sereinement — il est cohérent avec tes objectifs financiers.';}
-  else if(moisVie!=null&&moisVie>=0.5){verdict='🟠';vColor='#8a6508';vLabel='Correcte';vTxt='Tu couvriras une partie de tes besoins, mais tu épargneras peu à ce tarif.';}
+  else if(jours>0&&ratioTjm>=0.95){verdict='🟢';vColor='#456039';vLabel='Excellente';vTxt='Tu peux accepter ce projet sereinement — il est cohérent avec tes objectifs financiers.';}
+  else if(moisVie!=null&&moisVie>=0.5){verdict='🟠';vColor='#8a6414';vLabel='Correcte';vTxt='Tu couvriras une partie de tes besoins, mais tu épargneras peu à ce tarif.';}
   else{verdict='🔴';vColor='#C43030';vLabel='Faible';vTxt='À ce prix, tu risques de puiser dans ta trésorerie.';}
 
-  const line=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;\${strong?'border-top:1px solid var(--border);margin-top:4px;':''}"><span style="font-size:13px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};\${neg?'color:#E05252;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
+  const line=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;\${strong?'border-top:1px solid var(--border);margin-top:4px;':''}"><span style="font-size:13px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
   const finance=[];
   if(perso.besoin>0&&moisVie!=null)finance.push('✅ '+(moisVie>=1?moisVie.toFixed(1).replace('.',',')+' mois de tes dépenses personnelles':Math.round(moisVie*100)+'% d\\'un mois de dépenses'));
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
     <div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">Rentabilité\${nom?' · '+escHtml(nom):''}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:\${verdict==='🟢'?'#7BE0AE':verdict==='🟠'?'#F6C453':'#F8A9A9'};">\${verdict} \${vLabel}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:\${verdict==='🟢'?'#b7d3ad':verdict==='🟠'?'#F6C453':'#F8A9A9'};">\${verdict} \${vLabel}</div>
       <div style="font-size:13.5px;opacity:.9;margin-top:4px;">\${vTxt}</div>
     </div>
     <div class="card" style="padding:20px;">
@@ -8984,16 +9012,16 @@ function renderRentaProjet(){
       \${frais>0?line('Frais / achats',frais,true):''}
       \${line('Net pour ton entreprise',netEnt,false,true)}
       \${revJour>0?\`<div style="font-size:12px;color:var(--text-2);margin-top:8px;">Soit environ <strong style="color:var(--navy);">\${fmt(revJour)} / jour</strong> sur \${jours} jour\${jours>1?'s':''}.</div>\`:''}
-      \${finance.length?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:10px 12px;font-size:13px;color:#2F7D55;margin-top:10px;">Ce projet finance \${finance.join(' · ')}.</div>\`:''}
+      \${finance.length?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:10px 12px;font-size:13px;color:#456039;margin-top:10px;">Ce projet finance \${finance.join(' · ')}.</div>\`:''}
     </div>
     \${(jours>0&&tjmReco>0)?\`<div class="card" style="padding:20px;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">🎯 Face à ton tarif recommandé</div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;">
         <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Ce projet</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${fmt(revJour)} /j</div></div>
-        <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Recommandé</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${fmt(tjmReco)} /j</div></div>
-        \${ecartPct!=null?\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Écart</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${ecartPct<0?'#E05252':'#3E9E74'};">\${ecartPct>=0?'+':''}\${ecartPct}%</div></div>\`:''}
+        <div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Recommandé</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#456039;">\${fmt(tjmReco)} /j</div></div>
+        \${ecartPct!=null?\`<div style="flex:1;min-width:130px;"><div style="font-size:11px;color:var(--text-2);">Écart</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${ecartPct<0?'#8d2b21':'#456039'};">\${ecartPct>=0?'+':''}\${ecartPct}%</div></div>\`:''}
       </div>
-      \${(ecartPct!=null&&ecartPct<-5)?\`<div style="font-size:13px;color:#8a6508;margin-top:12px;">Pour atteindre tes objectifs, ce projet devrait plutôt être vendu autour de <strong>\${fmt(prixReco)}</strong> (entre \${fmt(prixReco)} et \${fmt(Math.round(prixReco*1.1))}).</div>\`:''}
+      \${(ecartPct!=null&&ecartPct<-5)?\`<div style="font-size:13px;color:#8a6414;margin-top:12px;">Pour atteindre tes objectifs, ce projet devrait plutôt être vendu autour de <strong>\${fmt(prixReco)}</strong> (entre \${fmt(prixReco)} et \${fmt(Math.round(prixReco*1.1))}).</div>\`:''}
       \${maxJours!=null?\`<div style="font-size:13px;color:var(--text-1);margin-top:12px;background:var(--surface-2);border-radius:10px;padding:10px 12px;">⏳ À ce prix, ce projet reste rentable jusqu'à <strong>\${maxJours.toFixed(1).replace('.',',')} jours</strong> de travail. Au-delà, ton revenu passe sous ton objectif.</div>\`:''}
     </div>\`:''}
   </div>\`;
@@ -9119,7 +9147,7 @@ function chResult(){
   const coutAR=(parseFloat(S.arPrix)||0)>0?Math.round(parseFloat(S.arPrix)):Math.round((parseFloat(S.arH)||1.5)*tjmCons/CH_HPD);
   const arManuel=(parseFloat(S.arPrix)||0)>0;
 
-  const priceCard=(lab,val,emph)=>\`<div style="flex:1;min-width:130px;\${emph?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emph?'40px':'26px'};font-weight:700;\${emph?'color:#7BE0AE;':''}">\${fmt(val)}</div></div>\`;
+  const priceCard=(lab,val,emph)=>\`<div style="flex:1;min-width:130px;\${emph?'':'opacity:.9;'}"><div style="font-size:11px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${emph?'40px':'26px'};font-weight:700;\${emph?'color:#b7d3ad;':''}">\${fmt(val)}</div></div>\`;
   const justif=(lab,val)=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;">\${val}</span></div>\`;
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
@@ -9146,10 +9174,10 @@ function chResult(){
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">⏱️ Ton budget-temps</div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;">
         <div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Temps prévu</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:var(--navy);">\${totalH} h</div></div>
-        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Max avant de perdre</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#3E9E74;">\${maxH} h</div></div>\`:''}
-        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#3E9E74':'#E05252'};">\${Math.round((maxH-totalH)*10)/10} h</div></div>\`:''}
+        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Max avant de perdre</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#456039;">\${maxH} h</div></div>\`:''}
+        \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:11px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:\${(maxH-totalH)>=0?'#456039':'#8d2b21'};">\${Math.round((maxH-totalH)*10)/10} h</div></div>\`:''}
       </div>
-      \${(parseFloat(S.arCount)||0)>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu inclus <strong>\${S.arCount} aller\${S.arCount>1?'s':''}-retour\${S.arCount>1?'s':''}</strong> (~\${Math.round(arH*10)/10} h). \${arManuel?'Au-delà, facture <strong style=\"color:var(--navy);\">'+fmt(coutAR)+'</strong> par aller-retour supplémentaire.':'Chaque A-R supplémentaire réduit ton bénéfice d\\'environ <strong style=\"color:#E05252;\">'+fmt(coutAR)+'</strong> — pense à le facturer.'}</div>\`:''}
+      \${(parseFloat(S.arCount)||0)>0?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Tu inclus <strong>\${S.arCount} aller\${S.arCount>1?'s':''}-retour\${S.arCount>1?'s':''}</strong> (~\${Math.round(arH*10)/10} h). \${arManuel?'Au-delà, facture <strong style=\"color:var(--navy);\">'+fmt(coutAR)+'</strong> par aller-retour supplémentaire.':'Chaque A-R supplémentaire réduit ton bénéfice d\\'environ <strong style=\"color:#8d2b21;\">'+fmt(coutAR)+'</strong> — pense à le facturer.'}</div>\`:''}
       \${maxH!=null?\`<div style="font-size:12px;color:var(--text-2);margin-top:6px;">Au-delà de \${maxH} h, ce projet passe sous ton minimum vital.</div>\`:''}
     </div>
   </div>\`;
