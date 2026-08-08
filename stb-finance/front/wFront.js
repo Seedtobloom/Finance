@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/style.css?v=42" />
 </head>
 <body>
 
@@ -9609,7 +9609,7 @@ export default {
     const path = url.pathname;
 
     // Assets statiques
-    if (path === '/style.css') return new Response(CSS,  { headers: { 'Content-Type': 'text/css; charset=utf-8',         'Cache-Control': 'no-cache' } });
+    if (path === '/style.css') return new Response(CSS,  { headers: { 'Content-Type': 'text/css; charset=utf-8',         'Cache-Control': 'no-store, no-cache, must-revalidate' } });
     if (path === '/app.js')    return new Response(JS,   { headers: { 'Content-Type': 'application/javascript; charset=utf-8', 'Cache-Control': 'no-store, no-cache, must-revalidate' } });
     if (path === '/favicon.ico') return new Response(null, { status: 204 });
 
