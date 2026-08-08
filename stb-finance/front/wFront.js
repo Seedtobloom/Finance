@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=42" />
+  <link rel="stylesheet" href="/style.css?v=43" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v42 · design Écrin build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:9px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v43 · graphiques + accents build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2546,7 +2546,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=42"></script>
+<script src="/app.js?v=43"></script>
 </body>
 </html>
 `;
@@ -2903,6 +2903,12 @@ html, body {
   background: var(--paille);
   border-color: rgba(226,209,161,0.6);
 }
+.card-glycine { background: var(--brume);    border-color: #e0d2f4; }
+.card-paille  { background: var(--paille);    border-color: #e7d7ab; }
+.card-bleu    { background: var(--bleu-bg);   border-color: #d8e4ec; }
+.card-vert    { background: var(--vert-bg);   border-color: #d0e0c8; }
+.card-ambre   { background: var(--ambre-bg);  border-color: #ecdcb0; }
+.card-violet  { background: var(--violet-bg); border-color: #e3d4f5; }
 .card-title {
   font-size: 11px;
   font-weight: 600;
@@ -4448,14 +4454,33 @@ function setupCanvas(canvas){
   return{ctx:canvas.getContext('2d'),W,H};
 }
 
+function roundTopRect(ctx,x,y,w,h,r){
+  r=Math.max(0,Math.min(r,w/2,h));
+  ctx.beginPath();
+  ctx.moveTo(x,y+h);
+  ctx.lineTo(x,y+r);
+  ctx.arcTo(x,y,x+r,y,r);
+  ctx.lineTo(x+w-r,y);
+  ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h);
+  ctx.closePath();
+}
 function drawGrid(ctx,pad,cW,cH,yMax,step){
-  ctx.strokeStyle=COLORS.muted;ctx.lineWidth=1;
+  ctx.save();
+  ctx.setLineDash([2,4]);ctx.strokeStyle='#eae5dc';ctx.lineWidth=1;
   for(let v=0;v<=yMax;v+=step){
     const y=pad.top+cH-(v/yMax)*cH;
     ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
-    ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='right';
-    ctx.fillText(fmtShort(v),pad.left-5,y+4);
   }
+  ctx.setLineDash([]);
+  ctx.fillStyle='#8a6f54';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='right';
+  for(let v=0;v<=yMax;v+=step){
+    const y=pad.top+cH-(v/yMax)*cH;
+    ctx.fillText(fmtShort(v),pad.left-8,y+3);
+  }
+  ctx.strokeStyle='#ded4c2';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.left,pad.top+cH);ctx.lineTo(pad.left+cW,pad.top+cH);ctx.stroke();
+  ctx.restore();
 }
 
 function drawBarChart(canvas,labels,datasets,opts={}){
@@ -4471,8 +4496,9 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   const yMax=Math.ceil(maxVal/step)*step;
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const groupW=cW/labels.length;
-  const bc=datasets.length,gap=3;
-  const bw=Math.max(4,(groupW-gap*(bc+1))/bc);
+  const bc=datasets.length,gap=Math.min(6,groupW*0.12);
+  const bw=Math.max(5,(groupW-gap*(bc+1))/bc);
+  const single=datasets.length===1;
   // Primary dataset (index 0) gets color-coded if targetLine set
   datasets.forEach((ds,di)=>{
     ds.data.forEach((v,i)=>{
@@ -4485,10 +4511,15 @@ function drawBarChart(canvas,labels,datasets,opts={}){
         const ratio=v/opts.targetLine;
         color=ratio>=1?'#456039':ratio>=0.8?'#8a6414':'#8d2b21';
       }
-      ctx.fillStyle=color;
-      ctx.beginPath();
-      if(ctx.roundRect)ctx.roundRect(x,y,bw,bH,2);else ctx.rect(x,y,bw,bH);
+      const grad=ctx.createLinearGradient(0,y,0,y+bH);
+      grad.addColorStop(0,color);grad.addColorStop(1,color+'cc');
+      ctx.fillStyle=grad;
+      roundTopRect(ctx,x,y,bw,bH,Math.min(6,bw/2));
       ctx.fill();
+      if(single&&bH>14){
+        ctx.fillStyle=color;ctx.font='bold 10px Inter Tight,sans-serif';ctx.textAlign='center';
+        ctx.fillText(fmtShort(v),x+bw/2,y-5);
+      }
     });
   });
   // Seuil de rentabilité (ligne pointillée grise)
@@ -4529,19 +4560,30 @@ function drawLineChart(canvas,labels,data,color=COLORS.navy,dashed=false){
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const n=data.length-1||1;
   const pts=data.map((v,i)=>({x:pad.left+(i/n)*cW,y:pad.top+cH-(v/yMax)*cH}));
+  const tracePath=()=>{
+    ctx.beginPath();
+    if(pts.length<3){pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));return;}
+    ctx.moveTo(pts[0].x,pts[0].y);
+    for(let i=0;i<pts.length-1;i++){
+      const mx=(pts[i].x+pts[i+1].x)/2,my=(pts[i].y+pts[i+1].y)/2;
+      ctx.quadraticCurveTo(pts[i].x,pts[i].y,mx,my);
+    }
+    ctx.quadraticCurveTo(pts[pts.length-1].x,pts[pts.length-1].y,pts[pts.length-1].x,pts[pts.length-1].y);
+  };
   if(!dashed){
     const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
-    grad.addColorStop(0,color+'30');grad.addColorStop(1,color+'00');
-    ctx.beginPath();
-    pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    grad.addColorStop(0,color+'38');grad.addColorStop(1,color+'00');
+    tracePath();
     ctx.lineTo(pts[pts.length-1].x,pad.top+cH);ctx.lineTo(pts[0].x,pad.top+cH);
     ctx.closePath();ctx.fillStyle=grad;ctx.fill();
   }
   ctx.save();if(dashed)ctx.setLineDash([5,5]);
-  ctx.strokeStyle=color;ctx.lineWidth=2;
-  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.stroke();ctx.restore();
-  if(!dashed)pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();});
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+  tracePath();ctx.stroke();ctx.restore();
+  if(!dashed)pts.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,3.5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+    ctx.lineWidth=2;ctx.strokeStyle=color;ctx.stroke();
+  });
   ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='center';
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+(i/n)*cW,pad.top+cH+16));
 }
@@ -4552,22 +4594,37 @@ function drawDonutChart(canvas,labels,data,colors){
   ctx.clearRect(0,0,W,H);
   const total=data.reduce((a,b)=>a+b,0);
   if(!total)return;
-  const legendW=130;
-  const cx=(W-legendW)/2,cy=H/2,r=Math.min(cx-10,cy-10),ir=r*0.58;
+  const legendW=140;
+  const cx=(W-legendW)/2,cy=H/2,r=Math.min(cx-10,cy-10),ir=r*0.62;
+  const gap=data.filter(v=>v>0).length>1?0.02:0;
   let angle=-Math.PI/2;
+  ctx.lineWidth=r-ir;
   data.forEach((v,i)=>{
+    if(!v)return;
     const s=(v/total)*Math.PI*2;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+s);ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length];ctx.fill();
+    ctx.beginPath();
+    ctx.strokeStyle=colors[i%colors.length];
+    ctx.arc(cx,cy,(r+ir)/2,angle+gap,angle+s-gap);
+    ctx.stroke();
     angle+=s;
   });
-  ctx.beginPath();ctx.arc(cx,cy,ir,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  // centre : total
+  ctx.fillStyle=COLORS.navy;ctx.font="italic 600 20px 'Cormorant Garamond',serif";ctx.textAlign='center';
+  ctx.fillText(fmtShort(total),cx,cy+2);
+  ctx.fillStyle='#8a6f54';ctx.font='9px Inter Tight,sans-serif';
+  ctx.fillText('TOTAL',cx,cy+15);
   const lx=W-legendW+8;
+  let li=0;
   labels.forEach((l,i)=>{
-    const ly=16+i*22;
-    ctx.fillStyle=colors[i%colors.length];ctx.fillRect(lx,ly,10,10);
-    ctx.fillStyle=COLORS.text2;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='left';
-    ctx.fillText(l.slice(0,16),lx+14,ly+9);
+    if(!data[i])return;
+    const ly=14+li*20;li++;
+    const pct=Math.round(data[i]/total*100);
+    ctx.fillStyle=colors[i%colors.length];
+    if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lx,ly,9,9,2.5);ctx.fill();}else ctx.fillRect(lx,ly,9,9);
+    ctx.fillStyle=COLORS.navy;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='left';
+    ctx.fillText(l.slice(0,13),lx+14,ly+8);
+    ctx.fillStyle='#8a6f54';ctx.textAlign='right';
+    ctx.fillText(pct+'%',W-4,ly+8);
   });
 }
 
@@ -4583,18 +4640,20 @@ function drawStackedBarChart(canvas,labels,datasets){
   const yMax=Math.ceil(maxVal/step)*step;
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const groupW=cW/labels.length;
-  const bw=Math.max(6,groupW*0.6);
+  const bw=Math.max(6,Math.min(groupW*0.6,42));
   const bx=(groupW-bw)/2;
   labels.forEach((_,i)=>{
     let base=0;
-    datasets.forEach(ds=>{
+    const topIdx=datasets.reduce((t,ds,di)=>(ds.data[i]||0)>0?di:t,-1);
+    datasets.forEach((ds,di)=>{
       const v=ds.data[i]||0;
       if(!v)return;
       const bH=(v/yMax)*cH;
       const x=pad.left+i*groupW+bx;
       const y=pad.top+cH-(base+v)/yMax*cH;
       ctx.fillStyle=ds.color||COLORS.blue;
-      ctx.beginPath();ctx.rect(x,y,bw,bH);ctx.fill();
+      if(di===topIdx){roundTopRect(ctx,x,y,bw,bH,Math.min(5,bw/2));ctx.fill();}
+      else{ctx.beginPath();ctx.rect(x,y,bw,bH);ctx.fill();}
       base+=v;
     });
   });
@@ -4896,17 +4955,17 @@ function renderCockpit(){
     planBloc=\`<div class="card" style="padding:24px;">
       <div class="dash-sec-title">💰 Ton plan financier de \${MOIS_LONG[m-1]}</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
-        <div style="background:var(--surface-2);border-radius:12px;padding:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">🏢 Côté entreprise</div>
+        <div style="background:var(--bleu-bg);border:1px solid #d8e4ec;border-radius:14px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:#305277;margin-bottom:8px;">🏢 Côté entreprise</div>
           \${eLine('CA encaissé',d.caMois)}\${eLine('URSSAF',aUrssaf,true)}\${eLine('Charges',aCharges,true)}\${eLine('Disponible entreprise',aDispo,false,true)}
         </div>
-        <div style="background:var(--surface-2);border-radius:12px;padding:16px;">
-          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;">🏠 Côté personnel</div>
+        <div style="background:var(--violet-bg);border:1px solid #e3d4f5;border-radius:14px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:#59409a;margin-bottom:8px;">🏠 Côté personnel</div>
           \${eLine('Salaire versé',p.salaireConseille)}\${p.revenusPerso>0?eLine('Autres revenus',p.revenusPerso):''}\${eLine('Pour vivre',dispoVivre,false,true)}\${eLine('Dépenses',p.besoin,true)}\${eLine('Argent libre',reste,false,true)}
         </div>
       </div>
-      \${reste>0&&propose.length?\`<div style="margin-top:16px;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:6px;">✨ Finance te propose (de tes \${fmt(reste)} libres)</div>
+      \${reste>0&&propose.length?\`<div style="margin-top:16px;background:var(--paille);border:1px solid #e7d7ab;border-radius:14px;padding:15px 16px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#8a6414;margin-bottom:6px;">✨ Finance te propose (de tes \${fmt(reste)} libres)</div>
         \${propose.map(x=>\`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;"><span>\${x.emoji} \${escHtml(x.nom)}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(x.val)}</span></div>\`).join('')}
         <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-top:1px solid var(--border);margin-top:3px;"><span>😊 Reste libre</span><span style="font-family:'Cormorant Garamond',serif;color:#456039;">\${fmt(restePlaisir)}</span></div>
         \${canApply?\`<button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<div style="margin-top:10px;font-size:12.5px;color:#456039;">✔ Plan déjà appliqué ce mois.</div>\`}
@@ -4960,7 +5019,7 @@ function renderCockpit(){
   if(d.aRanger)todo.push({c:'🟢',txt:d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser',nav:'enveloppes'});
   const afaire=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title">📋 À faire</div>
-    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${todo.slice(0,4).map(t=>\`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 6px;border-radius:8px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:13.5px;">\${t.c} \${t.txt}</span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:13px;color:#456039;padding:6px 0;">🎉 Rien d'urgent aujourd'hui. Profites-en.</div>\`}
+    \${todo.length?\`<div style="display:flex;flex-direction:column;gap:8px;">\${todo.slice(0,4).map(t=>{var tc=t.c==='🔴'?['var(--rouge-bg)','#8d2b21']:t.c==='🟠'?['var(--ambre-bg)','#8a6414']:['var(--vert-bg)','#456039'];return \`<div onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:12px;cursor:pointer;background:\${tc[0]};transition:filter .12s;" onmouseover="this.style.filter='brightness(.96)'" onmouseout="this.style.filter='none'"><span style="font-size:13.5px;color:\${tc[1]};font-weight:500;">\${t.c} \${t.txt}</span><span style="color:\${tc[1]};">→</span></div>\`;}).join('')}</div>\`:\`<div style="font-size:13px;color:#456039;background:var(--vert-bg);border-radius:12px;padding:12px 14px;">🎉 Rien d'urgent aujourd'hui. Profites-en.</div>\`}
   </div>\`;
 
   // Onboarding (profil qui démarre)
@@ -7173,24 +7232,7 @@ function _drawDonutChart(canvas,labels,vals,colors){
   ctx.clearRect(0,0,W,H);
   const total=vals.reduce((s,v)=>s+v,0);
   if(total===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
-  const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-20,ri=r*0.55;
-  let angle=-Math.PI/2;
-  vals.forEach((v,i)=>{
-    const slice=v/total*2*Math.PI;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length];ctx.fill();
-    angle+=slice;
-  });
-  ctx.beginPath();ctx.arc(cx,cy,ri,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
-  // Légende
-  const legendX=W*0.72,legendStep=18,legendY0=Math.max(12,cy-vals.length*legendStep/2);
-  labels.forEach((l,i)=>{
-    const y=legendY0+i*legendStep;
-    ctx.fillStyle=colors[i%colors.length];
-    ctx.fillRect(legendX-20,y-8,12,12);
-    ctx.fillStyle='#412F21';ctx.font="12px Inter Tight";ctx.textAlign="left";
-    ctx.fillText(l+" ("+vals[i]+")",legendX-4,y+2);
-  });
+  drawDonutChart(canvas,labels,vals,colors);
 }
 
 function _drawBarChartCRM(canvas,labels,vals,colors){
