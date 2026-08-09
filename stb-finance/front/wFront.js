@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=54" />
+  <link rel="stylesheet" href="/style.css?v=55" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v54 · les visages du CA build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v55 · beige F8F6F2 · lavande E4D1FE · sans contour build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=54"></script>
+<script src="/app.js?v=55"></script>
 </body>
 </html>
 `;
@@ -2921,7 +2921,7 @@ html, body {
    =========================== */
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: none;
   border-radius: var(--r-panel);
   padding: 24px;
 }
@@ -2929,12 +2929,12 @@ html, body {
   background: var(--paille);
   border-color: rgba(226,209,161,0.6);
 }
-.card-glycine { background: var(--brume);    border-color: #e0d2f4; }
-.card-paille  { background: var(--paille);    border-color: #e7d7ab; }
-.card-bleu    { background: var(--bleu-bg);   border-color: #d8e4ec; }
-.card-vert    { background: var(--vert-bg);   border-color: #d0e0c8; }
-.card-ambre   { background: var(--ambre-bg);  border-color: #ecdcb0; }
-.card-violet  { background: var(--violet-bg); border-color: #e3d4f5; }
+.card-glycine { background: var(--glycine);   border-color: transparent; }
+.card-paille  { background: var(--paille);    border-color: transparent; }
+.card-bleu    { background: var(--bleu-bg);   border-color: transparent; }
+.card-vert    { background: var(--vert-bg);   border-color: transparent; }
+.card-ambre   { background: var(--ambre-bg);  border-color: transparent; }
+.card-violet  { background: var(--glycine);   border-color: transparent; }
 .card-title {
   font-size: 12.5px;
   font-weight: 700;
@@ -4971,9 +4971,9 @@ function renderCockpit(){
   </div>\`;
   const plan=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title"><i class="ti ti-bulb"></i> Ton plan de \${MOIS_LONG[m-1]} — ce que Finance te recommande</div>
-    \${planRow('var(--surface)','var(--terre)','ti-wallet','Te verser','Versement personnel',M.versement)}
+    \${planRow('var(--surface-2)','var(--terre)','ti-wallet','Te verser','Versement personnel',M.versement)}
     \${M.epargnePrevue>0?planRow('var(--success-10)','#456039','ti-plant-2','Mettre de côté',detEp,M.epargnePrevue):''}
-    \${M.projetsMensuel>0?planRow('var(--violet-bg)','#59409a','ti-target','Financer tes projets',detPr,M.projetsMensuel):''}
+    \${M.projetsMensuel>0?planRow('var(--glycine)','#59409a','ti-target','Financer tes projets',detPr,M.projetsMensuel):''}
     \${planRow('var(--success-10)','#456039','ti-mood-smile','Garder libre','pour toi, sans mission',M.argentLibre)}
     <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       \${canApply?\`<button class="btn btn-primary btn-sm" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<span style="font-size:12.5px;color:#456039;"><i class="ti ti-circle-check"></i> Plan déjà appliqué ce mois.</span>\`}
@@ -4986,14 +4986,14 @@ function renderCockpit(){
   const pourquoi=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title"><i class="ti ti-compass"></i> Pourquoi ces montants ?</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;">
-      <div style="background:var(--surface);border-radius:14px;padding:16px 18px;">
+      <div style="background:var(--surface-2);border-radius:14px;padding:16px 18px;">
         <div style="font-size:12px;font-weight:700;color:var(--terre);margin-bottom:8px;display:flex;align-items:center;gap:7px;"><i class="ti ti-building"></i> Ton entreprise</div>
         \${li('Disponible entreprise <span style="font-size:10px;background:#e7ded0;padding:2px 7px;border-radius:999px;">après réserves</span>',fmt(M.dispoEntreprise))}
         \${li('dont réserve de sécurité (3 mois)',fmt(M.reserveSecu))}
         \${li('Versement conseillé',fmt(M.versement),'tot')}
         \${li('Trésorerie restante après versement',fmt(M.tresoRestante))}
       </div>
-      <div style="background:var(--violet-bg);border-radius:14px;padding:16px 18px;">
+      <div style="background:var(--glycine);border-radius:14px;padding:16px 18px;">
         <div style="font-size:12px;font-weight:700;color:#59409a;margin-bottom:8px;display:flex;align-items:center;gap:7px;"><i class="ti ti-home"></i> Ton budget personnel</div>
         \${li('Versement personnel',fmt(M.versement))}
         \${M.autresRevenus>0?li('+ autres revenus perso',fmt(M.autresRevenus)):''}
@@ -5010,7 +5010,7 @@ function renderCockpit(){
   const objCA=parseFloat(settings.objectifCA)||0;
   const pctO=objCA>0?Math.min(100,Math.round(d.caYTD/objCA*100)):0;
   const activite=\`<div class="card" style="padding:24px;">
-    <div class="dash-sec-title"><i class="ti ti-trending-up"></i> Ton activité <span style="font-size:10px;background:var(--surface);color:var(--terre);padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none;font-weight:600;">entreprise</span></div>
+    <div class="dash-sec-title"><i class="ti ti-trending-up"></i> Ton activité <span style="font-size:10px;background:var(--surface-2);color:var(--terre);padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none;font-weight:600;">entreprise</span></div>
     <div style="display:flex;gap:26px;flex-wrap:wrap;margin-bottom:\${objCA>0?'12px':'0'};">
       <div><div style="font-size:11px;color:var(--text-2);">CA encaissé ce mois</div><div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(d.caMois||0)}</div></div>
       <div><div style="font-size:11px;color:var(--text-2);">CA encaissé sur l'année</div><div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(d.caYTD||0)}</div></div>
@@ -5721,7 +5721,7 @@ function loadVersement(){
   const pos=Math.max(0,Math.min(100,Math.round((conseille-lo)/(hi-lo)*100)));
   const couvreCible=conseille>=confort;
   const manque=Math.max(0,Math.round(confort-conseille));
-  const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:13px;background:\${hl?'var(--violet-bg)':'var(--surface)'};\${hl?'outline:2px solid var(--violet);':''}">
+  const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:13px;background:\${hl?'var(--glycine)':'var(--surface-2)'};">
     <div style="display:flex;align-items:center;gap:11px;"><i class="ti \${icon}" style="color:\${hl?'#59409a':'var(--terre)'};font-size:19px;"></i><div style="font-size:14px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:400;color:var(--text-2);font-size:12px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(val)}</div></div>\`;
   el.innerHTML=\`
@@ -5768,7 +5768,7 @@ function loadReserve(){
   const big=(lab,val,col)=>\`<div><div style="font-size:11px;color:var(--text-2);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${col||'var(--navy)'};">\${val}</div></div>\`;
   el.innerHTML=\`
   <div class="card" style="padding:24px;margin-bottom:16px;">
-    <div class="dash-sec-title"><i class="ti ti-shield-half"></i> Réserve entreprise <span style="font-size:10px;background:var(--surface);color:var(--terre);padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none;font-weight:600;">protéger demain</span></div>
+    <div class="dash-sec-title"><i class="ti ti-shield-half"></i> Réserve entreprise <span style="font-size:10px;background:var(--surface-2);color:var(--terre);padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none;font-weight:600;">protéger demain</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;">
       \${big('Réserve actuelle',fmt(actuelle))}
       \${big('Cible (3 mois de charges)',fmt(cible))}
@@ -5807,7 +5807,7 @@ function renderPersoHero(ctx){
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💡 Ton minimum vital</div>
       <div style="font-size:15px;margin-top:8px;opacity:.85;">Renseigne tes dépenses perso ci-dessous pour découvrir de combien tu as besoin chaque mois pour vivre.</div>
     </div>\`;return;}
-  const palier=(emoji,lab,val,color,hint)=>\`<div style="flex:1;min-width:150px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;">
+  const palier=(emoji,lab,val,color,hint)=>\`<div style="flex:1;min-width:150px;background:var(--surface-2);border-radius:12px;padding:16px;">
       <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">\${emoji} \${lab}</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:35px;font-weight:600;color:\${color};margin-top:4px;">\${val>0?fmt(val):'—'}</div>
       <div style="font-size:12px;color:var(--text-2);">\${hint}</div>
@@ -6895,11 +6895,11 @@ function loadFactures(){
     var caAFac=0,caPrev=0; try{var PR=computePrevision();caAFac=PR.resteAFacturer||0;caPrev=PR.caProjete||0;}catch(e){}
     var rowV=function(icon,bg,col,nom,def,val){return \`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:11px;"><div style="width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:\${bg};color:\${col};"><i class="ti \${icon}"></i></div><div style="font-size:14px;">\${nom}<small style="display:block;color:var(--text-2);font-size:11.5px;">\${def}</small></div></div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(val)}</div></div>\`;};
     _cav.innerHTML=\`<div class="card" style="padding:24px;"><div class="dash-sec-title"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div>\`
-      +rowV('ti-file-invoice','var(--surface)','var(--terre)','CA facturé','tout ce que tu as facturé cette année',caFacture)
+      +rowV('ti-file-invoice','var(--surface-2)','var(--terre)','CA facturé','tout ce que tu as facturé cette année',caFacture)
       +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc)
       +rowV('ti-clock','var(--warning-10)','#8a6414','CA à encaisser','facturé mais pas encore payé',caAEnc)
-      +rowV('ti-calendar-plus','var(--violet-bg)','#59409a','CA à facturer','projets & récurrents à venir',caAFac)
-      +rowV('ti-chart-line','var(--surface)','var(--terre)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
+      +rowV('ti-calendar-plus','var(--glycine)','#59409a','CA à facturer','projets & récurrents à venir',caAFac)
+      +rowV('ti-chart-line','var(--surface-2)','var(--terre)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
       +\`<p style="font-size:12px;color:var(--text-2);margin-top:10px;">Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</p></div>\`;
   })();
 
@@ -6985,7 +6985,7 @@ function renderFactures(){
       <td class="td-amount">\${fmt(f.montant||0)}</td>
       <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
       <td style="white-space:nowrap;">
-        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#efe1ff;color:#59409a;border:1px solid #d8c4f2;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#E4D1FE;color:#59409a;border:none;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7661,7 +7661,7 @@ function renderDevis(){
       <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:12px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
-        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#efe1ff;color:#59409a;border:1px solid #d8c4f2;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#E4D1FE;color:#59409a;border:none;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
