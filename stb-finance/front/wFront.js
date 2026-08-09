@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=53" />
+  <link rel="stylesheet" href="/style.css?v=54" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v53 · patrimoine 3 niveaux + prévisions versement build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v54 · les visages du CA build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -696,6 +696,8 @@ const HTML = `<!DOCTYPE html>
           <span class="kpi-value" id="fac-kpi-taux">—</span>
         </div>
       </div>
+
+      <div id="factures-ca-visages" style="margin-bottom:16px;"></div>
 
       <!-- Tableau -->
       <div class="card mb-16">
@@ -2568,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=53"></script>
+<script src="/app.js?v=54"></script>
 </body>
 </html>
 `;
@@ -6882,6 +6884,25 @@ function loadFactures(){
   if(q('#fac-kpi-paye'))q('#fac-kpi-paye').textContent=fmt(paye);
   if(q('#fac-kpi-attente'))q('#fac-kpi-attente').textContent=fmt(attente);
   if(q('#fac-kpi-taux'))q('#fac-kpi-taux').textContent=\`\${taux}%\`;
+  // Les visages du CA — lever les confusions (facturé / encaissé / à encaisser / à facturer / prévisionnel)
+  (function(){
+    var _cav=q('#factures-ca-visages'); if(!_cav)return;
+    var yy=String(new Date().getFullYear());
+    var inY=function(f){return (f.date||'').startsWith(yy);};
+    var caFacture=facturesData.filter(inY).reduce(function(s,f){return s+(f.montant||0);},0);
+    var caEnc=facturesData.filter(function(f){return f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(yy);}).reduce(function(s,f){return s+(f.montant||0);},0);
+    var caAEnc=facturesData.filter(function(f){return f.statut!=='payee'&&inY(f);}).reduce(function(s,f){return s+(f.montant||0);},0);
+    var caAFac=0,caPrev=0; try{var PR=computePrevision();caAFac=PR.resteAFacturer||0;caPrev=PR.caProjete||0;}catch(e){}
+    var rowV=function(icon,bg,col,nom,def,val){return \`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:11px;"><div style="width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:\${bg};color:\${col};"><i class="ti \${icon}"></i></div><div style="font-size:14px;">\${nom}<small style="display:block;color:var(--text-2);font-size:11.5px;">\${def}</small></div></div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(val)}</div></div>\`;};
+    _cav.innerHTML=\`<div class="card" style="padding:24px;"><div class="dash-sec-title"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div>\`
+      +rowV('ti-file-invoice','var(--surface)','var(--terre)','CA facturé','tout ce que tu as facturé cette année',caFacture)
+      +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc)
+      +rowV('ti-clock','var(--warning-10)','#8a6414','CA à encaisser','facturé mais pas encore payé',caAEnc)
+      +rowV('ti-calendar-plus','var(--violet-bg)','#59409a','CA à facturer','projets & récurrents à venir',caAFac)
+      +rowV('ti-chart-line','var(--surface)','var(--terre)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
+      +\`<p style="font-size:12px;color:var(--text-2);margin-top:10px;">Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</p></div>\`;
+  })();
+
   renderFactures();
   // Graphiques
   const y=new Date().getFullYear();
