@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=52" />
+  <link rel="stylesheet" href="/style.css?v=53" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v52 · versement + réserve build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v53 · patrimoine 3 niveaux + prévisions versement build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2568,7 +2568,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=52"></script>
+<script src="/app.js?v=53"></script>
 </body>
 </html>
 `;
@@ -5916,16 +5916,20 @@ function renderPatrimoine(){
     <div style="display:flex;justify-content:space-between;font-size:11px;opacity:.5;margin-top:2px;"><span>Jan</span><span>Avr</span><span>Juil</span><span>Oct</span><span>Déc</span></div>\`;
   }
 
+  let M;try{M=computeMoney();}catch(e){M={};}
   if(gEl){
     gEl.innerHTML=\`<div style="background:var(--navy);border-radius:20px;padding:28px 32px;color:#fff;">
-      <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;">💼 Mon patrimoine</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:60px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
-      \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année · <span style="opacity:.85;">tu construis ton patrimoine chaque mois.</span></div>\`:\`<div style="font-size:14px;opacity:.75;">Chaque euro mis de côté fait grandir ta richesse.</div>\`}
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-plant-2"></i> Ton patrimoine</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
+      <div style="font-size:12px;opacity:.6;">Patrimoine personnel — ton argent, mobilisable</div>
+      \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;margin-top:4px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:''}
       \${chart}
-      \${(totalMensuel>0||moisLib!=null)?\`<div style="display:flex;gap:32px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
-        \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;">💰 Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} par an ajoutés à ton patrimoine</div></div>\`:''}
-        \${moisLib!=null?\`<div><div style="font-size:12px;opacity:.6;">🔥 Ton patrimoine couvre</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${moisLib.toFixed(1).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de tes dépenses personnelles</div></div>\`:''}
-      </div>\`:''}
+      <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
+        <div><div style="font-size:12px;opacity:.6;"><i class="ti ti-briefcase"></i> Patrimoine total</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.patriTotal!=null?M.patriTotal:totalSolde)}</div><div style="font-size:11.5px;opacity:.6;">perso + trésorerie pro</div></div>
+        <div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie pro</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">séparée de ton patrimoine</div></div>
+        \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-coins"></i> Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} / an</div></div>\`:''}
+        \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de tes dépenses couvertes</div></div>\`:''}
+      </div>
     </div>\`;
   }
 
@@ -8768,11 +8772,22 @@ function renderRapportPrevision(){
     <div style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:14px;">🔮 Si rien ne change · fin \${annee}</div>
     <div style="display:flex;gap:24px;flex-wrap:wrap;">
       \${big('💰','CA estimé',fmt(P.caProjete),P.pctObj!=null?P.pctObj+'% de ton objectif':'objectif non défini','var(--navy)')}
-      \${big('🧾','Net estimé',fmt(P.netProjete),'après charges & URSSAF','var(--navy)')}
-      \${big('🏠','Salaire moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
+      \${big('🧾','Disponible après charges & cotisations',fmt(P.netProjete),'ce que l\\'activité dégage — avant versement','var(--navy)')}
+      \${big('🏠','Versement moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
     </div>
     \${manque>0?\`<div style="background:rgba(138,100,20,.12);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#8a6414;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#456039;margin-top:14px;">🎉 À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
   </div>\`;
+  // Puis-je continuer à me verser ?
+  try{ var MM=computeMoney();
+  html+=\`<div class="card" style="padding:24px;margin-bottom:18px;">
+    <div class="dash-sec-title"><i class="ti ti-wallet"></i> Puis-je continuer à me verser ?</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Versement mensuel soutenable</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.versement)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-heart"></i> Niveau de vie confortable visé</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.confortable)}</span></div>
+    \${MM.versement>=MM.confortable
+      ? \`<div style="background:var(--success-10);color:#456039;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-circle-check" style="margin-top:1px;"></i><span>À ce rythme, ton activité soutient ton niveau de vie confortable. Tu peux te verser \${fmt(MM.versement)} sans fragiliser l'entreprise.</span></div>\`
+      : \`<div style="background:var(--warning-10);color:#8a6414;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;"></i><span>Ton versement soutenable (\${fmt(MM.versement)}) reste sous ton niveau confortable. Il manque ~<strong>\${fmt(MM.confortable-MM.versement)}/mois</strong> — vise environ <strong>+\${fmt(Math.round((MM.confortable-MM.versement)/0.72))}/mois</strong> de CA récurrent pour tenir ce niveau sur 12 mois.</span></div>\`}
+  </div>\`;
+  }catch(e){}
 
   // ② Pourquoi cette prévision (flux)
   const flowLine=(lab,val,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;"><span style="font-size:14px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};">\${fmt(val)}</span></div>\`;
