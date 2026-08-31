@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=60" />
+  <link rel="stylesheet" href="/style.css?v=61" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v60 · versement + réserve refondus build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v61 · patrimoine refondu build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=60"></script>
+<script src="/app.js?v=61"></script>
 </body>
 </html>
 `;
@@ -5926,27 +5926,28 @@ function renderPatrimoine(){
     <button class="btn btn-primary" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter mon premier support</button>
   </div>\`;return;}
 
-  cEl.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;">\`+items.map(e=>{
+  cEl.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;">\`+items.map(e=>{
     const t=supType(e.cat);
     const solde=parseFloat(e.solde)||0, obj=parseFloat(e.objectif)||0, mens=parseFloat(e.montant)||0;
     const pct=obj>0?Math.min(100,Math.round(solde/obj*100)):0;
     const reste=Math.max(0,obj-solde);
     const nom=escHtml(e.nom||t.nom);
-    return \`<div class="card" style="padding:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <span style="font-size:14px;font-weight:700;color:var(--navy);">\${t.emoji} \${nom}</span>
-        <span style="display:flex;gap:6px;">
-          <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
-          <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
+    return \`<div class="card" style="padding:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+        <div style="display:flex;align-items:center;gap:11px;min-width:0;"><span style="width:40px;height:40px;border-radius:12px;background:var(--bleu-bg);color:var(--bleu);display:grid;place-items:center;font-size:19px;flex:none;">\${t.emoji}</span><span style="font-size:15px;font-weight:700;color:var(--navy);">\${nom}</span></div>
+        <span style="display:flex;gap:6px;flex:none;">
+          <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:15px;"><i class="ti ti-pencil"></i></button>
+          <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:15px;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:35px;font-weight:600;color:var(--navy);margin:8px 0 2px;">\${fmt(solde)}</div>
-      \${mens>0?\`<div style="font-size:13px;color:#456039;font-weight:600;">+\${fmt(mens)} / mois</div>\`:\`<div style="font-size:13px;color:var(--text-2);">pas de versement mensuel</div>\`}
-      \${obj>0?\`<div style="margin-top:12px;"><div style="height:7px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${t.couleur};border-radius:5px;transition:width .5s;"></div></div><div style="font-size:11.5px;color:var(--text-2);margin-top:5px;">\${pct}% de ton objectif (\${fmt(obj)})\${reste>0?' · encore '+fmt(reste):''}\${(mens>0&&reste>0)?' · ~'+Math.ceil(reste/mens)+' mois':''}</div></div>\`:''}
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;color:var(--navy);margin:12px 0 2px;">\${fmt(solde)}</div>
+      \${mens>0?\`<div style="font-size:14px;color:var(--vert);font-weight:600;">+ \${fmt(mens)} / mois</div>\`:\`<div style="font-size:14px;color:var(--text-2);">pas de versement mensuel</div>\`}
+      \${obj>0?\`<div style="margin-top:14px;"><div style="height:8px;background:var(--surface-2);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:var(--bleu);border-radius:5px;transition:width .5s;"></div></div><div style="font-size:12.5px;color:var(--text-2);margin-top:6px;">\${pct}% de ton objectif (\${fmt(obj)})\${reste>0?' · encore '+fmt(reste):''}\${(mens>0&&reste>0)?' · ~'+Math.ceil(reste/mens)+' mois':''}</div></div>\`:''}
     </div>\`;
   }).join('')+\`</div>\`;
+  const stp=(n,h,p)=>\`<div style="display:flex;gap:14px;padding:16px 0;align-items:flex-start;\${n>1?'border-top:1px solid var(--border);':''}"><span style="width:32px;height:32px;border-radius:10px;flex:none;background:var(--navy);color:var(--paille);display:grid;place-items:center;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;">\${n}</span><div><h4 style="margin:0 0 3px;font-size:15px;color:var(--navy);">\${h}</h4><p style="margin:0;font-size:13.5px;color:var(--text-2);">\${p}</p></div></div>\`;
+  cEl.innerHTML+=\`<div class="card" style="padding:26px 28px;margin-top:20px;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:6px;">Ton ordre de priorité d'épargne</div>\${stp(1,'Sécurité immédiate','Une épargne de précaution facilement accessible.')}\${stp(2,'Projets court / moyen terme','Livret A · LDDS selon tes projets de vie.')}\${stp(3,'Long terme','Assurance-vie · PEA pour ce que tu ne toucheras pas avant longtemps.')}</div>\`;
 }
-
 function _ymNow(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');}
 function renderPatriAlim(){
   const el=q('#patrimoine-alim'); if(!el)return;
