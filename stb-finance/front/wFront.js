@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=59" />
+  <link rel="stylesheet" href="/style.css?v=60" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v59 · dashboard héros + hiérarchie build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v60 · versement + réserve refondus build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=59"></script>
+<script src="/app.js?v=60"></script>
 </body>
 </html>
 `;
@@ -5702,41 +5702,33 @@ function loadVersement(){
   const el=q('#versement-content'); if(!el)return;
   let M; try{M=computeMoney();}catch(e){el.innerHTML='';return;}
   if(M.besoinMin<=0){
-    el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;border:1.5px dashed var(--border);background:none;">
-      <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;">Renseigne d'abord ton budget perso</div>
-      <div style="font-size:13.5px;color:var(--text-2);max-width:440px;margin:0 auto 14px;">Finance a besoin de ton niveau de vie pour calculer combien tu peux te verser.</div>
+    el.innerHTML=\`<div class="card" style="padding:30px;text-align:center;">
+      <div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:6px;">Renseigne d'abord ton budget perso</div>
+      <div style="font-size:15px;color:var(--text-2);max-width:440px;margin:0 auto 16px;">Finance a besoin de ton niveau de vie pour calculer combien tu peux te verser.</div>
       <button class="btn btn-primary btn-sm" onclick="navigate('budget-perso')"><i class="ti ti-arrow-right"></i> Mon budget perso</button>
     </div>\`;return;
   }
   const min=M.besoinMin, conseille=M.versement, confort=M.confortable, maxP=M.maxPonctuel;
-  const lo=min, hi=Math.max(confort,conseille,min+1);
-  const pos=Math.max(0,Math.min(100,Math.round((conseille-lo)/(hi-lo)*100)));
-  const couvreCible=conseille>=confort;
-  const manque=Math.max(0,Math.round(confort-conseille));
-  const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:13px;background:\${hl?'var(--glycine)':'var(--surface-2)'};">
-    <div style="display:flex;align-items:center;gap:11px;"><i class="ti \${icon}" style="color:\${hl?'#2c4a72':'var(--terre)'};font-size:19px;"></i><div style="font-size:14px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:400;color:var(--text-2);font-size:12px;">\${sub}</small></div></div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(val)}</div></div>\`;
+  const couvre=conseille>=confort, manque=Math.max(0,Math.round(confort-conseille));
+  const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-radius:14px;background:\${hl?'var(--glycine)':'var(--surface-2)'};">
+    <div style="display:flex;align-items:center;gap:11px;"><span style="width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:\${hl?'#fff':'var(--card)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}" style="font-size:19px;"></i></span><div style="font-size:15px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:\${hl?'var(--bleu)':'var(--text-2)'};font-size:13px;">\${sub}</small></div></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;color:var(--navy);">\${fmt(val)}</div></div>\`;
   el.innerHTML=\`
-  <div class="card" style="padding:24px;margin-bottom:16px;">
-    <div class="dash-sec-title">Tes 4 repères de versement</div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
+  <div class="card" style="padding:28px 30px;margin-bottom:18px;">
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:18px;">Tes 4 repères de versement</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
       \${lvl('ti-coins','Salaire minimum','ton niveau de vie essentiel',min,false)}
-      \${lvl('ti-target','Versement conseillé','soutenable par ton activité actuelle',conseille,true)}
+      \${lvl('ti-target','Versement conseillé','soutenable par ton activité',conseille,true)}
       \${lvl('ti-heart','Confortable','dépenses + épargne + projets + marge',confort,false)}
       \${lvl('ti-bolt','Maximum ponctuel','sans toucher à tes réserves',maxP,false)}
     </div>
-    <div style="position:relative;height:10px;border-radius:6px;background:var(--border);margin:28px 0 8px;">
-      <div style="position:absolute;left:0;top:0;bottom:0;border-radius:6px;width:\${pos}%;background:linear-gradient(90deg,#a5502e,#456039);"></div>
-      <div style="position:absolute;top:-6px;left:\${pos}%;width:2px;height:22px;background:var(--terre);"><b style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:var(--text-2);font-weight:600;">Conseillé</b></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);"><span>Minimum \${fmt(min)}</span><span>Confortable \${fmt(confort)}</span></div>
-    <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:\${couvreCible?'var(--success-10)':'var(--warning-10)'};color:\${couvreCible?'#456039':'#a5502e'};font-size:13.5px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${couvreCible?'ti-circle-check':'ti-alert-triangle'}" style="margin-top:1px;"></i><span>\${couvreCible?'Ton activité soutient ton niveau de vie cible. Tu peux te verser sereinement.':'Tu couvres ton quotidien, mais pas encore ton niveau de vie cible ('+fmt(confort)+'). Il manque environ <strong>'+fmt(manque)+'/mois</strong> de CA soutenable.'}</span></div>
+    <div style="margin-top:18px;border-radius:14px;padding:15px 18px;background:\${couvre?'var(--vert-bg)':'var(--ambre-bg)'};color:\${couvre?'var(--vert)':'var(--ambre)'};font-size:15px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${couvre?'ti-circle-check':'ti-alert-triangle'}" style="margin-top:2px;"></i><span>\${couvre?'Ton activité soutient ton niveau de vie cible. Tu peux te verser sereinement.':'Tu couvres ton quotidien, mais pas encore ton niveau de vie cible ('+fmt(confort)+'). Il manque ~<strong>'+fmt(manque)+'/mois</strong> de CA soutenable.'}</span></div>
   </div>
-  <div class="card" style="padding:24px;">
-    <div class="dash-sec-title">Sur quel horizon ?</div>
-    <div style="display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:9px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-bolt"></i> Ce mois-ci, exceptionnellement</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(maxP)}</span></div>
-    <div style="display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:9px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(conseille)}</span></div>
-    <p style="font-size:12px;color:var(--text-2);margin-top:8px;">Te verser au maximum ponctuel chaque mois puiserait dans tes réserves. Le rythme soutenable, lui, tient sur la durée.</p>
+  <div class="card" style="padding:28px 30px;">
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Ce mois-ci, exceptionnellement</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(conseille)}</span></div>
+    <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Te verser le maximum chaque mois puiserait dans tes réserves. Le rythme soutenable, lui, tient sur la durée.</p>
   </div>\`;
 }
 
@@ -5745,35 +5737,35 @@ function loadReserve(){
   let M; try{M=computeMoney();}catch(e){el.innerHTML='';return;}
   const actuelle=M.dispoEntreprise, cible=M.reserveSecu, charges=M.chargesFixes, couvre=M.moisCouverts;
   if(charges<=0){
-    el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;border:1.5px dashed var(--border);background:none;">
-      <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;">Renseigne tes charges fixes</div>
-      <div style="font-size:13.5px;color:var(--text-2);max-width:440px;margin:0 auto 14px;">Ta réserve de sécurité cible = 3 mois de charges fixes. Ajoute tes abonnements pour la calculer.</div>
+    el.innerHTML=\`<div class="card" style="padding:30px;text-align:center;">
+      <div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:6px;">Renseigne tes charges fixes</div>
+      <div style="font-size:15px;color:var(--text-2);max-width:440px;margin:0 auto 16px;">Ta réserve de sécurité cible = 3 mois de charges fixes. Ajoute tes abonnements pour la calculer.</div>
       <button class="btn btn-primary btn-sm" onclick="navigate('abonnements')"><i class="ti ti-arrow-right"></i> Mes charges fixes</button>
     </div>\`;return;
   }
   const ratio=cible>0?actuelle/cible:1;
-  const L=ratio>=1?['#456039','var(--success-10)','ti-circle-check','Confortable','Ta réserve dépasse ta cible — tu peux te verser sereinement.']
-         :ratio>=0.66?['#a5502e','var(--warning-10)','ti-alert-triangle','Correct','Ta réserve approche la cible. Reconstitue-la avant de te verser au maximum.']
-         :['#8d2b21','var(--danger-10)','ti-alert-circle','Fragile','Ta réserve est sous la cible — prudence avant de te verser.'];
+  const L=ratio>=1?['var(--vert)','var(--vert-bg)','ti-circle-check','Confortable','Ta réserve dépasse ta cible — tu peux te verser sereinement.']
+         :ratio>=0.66?['var(--ambre)','var(--ambre-bg)','ti-alert-triangle','Correct','Ta réserve approche la cible. Reconstitue-la avant de te verser au maximum.']
+         :['var(--rouge)','var(--rouge-bg)','ti-alert-circle','Fragile','Ta réserve est sous la cible — prudence avant de te verser.'];
   const segFill=Math.max(0,Math.min(4,Math.round(ratio*3)));
-  let seg='';for(let i=0;i<4;i++){seg+=\`<i style="flex:1;height:12px;border-radius:6px;background:\${i<segFill?L[0]:'var(--border)'};"></i>\`;}
-  const big=(lab,val,col)=>\`<div><div style="font-size:11px;color:var(--text-2);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${col||'var(--navy)'};">\${val}</div></div>\`;
+  let seg='';for(let i=0;i<4;i++){seg+=\`<i style="flex:1;height:13px;border-radius:7px;background:\${i<segFill?L[0]:'var(--surface-2)'};"></i>\`;}
+  const big=(k,v,col)=>\`<div><div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:31px;color:\${col||'var(--navy)'};margin-top:3px;">\${v}</div></div>\`;
   el.innerHTML=\`
-  <div class="card" style="padding:24px;margin-bottom:16px;">
-    <div class="dash-sec-title"><i class="ti ti-shield-half"></i> Réserve entreprise <span style="font-size:10px;background:var(--surface-2);color:var(--terre);padding:2px 8px;border-radius:999px;letter-spacing:0;text-transform:none;font-weight:600;">protéger demain</span></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;">
+  <div class="card" style="padding:28px 30px;margin-bottom:18px;">
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:18px;display:flex;align-items:center;gap:10px;"><i class="ti ti-shield-half" style="font-style:normal;color:var(--terre-600);"></i> Réserve entreprise <span style="font-size:11px;font-weight:700;text-transform:uppercase;background:var(--surface-2);color:var(--terre-600);padding:3px 9px;border-radius:999px;margin-left:auto;">protéger demain</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;">
       \${big('Réserve actuelle',fmt(actuelle))}
-      \${big('Cible (3 mois de charges)',fmt(cible))}
+      \${big('Cible · 3 mois',fmt(cible))}
       \${big('Ça te couvre',couvre!=null?(String(couvre).replace('.',',')+' mois'):'—',L[0])}
     </div>
-    <div style="display:flex;gap:6px;margin:16px 0;">\${seg}</div>
-    <div style="border-radius:12px;padding:14px 16px;background:\${L[1]};color:\${L[0]};font-size:13.5px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${L[2]}" style="margin-top:1px;"></i><span><strong>\${L[3]}.</strong> \${L[4]}</span></div>
+    <div style="display:flex;gap:7px;margin:18px 0;">\${seg}</div>
+    <div style="border-radius:14px;padding:15px 18px;background:\${L[1]};color:\${L[0]};font-size:15px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${L[2]}" style="margin-top:2px;"></i><span><strong>\${L[3]}.</strong> \${L[4]}</span></div>
   </div>
-  <div class="card" style="padding:24px;">
-    <div class="dash-sec-title">Pourquoi cette cible ?</div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:var(--text-2);"><span>Charges fixes mensuelles</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(charges)}</span></div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:var(--text-2);"><span>× 3 mois de coussin (mois creux, retards)</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(cible)}</span></div>
-    <p style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Cette réserve est <strong>déduite avant</strong> le calcul de ton versement conseillé. Elle appartient à l'entreprise — jamais à ton patrimoine personnel.</p>
+  <div class="card" style="padding:28px 30px;">
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:14px;">Pourquoi cette cible ?</div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;padding:9px 0;color:var(--text-2);"><span>Charges fixes mensuelles</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;">\${fmt(charges)}</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:15px;padding:9px 0;color:var(--text-2);"><span>× 3 mois de coussin (mois creux, retards)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;">\${fmt(cible)}</span></div>
+    <p style="font-size:14px;color:var(--text-2);margin-top:12px;">Cette réserve est <strong>déduite avant</strong> ton versement conseillé — elle appartient à l'entreprise, jamais à ton patrimoine.</p>
   </div>\`;
 }
 
