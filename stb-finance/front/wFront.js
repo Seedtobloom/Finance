@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=57" />
+  <link rel="stylesheet" href="/style.css?v=58" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v57 · barre projets lisible build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v58 · nouvelle DA (marron · bleu clair) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1958,7 +1958,7 @@ const HTML = `<!DOCTYPE html>
         <option value="">— Aucun projet —</option>
       </select>
       <!-- Bloc contextuel devis + avancement -->
-      <div id="f-projet-context" style="display:none;margin-top:8px;padding:10px 12px;background:#f5f3ef;border-radius:8px;border-left:3px solid #F0E8FF;font-size:13px;line-height:1.7;"></div>
+      <div id="f-projet-context" style="display:none;margin-top:8px;padding:10px 12px;background:#f5f3ef;border-radius:8px;border-left:3px solid #E4F0FF;font-size:13px;line-height:1.7;"></div>
     </div>
     <div class="form-grid-2">
       <div class="form-group">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=57"></script>
+<script src="/app.js?v=58"></script>
 </body>
 </html>
 `;
@@ -2583,55 +2583,55 @@ const CSS  = `/* =============================================
    VARIABLES
    =========================== */
 :root {
-  /* ── Écrin · neutres (biais brun, jamais de gris pur) ── */
-  --terre:#412F21; --terre-600:#5c4531; --terre-400:#735838; --terre-200:#c8b29a;
-  --nuit:#1C1205; --ivoire:#f6efe6;
-  --bone:#ffffff; --card:#F8F6F2; --line:#eae5dc;
+  /* ── DA Écrin · marron dominant ── */
+  --terre:#110704; --terre-600:#5A2A11; --terre-400:#744f30; --terre-200:#d8b9a2;
+  --nuit:#110704; --ivoire:#f6efe6;
+  --bone:#ffffff; --card:#F7F3EC; --line:#ece3d4;
 
-  /* ── accents ── */
-  --glycine:#E4D1FE; --brume:#F0E8FF; --paille:#F2E5C2;
+  /* ── accents : bleu clair + crème/paille ── */
+  --glycine:#C5DEFF; --brume:#E4F0FF; --paille:#F0E9D6;
 
   /* ── sémantique [encre · fond] ── */
   --vert:#456039;  --vert-bg:#e6f0e2;
-  --ambre:#8a6414; --ambre-bg:#f6ead2;
+  --ambre:#a5502e; --ambre-bg:#f6e7dc;
   --rouge:#8d2b21; --rouge-bg:#f6e4de;
-  --bleu:#59409a;  --bleu-bg:#efe1ff;
-  --violet-ink:#59409a; --violet-bg:#efe1ff;
+  --bleu:#2c4a72;  --bleu-bg:#E8F1FF;
+  --violet-ink:#2c4a72; --violet-bg:#E8F1FF;
 
   /* ── typographie ── */
   --font-display:'Cormorant Garamond',Georgia,serif;
-  --font-body:'Alegreya',Georgia,serif;
+  --font-body:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
   --font-ui:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
 
   /* ── rayons ── */
   --r-panel:20px; --r-block:14px; --r-ctrl:12px; --r-pill:999px;
 
   /* ── focus ── */
-  --focus:#a98bd6;
+  --focus:#7fa8d0;
 
-  /* ── alias de compatibilité (mappés sur Écrin) ── */
+  /* ── alias de compatibilité (mappés sur la charte) ── */
   --bg:         #ffffff;
-  --surface:    #F8F6F2;
-  --surface-2:  #efe7d7;
-  --cream:      #F2E5C2;
-  --navy:       #412F21;
-  --blue:       #59409a;
-  --violet:     #E4D1FE;
-  --brown:      #412F21;
+  --surface:    #F7F3EC;
+  --surface-2:  #E4D9C5;
+  --cream:      #F0E9D6;
+  --navy:       #110704;
+  --blue:       #2c4a72;
+  --violet:     #C5DEFF;
+  --brown:      #110704;
   --success:    #456039;
-  --warning:    #8a6414;
+  --warning:    #a5502e;
   --danger:     #8d2b21;
-  --text:       #33241a;
-  --text-2:     #574029;
-  --border:     #eae5dc;
+  --text:       #110704;
+  --text-2:     #6b4834;
+  --border:     #ece3d4;
 
-  --blue-10:    #efe1ff;
-  --violet-10:  #efe1ff;
+  --blue-10:    #E8F1FF;
+  --violet-10:  #E8F1FF;
   --success-10: #e6f0e2;
-  --warning-10: #f6ead2;
+  --warning-10: #f6e7dc;
   --danger-10:  #f6e4de;
-  --navy-10:    rgba(65,47,33,0.08);
-  --cream-10:   #f6efe6;
+  --navy-10:    rgba(17,7,4,0.06);
+  --cream-10:   #F0E9D6;
 }
 
 /* ===========================
@@ -2992,7 +2992,7 @@ html, body {
   justify-content: center;
   font-size: 17px;
 }
-.kpi-icon.blue   { background: var(--blue-10);    color: #59409a; }
+.kpi-icon.blue   { background: var(--blue-10);    color: #2c4a72; }
 .kpi-icon.violet { background: var(--violet-10);  color: #8e68d5; }
 .kpi-icon.green  { background: var(--success-10); color: var(--success); }
 .kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
@@ -3019,7 +3019,7 @@ html, body {
   margin-bottom: 4px;
   display: block;
 }
-.kpi-value.blue    { color: #59409a; }
+.kpi-value.blue    { color: #2c4a72; }
 .kpi-value.green   { color: var(--success); }
 .kpi-value.danger  { color: var(--danger); }
 .kpi-value.violet  { color: #7c5cbf; }
@@ -3146,24 +3146,24 @@ tbody tr:hover td { background: var(--surface-2); }
 }
 /* Factures */
 .badge-payee     { background: var(--success-10); color: #456039; }
-.badge-attente   { background: var(--warning-10); color: #8a6414; }
-.badge-en-attente { background: var(--warning-10); color: #8a6414; }
+.badge-attente   { background: var(--warning-10); color: #a5502e; }
+.badge-en-attente { background: var(--warning-10); color: #a5502e; }
 .badge-retard    { background: var(--danger-10);  color: #8d2b21; }
 .badge-en-retard { background: var(--danger-10);  color: #8d2b21; }
 /* Abonnements */
 .badge-actif     { background: var(--success-10); color: #456039; }
-.badge-pause     { background: var(--warning-10); color: #8a6414; }
+.badge-pause     { background: var(--warning-10); color: #a5502e; }
 .badge-annule    { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
 /* URSSAF */
-.badge-a-venir   { background: var(--blue-10);    color: #59409a; }
-.badge-a-payer   { background: var(--warning-10); color: #8a6414; }
+.badge-a-venir   { background: var(--blue-10);    color: #2c4a72; }
+.badge-a-payer   { background: var(--warning-10); color: #a5502e; }
 .badge-paye      { background: var(--success-10); color: #456039; }
 /* Génériques */
 .badge-neutral   { background: var(--surface-2);  color: var(--text-2); border: 1px solid var(--border); }
-.badge-blue      { background: var(--blue-10);    color: #59409a; }
+.badge-blue      { background: var(--blue-10);    color: #2c4a72; }
 .badge-violet    { background: var(--violet-10);  color: #7c5cbf; }
 .badge-success   { background: var(--success-10); color: #456039; }
-.badge-warning   { background: var(--warning-10); color: #8a6414; }
+.badge-warning   { background: var(--warning-10); color: #a5502e; }
 .badge-danger    { background: var(--danger-10);  color: #8d2b21; }
 
 /* ===========================
@@ -3826,7 +3826,7 @@ input[type="range"]::-moz-range-thumb {
   font-family: 'Inter Tight', sans-serif;
 }
 .pdf-btn.vide    { color: var(--text-2); background: var(--surface-2); border: 1px solid var(--border); }
-.pdf-btn.present { color: #59409a;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
+.pdf-btn.present { color: #2c4a72;       background: var(--blue-10);   border: 1px solid rgba(169,139,214,0.4); }
 .pdf-btn.vide:hover    { background: var(--border); }
 .pdf-btn.present:hover { background: rgba(169,139,214,0.3); }
 
@@ -3959,9 +3959,9 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 16px;
 }
 .alert.danger  { background: var(--danger-10);  color: #8d2b21; border: 1px solid rgba(141,43,33,0.2); }
-.alert.warning { background: var(--warning-10); color: #8a6414; border: 1px solid rgba(138,100,20,0.2); }
+.alert.warning { background: var(--warning-10); color: #a5502e; border: 1px solid rgba(138,100,20,0.2); }
 .alert.success { background: var(--success-10); color: #456039; border: 1px solid rgba(69,96,57,0.2); }
-.alert.info    { background: var(--blue-10);    color: #59409a; border: 1px solid rgba(169,139,214,0.4); }
+.alert.info    { background: var(--blue-10);    color: #2c4a72; border: 1px solid rgba(169,139,214,0.4); }
 
 /* ===========================
    SKELETON LOADERS
@@ -4201,13 +4201,13 @@ function injectLoginOverlay() {
   div.id = 'login-overlay';
   div.style.cssText = 'position:fixed;inset:0;background:#f5f3ef;display:none;align-items:center;justify-content:center;z-index:9999;';
   div.innerHTML = \`
-    <div style="background:#fff;border:1px solid #eae5dc;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:42px;color:#412F21;margin-bottom:4px;">STB Finance</div>
+    <div style="background:#fff;border:1px solid #ece3d4;border-radius:12px;padding:40px;width:360px;max-width:90vw;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08);">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:42px;color:#110704;margin-bottom:4px;">STB Finance</div>
       <div style="font-size:14px;color:#6b533b;margin-bottom:32px;">Seed to Bloom</div>
       <input id="login-pwd" type="password" placeholder="Mot de passe" autocomplete="current-password"
-        style="width:100%;padding:10px 14px;border:1px solid #eae5dc;border-radius:8px;font-size:15px;margin-bottom:12px;box-sizing:border-box;outline:none;">
+        style="width:100%;padding:10px 14px;border:1px solid #ece3d4;border-radius:8px;font-size:15px;margin-bottom:12px;box-sizing:border-box;outline:none;">
       <button id="login-btn"
-        style="width:100%;padding:10px;background:#412F21;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit;">
+        style="width:100%;padding:10px;background:#110704;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit;">
         Se connecter
       </button>
       <div id="login-error" style="margin-top:12px;font-size:14px;color:#8d2b21;min-height:18px;"></div>
@@ -4319,11 +4319,11 @@ const PAS_FIXE    = 40;
 const MOIS_COURT  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const MOIS_LONG   = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const COLORS = {
-  navy:'#412F21', blue:'#59409a', violet:'#59409a',
-  success:'#456039', warning:'#8a6414', danger:'#8d2b21',
-  muted:'#eae5dc', text2:'#6b533b'
+  navy:'#110704', blue:'#2c4a72', violet:'#2c4a72',
+  success:'#456039', warning:'#a5502e', danger:'#8d2b21',
+  muted:'#ece3d4', text2:'#6b533b'
 };
-const PALETTE = ['#59409a','#8a6414','#456039','#8d2b21','#412F21','#8a6f54','#c8b29a','#a98bd6'];
+const PALETTE = ['#2c4a72','#a5502e','#456039','#8d2b21','#110704','#744f30','#c8b29a','#a98bd6'];
 
 /* ─── 2. UTILS ───────────────────────────────────────────────────────── */
 const fmt     = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Math.round((v||0)*100)/100);
@@ -4505,13 +4505,13 @@ function roundTopRect(ctx,x,y,w,h,r){
 }
 function drawGrid(ctx,pad,cW,cH,yMax,step){
   ctx.save();
-  ctx.setLineDash([2,4]);ctx.strokeStyle='#eae5dc';ctx.lineWidth=1;
+  ctx.setLineDash([2,4]);ctx.strokeStyle='#ece3d4';ctx.lineWidth=1;
   for(let v=0;v<=yMax;v+=step){
     const y=pad.top+cH-(v/yMax)*cH;
     ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
   }
   ctx.setLineDash([]);
-  ctx.fillStyle='#8a6f54';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='right';
+  ctx.fillStyle='#744f30';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='right';
   for(let v=0;v<=yMax;v+=step){
     const y=pad.top+cH-(v/yMax)*cH;
     ctx.fillText(fmtShort(v),pad.left-8,y+3);
@@ -4547,7 +4547,7 @@ function drawBarChart(canvas,labels,datasets,opts={}){
       let color=ds.color||COLORS.navy;
       if(di===0&&opts.targetLine){
         const ratio=v/opts.targetLine;
-        color=ratio>=1?'#456039':ratio>=0.8?'#8a6414':'#8d2b21';
+        color=ratio>=1?'#456039':ratio>=0.8?'#a5502e':'#8d2b21';
       }
       ctx.fillStyle=color;
       roundTopRect(ctx,x,y,bw,bH,Math.min(6,bw/2));
@@ -4561,10 +4561,10 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   // Seuil de rentabilité (ligne pointillée grise)
   if(opts.seuilLine&&opts.seuilLine>0&&opts.seuilLine<=yMax){
     const sy=pad.top+cH-(opts.seuilLine/yMax)*cH;
-    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#8a6f54';ctx.lineWidth=1.5;
+    ctx.save();ctx.setLineDash([4,4]);ctx.strokeStyle='#744f30';ctx.lineWidth=1.5;
     ctx.beginPath();ctx.moveTo(pad.left,sy);ctx.lineTo(pad.left+cW,sy);ctx.stroke();
     ctx.setLineDash([]);ctx.restore();
-    ctx.fillStyle='#8a6f54';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='left';
+    ctx.fillStyle='#744f30';ctx.font='10px Inter Tight,sans-serif';ctx.textAlign='left';
     ctx.fillText('Seuil',pad.left+cW+4,sy+4);
   }
   // Ligne objectif (pointillé bleu)
@@ -4645,7 +4645,7 @@ function drawDonutChart(canvas,labels,data,colors){
   // centre : total
   ctx.fillStyle=COLORS.navy;ctx.font="italic 600 20px 'Cormorant Garamond',serif";ctx.textAlign='center';
   ctx.fillText(fmtShort(total),cx,cy+2);
-  ctx.fillStyle='#8a6f54';ctx.font='9px Inter Tight,sans-serif';
+  ctx.fillStyle='#744f30';ctx.font='9px Inter Tight,sans-serif';
   ctx.fillText('TOTAL',cx,cy+15);
   const lx=W-legendW+8;
   let li=0;
@@ -4657,7 +4657,7 @@ function drawDonutChart(canvas,labels,data,colors){
     if(ctx.roundRect){ctx.beginPath();ctx.roundRect(lx,ly,9,9,2.5);ctx.fill();}else ctx.fillRect(lx,ly,9,9);
     ctx.fillStyle=COLORS.navy;ctx.font='11px Inter Tight,sans-serif';ctx.textAlign='left';
     ctx.fillText(l.slice(0,13),lx+14,ly+8);
-    ctx.fillStyle='#8a6f54';ctx.textAlign='right';
+    ctx.fillStyle='#744f30';ctx.textAlign='right';
     ctx.fillText(pct+'%',W-4,ly+8);
   });
 }
@@ -4917,10 +4917,10 @@ function renderCockpit(){
   const d=M.intel||{};
   const settings=dbGetObj('settings');
   const now=new Date(); const y=now.getFullYear(), m=now.getMonth()+1;
-  const scoreColor=M.score>=80?'#9cc389':M.score>=55?'#e9cf87':'#e0796e';
+  const scoreColor=M.score>=80?'#9cc389':M.score>=55?'#d9a878':'#e0796e';
   const scoreLabel=M.score>=80?'Solide':M.score>=55?'Correct':'Fragile';
   const vIcon=M.vLevel==='vert'?'ti-circle-check':M.vLevel==='ambre'?'ti-alert-triangle':'ti-alert-circle';
-  const vCol=M.vLevel==='vert'?'#9cc389':M.vLevel==='ambre'?'#e9cf87':'#e0796e';
+  const vCol=M.vLevel==='vert'?'#9cc389':M.vLevel==='ambre'?'#d9a878':'#e0796e';
 
   // ── Profil qui démarre : budget perso non renseigné ──
   if(M.besoinMin<=0){
@@ -4933,7 +4933,7 @@ function renderCockpit(){
     return;
   }
 
-  const pil=(icon,lab,val)=>\`<div style="display:flex;align-items:center;gap:7px;font-size:11px;opacity:.92;margin-top:5px;"><span style="display:flex;align-items:center;gap:5px;width:86px;"><i class="ti \${icon}"></i>\${lab}</span><span style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden;"><i style="display:block;height:100%;border-radius:3px;width:\${val}%;background:\${val>=70?'#9cc389':val>=45?'#e9cf87':'#e0796e'};"></i></span></div>\`;
+  const pil=(icon,lab,val)=>\`<div style="display:flex;align-items:center;gap:7px;font-size:11px;opacity:.92;margin-top:5px;"><span style="display:flex;align-items:center;gap:5px;width:86px;"><i class="ti \${icon}"></i>\${lab}</span><span style="flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.16);overflow:hidden;"><i style="display:block;height:100%;border-radius:3px;width:\${val}%;background:\${val>=70?'#9cc389':val>=45?'#d9a878':'#e0796e'};"></i></span></div>\`;
 
   const fig=(icon,lab,val,hl)=>\`<div style="min-width:120px;"><div style="font-size:11px;opacity:.6;display:flex;align-items:center;gap:6px;"><i class="ti \${icon}"></i>\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:34px;line-height:1;margin-top:4px;\${hl?'color:var(--paille);':''}">\${fmt(val)}</div></div>\`;
 
@@ -4973,7 +4973,7 @@ function renderCockpit(){
     <div class="dash-sec-title"><i class="ti ti-bulb"></i> Ton plan de \${MOIS_LONG[m-1]} — ce que Finance te recommande</div>
     \${planRow('var(--surface-2)','var(--terre)','ti-wallet','Te verser','Versement personnel',M.versement)}
     \${M.epargnePrevue>0?planRow('var(--success-10)','#456039','ti-plant-2','Mettre de côté',detEp,M.epargnePrevue):''}
-    \${M.projetsMensuel>0?planRow('var(--glycine)','#59409a','ti-target','Financer tes projets',detPr,M.projetsMensuel):''}
+    \${M.projetsMensuel>0?planRow('var(--glycine)','#2c4a72','ti-target','Financer tes projets',detPr,M.projetsMensuel):''}
     \${planRow('var(--success-10)','#456039','ti-mood-smile','Garder libre','pour toi, sans mission',M.argentLibre)}
     <div style="margin-top:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       \${canApply?\`<button class="btn btn-primary btn-sm" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<span style="font-size:12.5px;color:#456039;"><i class="ti ti-circle-check"></i> Plan déjà appliqué ce mois.</span>\`}
@@ -4994,7 +4994,7 @@ function renderCockpit(){
         \${li('Trésorerie restante après versement',fmt(M.tresoRestante))}
       </div>
       <div style="background:var(--glycine);border-radius:14px;padding:16px 18px;">
-        <div style="font-size:12px;font-weight:700;color:#59409a;margin-bottom:8px;display:flex;align-items:center;gap:7px;"><i class="ti ti-home"></i> Ton budget personnel</div>
+        <div style="font-size:12px;font-weight:700;color:#2c4a72;margin-bottom:8px;display:flex;align-items:center;gap:7px;"><i class="ti ti-home"></i> Ton budget personnel</div>
         \${li('Versement personnel',fmt(M.versement))}
         \${M.autresRevenus>0?li('+ autres revenus perso',fmt(M.autresRevenus)):''}
         \${li('= Revenus personnels',fmt(M.revenusPersoTotal),'tot')}
@@ -5017,7 +5017,7 @@ function renderCockpit(){
       \${objCA>0?\`<div><div style="font-size:11px;color:var(--text-2);">Objectif annuel</div><div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(objCA)}</div></div>\`:''}
     </div>
     \${objCA>0?\`<div style="height:9px;background:var(--border);border-radius:6px;overflow:hidden;"><div style="height:100%;width:\${pctO}%;background:var(--violet-ink);border-radius:6px;"></div></div>
-    \${d.ecartObjectif<0?\`<div style="font-size:13px;color:#8a6414;margin-top:9px;display:flex;gap:7px;align-items:flex-start;"><i class="ti ti-alert-triangle"></i><span>Retard de \${fmt(-d.ecartObjectif)} sur ton rythme. <span style="color:var(--text-2);">Le CA encaissé n'est pas de l'argent disponible — il passe d'abord par tes réserves.</span></span></div>\`:\`<div style="font-size:13px;color:#456039;margin-top:9px;"><i class="ti ti-circle-check"></i> Tu es dans le rythme.</div>\`}\`:''}
+    \${d.ecartObjectif<0?\`<div style="font-size:13px;color:#a5502e;margin-top:9px;display:flex;gap:7px;align-items:flex-start;"><i class="ti ti-alert-triangle"></i><span>Retard de \${fmt(-d.ecartObjectif)} sur ton rythme. <span style="color:var(--text-2);">Le CA encaissé n'est pas de l'argent disponible — il passe d'abord par tes réserves.</span></span></div>\`:\`<div style="font-size:13px;color:#456039;margin-top:9px;"><i class="ti ti-circle-check"></i> Tu es dans le rythme.</div>\`}\`:''}
     <button class="btn btn-outline btn-sm" style="margin-top:14px;" onclick="navigate('rapport-prevision')">Voir mes prévisions <i class="ti ti-arrow-right"></i></button>
   </div>\`;
 
@@ -5042,7 +5042,7 @@ function renderCockpit(){
   if(d.urssafProchain&&d.urssafProchain.jours<=45)todo.push({lv:'o',txt:'<strong>URSSAF :</strong> '+d.urssafProchain.t+' dans '+d.urssafProchain.jours+' j.',nav:'charges-urssaf'});
   if(M.epargnePrevue>0)todo.push({lv:'g',txt:'<strong>Bonne nouvelle :</strong> ton épargne progresse de '+fmt(M.epargnePrevue)+'/mois.',nav:'patrimoine'});
   if(d.aRanger)todo.push({lv:'o',txt:'<strong>À ranger :</strong> '+d.aRanger+' opération'+(d.aRanger>1?'s':'')+' à catégoriser.',nav:'enveloppes'});
-  const alRow=t=>{var c=t.lv==='r'?['var(--danger-10)','#8d2b21','ti-alert-circle']:t.lv==='o'?['var(--warning-10)','#8a6414','ti-alert-triangle']:['var(--success-10)','#456039','ti-circle-check'];return \`<div onclick="navigate('\${t.nav}')" style="display:flex;gap:11px;align-items:flex-start;padding:12px 15px;border-radius:12px;cursor:pointer;background:\${c[0]};color:\${c[1]};font-size:13.5px;"><i class="ti \${c[2]}" style="margin-top:1px;"></i><span>\${t.txt}</span></div>\`;};
+  const alRow=t=>{var c=t.lv==='r'?['var(--danger-10)','#8d2b21','ti-alert-circle']:t.lv==='o'?['var(--warning-10)','#a5502e','ti-alert-triangle']:['var(--success-10)','#456039','ti-circle-check'];return \`<div onclick="navigate('\${t.nav}')" style="display:flex;gap:11px;align-items:flex-start;padding:12px 15px;border-radius:12px;cursor:pointer;background:\${c[0]};color:\${c[1]};font-size:13.5px;"><i class="ti \${c[2]}" style="margin-top:1px;"></i><span>\${t.txt}</span></div>\`;};
   const aretenir=\`<div class="card" style="padding:24px;">
     <div class="dash-sec-title"><i class="ti ti-bell"></i> À retenir</div>
     \${todo.length?\`<div style="display:flex;flex-direction:column;gap:9px;">\${todo.slice(0,3).map(alRow).join('')}</div>\`:\`<div style="font-size:13px;color:#456039;background:var(--success-10);border-radius:12px;padding:12px 15px;"><i class="ti ti-circle-check"></i> Rien d'urgent aujourd'hui. Profites-en.</div>\`}
@@ -5150,7 +5150,7 @@ function loadDashboard(){
   const leg=q('#chart-dash-bar-legend');
   if(leg)leg.innerHTML=
     \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#456039"></div>CA objectif atteint</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#8a6414"></div>CA proche</div>\`+
+    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#a5502e"></div>CA proche</div>\`+
     \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#8d2b21"></div>CA insuffisant</div>\`+
     \`<div class="chart-legend-item"><div style="border-top:2px dashed #1A2E5A;width:16px;margin-top:4px;"></div>Objectif</div>\`+
     \`<div class="chart-legend-item"><div style="border-top:2px dashed #9e9e9e;width:16px;margin-top:4px;"></div>Seuil</div>\`;
@@ -5164,7 +5164,7 @@ function loadDashboard(){
     alertEl.innerHTML=
       \`<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">\`+
       \`<div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Objectif mensuel</div><div style="font-size:16px;font-weight:700;color:var(--navy);">\${fmt(objectifMensuel)}</div><div style="font-size:12px;color:var(--text-2);">pour \${settings.objectifCA||60000} €/an</div></div>\`+
-      \`<div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#8a6414;">\${fmt(seuilMensuel)}</div><div style="font-size:12px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
+      \`<div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#a5502e;">\${fmt(seuilMensuel)}</div><div style="font-size:12px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
       \`<div><div style="font-size:11px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Mois en vert</div><div style="font-size:16px;font-weight:700;color:#456039;">\${moisOk} / \${12-moisVide}</div><div style="font-size:12px;color:var(--text-2);">\${moisKo>0?moisKo+' mois sous le seuil':'Tous les mois couverts'}</div></div>\`+
       \`</div>\`;
   }
@@ -5249,10 +5249,10 @@ async function syncQonto(silent=false){
    URSSAF & Charges se calculent seules ; Formation & Trésorerie = budgets que tu fixes. */
 const ENV_DEF=[
   {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#8d2b21', auto:true },
-  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#8a6414', auto:true },
+  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#a5502e', auto:true },
   {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
   {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
-  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#59409a', auto:false},
+  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#2c4a72', auto:false},
   {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#456039', auto:false},
 ];
 // Catégories assignables à une opération (dans l'ordre proposé au re-classement)
@@ -5433,7 +5433,7 @@ function renderEngagementsCard(def,e){
       \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;"></div></div>\`:''}
     </div>\`;
   }).join('');
-  const badge='<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#59409a;background:#efe1ff;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
+  const badge='<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#2c4a72;background:#E8F1FF;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
   return \`<div class="card" style="padding:18px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -5582,8 +5582,8 @@ async function saveEnvReglages(){
 
 /* --- Vie perso : budget, niveau de vie, projets ----------------------- */
 const PERSO_CATS=[
-  {id:'logement', nom:'Logement',        emoji:'<i class="ti ti-home"></i>', couleur:'#59409a'},
-  {id:'transport',nom:'Transport',       emoji:'<i class="ti ti-car"></i>', couleur:'#8a6414'},
+  {id:'logement', nom:'Logement',        emoji:'<i class="ti ti-home"></i>', couleur:'#2c4a72'},
+  {id:'transport',nom:'Transport',       emoji:'<i class="ti ti-car"></i>', couleur:'#a5502e'},
   {id:'quotidien',nom:'Vie quotidienne', emoji:'<i class="ti ti-shopping-cart"></i>', couleur:'#456039'},
   {id:'famille',  nom:'Famille',         emoji:'<i class="ti ti-users"></i>', couleur:'#8d2b21'},
   {id:'loisirs',  nom:'Loisirs',         emoji:'<i class="ti ti-confetti"></i>', couleur:'#7C3AED'},
@@ -5722,7 +5722,7 @@ function loadVersement(){
   const couvreCible=conseille>=confort;
   const manque=Math.max(0,Math.round(confort-conseille));
   const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border-radius:13px;background:\${hl?'var(--glycine)':'var(--surface-2)'};">
-    <div style="display:flex;align-items:center;gap:11px;"><i class="ti \${icon}" style="color:\${hl?'#59409a':'var(--terre)'};font-size:19px;"></i><div style="font-size:14px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:400;color:var(--text-2);font-size:12px;">\${sub}</small></div></div>
+    <div style="display:flex;align-items:center;gap:11px;"><i class="ti \${icon}" style="color:\${hl?'#2c4a72':'var(--terre)'};font-size:19px;"></i><div style="font-size:14px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:400;color:var(--text-2);font-size:12px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:27px;color:var(--navy);">\${fmt(val)}</div></div>\`;
   el.innerHTML=\`
   <div class="card" style="padding:24px;margin-bottom:16px;">
@@ -5734,11 +5734,11 @@ function loadVersement(){
       \${lvl('ti-bolt','Maximum ponctuel','sans toucher à tes réserves',maxP,false)}
     </div>
     <div style="position:relative;height:10px;border-radius:6px;background:var(--border);margin:28px 0 8px;">
-      <div style="position:absolute;left:0;top:0;bottom:0;border-radius:6px;width:\${pos}%;background:linear-gradient(90deg,#8a6414,#456039);"></div>
+      <div style="position:absolute;left:0;top:0;bottom:0;border-radius:6px;width:\${pos}%;background:linear-gradient(90deg,#a5502e,#456039);"></div>
       <div style="position:absolute;top:-6px;left:\${pos}%;width:2px;height:22px;background:var(--terre);"><b style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:var(--text-2);font-weight:600;">Conseillé</b></div>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);"><span>Minimum \${fmt(min)}</span><span>Confortable \${fmt(confort)}</span></div>
-    <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:\${couvreCible?'var(--success-10)':'var(--warning-10)'};color:\${couvreCible?'#456039':'#8a6414'};font-size:13.5px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${couvreCible?'ti-circle-check':'ti-alert-triangle'}" style="margin-top:1px;"></i><span>\${couvreCible?'Ton activité soutient ton niveau de vie cible. Tu peux te verser sereinement.':'Tu couvres ton quotidien, mais pas encore ton niveau de vie cible ('+fmt(confort)+'). Il manque environ <strong>'+fmt(manque)+'/mois</strong> de CA soutenable.'}</span></div>
+    <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:\${couvreCible?'var(--success-10)':'var(--warning-10)'};color:\${couvreCible?'#456039':'#a5502e'};font-size:13.5px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${couvreCible?'ti-circle-check':'ti-alert-triangle'}" style="margin-top:1px;"></i><span>\${couvreCible?'Ton activité soutient ton niveau de vie cible. Tu peux te verser sereinement.':'Tu couvres ton quotidien, mais pas encore ton niveau de vie cible ('+fmt(confort)+'). Il manque environ <strong>'+fmt(manque)+'/mois</strong> de CA soutenable.'}</span></div>
   </div>
   <div class="card" style="padding:24px;">
     <div class="dash-sec-title">Sur quel horizon ?</div>
@@ -5761,7 +5761,7 @@ function loadReserve(){
   }
   const ratio=cible>0?actuelle/cible:1;
   const L=ratio>=1?['#456039','var(--success-10)','ti-circle-check','Confortable','Ta réserve dépasse ta cible — tu peux te verser sereinement.']
-         :ratio>=0.66?['#8a6414','var(--warning-10)','ti-alert-triangle','Correct','Ta réserve approche la cible. Reconstitue-la avant de te verser au maximum.']
+         :ratio>=0.66?['#a5502e','var(--warning-10)','ti-alert-triangle','Correct','Ta réserve approche la cible. Reconstitue-la avant de te verser au maximum.']
          :['#8d2b21','var(--danger-10)','ti-alert-circle','Fragile','Ta réserve est sous la cible — prudence avant de te verser.'];
   const segFill=Math.max(0,Math.min(4,Math.round(ratio*3)));
   let seg='';for(let i=0;i<4;i++){seg+=\`<i style="flex:1;height:12px;border-radius:6px;background:\${i<segFill?L[0]:'var(--border)'};"></i>\`;}
@@ -5820,8 +5820,8 @@ function renderPersoHero(ctx){
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;">
       \${palier('<i class="ti ti-circle-check"></i>','Minimum vital',besoin,'#456039','tes dépenses actuelles')}
-      \${palier('<i class="ti ti-circle"></i>','Confort',confort,'#8a6414',confort>0?'ta cible de confort':'à définir')}
-      \${palier('<i class="ti ti-circle-filled"></i>','Objectif',objectif,'#59409a',objectif>0?'ton objectif de vie':'à définir')}
+      \${palier('<i class="ti ti-circle"></i>','Confort',confort,'#a5502e',confort>0?'ta cible de confort':'à définir')}
+      \${palier('<i class="ti ti-circle-filled"></i>','Objectif',objectif,'#2c4a72',objectif>0?'ton objectif de vie':'à définir')}
     </div>\`;
 }
 
@@ -5829,7 +5829,7 @@ function renderPersoReste(ctx){
   const el=q('#perso-reste'); if(!el)return;
   const {salaireConseille,besoin,resteAVivre,revenusPerso}=ctx;
   if(besoin<=0){el.innerHTML='';return;}
-  const color=resteAVivre<200?'#8d2b21':resteAVivre<500?'#8a6414':'#456039';
+  const color=resteAVivre<200?'#8d2b21':resteAVivre<500?'#a5502e':'#456039';
   const emoji=resteAVivre<200?'<i class="ti ti-alert-circle"></i>':resteAVivre<500?'<i class="ti ti-alert-triangle"></i>':'<i class="ti ti-circle-check"></i>';
   const label=resteAVivre<200?'serré':resteAVivre<500?'correct':'confortable';
   const detail=revenusPerso>0
@@ -5859,14 +5859,14 @@ function renderPersoBridge(ctx){
 }
 
 const SUP_TYPES=[
-  {id:'livreta',nom:'Livret A',      emoji:'<i class="ti ti-building-bank"></i>',couleur:'#59409a'},
+  {id:'livreta',nom:'Livret A',      emoji:'<i class="ti ti-building-bank"></i>',couleur:'#2c4a72'},
   {id:'ldds',   nom:'LDDS',          emoji:'<i class="ti ti-leaf"></i>',couleur:'#456039'},
   {id:'av',     nom:'Assurance vie', emoji:'<i class="ti ti-trending-up"></i>',couleur:'#2AA9A0'},
-  {id:'pea',    nom:'PEA',           emoji:'<i class="ti ti-chart-bar"></i>',couleur:'#59409a'},
+  {id:'pea',    nom:'PEA',           emoji:'<i class="ti ti-chart-bar"></i>',couleur:'#2c4a72'},
   {id:'cto',    nom:'CTO',           emoji:'<i class="ti ti-chart-line"></i>',couleur:'#7C3AED'},
-  {id:'immo',   nom:'Immobilier',    emoji:'<i class="ti ti-home"></i>',couleur:'#8a6414'},
+  {id:'immo',   nom:'Immobilier',    emoji:'<i class="ti ti-home"></i>',couleur:'#a5502e'},
   {id:'crypto', nom:'Crypto',        emoji:'<i class="ti ti-coin"></i>',couleur:'#E0A3C0'},
-  {id:'compte', nom:'Compte perso',  emoji:'<i class="ti ti-credit-card"></i>',couleur:'#8a6f54'},
+  {id:'compte', nom:'Compte perso',  emoji:'<i class="ti ti-credit-card"></i>',couleur:'#744f30'},
   {id:'autre',  nom:'Autre placement',emoji:'<i class="ti ti-wallet"></i>',couleur:'#9AA4B5'},
 ];
 const SUP_EMOJI={liquidites:'<i class="ti ti-building-bank"></i>',longterme:'<i class="ti ti-trending-up"></i>',immobilier:'<i class="ti ti-home"></i>'}; SUP_TYPES.forEach(t=>{SUP_EMOJI[t.id]=t.emoji;});
@@ -6357,10 +6357,10 @@ function renderProjetsVie(){
       const gain=p.eta-eta2;
       if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-1);line-height:1.5;"><i class="ti ti-bulb"></i> En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#456039;font-weight:600;">tu gagnes \${gain} mois <i class="ti ti-flame"></i></span></div>\`;
     }
-    const prioColor=p.prio>=3?'#8d2b21':p.prio===2?'#8a6414':'#8b98ad';
+    const prioColor=p.prio>=3?'#8d2b21':p.prio===2?'#a5502e':'#8b98ad';
     return \`<div class="card" style="padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:12px;color:#8a6414;margin-top:2px;">\${stars}</div></div>
+        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:12px;color:#a5502e;margin-top:2px;">\${stars}</div></div>
         <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
       <div style="margin-bottom:12px;">\${timeBlock}</div>
@@ -6557,7 +6557,7 @@ function renderQontoCalc(){
           '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
         '</div>'+
       '</div>'+
-      '<div style="height:5px;background:#eae5dc;border-radius:3px;margin-bottom:8px;">'+
+      '<div style="height:5px;background:#ece3d4;border-radius:3px;margin-bottom:8px;">'+
         '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#8d2b21':pct>=100?'#456039':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
       depLines(depList)+
     '</div>';
@@ -6608,7 +6608,7 @@ function renderQontoCalc(){
     // ── Zone 2 : Provisions ──────────────────────────────────────────────
     '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-lock"></i> Provisions à sécuriser</div>'+
     provCard('<i class="ti ti-alert-circle"></i>','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#8d2b21',listCharges)+
-    provCard('<i class="ti ti-clipboard-list"></i>','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#8a6414',listFixes)+
+    provCard('<i class="ti ti-clipboard-list"></i>','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#a5502e',listFixes)+
     provCard('<i class="ti ti-books"></i>','Formation',provFormation,depFormation,resteFormation,'#7B4DD4',listFormation)+
     // ── Zone 3 : Versements perso ────────────────────────────────────────
     '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-cash"></i> Versements perso effectués</div>'+
@@ -6646,13 +6646,13 @@ function renderQontoCalc(){
       potCard('<i class="ti ti-alert-circle"></i>','URSSAF & Charges sociales', Math.max(0,resteCharges), '#8d2b21',
         depCharges>0?fmt(depCharges)+' deja regle · provision '+fmt(provCharges):'Provision sur CA encaisse',
         pctUsedCharges)+
-      potCard('<i class="ti ti-clipboard-list"></i>','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#8a6414',
+      potCard('<i class="ti ti-clipboard-list"></i>','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#a5502e',
         'Budget annuel '+fmt(provChargesFixes)+' · '+fmt(depFixes)+' dépensé',
         pctUsedFixes)+
       potCard('<i class="ti ti-books"></i>','Formation', Math.max(0,resteFormation), '#7B4DD4',
         'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
         pctUsedFormation)+
-      potCard('<i class="ti ti-building-bank"></i>','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#59409a',
+      potCard('<i class="ti ti-building-bank"></i>','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#2c4a72',
         Math.round(pctTreso*100)+'% du disponible net · sécurité',
         100)+
       potCard('<i class="ti ti-cash"></i>','Versement perso', versementSolde, '#456039',
@@ -6674,7 +6674,7 @@ function renderDepensesPrevues(){
     list.map(d=>{
       const isMens=d.type==='mensuel';
       const badge=isMens
-        ?'<span class="badge" style="background:#efe1ff;color:#59409a;">Mensuelle</span>'
+        ?'<span class="badge" style="background:#E8F1FF;color:#2c4a72;">Mensuelle</span>'
         :'<span class="badge" style="background:#f0e8fe;color:#7b4dd4;">Ponctuelle</span>';
       const periode=isMens
         ?(fmtDate(d.dateDebut||'')+(d.dateFin?' → '+fmtDate(d.dateFin):''))
@@ -6897,8 +6897,8 @@ function loadFactures(){
     _cav.innerHTML=\`<div class="card" style="padding:24px;"><div class="dash-sec-title"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div>\`
       +rowV('ti-file-invoice','var(--surface-2)','var(--terre)','CA facturé','tout ce que tu as facturé cette année',caFacture)
       +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc)
-      +rowV('ti-clock','var(--warning-10)','#8a6414','CA à encaisser','facturé mais pas encore payé',caAEnc)
-      +rowV('ti-calendar-plus','var(--glycine)','#59409a','CA à facturer','projets & récurrents à venir',caAFac)
+      +rowV('ti-clock','var(--warning-10)','#a5502e','CA à encaisser','facturé mais pas encore payé',caAEnc)
+      +rowV('ti-calendar-plus','var(--glycine)','#2c4a72','CA à facturer','projets & récurrents à venir',caAFac)
       +rowV('ti-chart-line','var(--surface-2)','var(--terre)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
       +\`<p style="font-size:12px;color:var(--text-2);margin-top:10px;">Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</p></div>\`;
   })();
@@ -6985,7 +6985,7 @@ function renderFactures(){
       <td class="td-amount">\${fmt(f.montant||0)}</td>
       <td><span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}">\${f.statut==='payee'?'Payée':f.statut==='retard'?'En retard':'En attente'}</span></td>
       <td style="white-space:nowrap;">
-        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#E4D1FE;color:#59409a;border:none;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${f.pdfKey?\`<button class="btn btn-sm" style="background:#C5DEFF;color:#2c4a72;border:none;gap:4px;" title="Voir PDF" onclick="previewPDF('\${f.id}','\${f.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         <button class="btn btn-ghost btn-xs" onclick="editFacture('\${f.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteFacture('\${f.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7072,7 +7072,7 @@ function onFactureProjetChange(keepValues=false){
   let lines=[];
   if(devis)lines.push(\`<i class="ti ti-file"></i> Devis \${devis.numero} · signé · \${fmt(devis.montant)}\`);
   lines.push(\`<i class="ti ti-folder"></i> \${projet.nom} · \${typeLabel[projet.type]||projet.type}\${projet.type==='mensuel'?(projet.dureeIndeterminee?' · indéterminé':' · '+projet.nombreMois+' mois'):''}\`);
-  lines.push(\`Facturé : \${fmt(montantFacture)}\${!projet.dureeIndeterminee?' / '+fmt(projet.montantTotal||0):''} · <strong style="color:\${reste>0?'#8a6414':'#456039'};">\${projet.dureeIndeterminee?(linked.length+' facture(s) émise(s)'):(reste>0?'Reste : '+fmt(reste):'<i class="ti ti-check"></i> Complet')}</strong>\`);
+  lines.push(\`Facturé : \${fmt(montantFacture)}\${!projet.dureeIndeterminee?' / '+fmt(projet.montantTotal||0):''} · <strong style="color:\${reste>0?'#a5502e':'#456039'};">\${projet.dureeIndeterminee?(linked.length+' facture(s) émise(s)'):(reste>0?'Reste : '+fmt(reste):'<i class="ti ti-check"></i> Complet')}</strong>\`);
   // Suggest type & montant
   let sugType='standard',sugMontant=null,sugNote='';
   if(projet.type==='mensuel'&&projet.dureeIndeterminee){
@@ -7212,11 +7212,11 @@ function deleteTiers(id){
 let _prospectsCache=[];
 
 const CRM_STATUTS={
-  contact:{label:'Premier contact',color:'#F0E8FF',cls:'attente'},
-  en_attente:{label:'En attente',color:'#8a6414',cls:'retard'},
+  contact:{label:'Premier contact',color:'#E4F0FF',cls:'attente'},
+  en_attente:{label:'En attente',color:'#a5502e',cls:'retard'},
   positif:{label:'Positif',color:'#456039',cls:'payee'},
   negatif:{label:'Négatif',color:'#8d2b21',cls:'annule'},
-  proposition:{label:'Proposition',color:'#E4D1FE',cls:'brouillon'},
+  proposition:{label:'Proposition',color:'#C5DEFF',cls:'brouillon'},
   converti:{label:'Converti',color:'#456039',cls:'payee'},
   sans_suite:{label:'Sans suite',color:'#6b533b',cls:'annule'},
 };
@@ -7438,7 +7438,7 @@ function _drawBarChartCRM(canvas,labels,vals,colors){
     const y=pad.t+chartH-bh;
     ctx.fillStyle=colors[i%colors.length];
     ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
-    ctx.fillStyle='#412F21';ctx.font="bold 12px Inter Tight";ctx.textAlign="center";
+    ctx.fillStyle='#110704';ctx.font="bold 12px Inter Tight";ctx.textAlign="center";
     ctx.fillText(vals[i],x+bw/2,y-4);
     ctx.fillStyle='#6b533b';ctx.font="11px Inter Tight";
     const short=label.length>10?label.slice(0,9)+"…":label;
@@ -7661,7 +7661,7 @@ function renderDevis(){
       <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:12px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
-        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#E4D1FE;color:#59409a;border:none;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
+        \${d.pdfKey?\`<button class="btn btn-sm" style="background:#C5DEFF;color:#2c4a72;border:none;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
         \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
@@ -7861,8 +7861,8 @@ function renderProjets(){
   const typeFacLabel={standard:'Standard',acompte:'Acompte',intermediaire:'Intermédiaire',solde:'Solde',mensuel:'Mensuel'};
   const statIcon={payee:'<i class="ti ti-circle-check"></i>',attente:'⏳',retard:'<i class="ti ti-alert-circle"></i>'};
   function facRow(f,extra=''){
-    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:11px;background:#eae5dc;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;">
+    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:11px;background:#ece3d4;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ece3d4;">
       <span>\${statIcon[f.statut]||'⏳'}</span>
       <span style="font-size:13px;color:#6b533b;min-width:80px;">\${fmtDate(f.date)}</span>
       <span style="font-size:13px;flex:1;">\${f.numero||'—'}\${badge}</span>
@@ -7872,7 +7872,7 @@ function renderProjets(){
     </div>\`;
   }
   function emptyRow(label,montant){
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;">
+    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ece3d4;opacity:0.6;">
       <span><i class="ti ti-clipboard-list"></i></span>
       <span style="font-size:13px;color:#6b533b;min-width:80px;">\${label}</span>
       <span style="font-size:13px;flex:1;font-style:italic;">À émettre</span>
@@ -7909,7 +7909,7 @@ function renderProjets(){
           facsHtml+=facRow(slotFacs[0]);
         }else{
           // Doublon détecté
-          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:12px;color:#8a6414;"><i class="ti ti-alert-triangle"></i> <i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
+          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:12px;color:#a5502e;"><i class="ti ti-alert-triangle"></i> <i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
           slotFacs.forEach(f=>facsHtml+=facRow(f));
         }
       }
@@ -7936,15 +7936,15 @@ function renderProjets(){
       facsHtml=sorted.map(f=>facRow(f)).join('');
       const hasAcompte=linked.some(f=>f.typeFacture==='acompte');
       const hasSolde=linked.some(f=>f.typeFacture==='solde');
-      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;"><span><i class="ti ti-clipboard-list"></i></span><span style="font-size:11px;background:#eae5dc;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:13px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
-      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #eae5dc;opacity:0.6;"><span><i class="ti ti-clipboard-list"></i></span><span style="font-size:11px;background:#eae5dc;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:13px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ece3d4;opacity:0.6;"><span><i class="ti ti-clipboard-list"></i></span><span style="font-size:11px;background:#ece3d4;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:13px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
+      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #ece3d4;opacity:0.6;"><span><i class="ti ti-clipboard-list"></i></span><span style="font-size:11px;background:#ece3d4;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:13px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
     }else{
       const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
       facsHtml=sorted.map(f=>facRow(f)).join('');
       if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
     }
     return\`<div class="card mb-16" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #eae5dc;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #ece3d4;">
         <div style="display:flex;align-items:center;gap:12px;">
           <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
           <div>
@@ -7964,8 +7964,8 @@ function renderProjets(){
           <span>\${fmt(montantFacture)} facturé</span>
           <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'<i class="ti ti-check"></i> Complet'}</span></span>
         </div>
-        <div style="background:#eae5dc;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
-          <div style="background:\${pct>=100?'var(--success)':'#F0E8FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
+        <div style="background:#ece3d4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
+          <div style="background:\${pct>=100?'var(--success)':'#E4F0FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
         </div>
         \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
           <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:#2AA9A0;">− \${fmt(stLiee)} sous-traitance</span></span>
@@ -8429,9 +8429,9 @@ function renderObjectifsPilotage(){
   const objRec=parseFloat(s.objectifRecurrent)||0;
   const caYTD=d.caYTD||0, soldeReel=d.soldeReel||0, moisSecu=d.moisSecurite||0, rec=d.recMensuel||0;
   const tiles=[
-    {lab:'CA annuel',      color:'#59409a',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
+    {lab:'CA annuel',      color:'#2c4a72',cur:caYTD,   cible:objCA,   txt:objCA>0?fmt(caYTD)+' / '+fmt(objCA):'objectif non défini',                    pct:objCA>0?caYTD/objCA*100:0},
     {lab:'Matelas trésorerie',color:'#456039',cur:soldeReel,cible:objTreso,txt:objTreso>0?fmt(soldeReel)+' / '+fmt(objTreso):'objectif non défini',        pct:objTreso>0?soldeReel/objTreso*100:0},
-    {lab:'Mois de sécurité',color:'#8a6414',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
+    {lab:'Mois de sécurité',color:'#a5502e',cur:moisSecu,cible:objMois,txt:moisSecu.toFixed(1)+' / '+objMois+' mois',                                       pct:objMois>0?moisSecu/objMois*100:0},
     {lab:'Revenus récurrents',color:'#7C3AED',cur:rec,   cible:objRec,  txt:objRec>0?fmt(rec)+' / '+fmt(objRec)+'/mois':'objectif non défini',              pct:objRec>0?rec/objRec*100:0},
   ];
   el.innerHTML=\`<div class="card" style="padding:20px;">
@@ -8796,7 +8796,7 @@ function renderRapportPrevision(){
       \${big('<i class="ti ti-receipt"></i>','Disponible après charges & cotisations',fmt(P.netProjete),'ce que l\\'activité dégage — avant versement','var(--navy)')}
       \${big('<i class="ti ti-home"></i>','Versement moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
     </div>
-    \${manque>0?\`<div style="background:rgba(138,100,20,.12);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#8a6414;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#456039;margin-top:14px;"><i class="ti ti-confetti"></i> À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
+    \${manque>0?\`<div style="background:rgba(138,100,20,.12);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#a5502e;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#456039;margin-top:14px;"><i class="ti ti-confetti"></i> À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
   </div>\`;
   // Puis-je continuer à me verser ?
   try{ var MM=computeMoney();
@@ -8806,7 +8806,7 @@ function renderRapportPrevision(){
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-heart"></i> Niveau de vie confortable visé</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.confortable)}</span></div>
     \${MM.versement>=MM.confortable
       ? \`<div style="background:var(--success-10);color:#456039;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-circle-check" style="margin-top:1px;"></i><span>À ce rythme, ton activité soutient ton niveau de vie confortable. Tu peux te verser \${fmt(MM.versement)} sans fragiliser l'entreprise.</span></div>\`
-      : \`<div style="background:var(--warning-10);color:#8a6414;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;"></i><span>Ton versement soutenable (\${fmt(MM.versement)}) reste sous ton niveau confortable. Il manque ~<strong>\${fmt(MM.confortable-MM.versement)}/mois</strong> — vise environ <strong>+\${fmt(Math.round((MM.confortable-MM.versement)/0.72))}/mois</strong> de CA récurrent pour tenir ce niveau sur 12 mois.</span></div>\`}
+      : \`<div style="background:var(--warning-10);color:#a5502e;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;"></i><span>Ton versement soutenable (\${fmt(MM.versement)}) reste sous ton niveau confortable. Il manque ~<strong>\${fmt(MM.confortable-MM.versement)}/mois</strong> — vise environ <strong>+\${fmt(Math.round((MM.confortable-MM.versement)/0.72))}/mois</strong> de CA récurrent pour tenir ce niveau sur 12 mois.</span></div>\`}
   </div>\`;
   }catch(e){}
 
@@ -8826,9 +8826,9 @@ function renderRapportPrevision(){
       <span style="font-size:13px;color:var(--text-2);">Total sécurisé : <strong style="color:#456039;">\${fmt(totalSecure)}</strong></span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:8px;align-items:end;">
-      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:12px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#8a6414':'#456039'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:11.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
+      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:12px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#a5502e':'#456039'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:11.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
     </div>
-    \${trou?\`<div style="font-size:13px;color:#8a6414;margin-top:12px;"><i class="ti ti-alert-triangle"></i> \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
+    \${trou?\`<div style="font-size:13px;color:#a5502e;margin-top:12px;"><i class="ti ti-alert-triangle"></i> \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
   </div>\`;
 
   // <i class="ti ti-briefcase"></i> Fin d'année tu auras probablement
@@ -8851,7 +8851,7 @@ function renderRapportPrevision(){
         \${big('<i class="ti ti-cash"></i>','Salaire possible',fmt(salaireMois)+' /mois','','var(--navy)')}
         \${confort>0?big('<i class="ti ti-target"></i>','Niveau confortable',fmt(confort)+' /mois','','var(--navy)'):''}
       </div>
-      \${(confort>0&&ecart>0)?\`<div style="font-size:14.5px;color:#8a6414;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:14.5px;color:#456039;margin-top:12px;"><i class="ti ti-confetti"></i> Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
+      \${(confort>0&&ecart>0)?\`<div style="font-size:14.5px;color:#a5502e;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:14.5px;color:#456039;margin-top:12px;"><i class="ti ti-confetti"></i> Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
     </div>\`;
   }
 
@@ -9165,7 +9165,7 @@ function renderTJM(){
       \${stat('TJM recommandé',fmt(tjm)+' /j','','#456039')}
       \${stat('Écart',(ecart>=0?'+':'')+fmt(ecart)+' /j','',ecart>0?'#8d2b21':'#456039')}
     </div>
-    \${ecart>0?\`<div style="font-size:13.5px;color:#8a6414;margin-top:10px;">Sur un projet de 10 jours, un tarif trop bas te coûte environ <strong>\${fmt(ecart*10)}</strong> de manque à gagner.</div>\`:''}
+    \${ecart>0?\`<div style="font-size:13.5px;color:#a5502e;margin-top:10px;">Sur un projet de 10 jours, un tarif trop bas te coûte environ <strong>\${fmt(ecart*10)}</strong> de manque à gagner.</div>\`:''}
   </div>\`:'';
 
   const duraBlock=(salaire>0)?\`<div class="card" style="padding:20px;">
@@ -9230,7 +9230,7 @@ function renderRentaProjet(){
   let verdict,vColor,vLabel,vTxt;
   if(netEnt<=0){verdict='<i class="ti ti-alert-circle"></i>';vColor='#C43030';vLabel='Non rentable';vTxt='À ce prix, ce projet ne dégage quasiment rien pour toi.';}
   else if(jours>0&&ratioTjm>=0.95){verdict='<i class="ti ti-circle-check"></i>';vColor='#456039';vLabel='Excellente';vTxt='Tu peux accepter ce projet sereinement — il est cohérent avec tes objectifs financiers.';}
-  else if(moisVie!=null&&moisVie>=0.5){verdict='<i class="ti ti-alert-triangle"></i>';vColor='#8a6414';vLabel='Correcte';vTxt='Tu couvriras une partie de tes besoins, mais tu épargneras peu à ce tarif.';}
+  else if(moisVie!=null&&moisVie>=0.5){verdict='<i class="ti ti-alert-triangle"></i>';vColor='#a5502e';vLabel='Correcte';vTxt='Tu couvriras une partie de tes besoins, mais tu épargneras peu à ce tarif.';}
   else{verdict='<i class="ti ti-alert-circle"></i>';vColor='#C43030';vLabel='Faible';vTxt='À ce prix, tu risques de puiser dans ta trésorerie.';}
 
   const line=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;\${strong?'border-top:1px solid var(--border);margin-top:4px;':''}"><span style="font-size:14px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
@@ -9261,7 +9261,7 @@ function renderRentaProjet(){
         <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">Recommandé</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#456039;">\${fmt(tjmReco)} /j</div></div>
         \${ecartPct!=null?\`<div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">Écart</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:\${ecartPct<0?'#8d2b21':'#456039'};">\${ecartPct>=0?'+':''}\${ecartPct}%</div></div>\`:''}
       </div>
-      \${(ecartPct!=null&&ecartPct<-5)?\`<div style="font-size:14px;color:#8a6414;margin-top:12px;">Pour atteindre tes objectifs, ce projet devrait plutôt être vendu autour de <strong>\${fmt(prixReco)}</strong> (entre \${fmt(prixReco)} et \${fmt(Math.round(prixReco*1.1))}).</div>\`:''}
+      \${(ecartPct!=null&&ecartPct<-5)?\`<div style="font-size:14px;color:#a5502e;margin-top:12px;">Pour atteindre tes objectifs, ce projet devrait plutôt être vendu autour de <strong>\${fmt(prixReco)}</strong> (entre \${fmt(prixReco)} et \${fmt(Math.round(prixReco*1.1))}).</div>\`:''}
       \${maxJours!=null?\`<div style="font-size:14px;color:var(--text-1);margin-top:12px;background:var(--surface-2);border-radius:10px;padding:10px 12px;">⏳ À ce prix, ce projet reste rentable jusqu'à <strong>\${maxJours.toFixed(1).replace('.',',')} jours</strong> de travail. Au-delà, ton revenu passe sous ton objectif.</div>\`:''}
     </div>\`:''}
   </div>\`;
