@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=69" />
+  <link rel="stylesheet" href="/style.css?v=70" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v69 · depenses poids CA build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v70 · rapports phrase synthese build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2575,7 +2575,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=69"></script>
+<script src="/app.js?v=70"></script>
 </body>
 </html>
 `;
@@ -3943,15 +3943,18 @@ input[type="range"]::-moz-range-thumb {
    RAPPORT MENSUEL — phrase auto
    =========================== */
 .rapport-phrase {
-  background: var(--cream-10);
-  border: 1px solid rgba(226,209,161,0.6);
-  border-radius: 10px;
-  padding: 16px 20px;
-  font-size: 15px;
-  color: var(--brown);
-  line-height: 1.6;
-  margin-bottom: 20px;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--terre-600);
+  border-radius: 12px;
+  padding: 18px 22px 18px 24px;
+  font-size: 16px;
+  color: var(--navy);
+  line-height: 1.65;
+  margin-bottom: 22px;
 }
+.rapport-phrase strong { color: var(--terre-600); font-weight: 700; }
 
 /* ===========================
    ALERTE INLINE
@@ -8631,7 +8634,7 @@ function renderRapportMensuel(){
 
   const caPrev=factures.filter(f=>f.statut==='payee'&&(f.date||'').startsWith(prevKey)).reduce((s,f)=>s+(f.montant||0),0);
   const delta=caPrev>0?Math.round((ca-caPrev)/caPrev*100):null;
-  const phrase=\`Ce mois (\${MOIS_LONG[mois-1]} \${annee}), tu as encaissé \${fmt(ca)}, soit \${delta!==null?\`\${delta>=0?'+':''}\${delta}% vs le mois précédent\`:'(premier mois)'}. Ton résultat net est de \${fmt(net)}, tu peux te verser \${fmt(versement)}.\`;
+  const phrase=\`Ce mois (\${MOIS_LONG[mois-1]} \${annee}), tu as encaissé <strong>\${fmt(ca)}</strong>, soit \${delta!==null?\`\${delta>=0?'+':''}\${delta}% vs le mois précédent\`:'(premier mois)'}. Ton résultat net est de <strong>\${fmt(net)}</strong>, tu peux te verser <strong>\${fmt(versement)}</strong>.\`;
 
   const container=q('#rapport-mensuel-content');
   if(!container)return;
@@ -8692,9 +8695,14 @@ function renderRapportAnnuel(){
   const totNet=moisData.reduce((s,m)=>s+m.net,0);
   const meilleur=moisData.reduce((best,m)=>m.ca>best.ca?m:best,moisData[0]);
 
+  const moisActifs=moisData.filter(m=>m.ca>0).length;
+  const caMoyen=moisActifs>0?Math.round(totCA/moisActifs):0;
+  const phraseA=\`En \${annee}, tu as facturé <strong>\${fmt(totCA)}</strong> sur \${moisActifs} mois actif\${moisActifs>1?'s':''} (soit <strong>\${fmt(caMoyen)}</strong>/mois en moyenne), pour un résultat net de <strong>\${fmt(totNet)}</strong>.\${meilleur&&meilleur.ca>0?\` Ton meilleur mois : <strong>\${MOIS_LONG[meilleur.mois-1]}</strong>.\`:''}\`;
+
   const container=q('#rapport-annuel-content');
   if(!container)return;
   container.innerHTML=\`
+    <div class="rapport-phrase">\${phraseA}</div>
     <div class="kpi-grid kpi-grid-3 mb-16">
       <div class="kpi-card"><span class="kpi-label">CA annuel</span><span class="kpi-value">\${fmt(totCA)}</span></div>
       <div class="kpi-card"><span class="kpi-label">Charges totales</span><span class="kpi-value danger">\${fmt(totCharges)}</span></div>
@@ -9051,9 +9059,15 @@ function renderRapportTrimestriel(){
     {lib:'PAS',get:t=>t.pasT},
   ];
 
+  const trimEnCours=Math.floor((now.getMonth())/3);
+  const tc=trims[trimEnCours]||{};
+  const prochainEch=trims.filter(t=>t.statut==='a_venir').sort((a,b)=>a.jours-b.jours)[0];
+  const phraseT=\`Sur \${annee}, tu as encaissé <strong>\${fmt(totCA)}</strong> de CA, dégagé <strong>\${fmt(totNet)}</strong> de résultat net après <strong>\${fmt(totCotis)}</strong> d'URSSAF + CFP.\${prochainEch?\` Prochaine échéance : <strong>\${prochainEch.lib}</strong> dans \${prochainEch.jours} jour\${prochainEch.jours>1?'s':''}.\`:''}\`;
+
   const container=q('#rapport-trimestriel-content');
   if(!container)return;
   container.innerHTML=\`
+    <div class="rapport-phrase">\${phraseT}</div>
     <div class="kpi-grid kpi-grid-4 mb-16">
       <div class="kpi-card"><span class="kpi-label">CA encaissé \${annee}</span><span class="kpi-value">\${fmt(totCA)}</span></div>
       <div class="kpi-card"><span class="kpi-label">Charges totales</span><span class="kpi-value danger">\${fmt(totCharges)}</span></div>
