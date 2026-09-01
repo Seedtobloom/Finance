@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=71" />
+  <link rel="stylesheet" href="/style.css?v=72" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v71 · anti-doublon projet devis build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v72 · indicateur projet ouvert build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2575,7 +2575,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=71"></script>
+<script src="/app.js?v=72"></script>
 </body>
 </html>
 `;
@@ -7672,6 +7672,7 @@ function renderDevis(){
   const today=new Date().toISOString().slice(0,10);
   tbody.innerHTML=list.length?list.map(d=>{
     const expire=d.dateExpiration&&d.dateExpiration<today&&d.statut==='envoye';
+    const projetLie=dbGet('projets').find(p=>p.devisId===d.id);
     return\`<tr>
       <td>\${fmtDate(d.date)}</td>
       <td class="td-mono">\${d.numero||'—'}</td>
@@ -7682,7 +7683,9 @@ function renderDevis(){
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
         \${d.pdfKey?\`<button class="btn btn-sm" style="background:#C5DEFF;color:#2c4a72;border:none;gap:4px;" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:12px;color:var(--text-2);padding:2px 6px;">—</span>\`}
-        \${d.statut==='signe'?\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i></button>\`:''}
+        \${d.statut==='signe'?(projetLie
+          ?\`<button class="btn btn-sm" style="background:var(--vert-bg);color:var(--vert);border:1px solid var(--vert);gap:5px;font-weight:600;" title="Voir le projet lié à ce devis" onclick="editProjet('\${projetLie.id}')"><i class="ti ti-folder-check"></i> Projet ouvert</button>\`
+          :\`<button class="btn btn-sm" style="background:#e8f5ee;color:#456039;border:1px solid #456039;" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')"><i class="ti ti-folder-plus"></i> Créer le projet</button>\`):''}
         <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')"><i class="ti ti-edit"></i></button>
         <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')"><i class="ti ti-trash"></i></button>
       </td>
@@ -7756,7 +7759,7 @@ function creerProjetDepuisDevis(devisId){
   const d=dbGet('devis').find(x=>x.id===devisId);if(!d)return;
   const existant=dbGet('projets').find(p=>p.devisId===devisId);
   if(existant){
-    toast('Un projet existe déjà pour le devis '+d.numero+' — ouverture du projet existant.','error');
+    toast('Projet déjà ouvert pour le devis '+d.numero+' — on l\\'affiche.','info');
     openProjetModal(existant);
     return;
   }
