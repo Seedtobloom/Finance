@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=67" />
+  <link rel="stylesheet" href="/style.css?v=68" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v67 · devis pipeline en attente build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v68 · CRM harmonise build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2573,7 +2573,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=67"></script>
+<script src="/app.js?v=68"></script>
 </body>
 </html>
 `;
@@ -7238,9 +7238,9 @@ function crmPipeline(){
   const todayStr=today();
   const relances=ps.filter(p=>!['negatif','converti','sans_suite'].includes(p.statut)&&((p.relance1&&!p.dateRelance1&&p.relance1<=todayStr)||(p.relance2&&!p.dateRelance2&&p.relance2<=todayStr)||(p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr))).length;
   const devis=ps.filter(p=>p.statut==='proposition').length;
-  const cell=(lab,val)=>\`<div><div style="font-size:12px;opacity:.6;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;">\${val}</div></div>\`;
-  el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:26px 30px;color:#fff;display:flex;gap:38px;flex-wrap:wrap;align-items:center;">
-    <div style="min-width:150px;"><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mon pipeline</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${open.length} prospect\${open.length>1?'s':''} actif\${open.length>1?'s':''}</div></div>
+  const cell=(lab,val)=>\`<div><div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.68);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:34px;font-weight:700;margin-top:2px;">\${val}</div></div>\`;
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;display:flex;gap:40px;flex-wrap:wrap;align-items:center;">
+    <div style="min-width:160px;"><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.65;display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Mon pipeline</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;font-weight:700;margin-top:3px;line-height:1.05;">\${open.length} prospect\${open.length>1?'s':''} actif\${open.length>1?'s':''}</div></div>
     \${cell('CA potentiel',fmt(caPot))}
     \${cell('Relances à faire',relances)}
     \${cell('Devis en cours',devis)}
@@ -7253,8 +7253,8 @@ function crmKpis(){
   const caPot=open.reduce((s,p)=>s+(parseFloat(p.valeur)||0),0);
   const caAtt=open.reduce((s,p)=>s+(parseFloat(p.valeur)||0)*(CRM_PROBA[p.statut]||0)/100,0);
   const proba=caPot>0?Math.round(caAtt/caPot*100):0;
-  const k=(lab,val,hint)=>\`<div class="card" style="padding:18px;"><div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--navy);">\${val}</div>\${hint?\`<div style="font-size:11.5px;color:var(--text-2);">\${hint}</div>\`:''}</div>\`;
-  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+  const k=(lab,val,hint)=>\`<div class="card" style="padding:22px 24px;"><div style="font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;font-weight:600;color:var(--navy);margin-top:2px;line-height:1.05;">\${val}</div>\${hint?\`<div style="font-size:12.5px;color:var(--text-2);margin-top:2px;">\${hint}</div>\`:''}</div>\`;
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;">
     \${k('CA potentiel',fmt(caPot))}
     \${k('Opportunités',open.length)}
     \${k('Proba de signature',proba+'%','pondérée par étape')}
@@ -7337,7 +7337,7 @@ function crmRelations(){
   el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-heart"></i> Clients fidèles</div>
-      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:14px;font-weight:500;">\${escHtml(c.nom)}<div style="font-size:12px;color:var(--text-2);">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Clients à réactiver</div>
