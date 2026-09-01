@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=70" />
+  <link rel="stylesheet" href="/style.css?v=71" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v70 · rapports phrase synthese build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v71 · anti-doublon projet devis build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2575,7 +2575,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=70"></script>
+<script src="/app.js?v=71"></script>
 </body>
 </html>
 `;
@@ -7754,6 +7754,12 @@ function previewDevisPDF(id,numero){
 }
 function creerProjetDepuisDevis(devisId){
   const d=dbGet('devis').find(x=>x.id===devisId);if(!d)return;
+  const existant=dbGet('projets').find(p=>p.devisId===devisId);
+  if(existant){
+    toast('Un projet existe déjà pour le devis '+d.numero+' — ouverture du projet existant.','error');
+    openProjetModal(existant);
+    return;
+  }
   openProjetModal({client:d.client,montantTotal:d.montant,devisId:d.id,nom:d.description||d.client});
   toast('Projet pré-rempli depuis le devis '+d.numero,'info');
 }
@@ -8077,6 +8083,14 @@ async function saveProjet(){
     notes:q('#pr-notes').value.trim()};
   if(!body.nom){toast('Nom du projet requis','error');return;}
   if(!body.montantTotal){toast('Montant requis','error');return;}
+  if(body.devisId){
+    const dup=dbGet('projets').find(p=>p.devisId===body.devisId&&p.id!==id);
+    if(dup){
+      const dv=dbGet('devis').find(x=>x.id===body.devisId);
+      toast('Le devis '+(dv?dv.numero:'lié')+' est déjà rattaché au projet « '+(dup.nom||'sans nom')+' » — un devis ne peut alimenter qu\\'un seul projet.','error');
+      return;
+    }
+  }
   if(body.statut==='termine'&&id){
     const facsPending=dbGet('factures').filter(f=>f.projetId===id&&f.statut!=='payee');
     if(facsPending.length){
