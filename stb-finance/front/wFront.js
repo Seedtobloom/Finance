@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=65" />
+  <link rel="stylesheet" href="/style.css?v=66" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v65 · factures visages du CA build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v66 · charges reliees a la reserve build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1205,6 +1205,8 @@ const HTML = `<!DOCTYPE html>
           <span class="kpi-value green" id="abo-kpi-count">—</span>
         </div>
       </div>
+
+      <div id="abo-reserve-link" style="margin-bottom:18px;"></div>
 
       <!-- Timeline -->
       <div class="card mb-16">
@@ -2570,7 +2572,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=65"></script>
+<script src="/app.js?v=66"></script>
 </body>
 </html>
 `;
@@ -8202,8 +8204,34 @@ function loadAbonnements(){
   const next=actifs.map(a=>{let j=(a.jour||1)-todayD;if(j<0)j+=31;return{...a,joursAvant:j};}).sort((a,b)=>a.joursAvant-b.joursAvant)[0];
   if(q('#abo-kpi-prochain'))q('#abo-kpi-prochain').textContent=next?\`\${next.joursAvant} j\`:'—';
   if(next&&q('#abo-kpi-prochain-sub'))q('#abo-kpi-prochain-sub').textContent=next.nom;
+  renderAboReserveLink(mensuel);
   renderAbonnements();
   drawAboTimeline();
+}
+function renderAboReserveLink(mensuel){
+  const el=q('#abo-reserve-link'); if(!el)return;
+  let M=null; try{M=computeMoney();}catch(e){}
+  const charges=M?M.chargesFixes:mensuel;
+  const cible=Math.round(charges*3);
+  const actuelle=M?M.dispoEntreprise:0;
+  const couvre=charges>0?(actuelle/charges):null;
+  const ratio=cible>0?actuelle/cible:0;
+  const L=ratio>=1?['var(--vert)','var(--vert-bg)','ti-shield-check','Ta réserve couvre la cible']
+        :ratio>=0.66?['var(--ambre)','var(--ambre-bg)','ti-shield-half','Ta réserve approche la cible']
+        :['var(--rouge)','var(--rouge-bg)','ti-shield-x','Ta réserve est sous la cible'];
+  const stat=(k,v,col)=>\`<div><div style="font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:\${col||'var(--navy)'};margin-top:2px;line-height:1.05;">\${v}</div></div>\`;
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div class="dash-sec-title" style="margin-bottom:14px;"><i class="ti ti-shield-half"></i> Ces charges définissent ta réserve de sécurité</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:20px;align-items:end;">
+      \${stat('Charges fixes / mois',fmt(charges))}
+      \${stat('Réserve cible · 3 mois',fmt(cible))}
+      \${stat('Ça te couvre',couvre!=null?(couvre.toFixed(1).replace('.',',')+' mois'):'—',L[0])}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:16px;background:\${L[1]};color:\${L[0]};border-radius:12px;padding:13px 16px;">
+      <span style="font-size:14px;display:flex;gap:9px;align-items:center;"><i class="ti \${L[2]}" style="font-size:19px;"></i> <strong>\${L[3]}.</strong> Chaque charge fixe que tu ajoutes relève ta cible.</span>
+      <button class="btn btn-sm" style="background:#fff;color:var(--terre);border:1px solid var(--border);font-weight:700;flex:none;" onclick="navigate('reserve')"><i class="ti ti-arrow-right"></i> Voir ma réserve</button>
+    </div>
+  </div>\`;
 }
 function renderAbonnements(){
   const tbody=q('#abonnements-tbody');
