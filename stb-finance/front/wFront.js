@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=64" />
+  <link rel="stylesheet" href="/style.css?v=65" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v64 · KPI et tableaux harmonises build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v65 · factures visages du CA build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=64"></script>
+<script src="/app.js?v=65"></script>
 </body>
 </html>
 `;
@@ -3132,10 +3132,10 @@ tbody tr:hover td { background: var(--surface-2); }
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 4px 11px;
   border-radius: 20px;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
 }
 .badge::before {
@@ -6880,14 +6880,14 @@ function loadFactures(){
     var caEnc=facturesData.filter(function(f){return f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(yy);}).reduce(function(s,f){return s+(f.montant||0);},0);
     var caAEnc=facturesData.filter(function(f){return f.statut!=='payee'&&inY(f);}).reduce(function(s,f){return s+(f.montant||0);},0);
     var caAFac=0,caPrev=0; try{var PR=computePrevision();caAFac=PR.resteAFacturer||0;caPrev=PR.caProjete||0;}catch(e){}
-    var rowV=function(icon,bg,col,nom,def,val){return \`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:11px;"><div style="width:30px;height:30px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;background:\${bg};color:\${col};"><i class="ti \${icon}"></i></div><div style="font-size:14px;">\${nom}<small style="display:block;color:var(--text-2);font-size:11.5px;">\${def}</small></div></div><div style="font-family:'Cormorant Garamond',serif;font-size:22px;">\${fmt(val)}</div></div>\`;};
-    _cav.innerHTML=\`<div class="card" style="padding:24px;"><div class="dash-sec-title"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div>\`
-      +rowV('ti-file-invoice','var(--surface-2)','var(--terre)','CA facturé','tout ce que tu as facturé cette année',caFacture)
-      +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc)
+    var rowV=function(icon,bg,col,nom,def,val,hl){return \`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:13px;"><div style="width:38px;height:38px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;background:\${bg};color:\${col};font-size:19px;"><i class="ti \${icon}"></i></div><div style="font-size:15px;font-weight:600;color:var(--navy);">\${nom}<small style="display:block;color:var(--terre-400);font-size:12.5px;font-weight:400;margin-top:1px;">\${def}</small></div></div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;color:\${hl?col:'var(--navy)'};">\${fmt(val)}</div></div>\`;};
+    _cav.innerHTML=\`<div class="card" style="padding:26px 28px;"><div class="dash-sec-title" style="margin-bottom:6px;"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div><p style="font-size:13.5px;color:var(--text-2);margin:0 0 14px;">Cinq façons de compter ton chiffre d'affaires — pour ne plus les confondre.</p>\`
+      +rowV('ti-file-invoice','var(--surface-2)','var(--terre-600)','CA facturé','tout ce que tu as facturé cette année',caFacture)
+      +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc,true)
       +rowV('ti-clock','var(--warning-10)','#a5502e','CA à encaisser','facturé mais pas encore payé',caAEnc)
       +rowV('ti-calendar-plus','var(--glycine)','#2c4a72','CA à facturer','projets & récurrents à venir',caAFac)
-      +rowV('ti-chart-line','var(--surface-2)','var(--terre)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
-      +\`<p style="font-size:12px;color:var(--text-2);margin-top:10px;">Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</p></div>\`;
+      +rowV('ti-chart-line','var(--surface-2)','var(--terre-600)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
+      +\`<div style="background:var(--success-10);border-radius:12px;padding:13px 16px;font-size:13.5px;color:#456039;margin-top:14px;display:flex;gap:9px;align-items:flex-start;"><i class="ti ti-info-circle" style="margin-top:1px;"></i><span>Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</span></div></div>\`;
   })();
 
   renderFactures();
