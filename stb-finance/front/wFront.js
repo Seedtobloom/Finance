@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=68" />
+  <link rel="stylesheet" href="/style.css?v=69" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v68 · CRM harmonise build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v69 · depenses poids CA build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1135,9 +1135,11 @@ const HTML = `<!DOCTYPE html>
         <div class="kpi-card">
           <div class="kpi-icon violet"><i class="ti ti-tag"></i></div>
           <span class="kpi-label">Catégorie principale</span>
-          <span class="kpi-value" style="font-size:20px;" id="dep-kpi-cat">—</span>
+          <span class="kpi-value" style="font-size:22px;font-style:normal;font-family:var(--font-body);font-weight:600;" id="dep-kpi-cat">—</span>
         </div>
       </div>
+
+      <div id="dep-poids" style="margin-bottom:18px;"></div>
 
       <div class="card mb-16">
         <div class="table-wrap">
@@ -2573,7 +2575,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=68"></script>
+<script src="/app.js?v=69"></script>
 </body>
 </html>
 `;
@@ -8127,12 +8129,35 @@ function loadDepenses(){
   if(q('#dep-kpi-ytd'))q('#dep-kpi-ytd').textContent=fmt(ytd);
   if(q('#dep-kpi-moyenne'))q('#dep-kpi-moyenne').textContent=fmt(moyenne);
   if(q('#dep-kpi-cat'))q('#dep-kpi-cat').textContent=topCat?topCat[0].slice(0,12):'—';
+  renderDepPoids(ytd);
   renderDepenses();
   const cats=Object.keys(bycat);
   const c1=q('#chart-dep-cat');
   if(c1&&cats.length)drawDonutChart(c1,cats,cats.map(k=>bycat[k]),PALETTE);
   const caMois=MOIS_COURT.map((_,mi)=>{const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;return depensesData.filter(d=>(d.date||'').startsWith(k)).reduce((s,d)=>s+(d.montant||0),0);});
   const c2=q('#chart-dep-mois');if(c2)drawBarChart(c2,MOIS_COURT,[{data:caMois,color:COLORS.violet}]);
+}
+function renderDepPoids(ytdDep){
+  const el=q('#dep-poids'); if(!el)return;
+  const y=new Date().getFullYear();
+  const factures=dbGet('factures')||[];
+  const caEnc=factures.filter(f=>f.statut==='payee'&&((f.datePaiement||f.date||'')+'').startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
+  if(caEnc<=0){el.innerHTML='';return;}
+  const pct=Math.round(ytdDep/caEnc*100);
+  const L=pct<=25?['var(--vert)','var(--vert-bg)','ti-mood-check','Léger','Tes dépenses pro restent contenues — l\\'essentiel de ton CA reste disponible.']
+        :pct<=40?['var(--ambre)','var(--ambre-bg)','ti-scale','Correct','Un niveau de dépenses normal. Garde un œil sur les postes qui montent.']
+        :['var(--rouge)','var(--rouge-bg)','ti-alert-triangle','Élevé','Tes dépenses grignotent une grosse part de ton CA — vois ce qui peut être allégé.'];
+  const barPct=Math.min(100,pct);
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div class="dash-sec-title" style="margin-bottom:14px;"><i class="ti ti-scale"></i> Le poids de tes dépenses pro · \${y}</div>
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+      <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:44px;color:\${L[0]};line-height:1;">\${pct}%</span>
+      <span style="font-size:14.5px;color:var(--text-2);">de ton CA encaissé (\${fmt(caEnc)}) part en dépenses pro (\${fmt(ytdDep)})</span>
+    </div>
+    <div style="height:12px;background:var(--surface-2);border-radius:7px;overflow:hidden;"><div style="height:100%;width:\${barPct}%;background:\${L[0]};border-radius:7px;transition:width .5s;"></div></div>
+    <div style="background:\${L[1]};color:\${L[0]};border-radius:12px;padding:13px 16px;font-size:14px;margin-top:14px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${L[2]}" style="font-size:19px;margin-top:1px;"></i><span><strong>\${L[3]}.</strong> \${L[4]}</span></div>
+    <p style="font-size:12.5px;color:var(--text-2);margin-top:10px;">Ton versement perso n'est pas une dépense pro — il n'entre pas dans ce calcul.</p>
+  </div>\`;
 }
 function renderDepenses(){
   const search=q('#depenses-search')?.value.toLowerCase()||'';
