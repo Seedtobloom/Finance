@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=61" />
+  <link rel="stylesheet" href="/style.css?v=62" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v61 · patrimoine refondu build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v62 · budget perso respire build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=61"></script>
+<script src="/app.js?v=62"></script>
 </body>
 </html>
 `;
@@ -5785,27 +5785,27 @@ function renderPersoHero(ctx){
   const el=q('#perso-hero'); if(!el)return;
   const {besoin,confort,objectif,revenusPerso,besoinNet}=ctx;
   const aidesLine=revenusPerso>0
-    ? \`<div style="font-size:13px;opacity:.85;margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.14);">Tes aides & revenus perso couvrent <strong>\${fmt(revenusPerso)}</strong> → ton entreprise n'a qu'à couvrir <strong>\${fmt(besoinNet)} / mois</strong>.</div>\`
+    ? \`<div style="font-size:14px;opacity:.85;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16);">Tes aides & revenus perso couvrent <strong>\${fmt(revenusPerso)}</strong> → ton entreprise n'a qu'à couvrir <strong>\${fmt(besoinNet)} / mois</strong>.</div>\`
     : '';
-  if(besoin<=0){el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-bulb"></i> Ton minimum vital</div>
-      <div style="font-size:15px;margin-top:8px;opacity:.85;">Renseigne tes dépenses perso ci-dessous pour découvrir de combien tu as besoin chaque mois pour vivre.</div>
+  if(besoin<=0){el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;">
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.65;display:flex;align-items:center;gap:8px;"><i class="ti ti-bulb"></i> Ton minimum vital</div>
+      <div style="font-size:16px;margin-top:10px;opacity:.85;max-width:560px;line-height:1.5;">Renseigne tes dépenses perso ci-dessous pour découvrir de combien tu as besoin chaque mois pour vivre.</div>
     </div>\`;return;}
-  const palier=(emoji,lab,val,color,hint)=>\`<div style="flex:1;min-width:150px;background:var(--surface-2);border-radius:12px;padding:16px;">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">\${emoji} \${lab}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:35px;font-weight:600;color:\${color};margin-top:4px;">\${val>0?fmt(val):'—'}</div>
-      <div style="font-size:12px;color:var(--text-2);">\${hint}</div>
+  const palier=(icon,lab,val,color,bg,hint)=>\`<div style="flex:1;min-width:170px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;"><span style="width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;background:\${bg};color:\${color};"><i class="ti \${icon}" style="font-size:18px;"></i></span><span style="font-size:13.5px;font-weight:600;color:var(--navy);">\${lab}</span></div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;font-weight:600;color:\${color};line-height:1.05;">\${val>0?fmt(val):'—'}</div>
+      <div style="font-size:13px;color:var(--text-2);margin-top:3px;">\${hint}</div>
     </div>\`;
-  el.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:22px 26px;color:#fff;margin-bottom:16px;">
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-bulb"></i> Ton minimum vital</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;margin:6px 0;">\${fmt(besoin)}<span style="font-size:16px;opacity:.6;"> / mois</span></div>
-      <div style="font-size:13.5px;opacity:.75;">Pour couvrir ton niveau de vie actuel, il te faut au moins \${fmt(besoin)} par mois.</div>
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.65;display:flex;align-items:center;gap:8px;"><i class="ti ti-bulb"></i> Ton minimum vital</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;margin:8px 0 4px;line-height:1;">\${fmt(besoin)}<span style="font-size:19px;opacity:.6;font-style:normal;"> / mois</span></div>
+      <div style="font-size:15px;opacity:.8;max-width:560px;">Pour couvrir ton niveau de vie actuel, il te faut au moins \${fmt(besoin)} chaque mois.</div>
       \${aidesLine}
     </div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      \${palier('<i class="ti ti-circle-check"></i>','Minimum vital',besoin,'#456039','tes dépenses actuelles')}
-      \${palier('<i class="ti ti-circle"></i>','Confort',confort,'#a5502e',confort>0?'ta cible de confort':'à définir')}
-      \${palier('<i class="ti ti-circle-filled"></i>','Objectif',objectif,'#2c4a72',objectif>0?'ton objectif de vie':'à définir')}
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+      \${palier('ti-circle-check','Minimum vital',besoin,'var(--vert)','var(--vert-bg)','tes dépenses actuelles')}
+      \${palier('ti-circle-half-2','Confort',confort,'var(--ambre)','var(--ambre-bg)',confort>0?'ta cible de confort':'à définir')}
+      \${palier('ti-target','Objectif',objectif,'var(--bleu)','var(--bleu-bg)',objectif>0?'ton objectif de vie':'à définir')}
     </div>\`;
 }
 
@@ -5819,10 +5819,10 @@ function renderPersoReste(ctx){
   const detail=revenusPerso>0
     ? \`Salaire conseillé \${fmt(salaireConseille)} + aides \${fmt(revenusPerso)} − besoin de vie \${fmt(besoin)}.\`
     : \`Salaire conseillé \${fmt(salaireConseille)} − ton besoin de vie \${fmt(besoin)}.\`;
-  el.innerHTML=\`<div class="card" style="padding:18px;">
-    <div style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);">Ton reste à vivre estimé</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;color:\${color};">\${emoji} \${fmt(resteAVivre)}<span style="font-size:15px;color:var(--text-2);"> / mois · \${label}</span></div>
-    <div style="font-size:12.5px;color:var(--text-2);margin-top:2px;">\${detail} Repères : <i class="ti ti-alert-circle"></i> sous 200 € · <i class="ti ti-alert-triangle"></i> 200–500 € · <i class="ti ti-circle-check"></i> au-delà.</div>
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;">Ton reste à vivre estimé</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:44px;font-weight:700;color:\${color};margin:4px 0 2px;">\${emoji} \${fmt(resteAVivre)}<span style="font-size:16px;color:var(--text-2);font-style:normal;"> / mois · \${label}</span></div>
+    <div style="font-size:13.5px;color:var(--text-2);margin-top:4px;line-height:1.5;">\${detail} Repères : <i class="ti ti-alert-circle"></i> sous 200 € · <i class="ti ti-alert-triangle"></i> 200–500 € · <i class="ti ti-circle-check"></i> au-delà.</div>
   </div>\`;
 }
 
@@ -5835,10 +5835,10 @@ function renderPersoBridge(ctx){
   const msg=couvre
     ? \`<i class="ti ti-circle-check"></i> Ton activité\${revenusPerso>0?' et tes aides couvrent':' couvre'} ton niveau de vie. Ton entreprise peut te verser environ <strong>\${fmt(capacite)} / mois</strong>\${ressources>besoin?', soit '+fmt(ressources-besoin)+' de marge au-dessus de ton besoin':''}.\`
     : \`<i class="ti ti-alert-triangle"></i> Tu ne couvres pas encore ton niveau de vie. Ton entreprise soutient ~<strong>\${fmt(capacite)} / mois</strong>\${revenusPerso>0?' (+ '+fmt(revenusPerso)+' d\\'aides)':''}, il manque <strong>\${fmt(besoin-ressources)}</strong>.\`;
-  el.innerHTML=\`<div class="card" style="padding:18px;">
-    <div style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;"><i class="ti ti-arrows-exchange"></i> Le pont entreprise ↔ perso</div>
-    <div style="font-size:15px;line-height:1.5;margin-bottom:10px;">\${msg}</div>
-    <div style="font-size:13.5px;color:var(--text-2);">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an)\${revenusPerso>0?', tes aides couvrant déjà '+fmt(revenusPerso):''}.</div>
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="ti ti-arrows-exchange"></i> Le pont entreprise ↔ perso</div>
+    <div style="font-size:16px;line-height:1.55;margin-bottom:12px;color:var(--navy);">\${msg}</div>
+    <div style="font-size:14px;color:var(--text-2);line-height:1.5;">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an)\${revenusPerso>0?', tes aides couvrant déjà '+fmt(revenusPerso):''}.</div>
   </div>\`;
 }
 
