@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=63" />
+  <link rel="stylesheet" href="/style.css?v=64" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v63 · previsions agrandies build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v64 · KPI et tableaux harmonises build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2570,7 +2570,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=63"></script>
+<script src="/app.js?v=64"></script>
 </body>
 </html>
 `;
@@ -2936,12 +2936,12 @@ html, body {
 .card-ambre   { background: var(--ambre-bg);  border-color: transparent; }
 .card-violet  { background: var(--glycine);   border-color: transparent; }
 .card-title {
-  font-size: 12.5px;
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--terre);
-  margin-bottom: 16px;
+  color: var(--terre-400);
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2965,8 +2965,8 @@ html, body {
    =========================== */
 .kpi-grid {
   display: grid;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 18px;
+  margin-bottom: 22px;
 }
 .kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -2975,8 +2975,8 @@ html, body {
 .kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px 22px 18px;
+  border-radius: 16px;
+  padding: 22px 24px 20px;
   position: relative;
   overflow: hidden;
 }
@@ -2993,7 +2993,7 @@ html, body {
   font-size: 17px;
 }
 .kpi-icon.blue   { background: var(--blue-10);    color: #2c4a72; }
-.kpi-icon.violet { background: var(--violet-10);  color: #8e68d5; }
+.kpi-icon.violet { background: var(--violet-10);  color: #2c4a72; }
 .kpi-icon.green  { background: var(--success-10); color: var(--success); }
 .kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
 .kpi-icon.red    { background: var(--danger-10);  color: var(--danger); }
@@ -3001,32 +3001,33 @@ html, body {
 .kpi-icon.cream  { background: var(--cream-10);   color: var(--brown); }
 
 .kpi-label {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.07em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--terre-400);
   margin-bottom: 8px;
   padding-right: 44px;
   display: block;
 }
 .kpi-value {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 38px;
-  font-weight: 500;
+  font-style: italic;
+  font-size: 45px;
+  font-weight: 600;
   color: var(--navy);
-  line-height: 1;
+  line-height: 1.02;
   margin-bottom: 4px;
   display: block;
 }
 .kpi-value.blue    { color: #2c4a72; }
 .kpi-value.green   { color: var(--success); }
 .kpi-value.danger  { color: var(--danger); }
-.kpi-value.violet  { color: #7c5cbf; }
+.kpi-value.violet  { color: #2c4a72; }
 .kpi-value.warning { color: var(--warning); }
 
 .kpi-sub {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-2);
   display: block;
 }
@@ -3080,12 +3081,12 @@ table { width: 100%; border-collapse: collapse; }
 thead { background: var(--surface-2); }
 thead th {
   text-align: left;
-  padding: 10px 16px;
-  font-size: 12px;
+  padding: 12px 18px;
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: var(--text-2);
+  color: var(--terre-400);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
@@ -3093,10 +3094,10 @@ thead th:first-child { border-radius: 8px 0 0 0; }
 thead th:last-child  { border-radius: 0 8px 0 0; }
 
 tbody td {
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  font-size: 14.5px;
+  font-size: 15px;
   vertical-align: middle;
 }
 tbody tr:last-child td { border-bottom: none; }
@@ -3109,8 +3110,9 @@ tbody tr:hover td { background: var(--surface-2); }
 }
 .td-amount {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 18px;
-  font-weight: 500;
+  font-style: italic;
+  font-size: 21px;
+  font-weight: 600;
   color: var(--navy);
   white-space: nowrap;
 }
