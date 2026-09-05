@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=74" />
+  <link rel="stylesheet" href="/style.css?v=75" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v74 · categories abonnements gerables build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v75 · categories transactions build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -582,6 +582,9 @@ const HTML = `<!DOCTYPE html>
             <option value="debit">Débit</option>
             <option value="virement">Virement</option>
           </select>
+          <select id="txn-filter-cat" class="form-select" style="width:160px;">
+            <option value="">Toutes catégories</option>
+          </select>
           <button class="btn btn-primary" id="btn-new-txn"><i class="ti ti-plus"></i> Ajouter</button>
         </div>
       </div>
@@ -593,6 +596,7 @@ const HTML = `<!DOCTYPE html>
                 <th>Date</th>
                 <th>Libellé</th>
                 <th>Compte</th>
+                <th>Catégorie</th>
                 <th>Type</th>
                 <th>Montant</th>
                 <th></th>
@@ -2516,9 +2520,32 @@ const HTML = `<!DOCTYPE html>
         <input type="number" id="txn-montant" class="form-input" step="0.01" min="0" />
       </div>
     </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">Catégorie <button type="button" onclick="openTxnCatsModal()" style="background:none;border:none;color:var(--bleu);font-size:12.5px;font-weight:600;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-settings"></i> Gérer les catégories</button></label>
+      <select id="txn-categorie" class="form-select"></select>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-transaction">Annuler</button>
       <button class="btn btn-primary" id="btn-save-txn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gestion des catégories de transactions -->
+<div id="modal-txn-cats" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title"><i class="ti ti-tags"></i> Catégories de transactions</span>
+      <button class="modal-close" data-close-modal="modal-txn-cats"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 14px;">Ajoute, renomme ou supprime tes catégories. Un changement de nom met à jour toutes les transactions concernées.</p>
+    <div id="txn-cats-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="txn-cat-new" class="form-input" placeholder="Nouvelle catégorie…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addTxnCat();}" />
+      <button class="btn btn-primary btn-sm" onclick="addTxnCat()"><i class="ti ti-plus"></i> Ajouter</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-txn-cats">Fermer</button>
     </div>
   </div>
 </div>
@@ -2596,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=74"></script>
+<script src="/app.js?v=75"></script>
 </body>
 </html>
 `;
@@ -6829,6 +6856,88 @@ function deleteCompte(id){
 
 /* --- Transactions ----------------------------------------------------- */
 let txnData=[];
+const TXN_CATS_DEFAULT=['Matériel','Abonnement','Logiciels','Charges sociales','Frais bancaires','Déplacement','Communication','Alimentation','Loyer','Virement interne','Autre'];
+function txnCats(){
+  const s=dbGetObj('settings');
+  let arr=Array.isArray(s.transactionCategories)&&s.transactionCategories.length?s.transactionCategories.slice():TXN_CATS_DEFAULT.slice();
+  return arr.filter(Boolean);
+}
+async function saveTxnCats(arr){
+  const s=dbGetObj('settings'); s.transactionCategories=arr;
+  _cache.settings=await api('PUT','/api/settings',s);
+}
+function populateTxnCatSelects(currentD){
+  const cats=txnCats();
+  const sel=q('#txn-categorie');
+  if(sel){
+    const cur=currentD!=null?currentD:sel.value;
+    let opts=cats.slice();
+    if(cur&&!opts.includes(cur))opts=[cur].concat(opts);
+    sel.innerHTML=\`<option value="">— Aucune —</option>\`+opts.map(c=>\`<option>\${escHtml(c)}</option>\`).join('');
+    if(cur)sel.value=cur;
+  }
+  const fil=q('#txn-filter-cat');
+  if(fil){
+    const curF=fil.value;
+    const used=[...new Set((txnData||[]).map(t=>t.categorie).filter(Boolean))];
+    const all=[...new Set(cats.concat(used))];
+    fil.innerHTML=\`<option value="">Toutes catégories</option>\`+all.map(c=>\`<option value="\${escHtml(c)}">\${escHtml(c)}</option>\`).join('');
+    fil.value=curF;
+  }
+}
+function openTxnCatsModal(){renderTxnCatsList();openModal('modal-txn-cats');}
+function renderTxnCatsList(){
+  const el=q('#txn-cats-list'); if(!el)return;
+  const cats=txnCats();
+  const src=txnData&&txnData.length?txnData:dbGet('transactions');
+  const counts={}; src.forEach(t=>{if(t.categorie)counts[t.categorie]=(counts[t.categorie]||0)+1;});
+  el.innerHTML=cats.map((c,i)=>{
+    const n=counts[c]||0;
+    return \`<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+      <input value="\${escHtml(c)}" data-old="\${escHtml(c)}" onblur="renameTxnCat(this)" onkeydown="if(event.key==='Enter')this.blur()" style="flex:1;border:none;background:none;font-size:14px;color:var(--navy);font-weight:600;outline:none;" />
+      <span style="font-size:12px;color:var(--text-2);white-space:nowrap;">\${n} op.</span>
+      <button onclick="deleteTxnCatIdx(\${i})" title="Supprimer" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:2px;"><i class="ti ti-trash"></i></button>
+    </div>\`;
+  }).join('');
+}
+async function addTxnCat(){
+  const inp=q('#txn-cat-new'); const name=(inp&&inp.value||'').trim();
+  if(!name){toast('Indique un nom de catégorie','error');return;}
+  const cats=txnCats();
+  if(cats.some(c=>c.toLowerCase()===name.toLowerCase())){toast('Cette catégorie existe déjà','error');return;}
+  cats.push(name);
+  try{await saveTxnCats(cats);if(inp)inp.value='';renderTxnCatsList();populateTxnCatSelects();toast('Catégorie ajoutée','success');}
+  catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
+async function renameTxnCat(input){
+  const oldName=input.getAttribute('data-old'); const newName=input.value.trim();
+  if(!newName||newName===oldName){input.value=oldName;return;}
+  const cats=txnCats();
+  if(cats.some(c=>c.toLowerCase()===newName.toLowerCase()&&c!==oldName)){toast('Ce nom est déjà pris','error');input.value=oldName;return;}
+  const idx=cats.indexOf(oldName); if(idx<0)return;
+  cats[idx]=newName;
+  try{
+    await saveTxnCats(cats);
+    const toU=dbGet('transactions').filter(t=>t.categorie===oldName);
+    for(const t of toU){await dbUpdate('transactions',{...t,categorie:newName});}
+    txnData=dbGet('transactions');
+    renderTxnCatsList();populateTxnCatSelects();renderTransactions();
+    toast(toU.length?('Catégorie renommée · '+toU.length+' transaction'+(toU.length>1?'s':'')+' mise'+(toU.length>1?'s':'')+' à jour'):'Catégorie renommée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');input.value=oldName;}
+}
+async function deleteTxnCatIdx(i){
+  const cats=txnCats(); const name=cats[i]; if(name==null)return;
+  const used=dbGet('transactions').filter(t=>t.categorie===name).length;
+  const ok=await confirmDialog('Supprimer « '+name+' »',used?(used+' transaction'+(used>1?'s':'')+' utilisent cette catégorie — elles passeront sans catégorie.'):'Cette catégorie sera retirée de la liste.');
+  if(!ok)return;
+  const next=cats.filter((c,ix)=>ix!==i);
+  try{
+    await saveTxnCats(next);
+    if(used){const toU=dbGet('transactions').filter(t=>t.categorie===name);for(const t of toU){await dbUpdate('transactions',{...t,categorie:''});}txnData=dbGet('transactions');}
+    renderTxnCatsList();populateTxnCatSelects();renderTransactions();
+    toast('Catégorie supprimée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
 function loadTransactions(){
   txnData=dbGet('transactions');
   const comptes=dbGet('comptes');
@@ -6839,16 +6948,19 @@ function loadTransactions(){
     comptes.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nom;sel.appendChild(o);});
     if(cur)sel.value=cur;
   });
+  populateTxnCatSelects();
   renderTransactions();
 }
 function renderTransactions(){
   const search=q('#txn-search')?.value.toLowerCase()||'';
   const compte=q('#txn-filter-compte')?.value||'';
   const type=q('#txn-filter-type')?.value||'';
+  const cat=q('#txn-filter-cat')?.value||'';
   let list=[...txnData];
   if(search)list=list.filter(t=>(t.libelle||'').toLowerCase().includes(search));
   if(compte)list=list.filter(t=>t.compte===compte);
   if(type)list=list.filter(t=>t.type===type);
+  if(cat)list=list.filter(t=>(t.categorie||'')===cat);
   list.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const comptes=dbGet('comptes');
   const getN=id=>comptes.find(c=>c.id===id)?.nom||'—';
@@ -6857,23 +6969,30 @@ function renderTransactions(){
   tbody.innerHTML=list.length?list.map(t=>\`<tr>
     <td>\${fmtDate(t.date)}</td><td>\${t.libelle||'—'}</td>
     <td>\${getN(t.compte)}</td>
+    <td>\${t.categorie?\`<span class="badge badge-neutral">\${escHtml(t.categorie)}</span>\`:'<span style="color:var(--text-2);">—</span>'}</td>
     <td><span class="badge badge-\${t.type==='credit'?'success':t.type==='debit'?'danger':'neutral'}">\${t.type}</span></td>
     <td class="td-amount" style="color:\${t.type==='credit'?'var(--success)':'var(--danger)'};">\${t.type==='credit'?'+':'−'}\${fmt(t.montant||0)}</td>
-    <td><button class="btn btn-ghost btn-xs" onclick="deleteTxn('\${t.id}')"><i class="ti ti-trash"></i></button></td>
-  </tr>\`).join(''):'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-2);">Aucune transaction</td></tr>';
+    <td><button class="btn btn-ghost btn-xs" onclick="editTxn('\${t.id}')"><i class="ti ti-edit"></i></button><button class="btn btn-ghost btn-xs" onclick="deleteTxn('\${t.id}')"><i class="ti ti-trash"></i></button></td>
+  </tr>\`).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucune transaction</td></tr>';
 }
-function openTxnModal(){
-  q('#txn-date').value=today();q('#txn-type').value='credit';
-  q('#txn-libelle').value='';q('#txn-montant').value='';
-  q('#btn-save-txn').dataset.id='';
+function openTxnModal(data={}){
+  q('#modal-txn-title').textContent=data.id?'Modifier la transaction':'Nouvelle transaction';
+  q('#txn-date').value=data.date||today();q('#txn-type').value=data.type||'credit';
+  q('#txn-libelle').value=data.libelle||'';q('#txn-montant').value=data.montant||'';
+  populateTxnCatSelects(data.categorie||'');
+  if(q('#txn-compte'))q('#txn-compte').value=data.compte||'';
+  q('#btn-save-txn').dataset.id=data.id||'';
   openModal('modal-transaction');
 }
+function editTxn(id){const t=txnData.find(x=>x.id===id);if(t)openTxnModal(t);}
 async function saveTxn(){
-  const body={date:q('#txn-date').value,type:q('#txn-type').value,libelle:q('#txn-libelle').value.trim(),compte:q('#txn-compte')?.value||'',montant:parseFloat(q('#txn-montant').value)||0};
+  const id=q('#btn-save-txn').dataset.id;
+  const body={date:q('#txn-date').value,type:q('#txn-type').value,libelle:q('#txn-libelle').value.trim(),compte:q('#txn-compte')?.value||'',categorie:q('#txn-categorie')?.value||'',montant:parseFloat(q('#txn-montant').value)||0};
   if(!body.libelle){toast('Libellé requis','error');return;}
   try{
-    await dbCreate('transactions',body);
+    if(id){body.id=id;await dbUpdate('transactions',body);}else{await dbCreate('transactions',body);}
     txnData=dbGet('transactions');
+    populateTxnCatSelects();
     closeModal('modal-transaction');toast('Transaction enregistrée','success');renderTransactions();
   }catch(e){toast(e.message||'Erreur','error');}
 }
@@ -10066,11 +10185,12 @@ async function init(){
   q('#btn-save-depense-prevue')?.addEventListener('click',saveDepensePrevue);
 
   // Transactions
-  q('#btn-new-txn')?.addEventListener('click',openTxnModal);
+  q('#btn-new-txn')?.addEventListener('click',()=>openTxnModal());
   q('#btn-save-txn')?.addEventListener('click',saveTxn);
   q('#txn-search')?.addEventListener('input',renderTransactions);
   q('#txn-filter-compte')?.addEventListener('change',renderTransactions);
   q('#txn-filter-type')?.addEventListener('change',renderTransactions);
+  q('#txn-filter-cat')?.addEventListener('change',renderTransactions);
 
   // URSSAF
   q('#btn-save-urssaf')?.addEventListener('click',saveURSSAFPaiement);
