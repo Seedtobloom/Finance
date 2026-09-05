@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=72" />
+  <link rel="stylesheet" href="/style.css?v=73" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v72 · indicateur projet ouvert build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v73 · categories depenses gerables build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2269,19 +2269,8 @@ const HTML = `<!DOCTYPE html>
       <p style="font-size:13px;color:var(--text-2);margin-bottom:12px;">Une entrée sera créée par mois entre ces deux dates.</p>
     </div>
     <div class="form-group">
-      <label class="form-label">Catégorie</label>
-      <select id="d-categorie" class="form-select">
-        <option>Charges sociales</option>
-        <option>Logiciels &amp; abonnements</option>
-        <option>Matériel</option>
-        <option>Formation</option>
-        <option>Sous-traitance</option>
-        <option>Communication</option>
-        <option>Déplacement</option>
-        <option>Comptabilité</option>
-        <option>Versement perso</option>
-        <option>Autre</option>
-      </select>
+      <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">Catégorie <button type="button" onclick="openDepCatsModal()" style="background:none;border:none;color:var(--bleu);font-size:12.5px;font-weight:600;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-settings"></i> Gérer les catégories</button></label>
+      <select id="d-categorie" class="form-select"></select>
     </div>
     <div class="form-group">
       <label class="form-label">Description *</label>
@@ -2294,6 +2283,25 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-depense">Annuler</button>
       <button class="btn btn-primary" id="btn-save-depense">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gestion des catégories de dépenses -->
+<div id="modal-depense-cats" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title"><i class="ti ti-tags"></i> Catégories de dépenses</span>
+      <button class="modal-close" data-close-modal="modal-depense-cats"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 14px;">Ajoute, renomme ou supprime tes catégories. Un changement de nom met à jour toutes les dépenses concernées.</p>
+    <div id="dep-cats-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="dep-cat-new" class="form-input" placeholder="Nouvelle catégorie…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addDepCat();}" />
+      <button class="btn btn-primary btn-sm" onclick="addDepCat()"><i class="ti ti-plus"></i> Ajouter</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-depense-cats">Fermer</button>
     </div>
   </div>
 </div>
@@ -2575,7 +2583,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=72"></script>
+<script src="/app.js?v=73"></script>
 </body>
 </html>
 `;
@@ -8135,6 +8143,91 @@ function deleteFacture(id){
 
 /* --- Dépenses --------------------------------------------------------- */
 let depensesData=[];
+const DEP_CATS_DEFAULT=['Charges sociales','Logiciels & abonnements','Abonnement','Matériel','Formation','Sous-traitance','Communication','Déplacement','Comptabilité','Autre'];
+const DEP_CATS_SYSTEM=['Versement perso'];
+function depCats(){
+  const s=dbGetObj('settings');
+  let arr=Array.isArray(s.depenseCategories)&&s.depenseCategories.length?s.depenseCategories.slice():DEP_CATS_DEFAULT.slice();
+  return arr.filter(c=>c&&!DEP_CATS_SYSTEM.includes(c));
+}
+async function saveDepCats(arr){
+  const s=dbGetObj('settings'); s.depenseCategories=arr;
+  _cache.settings=await api('PUT','/api/settings',s);
+}
+function populateDepCatSelects(currentD){
+  const cats=depCats();
+  const sel=q('#d-categorie');
+  if(sel){
+    const cur=currentD!=null?currentD:sel.value;
+    let opts=cats.concat(DEP_CATS_SYSTEM);
+    if(cur&&!opts.includes(cur))opts=[cur].concat(opts);
+    sel.innerHTML=opts.map(c=>\`<option>\${escHtml(c)}</option>\`).join('');
+    if(cur)sel.value=cur;
+  }
+  const fil=q('#depenses-filter-cat');
+  if(fil){
+    const curF=fil.value;
+    const used=[...new Set((depensesData||[]).map(d=>d.categorie).filter(Boolean))];
+    const all=[...new Set(cats.concat(DEP_CATS_SYSTEM).concat(used))];
+    fil.innerHTML=\`<option value="">Toutes catégories</option>\`+all.map(c=>\`<option value="\${escHtml(c)}">\${escHtml(c)}</option>\`).join('');
+    fil.value=curF;
+  }
+}
+function openDepCatsModal(){renderDepCatsList();openModal('modal-depense-cats');}
+function renderDepCatsList(){
+  const el=q('#dep-cats-list'); if(!el)return;
+  const cats=depCats();
+  const src=depensesData&&depensesData.length?depensesData:dbGet('depenses');
+  const counts={}; src.forEach(d=>{counts[d.categorie]=(counts[d.categorie]||0)+1;});
+  el.innerHTML=cats.map((c,i)=>{
+    const n=counts[c]||0;
+    return \`<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+      <input value="\${escHtml(c)}" data-old="\${escHtml(c)}" onblur="renameDepCat(this)" onkeydown="if(event.key==='Enter')this.blur()" style="flex:1;border:none;background:none;font-size:14px;color:var(--navy);font-weight:600;outline:none;" />
+      <span style="font-size:12px;color:var(--text-2);white-space:nowrap;">\${n} dép.</span>
+      <button onclick="deleteDepCatIdx(\${i})" title="Supprimer" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:2px;"><i class="ti ti-trash"></i></button>
+    </div>\`;
+  }).join('')+DEP_CATS_SYSTEM.map(c=>\`<div style="display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:8px 10px;opacity:.8;"><span style="flex:1;font-size:14px;color:var(--navy);font-weight:600;">\${escHtml(c)}</span><span style="font-size:11px;color:var(--text-2);white-space:nowrap;"><i class="ti ti-lock"></i> réservée</span></div>\`).join('');
+}
+async function addDepCat(){
+  const inp=q('#dep-cat-new'); const name=(inp&&inp.value||'').trim();
+  if(!name){toast('Indique un nom de catégorie','error');return;}
+  const cats=depCats();
+  if(cats.concat(DEP_CATS_SYSTEM).some(c=>c.toLowerCase()===name.toLowerCase())){toast('Cette catégorie existe déjà','error');return;}
+  cats.push(name);
+  try{await saveDepCats(cats);if(inp)inp.value='';renderDepCatsList();populateDepCatSelects();toast('Catégorie ajoutée','success');}
+  catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
+async function renameDepCat(input){
+  const oldName=input.getAttribute('data-old'); const newName=input.value.trim();
+  if(!newName||newName===oldName){input.value=oldName;return;}
+  const cats=depCats();
+  if(cats.concat(DEP_CATS_SYSTEM).some(c=>c.toLowerCase()===newName.toLowerCase()&&c!==oldName)){toast('Ce nom est déjà pris','error');input.value=oldName;return;}
+  const idx=cats.indexOf(oldName); if(idx<0)return;
+  cats[idx]=newName;
+  try{
+    await saveDepCats(cats);
+    const toU=dbGet('depenses').filter(d=>d.categorie===oldName);
+    for(const d of toU){await dbUpdate('depenses',{...d,categorie:newName});}
+    depensesData=dbGet('depenses');
+    renderDepCatsList();populateDepCatSelects();
+    if(typeof renderDepenses==='function')renderDepenses();
+    toast(toU.length?('Catégorie renommée · '+toU.length+' dépense'+(toU.length>1?'s':'')+' mise'+(toU.length>1?'s':'')+' à jour'):'Catégorie renommée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');input.value=oldName;}
+}
+async function deleteDepCatIdx(i){
+  const cats=depCats(); const name=cats[i]; if(name==null)return;
+  const used=dbGet('depenses').filter(d=>d.categorie===name).length;
+  const ok=await confirmDialog('Supprimer « '+name+' »',used?(used+' dépense'+(used>1?'s':'')+' utilisent cette catégorie — elles passeront en « Autre ».'):'Cette catégorie sera retirée de la liste.');
+  if(!ok)return;
+  const next=cats.filter((c,ix)=>ix!==i);
+  try{
+    await saveDepCats(next);
+    if(used){const toU=dbGet('depenses').filter(d=>d.categorie===name);for(const d of toU){await dbUpdate('depenses',{...d,categorie:'Autre'});}depensesData=dbGet('depenses');}
+    renderDepCatsList();populateDepCatSelects();
+    if(typeof renderDepenses==='function')renderDepenses();
+    toast('Catégorie supprimée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
 function loadDepenses(){
   depensesData=dbGet('depenses');
   const y=new Date().getFullYear(),m=new Date().getMonth()+1;
@@ -8149,6 +8242,7 @@ function loadDepenses(){
   if(q('#dep-kpi-ytd'))q('#dep-kpi-ytd').textContent=fmt(ytd);
   if(q('#dep-kpi-moyenne'))q('#dep-kpi-moyenne').textContent=fmt(moyenne);
   if(q('#dep-kpi-cat'))q('#dep-kpi-cat').textContent=topCat?topCat[0].slice(0,12):'—';
+  populateDepCatSelects();
   renderDepPoids(ytd);
   renderDepenses();
   const cats=Object.keys(bycat);
@@ -8214,7 +8308,7 @@ function openDepenseModal(data={}){
   q('#d-date').value=data.date||today();
   q('#d-date-debut').value=data.date||today();
   q('#d-date-fin').value=data.date||today();
-  q('#d-categorie').value=data.categorie||'Logiciels & abonnements';
+  populateDepCatSelects(data.categorie||'Logiciels & abonnements');
   q('#d-description').value=data.description||data.libelle||'';
   q('#d-montant').value=data.montant||'';
   q('#btn-save-depense').dataset.id=data.id||'';
