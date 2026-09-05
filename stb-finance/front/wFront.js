@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=75" />
+  <link rel="stylesheet" href="/style.css?v=76" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v75 · categories transactions build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v76 · categories importees renommables build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2623,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=75"></script>
+<script src="/app.js?v=76"></script>
 </body>
 </html>
 `;
@@ -6866,12 +6866,17 @@ async function saveTxnCats(arr){
   const s=dbGetObj('settings'); s.transactionCategories=arr;
   _cache.settings=await api('PUT','/api/settings',s);
 }
+function txnCatsUsed(){
+  const src=txnData&&txnData.length?txnData:dbGet('transactions');
+  return [...new Set(src.map(t=>t.categorie).filter(Boolean))];
+}
+function txnCatsAll(){ return [...new Set(txnCats().concat(txnCatsUsed()))]; }
 function populateTxnCatSelects(currentD){
-  const cats=txnCats();
+  const all=txnCatsAll();
   const sel=q('#txn-categorie');
   if(sel){
     const cur=currentD!=null?currentD:sel.value;
-    let opts=cats.slice();
+    let opts=all.slice();
     if(cur&&!opts.includes(cur))opts=[cur].concat(opts);
     sel.innerHTML=\`<option value="">— Aucune —</option>\`+opts.map(c=>\`<option>\${escHtml(c)}</option>\`).join('');
     if(cur)sel.value=cur;
@@ -6879,8 +6884,6 @@ function populateTxnCatSelects(currentD){
   const fil=q('#txn-filter-cat');
   if(fil){
     const curF=fil.value;
-    const used=[...new Set((txnData||[]).map(t=>t.categorie).filter(Boolean))];
-    const all=[...new Set(cats.concat(used))];
     fil.innerHTML=\`<option value="">Toutes catégories</option>\`+all.map(c=>\`<option value="\${escHtml(c)}">\${escHtml(c)}</option>\`).join('');
     fil.value=curF;
   }
@@ -6888,34 +6891,35 @@ function populateTxnCatSelects(currentD){
 function openTxnCatsModal(){renderTxnCatsList();openModal('modal-txn-cats');}
 function renderTxnCatsList(){
   const el=q('#txn-cats-list'); if(!el)return;
-  const cats=txnCats();
+  const all=txnCatsAll();
+  const configured=txnCats();
   const src=txnData&&txnData.length?txnData:dbGet('transactions');
   const counts={}; src.forEach(t=>{if(t.categorie)counts[t.categorie]=(counts[t.categorie]||0)+1;});
-  el.innerHTML=cats.map((c,i)=>{
+  el.innerHTML=all.length?all.map((c,i)=>{
     const n=counts[c]||0;
+    const imported=!configured.includes(c);
     return \`<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
-      <input value="\${escHtml(c)}" data-old="\${escHtml(c)}" onblur="renameTxnCat(this)" onkeydown="if(event.key==='Enter')this.blur()" style="flex:1;border:none;background:none;font-size:14px;color:var(--navy);font-weight:600;outline:none;" />
+      <input value="\${escHtml(c)}" data-old="\${escHtml(c)}" onblur="renameTxnCat(this)" onkeydown="if(event.key==='Enter')this.blur()" title="Clique pour renommer" style="flex:1;border:none;background:none;font-size:14px;color:var(--navy);font-weight:600;outline:none;" />
+      \${imported?'<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ambre);background:var(--ambre-bg);padding:2px 7px;border-radius:999px;white-space:nowrap;">importée</span>':''}
       <span style="font-size:12px;color:var(--text-2);white-space:nowrap;">\${n} op.</span>
       <button onclick="deleteTxnCatIdx(\${i})" title="Supprimer" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:2px;"><i class="ti ti-trash"></i></button>
     </div>\`;
-  }).join('');
+  }).join(''):'<div style="font-size:13.5px;color:var(--text-2);">Aucune catégorie — ajoute-en une ci-dessous.</div>';
 }
 async function addTxnCat(){
   const inp=q('#txn-cat-new'); const name=(inp&&inp.value||'').trim();
   if(!name){toast('Indique un nom de catégorie','error');return;}
-  const cats=txnCats();
-  if(cats.some(c=>c.toLowerCase()===name.toLowerCase())){toast('Cette catégorie existe déjà','error');return;}
-  cats.push(name);
+  if(txnCatsAll().some(c=>c.toLowerCase()===name.toLowerCase())){toast('Cette catégorie existe déjà','error');return;}
+  const cats=txnCats(); cats.push(name);
   try{await saveTxnCats(cats);if(inp)inp.value='';renderTxnCatsList();populateTxnCatSelects();toast('Catégorie ajoutée','success');}
   catch(e){toast('Erreur : '+(e.message||e),'error');}
 }
 async function renameTxnCat(input){
   const oldName=input.getAttribute('data-old'); const newName=input.value.trim();
   if(!newName||newName===oldName){input.value=oldName;return;}
-  const cats=txnCats();
-  if(cats.some(c=>c.toLowerCase()===newName.toLowerCase()&&c!==oldName)){toast('Ce nom est déjà pris','error');input.value=oldName;return;}
-  const idx=cats.indexOf(oldName); if(idx<0)return;
-  cats[idx]=newName;
+  if(txnCatsAll().some(c=>c.toLowerCase()===newName.toLowerCase()&&c.toLowerCase()!==oldName.toLowerCase())){toast('Ce nom est déjà pris','error');input.value=oldName;return;}
+  const cats=txnCats(); const idx=cats.indexOf(oldName);
+  if(idx>=0)cats[idx]=newName; else if(!cats.includes(newName))cats.push(newName);
   try{
     await saveTxnCats(cats);
     const toU=dbGet('transactions').filter(t=>t.categorie===oldName);
@@ -6926,13 +6930,12 @@ async function renameTxnCat(input){
   }catch(e){toast('Erreur : '+(e.message||e),'error');input.value=oldName;}
 }
 async function deleteTxnCatIdx(i){
-  const cats=txnCats(); const name=cats[i]; if(name==null)return;
+  const name=txnCatsAll()[i]; if(name==null)return;
   const used=dbGet('transactions').filter(t=>t.categorie===name).length;
   const ok=await confirmDialog('Supprimer « '+name+' »',used?(used+' transaction'+(used>1?'s':'')+' utilisent cette catégorie — elles passeront sans catégorie.'):'Cette catégorie sera retirée de la liste.');
   if(!ok)return;
-  const next=cats.filter((c,ix)=>ix!==i);
   try{
-    await saveTxnCats(next);
+    await saveTxnCats(txnCats().filter(c=>c!==name));
     if(used){const toU=dbGet('transactions').filter(t=>t.categorie===name);for(const t of toU){await dbUpdate('transactions',{...t,categorie:''});}txnData=dbGet('transactions');}
     renderTxnCatsList();populateTxnCatSelects();renderTransactions();
     toast('Catégorie supprimée','success');
