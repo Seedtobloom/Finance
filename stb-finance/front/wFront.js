@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=73" />
+  <link rel="stylesheet" href="/style.css?v=74" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v73 · categories depenses gerables build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v74 · categories abonnements gerables build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2329,14 +2329,8 @@ const HTML = `<!DOCTYPE html>
     </div>
     <div class="form-grid-2">
       <div class="form-group">
-        <label class="form-label">Catégorie</label>
-        <select id="abo-categorie" class="form-select">
-          <option>Logiciels</option>
-          <option>Hébergement</option>
-          <option>Communication</option>
-          <option>Comptabilité</option>
-          <option>Autre</option>
-        </select>
+        <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;gap:8px;">Catégorie <button type="button" onclick="openAboCatsModal()" style="background:none;border:none;color:var(--bleu);font-size:12px;font-weight:600;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:3px;"><i class="ti ti-settings"></i> Gérer</button></label>
+        <select id="abo-categorie" class="form-select"></select>
       </div>
       <div class="form-group">
         <label class="form-label">Statut</label>
@@ -2350,6 +2344,25 @@ const HTML = `<!DOCTYPE html>
     <div class="modal-footer">
       <button class="btn btn-ghost" data-close-modal="modal-abonnement">Annuler</button>
       <button class="btn btn-primary" id="btn-save-abonnement">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Gestion des catégories d'abonnements -->
+<div id="modal-abo-cats" class="modal-overlay">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <span class="modal-title"><i class="ti ti-tags"></i> Catégories d'abonnements</span>
+      <button class="modal-close" data-close-modal="modal-abo-cats"><i class="ti ti-x"></i></button>
+    </div>
+    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 14px;">Ajoute, renomme ou supprime tes catégories. Un changement de nom met à jour tous les abonnements concernés.</p>
+    <div id="abo-cats-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="abo-cat-new" class="form-input" placeholder="Nouvelle catégorie…" style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addAboCat();}" />
+      <button class="btn btn-primary btn-sm" onclick="addAboCat()"><i class="ti ti-plus"></i> Ajouter</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" data-close-modal="modal-abo-cats">Fermer</button>
     </div>
   </div>
 </div>
@@ -2583,7 +2596,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=73"></script>
+<script src="/app.js?v=74"></script>
 </body>
 </html>
 `;
@@ -8357,8 +8370,85 @@ function deleteDepense(id){
 
 /* --- Abonnements ------------------------------------------------------ */
 let aboData=[];
+const ABO_CATS_DEFAULT=['Logiciels','Abonnement','Hébergement','Communication','Comptabilité','Matériel','Autre'];
+function aboCats(){
+  const s=dbGetObj('settings');
+  let arr=Array.isArray(s.abonnementCategories)&&s.abonnementCategories.length?s.abonnementCategories.slice():ABO_CATS_DEFAULT.slice();
+  return arr.filter(Boolean);
+}
+async function saveAboCats(arr){
+  const s=dbGetObj('settings'); s.abonnementCategories=arr;
+  _cache.settings=await api('PUT','/api/settings',s);
+}
+function populateAboCatSelects(currentD){
+  const cats=aboCats();
+  const sel=q('#abo-categorie');
+  if(sel){
+    const cur=currentD!=null?currentD:sel.value;
+    let opts=cats.slice();
+    if(cur&&!opts.includes(cur))opts=[cur].concat(opts);
+    sel.innerHTML=opts.map(c=>\`<option>\${escHtml(c)}</option>\`).join('');
+    if(cur)sel.value=cur;
+  }
+}
+function openAboCatsModal(){renderAboCatsList();openModal('modal-abo-cats');}
+function renderAboCatsList(){
+  const el=q('#abo-cats-list'); if(!el)return;
+  const cats=aboCats();
+  const src=aboData&&aboData.length?aboData:dbGet('abonnements');
+  const counts={}; src.forEach(a=>{counts[a.categorie]=(counts[a.categorie]||0)+1;});
+  el.innerHTML=cats.map((c,i)=>{
+    const n=counts[c]||0;
+    return \`<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 10px;">
+      <input value="\${escHtml(c)}" data-old="\${escHtml(c)}" onblur="renameAboCat(this)" onkeydown="if(event.key==='Enter')this.blur()" style="flex:1;border:none;background:none;font-size:14px;color:var(--navy);font-weight:600;outline:none;" />
+      <span style="font-size:12px;color:var(--text-2);white-space:nowrap;">\${n} abo.</span>
+      <button onclick="deleteAboCatIdx(\${i})" title="Supprimer" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:2px;"><i class="ti ti-trash"></i></button>
+    </div>\`;
+  }).join('');
+}
+async function addAboCat(){
+  const inp=q('#abo-cat-new'); const name=(inp&&inp.value||'').trim();
+  if(!name){toast('Indique un nom de catégorie','error');return;}
+  const cats=aboCats();
+  if(cats.some(c=>c.toLowerCase()===name.toLowerCase())){toast('Cette catégorie existe déjà','error');return;}
+  cats.push(name);
+  try{await saveAboCats(cats);if(inp)inp.value='';renderAboCatsList();populateAboCatSelects();toast('Catégorie ajoutée','success');}
+  catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
+async function renameAboCat(input){
+  const oldName=input.getAttribute('data-old'); const newName=input.value.trim();
+  if(!newName||newName===oldName){input.value=oldName;return;}
+  const cats=aboCats();
+  if(cats.some(c=>c.toLowerCase()===newName.toLowerCase()&&c!==oldName)){toast('Ce nom est déjà pris','error');input.value=oldName;return;}
+  const idx=cats.indexOf(oldName); if(idx<0)return;
+  cats[idx]=newName;
+  try{
+    await saveAboCats(cats);
+    const toU=dbGet('abonnements').filter(a=>a.categorie===oldName);
+    for(const a of toU){await dbUpdate('abonnements',{...a,categorie:newName});}
+    aboData=dbGet('abonnements');
+    renderAboCatsList();populateAboCatSelects();
+    if(typeof renderAbonnements==='function')renderAbonnements();
+    toast(toU.length?('Catégorie renommée · '+toU.length+' abonnement'+(toU.length>1?'s':'')+' mis à jour'):'Catégorie renommée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');input.value=oldName;}
+}
+async function deleteAboCatIdx(i){
+  const cats=aboCats(); const name=cats[i]; if(name==null)return;
+  const used=dbGet('abonnements').filter(a=>a.categorie===name).length;
+  const ok=await confirmDialog('Supprimer « '+name+' »',used?(used+' abonnement'+(used>1?'s':'')+' utilisent cette catégorie — ils passeront en « Autre ».'):'Cette catégorie sera retirée de la liste.');
+  if(!ok)return;
+  const next=cats.filter((c,ix)=>ix!==i);
+  try{
+    await saveAboCats(next);
+    if(used){const toU=dbGet('abonnements').filter(a=>a.categorie===name);for(const a of toU){await dbUpdate('abonnements',{...a,categorie:'Autre'});}aboData=dbGet('abonnements');}
+    renderAboCatsList();populateAboCatSelects();
+    if(typeof renderAbonnements==='function')renderAbonnements();
+    toast('Catégorie supprimée','success');
+  }catch(e){toast('Erreur : '+(e.message||e),'error');}
+}
 function loadAbonnements(){
   aboData=dbGet('abonnements');
+  populateAboCatSelects();
   const actifs=aboData.filter(a=>a.statut==='actif');
   const mensuel=actifs.reduce((s,a)=>s+(a.montant||0),0);
   const annuel=mensuel*12;
@@ -8449,7 +8539,7 @@ function openAbonnementModal(data={}){
   q('#abo-nom').value=data.nom||'';
   q('#abo-montant').value=data.montant||'';
   q('#abo-jour').value=data.jour||1;
-  q('#abo-categorie').value=data.categorie||'Logiciels';
+  populateAboCatSelects(data.categorie||'Logiciels');
   q('#abo-statut').value=data.statut||'actif';
   q('#btn-save-abonnement').dataset.id=data.id||'';
   openModal('modal-abonnement');
