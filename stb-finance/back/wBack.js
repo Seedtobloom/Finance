@@ -771,13 +771,15 @@ async function qontoTransactions(env, url) {
     slug = main.slug;
   }
 
-  const params = new URLSearchParams({
+  const base = new URLSearchParams({
     slug,
-    settled_at_from: `${from}T00:00:00.000Z`,
+    emitted_at_from: `${from}T00:00:00.000Z`,
     current_page: page,
     per_page,
-    sort_by: 'settled_at:desc',
+    sort_by: 'emitted_at:desc',
   });
+  // Crochets littéraux (voir qontoSync) : sinon Qonto ignore le filtre statut.
+  const params = `${base.toString()}&status[]=pending&status[]=completed`;
 
   const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
   if (!txRes.ok) return jsonErr(txRes.status, `Erreur Qonto tx : ${txRes.statusText}`);
@@ -817,27 +819,43 @@ async function qontoSync(env, uid) {
   const main = accounts.find(a => a.status === 'activated') || accounts[0];
   if (!main) return jsonErr(404, 'Aucun compte Qonto actif');
 
-  // Toutes les transactions depuis 2026-01-01 (jusqu'à 100)
-  const params = new URLSearchParams({
-    slug: main.slug,
-    settled_at_from: '2026-01-01T00:00:00.000Z',
-    per_page: '100',
-    sort_by: 'settled_at:desc',
-  });
-  const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
-  if (!txRes.ok) {
-    const body = await txRes.text().catch(()=>'');
-    return jsonErr(txRes.status, `Erreur Qonto transactions (${txRes.status}) : ${body||txRes.statusText}`);
-  }
-  const txData = await txRes.json();
+  // Toutes les transactions depuis 2026-01-01 — pagination complète
+  // (Qonto plafonne à 100 par page, il faut donc parcourir toutes les pages)
+  const toutesTx = [];
+  let page = 1, totalPages = 1;
+  do {
+    const base = new URLSearchParams({
+      slug: main.slug,
+      // On filtre/trie sur emitted_at (date d'émission) et non settled_at :
+      // une opération en attente (pending) n'a pas encore de settled_at et
+      // serait sinon totalement ignorée jusqu'à son règlement.
+      emitted_at_from: '2026-01-01T00:00:00.000Z',
+      per_page: '100',
+      current_page: String(page),
+      sort_by: 'emitted_at:desc',
+    });
+    // Crochets LITTÉRAUX (status[]=...) : URLSearchParams les encoderait en
+    // %5B%5D, forme que l'API Qonto n'interprète pas → le filtre serait ignoré
+    // et les opérations « en cours » (pending) exclues.
+    const params = `${base.toString()}&status[]=pending&status[]=completed`;
+    const txRes = await fetch(`${QONTO_BASE}/transactions?${params}`, { headers });
+    if (!txRes.ok) {
+      const body = await txRes.text().catch(()=>'');
+      return jsonErr(txRes.status, `Erreur Qonto transactions (${txRes.status}) : ${body||txRes.statusText}`);
+    }
+    const txData = await txRes.json();
+    for (const t of (txData.transactions || [])) toutesTx.push(t);
+    totalPages = txData.meta?.total_pages || 1;
+    page++;
+  } while (page <= totalPages && page <= 50); // garde-fou : 50 pages max (5000 transactions)
 
   // Charge les transactions existantes pour ne pas dupliquer
-  const cle = `user:${uid}:transactions`;
+  const cle = `${uid}:transactions`;
   const existantes = await kvTableau(env, cle);
   const existanteIds = new Set(existantes.map(t => t.qontoId).filter(Boolean));
 
   let ajoutees = 0;
-  for (const t of (txData.transactions || [])) {
+  for (const t of toutesTx) {
     if (existanteIds.has(t.transaction_id)) continue;
     existantes.push({
       id:       uid4(),
@@ -848,13 +866,14 @@ async function qontoSync(env, uid) {
       date:     (t.settled_at || t.emitted_at || '').slice(0, 10),
       categorie: t.category || '',
       note:     t.note || '',
+      statut:   t.status || '',
       source:   'qonto',
     });
     ajoutees++;
   }
 
   // Met aussi à jour le solde du compte Qonto dans comptes (seulement si changé)
-  const cleComptes = `user:${uid}:comptes`;
+  const cleComptes = `${uid}:comptes`;
   const comptes = await kvTableau(env, cleComptes);
   const qIdx = comptes.findIndex(c => c.type === 'professionnel' || c.type === 'courant');
   const soldeChange = qIdx >= 0 && comptes[qIdx].solde !== main.balance;
@@ -865,12 +884,12 @@ async function qontoSync(env, uid) {
   }
 
   // Sauvegarde le solde réel Qonto (seulement si changé)
-  const settings = await kvLire(env, `user:${uid}:settings`) || {};
+  const settings = await kvLire(env, `${uid}:settings`) || {};
   const settingsChange = settings.qontoSoldeReel !== main.balance;
   if (settingsChange) {
     settings.qontoSoldeReel = main.balance;
     settings.qontoSyncAt   = iso();
-    await kvEcrire(env, `user:${uid}:settings`, settings);
+    await kvEcrire(env, `${uid}:settings`, settings);
   }
 
   // Sauvegarde les transactions (seulement si nouvelles)
@@ -883,7 +902,7 @@ async function qontoSync(env, uid) {
       ? `Sync Qonto OK — ${ajoutees} nouvelle(s) transaction(s) importée(s)`
       : 'Sync Qonto OK — rien de nouveau',
     solde: main.balance,
-    totalTransactions: txData.transactions?.length || 0,
+    totalTransactions: toutesTx.length,
     ajoutees,
   });
 }
@@ -897,6 +916,17 @@ const ENVELOPPES_DEF = [
   { id: 'tresorerie', nom: 'Trésorerie',        couleur: '#4CAF82', icone: 'safe',            ordre: 3 },
   { id: 'salaire',    nom: 'Mon salaire',       couleur: '#E05252', icone: 'user',            ordre: 4 },
 ];
+
+// Cibles spéciales (hors enveloppes) pour un virement.
+// 'depense' : sortie réelle déjà débitée sur Qonto → on déduit l'enveloppe sans créditer une autre.
+const VIREMENT_CIBLES_SPECIALES = { depense: 'Dépense' };
+const ENVELOPPE_IDS = ENVELOPPES_DEF.map(e => e.id);
+
+function nomContrepartie(id) {
+  return ENVELOPPES_DEF.find(e => e.id === id)?.nom
+      || VIREMENT_CIBLES_SPECIALES[id]
+      || id;
+}
 
 async function getEnveloppes(env, uid) {
   const [virements, settings, abonnements, depensesPrevues] = await Promise.all([
@@ -943,16 +973,25 @@ async function getEnveloppes(env, uid) {
     salaire:    versementObj > 0 ? Math.round(versementObj) : null,    // versement mensuel objectif
   };
 
-  const enveloppes = ENVELOPPES_DEF.map(def => {
+  // Solde brut de chaque enveloppe = entrées − sorties (virements)
+  const soldeBrut = {};
+  for (const def of ENVELOPPES_DEF) {
     const entrees = virements.filter(v => v.vers === def.id).reduce((s, v) => s + (v.montant || 0), 0);
     const sorties = virements.filter(v => v.de   === def.id).reduce((s, v) => s + (v.montant || 0), 0);
+    soldeBrut[def.id] = entrees - sorties;
+  }
 
-    let solde;
-    if (def.id === 'qonto') {
-      solde = (soldeQontoReel ?? 0) - sorties + entrees;
-    } else {
-      solde = entrees - sorties;
-    }
+  // Les enveloppes virtuelles (hors qonto) sont des parts mises de côté DANS le compte Qonto.
+  // Le solde « libre » du compte Qonto = solde réel − total déjà alloué aux autres enveloppes.
+  // Ce modèle reste cohérent quel que soit le sens du virement (vers ou depuis qonto).
+  const totalAlloue = ENVELOPPES_DEF
+    .filter(d => d.id !== 'qonto')
+    .reduce((s, d) => s + Math.max(0, soldeBrut[d.id]), 0);
+
+  const enveloppes = ENVELOPPES_DEF.map(def => {
+    const solde = def.id === 'qonto'
+      ? (soldeQontoReel ?? 0) - totalAlloue
+      : soldeBrut[def.id];
 
     const txs = virements
       .filter(v => v.de === def.id || v.vers === def.id)
@@ -963,8 +1002,8 @@ async function getEnveloppes(env, uid) {
         type:   v.vers === def.id ? 'credit' : 'debit',
         montant: v.montant,
         contrepartie: v.vers === def.id
-          ? (ENVELOPPES_DEF.find(e => e.id === v.de)?.nom  || v.de)
-          : (ENVELOPPES_DEF.find(e => e.id === v.vers)?.nom || v.vers),
+          ? nomContrepartie(v.de)
+          : nomContrepartie(v.vers),
       }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -987,6 +1026,8 @@ async function createVirement(request, env, uid) {
   const b = await parseJSON(request);
   if (!b?.de || !b?.vers || !b?.montant || !b?.date) return jsonErr(400, 'Champs manquants : de, vers, montant, date');
   if (b.de === b.vers) return jsonErr(400, 'Compte source et destination identiques');
+  if (!ENVELOPPE_IDS.includes(b.de)) return jsonErr(400, 'Enveloppe source inconnue');
+  if (!ENVELOPPE_IDS.includes(b.vers) && !VIREMENT_CIBLES_SPECIALES[b.vers]) return jsonErr(400, 'Destination inconnue');
   const montant = parseFloat(b.montant);
   if (isNaN(montant) || montant <= 0) return jsonErr(400, 'Montant invalide');
 
