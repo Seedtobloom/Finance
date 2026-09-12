@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=89" />
+  <link rel="stylesheet" href="/style.css?v=88" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v89 · saveOptions decouple la garde 100pct du reste build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v88 · repartition tresorerie (select a classer + tri cartes) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=89"></script>
+<script src="/app.js?v=88"></script>
 </body>
 </html>
 `;
@@ -10612,8 +10612,7 @@ async function saveOptions(){
   const v=parseFloat(q('#opt-versement')?.value)||65;
   const e=parseFloat(q('#opt-epargne-pct')?.value)||15;
   const t=parseFloat(q('#opt-tresorerie-pct')?.value)||20;
-  const pctOk=(v+e+t===100);              // la répartition n'est valide que si la somme = 100
-  const s0=dbGetObj('settings');
+  if(v+e+t!==100){toast('Versement + Épargne + Trésorerie doit être égal à 100%','error');return;}
   const body={
     nom:q('#opt-nom').value.trim(),
     entreprise:q('#opt-entreprise').value.trim(),
@@ -10627,17 +10626,13 @@ async function saveOptions(){
     qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
     pctFormation:parseFloat(q('#opt-pct-formation')?.value)||10,
     cfe:parseFloat(q('#opt-cfe').value)||0,
+    pctVersement:v,pctEpargne:e,pctTresorerie:t,
     remunerationFixe:Math.max(0,parseFloat(q('#opt-remu-fixe')?.value)||0),
-    jourVersement:Math.min(28,Math.max(1,parseInt(q('#opt-jour-versement')?.value)||5)),
-    // Répartition enregistrée UNIQUEMENT si la somme = 100 ; sinon on conserve l'ancienne (le reste du formulaire est enregistré quand même)
-    pctVersement: pctOk? v : (s0.pctVersement!=null?s0.pctVersement:65),
-    pctEpargne:   pctOk? e : (s0.pctEpargne!=null?s0.pctEpargne:15),
-    pctTresorerie:pctOk? t : (s0.pctTresorerie!=null?s0.pctTresorerie:20)
+    jourVersement:Math.min(28,Math.max(1,parseInt(q('#opt-jour-versement')?.value)||5))
   };
   try{
     await dbSet('settings',body);
-    if(pctOk)toast('Options enregistrées','success');
-    else toast('Enregistré ✓ — sauf la répartition : Versement + Épargne + Trésorerie = '+(v+e+t)+'% (doit faire 100). Corrige les 3 champs puis ré-enregistre.','info');
+    toast('Options enregistrées','success');
     renderQontoCalc();
   }catch(e){toast(e.message||'Erreur','error');}
 }
