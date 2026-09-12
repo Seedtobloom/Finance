@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=93" />
+  <link rel="stylesheet" href="/style.css?v=92" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v93 · projets : enveloppe unique (fin du double comptage) + financabilite via patrimoine global avec plancher configurable build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v92 · liberte prevision (charges-aides, hors epargne) + rentabilite (charges+epargne-aides) + mention aides maintenues build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1952,11 +1952,6 @@ const HTML = `<!DOCTYPE html>
             <label class="form-label">Jour du versement (1–28)</label>
             <input type="number" id="opt-jour-versement" class="form-input" value="5" min="1" max="28" step="1" />
           </div>
-          <div class="form-group">
-            <label class="form-label">Réserve plancher pour les projets (mois de charges réelles)</label>
-            <input type="number" id="opt-reserve-mois" class="form-input" value="6" min="0" max="24" step="1" />
-            <p style="font-size:12.5px;color:var(--text-2);margin:6px 0 0;">Un projet n'est annoncé « finançable aujourd'hui » que s'il laisse au moins ce nombre de mois de charges réelles (charges − aides) intact sur ton épargne.</p>
-          </div>
         </div>
 
         <!-- Charges fixes -->
@@ -2701,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=93"></script>
+<script src="/app.js?v=92"></script>
 </body>
 </html>
 `;
@@ -5220,7 +5215,8 @@ function renderDashDetail(det){
   const plan=\`<div class="card" style="padding:28px 30px;">
     <div class="dash-sec-title" style="font-size:14px;"><i class="ti ti-bulb"></i> Ton plan de \${MOIS_LONG[m-1]} — ce que Finance te recommande</div>
     \${prow('ti-wallet','Te verser','Versement personnel',M.versement,true)}
-    \${M.epargnePrevue>0?prow('ti-plant-2','Mettre de côté',detEp+(detPr?' → projets : '+detPr:''),M.epargnePrevue,false):''}
+    \${M.epargnePrevue>0?prow('ti-plant-2','Mettre de côté',detEp,M.epargnePrevue,false):''}
+    \${M.projetsMensuel>0?prow('ti-target','Financer tes projets',detPr,M.projetsMensuel,false):''}
     \${prow('ti-mood-smile','Garder libre','pour toi, sans mission',M.argentLibre,false)}
     <div style="margin-top:22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
       \${canApply?\`<button class="btn btn-sm" style="background:var(--terre);color:var(--paille);border:none;font-weight:700;letter-spacing:.04em;text-transform:uppercase;" onclick="appliquerEpargneMois()"><i class="ti ti-check"></i> Valider mon plan</button>\`:\`<span style="font-size:13.5px;color:#456039;"><i class="ti ti-circle-check"></i> Plan déjà appliqué ce mois.</span>\`}
@@ -5241,7 +5237,7 @@ function renderDashDetail(det){
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-home" style="font-style:normal;color:var(--bleu);"></i> Ton budget perso</div>
         \${li('Versement + autres revenus',fmt(M.revenusPersoTotal),'tot')}
         \${li('− dépenses',fmt(M.depensesPerso),'neg')}
-        \${M.epargnePrevue>0?li('− épargne (projets inclus)',fmt(M.epargnePrevue),'neg'):''}
+        \${(M.epargnePrevue+M.projetsMensuel)>0?li('− épargne + projets',fmt(M.epargnePrevue+M.projetsMensuel),'neg'):''}
         \${li('Argent libre',fmt(M.argentLibre),'tot')}
       </div>
     </div>
@@ -5980,7 +5976,7 @@ function computeMoney(){
 
   // ── Repères de salaire ──
   var besoinMin=depensesPerso;                                   // niveau de vie essentiel
-  var confortCalc=Math.round((depensesPerso+epargnePrevue)*1.1);  // projets financés DANS l'épargne, pas en plus
+  var confortCalc=Math.round((depensesPerso+epargnePrevue+projetsMensuel)*1.1);
   var confortable=Math.max(confortCalc,parseFloat(s.persoConfort)||0);
 
   // ── ENTREPRISE ──
@@ -5999,7 +5995,7 @@ function computeMoney(){
 
   // ── PERSONNEL ──
   var revenusPersoTotal=Math.round((versement+autresRevenus)*100)/100;
-  var argentLibre=Math.max(0,Math.round((revenusPersoTotal-depensesPerso-epargnePrevue)*100)/100); // projets puisent DANS l'épargne (enveloppe A), pas en plus
+  var argentLibre=Math.max(0,Math.round((revenusPersoTotal-depensesPerso-epargnePrevue-projetsMensuel)*100)/100);
 
   // ── PATRIMOINE (3 niveaux, jamais mélangés) ──
   var patriPerso=P.epargneSolde||0;
@@ -6465,27 +6461,12 @@ async function appliquerEpargneMois(){
     const sup=(Array.isArray(settings.persoEpargne)?settings.persoEpargne:[]).slice();
     const pv=(Array.isArray(settings.projetsVie)?settings.projetsVie:[]).slice();
     let touched=0;
-    // 1) Virement réel du mois : chaque support reçoit sa mensualité — c'est la seule vraie sortie d'argent (l'enveloppe).
-    let enveloppe=0;
-    sup.forEach((e,i)=>{const mm=parseFloat(e.montant)||0;if(mm>0&&e.lastVersement!==ym){sup[i]={...e,solde:Math.round(((parseFloat(e.solde)||0)+mm)*100)/100,lastVersement:ym};enveloppe+=mm;touched++;}});
-    enveloppe=Math.round(enveloppe*100)/100;
-    // 2) Les projets se RÉPARTISSENT cette enveloppe par priorité — pas d'argent en plus (fini le double comptage).
-    if(enveloppe>0){
-      const idx=pv.map((p,i)=>i).filter(i=>{const p=pv[i];return (parseFloat(p.mensualite)||0)>0 && p.lastVersement!==ym && (parseFloat(p.cible)||0)>(parseFloat(p.epargne)||0);});
-      idx.sort((a,b)=>((parseInt(pv[b].priorite)||2)-(parseInt(pv[a].priorite)||2)));
-      let dispo=enveloppe;
-      idx.forEach(i=>{
-        const p=pv[i];
-        const besoinP=Math.min(parseFloat(p.mensualite)||0, Math.max(0,(parseFloat(p.cible)||0)-(parseFloat(p.epargne)||0)));
-        const part=Math.round(Math.min(besoinP,Math.max(0,dispo))*100)/100;
-        pv[i]=(part>0)?{...p,epargne:Math.round(((parseFloat(p.epargne)||0)+part)*100)/100,lastVersement:ym}:{...p,lastVersement:ym};
-        dispo=Math.round((dispo-part)*100)/100; touched++;
-      });
-    }
+    sup.forEach((e,i)=>{const mm=parseFloat(e.montant)||0;if(mm>0&&e.lastVersement!==ym){sup[i]={...e,solde:(parseFloat(e.solde)||0)+mm,lastVersement:ym};touched++;}});
+    pv.forEach((pr,i)=>{const mm=parseFloat(pr.mensualite)||0;if(mm>0&&pr.lastVersement!==ym){pv[i]={...pr,epargne:(parseFloat(pr.epargne)||0)+mm,lastVersement:ym};touched++;}});
     if(!touched)return;
     settings.persoEpargne=sup; settings.projetsVie=pv;
     _cache.settings=await api('PUT','/api/settings',settings);
-    toast(enveloppe>0?'Répartition appliquée — '+fmt(enveloppe)+' virés, répartis sur tes projets par priorité':'Répartition appliquée','success');
+    toast('Répartition appliquée — patrimoine et projets ont avancé','success');
     try{renderCockpit();}catch(e){}
     try{renderPatrimoine();renderPatriAlim();}catch(e){}
     try{renderProjetsVie();}catch(e){}
@@ -6850,51 +6831,22 @@ function renderProjetsVie(){
   const totalMens=enrich.reduce((a,p)=>a+p.mens,0);
   const etas=enrich.filter(p=>p.eta!=null&&p.reste>0).map(p=>p.eta);
   const premEta=etas.length?Math.min.apply(null,etas):null;
-  // Enveloppe d'épargne RÉELLE (ce que tu vires) vs mensualités affectées aux projets
-  let M;try{M=computeMoney();}catch(e){M={};}
-  const enveloppe=Math.round((Number(M.epargnePrevue)||0)*100)/100;      // 150 € : le virement réel
-  const affecte=Math.round(totalMens*100)/100;                           // 180 € : somme des mensualités projets
-  const dispoEnv=Math.round((enveloppe-affecte)*100)/100;
-  const overAlloc=affecte>enveloppe+0.005;
-  // Patrimoine mobilisable (fongible, global) et plancher de réserve configurable
-  const mobilisable=Math.round((Number(M.patriPerso)||0)*100)/100;       // ex. Livret A + assurance vie
-  const besoinReel=Math.round((Number(M.besoinReel)||0)*100)/100;        // charges − aides
-  const reserveMois=(s.reserveProjetsMois!=null?Math.max(0,parseInt(s.reserveProjetsMois)):6);
-  const plancher=Math.round(reserveMois*besoinReel);                     // ex. 6 × 272 = 1 632 €
-  const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;">
-    <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
-      <div><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
-      <div><div style="font-size:12px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalReste)}</div></div>
-      <div><div style="font-size:12px;opacity:.6;">Mensualités affectées aux projets</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
-      \${premEta!=null?\`<div><div style="font-size:12px;opacity:.6;">Premier objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${moisEnDate(premEta)}</div></div>\`:''}
-    </div>
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:13.5px;">
-      <span style="opacity:.72;">Enveloppe épargne réelle <strong style="opacity:1;">\${fmt(enveloppe)}/mois</strong></span>
-      <span style="opacity:.72;">Affecté <strong style="opacity:1;">\${fmt(affecte)}/mois</strong></span>
-      <span style="color:\${overAlloc?'#f2b8ae':'#b7d3ad'};font-weight:600;">\${overAlloc?\`<i class="ti ti-alert-triangle"></i> Dépassement de \${fmt(affecte-enveloppe)}/mois — tes projets réclament plus que ce que tu épargnes\`:\`Disponible \${fmt(dispoEnv)}/mois\`}</span>
-    </div>
-    \${mobilisable>0?\`<div style="margin-top:8px;font-size:12.5px;opacity:.6;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · réserve plancher gardée intacte \${fmt(plancher)} (\${reserveMois} mois de charges réelles, réglable dans Options)</div>\`:''}
+  const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
+    <div><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
+    <div><div style="font-size:12px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalReste)}</div></div>
+    <div><div style="font-size:12px;opacity:.6;">Épargne mensuelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalMens)} / mois</div></div>
+    \${premEta!=null?\`<div><div style="font-size:12px;opacity:.6;">Premier objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${moisEnDate(premEta)}</div></div>\`:''}
   </div>\`;
   enrich.sort((a,b)=>(b.prio-a.prio)||((a.eta==null?1e9:a.eta)-(b.eta==null?1e9:b.eta)));
-  // Financabilité aujourd'hui : on sert les projets dans l'ordre de priorité, en déduisant au fur et à mesure du patrimoine au-dessus du plancher
-  const finMap={}; let consomme=0;
-  enrich.forEach(p=>{
-    if(p.reste<=0){finMap[p.id]={done:true};return;}
-    const dispoAvant=Math.round((mobilisable-plancher-consomme)*100)/100; // ce qui reste mobilisable pour CE projet, plancher préservé
-    if(p.reste<=dispoAvant){consomme=Math.round((consomme+p.reste)*100)/100;finMap[p.id]={financable:true,reserveApres:Math.round((mobilisable-consomme)*100)/100};}
-    else{finMap[p.id]={financable:false};}
-  });
   const cards=enrich.map(p=>{
     const c=pvieCat(p.cat);
     const stars='<i class="ti ti-star"></i>'.repeat(p.prio);
-    const fin=finMap[p.id]||{};
     let timeBlock;
     if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;"><i class="ti ti-confetti"></i> Objectif atteint</div>\`;}
-    else if(fin.financable){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;line-height:1.05;"><i class="ti ti-circle-check"></i> Finançable aujourd'hui</div><div style="font-size:13px;color:var(--text-2);margin-top:2px;">avec ton patrimoine — te laisserait <strong style="color:var(--navy);">\${fmt(fin.reserveApres)}</strong> de réserve</div>\`;}
-    else if(p.eta!=null){timeBlock=\`<div style="font-size:12px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:13px;color:var(--text-2);">\${moisEnDate(p.eta)}\${mobilisable>0?' · au-delà de ta capacité mobilisable actuelle':''}</div>\`;}
+    else if(p.eta!=null){timeBlock=\`<div style="font-size:12px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:13px;color:var(--text-2);">\${moisEnDate(p.eta)}</div>\`;}
     else{timeBlock=\`<div style="font-size:14px;color:var(--text-2);">Ajoute une épargne mensuelle pour estimer la date <i class="ti ti-calendar"></i></div>\`;}
     let proj='';
-    if(p.mens>0&&p.reste>0&&!fin.financable){
+    if(p.mens>0&&p.reste>0){
       const eta2=Math.ceil(p.reste/(p.mens*2));
       const gain=p.eta-eta2;
       if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-1);line-height:1.5;"><i class="ti ti-bulb"></i> En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#456039;font-weight:600;">tu gagnes \${gain} mois <i class="ti ti-flame"></i></span></div>\`;
@@ -10644,7 +10596,6 @@ function loadOptions(){
   if(q('#opt-tresorerie-pct'))q('#opt-tresorerie-pct').value=s.pctTresorerie||20;
   if(q('#opt-remu-fixe'))q('#opt-remu-fixe').value=(s.remunerationFixe!=null?s.remunerationFixe:850);
   if(q('#opt-jour-versement'))q('#opt-jour-versement').value=(s.jourVersement!=null?s.jourVersement:5);
-  if(q('#opt-reserve-mois'))q('#opt-reserve-mois').value=(s.reserveProjetsMois!=null?s.reserveProjetsMois:6);
   updateOptTotal();
 }
 function updateOptTotal(){
@@ -10676,7 +10627,6 @@ async function saveOptions(){
     cfe:parseFloat(q('#opt-cfe').value)||0,
     remunerationFixe:Math.max(0,parseFloat(q('#opt-remu-fixe')?.value)||0),
     jourVersement:Math.min(28,Math.max(1,parseInt(q('#opt-jour-versement')?.value)||5)),
-    reserveProjetsMois:Math.min(24,Math.max(0,isNaN(parseInt(q('#opt-reserve-mois')?.value))?6:parseInt(q('#opt-reserve-mois').value))),
     // Répartition enregistrée UNIQUEMENT si la somme = 100 ; sinon on conserve l'ancienne (le reste du formulaire est enregistré quand même)
     pctVersement: pctOk? v : (s0.pctVersement!=null?s0.pctVersement:65),
     pctEpargne:   pctOk? e : (s0.pctEpargne!=null?s0.pctEpargne:15),
