@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=85" />
+  <link rel="stylesheet" href="/style.css?v=84" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v85 · budget perso mise en forme (3 zones, reste dominant, 2 colonnes) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v84 · renommage ecran pro Repartition tresorerie build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -289,24 +289,13 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une dépense</button>
         </div>
       </div>
-      <div class="perso-zone-title"><i class="ti ti-eye"></i> Ma situation <span class="perso-zone-sub">ce que dit ton budget</span></div>
       <div id="perso-reste-a-vivre" style="margin-bottom:18px;"></div>
-      <div id="perso-bridge"></div>
-
-      <div class="perso-zone-title"><i class="ti ti-pencil"></i> Mes données <span class="perso-zone-sub">ce que tu saisis</span></div>
-      <div class="perso-grid">
-        <div id="perso-charges"></div>
-        <div class="perso-col">
-          <div id="perso-revenus"></div>
-          <div id="perso-enveloppes"></div>
-          <div id="perso-epargne"></div>
-        </div>
-      </div>
-
-      <details class="perso-sim">
-        <summary class="perso-zone-title"><i class="ti ti-calculator"></i> Simuler <span class="perso-zone-sub">déplier le simulateur inversé <i class="ti ti-chevron-down"></i></span></summary>
-        <div id="perso-simulateur" style="margin-top:14px;"></div>
-      </details>
+      <div id="perso-bridge" style="margin-bottom:18px;"></div>
+      <div id="perso-revenus" style="margin-bottom:18px;"></div>
+      <div id="perso-charges" style="margin-bottom:18px;"></div>
+      <div id="perso-enveloppes" style="margin-bottom:18px;"></div>
+      <div id="perso-epargne" style="margin-bottom:18px;"></div>
+      <div id="perso-simulateur"></div>
     </section>
 
     <section id="section-versement" class="section">
@@ -2694,7 +2683,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=85"></script>
+<script src="/app.js?v=84"></script>
 </body>
 </html>
 `;
@@ -3099,26 +3088,6 @@ html, body {
   .dash-hero { padding: 26px 22px; }
   .dash-hero-num { font-size: 54px; }
   .dash-zone3 { grid-template-columns: 1fr; }
-}
-
-/* --- Budget perso : mise en forme (lot dédié) --- */
-.perso-zone-title { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 27px; color: var(--navy); margin: 30px 0 16px; padding-bottom: 9px; border-bottom: 2px solid var(--line); display: flex; align-items: center; gap: 11px; }
-.perso-zone-title:first-of-type { margin-top: 2px; }
-.perso-zone-title .ti { font-size: 22px; color: var(--terre-600); font-style: normal; }
-.perso-zone-sub { font-size: 13.5px; color: var(--text-2); font-family: var(--font-body); font-style: normal; font-weight: 400; margin-left: auto; }
-.perso-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-.perso-grid > .perso-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.perso-sim summary { list-style: none; cursor: pointer; user-select: none; }
-.perso-sim summary::-webkit-details-marker { display: none; }
-.perso-sim summary .ti-chevron-down { transition: transform 0.2s ease; }
-.perso-sim[open] summary .ti-chevron-down { transform: rotate(180deg); }
-/* échelle typo perso : base plus grande, 3 niveaux nets */
-.perso-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; }
-.perso-card-title { font-size: 15px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 9px; }
-.perso-num-2 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; }
-.perso-line { font-size: 15px; }
-@media (max-width: 1100px) {
-  .perso-grid { grid-template-columns: 1fr; }
 }
 
 /* ===========================
@@ -6095,67 +6064,21 @@ function loadReserve(){
   </div>\`;
 }
 
-const PERSO_CAT_META={
-  logement:{lab:'Logement',icon:'ti-home',col:'#5A2A11',bg:'var(--surface-2)'},
-  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#456039',bg:'var(--vert-bg)'},
-  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#a5502e',bg:'var(--ambre-bg)'},
-  'santé':{lab:'Santé',icon:'ti-heart',col:'#8d2b21',bg:'var(--rouge-bg)'},
-  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#2c4a72',bg:'var(--bleu-bg)'},
-  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#744f30',bg:'var(--surface-2)'},
-  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#3d1c0b',bg:'var(--surface-2)'},
-  banque:{lab:'Banque',icon:'ti-credit-card',col:'#744f30',bg:'var(--surface-2)'},
-  transport:{lab:'Transport',icon:'ti-car',col:'#a5502e',bg:'var(--ambre-bg)'},
-  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#456039',bg:'var(--vert-bg)'},
-  famille:{lab:'Famille',icon:'ti-users',col:'#8d2b21',bg:'var(--rouge-bg)'},
-  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#7a5540',bg:'var(--surface-2)'},
-  autre:{lab:'Autre',icon:'ti-dots',col:'#7a5540',bg:'var(--surface-2)'}
-};
-function persoCatMeta(cat){return PERSO_CAT_META[cat]||PERSO_CAT_META.autre;}
-// Catégorie d'AFFICHAGE : infère depuis le libellé pour corriger les rangements anciens
-// (EDF→énergie, Téléphone→télécom, Santé→santé…) SANS toucher à la donnée stockée.
-function persoChargeCat(ch){
-  const n=((ch.nom||'')+'').toLowerCase();
-  const has=function(){for(var i=0;i<arguments.length;i++){if(n.indexOf(arguments[i])>=0)return true;}return false;};
-  if(has('edf','élec','elec','gaz','engie','énergie','energie'))return 'énergie';
-  if(has('téléphone','telephone','mobile','forfait','sfr','orange','bouygues'))return 'télécom';
-  if(has('internet','box','fibre','wifi','freebox','livebox'))return 'télécom';
-  if(has('mutuelle','santé','sante','bien-être','bien être','bien etre','médecin','medecin','pharma'))return 'santé';
-  if(has('loyer','logement','copro','syndic'))return 'logement';
-  if(has('course','alimentation','supermarch','drive'))return 'alimentation';
-  if(has('impôt','impot','fisc','trésor public','tresor public','dgfip'))return 'impôts';
-  if(has('netflix','spotify','disney','abonnement','canal'))return 'abonnements';
-  if(has('compte à composer','compte a composer','frais banc','banque'))return 'banque';
-  const c=ch.cat||'autre';
-  return PERSO_CAT_META[c]?c:'autre';
-}
 function renderPersoResteAVivre(){
   const el=q('#perso-reste-a-vivre'); if(!el)return;
   let R; try{R=computeResteAVivre();}catch(e){el.innerHTML='';return;}
-  const total=Math.max(1,R.revenusMois);
-  const pw=v=>Math.max(0,Math.min(100,(v/total)*100));
-  const resteBar=Math.max(0,R.resteMois);
-  const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:rgba(242,229,194,.85);"><span style="width:10px;height:10px;border-radius:3px;background:\${col};flex:none;"></span>\${lab} <strong style="color:#f2e7dd;font-weight:600;">\${fmt(val)}</strong></span>\`;
-  el.innerHTML=\`<div class="dash-hero" style="padding:30px 34px;">
-    <div class="dash-hero-eyebrow"><i class="ti ti-cash"></i> Ce qu'il me reste pour vivre</div>
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:6px 0 2px;">
-      <div class="dash-hero-num">\${fmt(R.resteMois)}</div>
-      <div style="text-align:right;padding-bottom:10px;">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;color:#fff;line-height:1;">\${fmt(R.resteJour)}<span style="font-size:16px;color:#cabf95;font-style:normal;"> / jour</span></div>
-        <div style="font-size:13px;color:#cabf95;margin-top:3px;">sur \${R.joursRestants} jours jusqu'au versement</div>
-      </div>
+  const step=(lab,val,sign,col)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14.5px;"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:\${col||'var(--navy)'};">\${sign||''}\${fmt(val)}</span></div>\`;
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div class="dash-sec-title" style="font-size:14px;"><i class="ti ti-cash"></i> Mon reste à vivre</div>
+    \${step('Rémunération fixe',R.remu)}
+    \${step('+ Aides & revenus perso (en vigueur)',R.revenusActifs,'+','#456039')}
+    \${step('− Charges fixes perso (mensualisées)',R.chargesFixes,'−','var(--danger)')}
+    \${R.envAlloue>0?step('− Enveloppes de dépenses variables',R.envAlloue,'−','var(--danger)'):''}
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;flex-wrap:wrap;">
+      <div><div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;">Reste à vivre du mois</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;color:var(--navy);line-height:1.05;">\${fmt(R.resteMois)}</div></div>
+      <div style="text-align:right;"><div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;">Par jour · \${R.joursRestants} j restants</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;color:var(--bleu);line-height:1.05;">\${fmt(R.resteJour)}</div></div>
     </div>
-    <div style="margin-top:18px;display:flex;flex-direction:column;gap:7px;">
-      <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Entrées \${fmt(R.revenusMois)}</div>
-      <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.remu)}%;background:#cabf95;"></div><div style="width:\${pw(R.revenusActifs)}%;background:#8fbf7f;"></div>
-      </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin:1px 0 6px;">\${leg('#cabf95','Rémunération',R.remu)}\${R.revenusActifs>0?leg('#8fbf7f','Aides',R.revenusActifs):''}</div>
-      <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
-      <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.chargesFixes)}%;background:#e0796e;"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:#d9a878;"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:var(--glycine);"></div>
-      </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:1px;">\${leg('#e0796e','Charges',R.chargesFixes)}\${R.envAlloue>0?leg('#d9a878','Enveloppes',R.envAlloue):''}\${leg('var(--glycine)','Reste à vivre',resteBar)}</div>
-    </div>
+    <p style="font-size:12px;color:var(--text-2);margin-top:12px;">« Par jour » = reste à vivre du mois ÷ jours jusqu'au prochain versement (le \${R.jourVersement} du mois). C'est ton budget quotidien pour décider « est-ce que je peux acheter ça maintenant ».</p>
   </div>\`;
 }
 function renderPersoEnveloppes(){
@@ -6165,25 +6088,25 @@ function renderPersoEnveloppes(){
   const rows=env.map(e=>{
     const al=parseFloat(e.alloue)||0, co=parseFloat(e.consomme)||0;
     const pct=al>0?Math.min(100,Math.round(co/al*100)):0; const over=co>al&&al>0;
-    return \`<div style="padding:13px 0;border-top:1px solid var(--line);">
+    return \`<div style="padding:12px 0;border-top:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-        <input value="\${escHtml(e.cat||'')}" onblur="saveEnveloppeField('\${e.id}','cat',this.value)" style="border:none;background:none;font-size:15px;font-weight:600;color:var(--navy);outline:none;flex:1;min-width:110px;">
-        <span style="display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-2);">
-          <input type="number" min="0" step="10" value="\${co}" onchange="saveEnveloppeField('\${e.id}','consomme',this.value)" style="width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;text-align:right;"> /
-          <input type="number" min="0" step="10" value="\${al}" onchange="saveEnveloppeField('\${e.id}','alloue',this.value)" style="width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;text-align:right;"> €
-          <button onclick="deleteEnveloppe('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--ambre);"><i class="ti ti-trash"></i></button>
+        <input value="\${escHtml(e.cat||'')}" onblur="saveEnveloppeField('\${e.id}','cat',this.value)" style="border:none;background:none;font-size:14.5px;font-weight:600;color:var(--navy);outline:none;flex:1;min-width:120px;">
+        <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);">
+          <input type="number" min="0" step="10" value="\${co}" onchange="saveEnveloppeField('\${e.id}','consomme',this.value)" style="width:74px;padding:5px 7px;border:1px solid var(--border);border-radius:7px;font-size:14px;text-align:right;"> /
+          <input type="number" min="0" step="10" value="\${al}" onchange="saveEnveloppeField('\${e.id}','alloue',this.value)" style="width:74px;padding:5px 7px;border:1px solid var(--border);border-radius:7px;font-size:14px;text-align:right;"> €
+          <button onclick="deleteEnveloppe('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
-      <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'var(--ambre)'};border-radius:5px;"></div></div>
+      <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'var(--vert)'};border-radius:5px;"></div></div>
     </div>\`;
   }).join('');
   const totAl=env.reduce((a,e)=>a+(parseFloat(e.alloue)||0),0);
-  el.innerHTML=\`<div class="perso-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--ambre-bg);color:var(--ambre);display:grid;place-items:center;flex:none;"><i class="ti ti-wallet"></i></span> Enveloppes variables</div>
-      <span class="perso-num-2" style="color:var(--ambre);">−\${fmt(Math.round(totAl*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
+      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-wallet"></i> Enveloppes de dépenses variables</div>
+      <span style="font-size:13px;color:var(--text-2);">Alloué : <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(Math.round(totAl*100)/100)}</strong> /mois</span>
     </div>
-    <p style="font-size:13px;color:var(--text-2);margin:0 0 2px;">Consommé / alloué. Saisis-le une fois par mois.</p>
+    <p style="font-size:12.5px;color:var(--text-2);margin:0 0 4px;">Consommé / alloué, par catégorie. Saisis-le une fois par mois, pas ligne par ligne.</p>
     \${rows}
     <div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="addEnveloppe()"><i class="ti ti-plus"></i> Ajouter une enveloppe</button></div>
   </div>\`;
@@ -6461,26 +6384,32 @@ function renderPersoEpargne(ctx){
   const {epargne,epargneMensuel,epargneSolde}=ctx;
   const rows=(epargne||[]).map(e=>{
     const mt=parseFloat(e.montant)||0, sd=parseFloat(e.solde)||0;
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);">
-      <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(e.nom||'—')}</span>\${sd>0?\` <span style="font-size:12px;color:var(--text-2);">· solde \${fmt(sd)}</span>\`:''}</span>
-      <span style="display:flex;align-items:center;gap:9px;flex:none;">
-        <span class="perso-num-2" style="color:var(--bleu);">\${fmt(mt)}</span>
-        <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
-        <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="min-width:120px;flex:1;">
+        <span style="font-size:13.5px;font-weight:500;"><i class="ti ti-coin"></i> \${escHtml(e.nom||'—')}</span>
+        \${sd>0?\`<span style="font-size:12px;color:var(--text-2);"> · solde \${fmt(sd)}</span>\`:''}
+      </span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:17px;color:#2AA9A0;">\${fmt(mt)} / mois</span>
+        <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:13px;"><i class="ti ti-trash"></i></button>
       </span>
     </div>\`;
   }).join('');
-  const proj=epargneMensuel>0?\`<div style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.5;"><i class="ti ti-trending-up" style="color:var(--bleu);"></i> À ce rythme, dans 12 mois tu auras mis <strong style="color:var(--navy);">\${fmt(epargneMensuel*12)}</strong> de côté\${epargneSolde>0?\` (total ~\${fmt(epargneSolde+epargneMensuel*12)})\`:''}.</div>\`:'';
-  el.innerHTML=\`<div class="perso-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--bleu-bg);color:var(--bleu);display:grid;place-items:center;flex:none;"><i class="ti ti-coin"></i></span> Épargne mensuelle</div>
-      <span class="perso-num-2" style="color:var(--bleu);">\${fmt(epargneMensuel)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+  const proj=epargneMensuel>0?\`<div style="font-size:13px;color:var(--navy);margin-top:10px;font-weight:500;"><i class="ti ti-trending-up"></i> À ce rythme, dans 12 mois tu auras mis <strong>\${fmt(epargneMensuel*12)}</strong> de côté\${epargneSolde>0?\` (total ~\${fmt(epargneSolde+epargneMensuel*12)})\`:''}.</div>\`:'';
+  el.innerHTML=\`<div class="card" style="padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:14px;font-weight:700;color:var(--navy);"><i class="ti ti-coin"></i> Mon épargne mensuelle</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:21px;color:#2AA9A0;">\${fmt(epargneMensuel)} / mois</span>
+        <button class="btn btn-outline btn-xs" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter</button>
+      </div>
     </div>
-    \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Livret A, assurance vie, PEA… combien tu mets de côté chaque mois. Compté dans ton besoin de vie.</div>'}
+    \${rows||'<div style="font-size:13px;color:var(--text-2);padding:6px 0;">Livret A, assurance vie, PEA, retraite… définis combien tu veux mettre de côté chaque mois. Ce montant est compté dans ton besoin de vie.</div>'}
     \${proj}
-    <div style="margin-top:12px;"><button class="btn btn-outline btn-sm" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter un support</button></div>
   </div>\`;
 }
+
 function openPersoEpargneModal(id){
   const s=dbGetObj('settings');
   const items=Array.isArray(s.persoEpargne)?s.persoEpargne:[];
@@ -6539,28 +6468,31 @@ function renderPersoRevenus(ctx){
     const maj=revenuDerniereMajYm(r);
     const stale=maj?ymDiffMonths(maj,cur)>3:false;
     const inactif=r.actif===false;
-    return \`<div style="padding:12px 0;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
+    return \`<div style="padding:11px 0;border-top:1px solid var(--border);\${inactif?'opacity:.5;':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(r.nom||'—')}</span>\${r.source?\` <span style="font-size:12px;color:var(--text-2);">· \${escHtml(r.source)}</span>\`:''}\${r.type==='variable'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">variable</span>':''}</span>
+        <span style="min-width:0;"><span style="font-size:14.5px;font-weight:600;color:var(--navy);"><i class="ti ti-heart-handshake" style="color:var(--terre-400);"></i> \${escHtml(r.nom||'—')}</span>\${r.source?\` <span style="font-size:12px;color:var(--text-2);">· \${escHtml(r.source)}</span>\`:''}\${r.type==='variable'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">variable</span>':''}</span>
         <span style="display:flex;align-items:center;gap:8px;flex:none;">
-          <span class="perso-num-2" style="color:var(--vert);">+\${fmt(enVig)}</span>
+          <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#456039;">+\${fmt(enVig)}</span>
           <button onclick="openPersoRevenuModal('\${r.id}',true)" title="Nouveau montant à partir d'un mois" style="background:none;border:none;cursor:pointer;color:var(--bleu);font-size:15px;"><i class="ti ti-calendar-plus"></i></button>
           <button onclick="openPersoRevenuModal('\${r.id}')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
           <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
-      \${maj?\`<div style="font-size:11.5px;color:\${stale?'var(--ambre)':'var(--text-2)'};margin-top:3px;">\${stale?'<i class="ti ti-clock-exclamation"></i> ':''}En vigueur depuis \${moisLongYm(maj)}\${stale?' — inchangé depuis plus de 3 mois, vérifie auprès de la CAF.':''}</div>\`:''}
+      \${maj?\`<div style="font-size:11.5px;color:\${stale?'var(--ambre)':'var(--text-2)'};margin-top:3px;margin-left:22px;">\${stale?'<i class="ti ti-clock-exclamation"></i> ':''}Montant en vigueur depuis \${moisLongYm(maj)}\${stale?' — inchangé depuis plus de 3 mois, pense à vérifier auprès de la CAF.':''}</div>\`:''}
     </div>\`;
   }).join('');
-  el.innerHTML=\`<div class="perso-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--vert-bg);color:var(--vert);display:grid;place-items:center;flex:none;"><i class="ti ti-heart-handshake"></i></span> Revenus perso</div>
-      <span class="perso-num-2" style="color:var(--vert);font-size:26px;">+\${fmt(Math.round(totalActif*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-heart-handshake"></i> Mes revenus perso (hors entreprise)</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#456039;">+\${fmt(Math.round(totalActif*100)/100)} /mois</span>
+        <button class="btn btn-outline btn-xs" onclick="openPersoRevenuModal()"><i class="ti ti-plus"></i> Ajouter</button>
+      </div>
     </div>
-    \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Prime d\\'activité, aide au logement… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}
-    <div style="margin-top:12px;"><button class="btn btn-outline btn-sm" onclick="openPersoRevenuModal()"><i class="ti ti-plus"></i> Ajouter un revenu</button></div>
+    \${rows||'<div style="font-size:13px;color:var(--text-2);padding:6px 0;">Prime d\\'activité, aide au logement, pension… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}
   </div>\`;
 }
+
 function openPersoRevenuModal(id,nextMonth){
   const s=dbGetObj('settings');
   const items=Array.isArray(s.persoRevenus)?s.persoRevenus:[];
@@ -6631,47 +6563,35 @@ async function deletePersoRevenu(id){
 function renderPersoCharges(ctx){
   const el=q('#perso-charges'); if(!el)return;
   const charges=ctx.charges||[];
-  if(!charges.length){el.innerHTML=\`<div class="perso-card" style="text-align:center;color:var(--text-2);">
-    <div style="font-size:32px;color:var(--ambre);"><i class="ti ti-receipt-2"></i></div>
-    <div style="font-size:15px;margin:8px 0;">Renseigne tes dépenses perso : loyer, courses, abonnements…</div>
+  if(!charges.length){el.innerHTML=\`<div class="card" style="padding:24px;text-align:center;color:var(--text-2);">
+    <div style="font-size:32px;"><i class="ti ti-home"></i></div>
+    <div style="font-size:15px;margin:8px 0;">Commence par renseigner tes dépenses perso : loyer, courses, abonnements, transport…</div>
     <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter ma première dépense</button>
   </div>\`;return;}
-  const actifs=charges.filter(c=>c.actif!==false);
-  const totalMensuel=actifs.reduce((s,c)=>s+chargeMensuel(c),0);
+  const totalMensuel=charges.filter(c=>c.actif!==false).reduce((s,c)=>s+chargeMensuel(c),0);
   const perLab={mensuelle:'',bimestrielle:'bimestriel',trimestrielle:'trimestriel',annuelle:'annuel'};
-  // Regroupe par catégorie d'affichage (inférée depuis le libellé)
-  const groups={};
-  charges.forEach(ch=>{const cat=persoChargeCat(ch);(groups[cat]=groups[cat]||[]).push(ch);});
-  const catTotal=cat=>groups[cat].filter(c=>c.actif!==false).reduce((s,c)=>s+chargeMensuel(c),0);
-  const order=Object.keys(groups).sort((a,b)=>catTotal(b)-catTotal(a));
-  const body=order.map(cat=>{
-    const m=persoCatMeta(cat);
-    const lines=groups[cat].slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a)).map(it=>{
-      const men=Math.round(chargeMensuel(it)*100)/100; const per=it.periodicite||'mensuelle'; const inactif=it.actif===false;
-      return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0 9px 42px;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
-        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${per!=='mensuelle'?\` <span style="font-size:11.5px;color:var(--text-2);">· \${fmt(parseFloat(it.montant)||0)} \${perLab[per]}</span>\`:''}\${it.compte==='pro'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">prélevé pro</span>':''}</span>
-        <span style="display:flex;align-items:center;gap:9px;flex:none;">
-          <span class="perso-num-2" style="color:var(--ambre);">\${fmt(men)}</span>
-          <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
-          <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
-        </span>
-      </div>\`;
-    }).join('');
-    return \`<div style="margin-top:6px;">
-      <div style="display:flex;align-items:center;gap:10px;padding:8px 0 4px;">
-        <span style="width:30px;height:30px;border-radius:9px;background:\${m.bg};color:\${m.col};display:grid;place-items:center;flex:none;"><i class="ti \${m.icon}"></i></span>
-        <span style="font-size:13.5px;font-weight:700;color:var(--navy);">\${m.lab}</span>
-        <span class="perso-num-2" style="margin-left:auto;color:var(--terre-600);font-size:19px;">\${fmt(Math.round(catTotal(cat)*100)/100)}</span>
-      </div>\${lines}
+  const rows=charges.slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a)).map(it=>{
+    const men=Math.round(chargeMensuel(it)*100)/100; const per=it.periodicite||'mensuelle'; const inactif=it.actif===false;
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--border);\${inactif?'opacity:.5;':''}">
+      <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+        <span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${it.type==='variable'?'<i class="ti ti-target" style="color:var(--terre-400);"></i>':'<i class="ti ti-lock" style="color:var(--terre-400);"></i>'} \${escHtml(it.nom||'—')}\${inactif?' <span style="font-size:11px;color:var(--text-2);font-weight:400;">(inactive)</span>':''}</span>
+        <span style="font-size:12px;color:var(--text-2);">\${escHtml(it.cat||'')}\${per!=='mensuelle'?' · '+fmt(parseFloat(it.montant)||0)+' '+perLab[per]:''}\${it.compte==='pro'?' · <span style="color:var(--bleu);">prélevé sur le pro</span>':''}</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:10px;flex:none;">
+        <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(men)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+        <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
+      </span>
     </div>\`;
   }).join('');
-  el.innerHTML=\`<div class="perso-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--ambre-bg);color:var(--ambre);display:grid;place-items:center;flex:none;"><i class="ti ti-receipt-2"></i></span> Charges fixes perso</div>
-      <span class="perso-num-2" style="color:var(--ambre);font-size:26px;">−\${fmt(Math.round(totalMensuel*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
+      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-receipt-2"></i> Mes charges fixes perso</div>
+      <span style="font-size:13px;color:var(--text-2);">Total mensualisé : <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(Math.round(totalMensuel*100)/100)}</strong> /mois</span>
     </div>
-    \${body}
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><button class="btn btn-outline btn-sm" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une charge</button><span style="font-size:12px;color:var(--text-2);">Périodicités ramenées au mois. « Prélevé pro » (impôt) = charge perso.</span></div>
+    \${rows}
+    <div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une charge</button></div>
+    <p style="font-size:12px;color:var(--text-2);margin-top:10px;">Les charges non mensuelles sont ramenées au mois (ex. 80 € bimestriel = 40 €/mois). Une charge « prélevée sur le pro » (l'impôt) reste une charge perso, jamais reclassée côté entreprise.</p>
   </div>\`;
 }
 function renderPersoSimulateur(ctx){
