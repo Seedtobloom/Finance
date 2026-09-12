@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=87" />
+  <link rel="stylesheet" href="/style.css?v=88" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v87 · versement recentre sur remuneration fixe build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v88 · repartition tresorerie (select a classer + tri cartes) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=87"></script>
+<script src="/app.js?v=88"></script>
 </body>
 </html>
 `;
@@ -5575,8 +5575,10 @@ function renderEnveloppes(){
     </div>\`;
   }
 
-  // Cartes enveloppes
-  g.innerHTML=ENV_DEF.map(def=>{
+  // Cartes enveloppes — alimentées/définies d'abord, vides regroupées en bas
+  const envIsEmpty=(e)=>!e||(!(e.budget>0)&&!(e.paye>0)&&!(e.reste>0)&&!((e.items||[]).length)&&!((e.liste||[]).length));
+  const _envDefsOrdered=ENV_DEF.map((def,i)=>({def:def,i:i,empty:envIsEmpty(env[def.id])})).sort((a,b)=>(a.empty-b.empty)||(a.i-b.i));
+  g.innerHTML=_envDefsOrdered.map(({def})=>{
     const e=env[def.id];
     if(def.id==='engagements')return renderEngagementsCard(def,e);
     const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
@@ -5718,7 +5720,7 @@ function renderAranger(ctx){
   const list=(_envShowAll?debits:aRanger).slice(0,80);
   const projets=dbGet('projets')||[];
   const txProjet=(ctx.settings&&ctx.settings.txProjet)||{};
-  const opt=(cur)=>ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');
+  const opt=(cur)=>{const known=ENV_CATS.indexOf(cur)>=0;return (known?'':\`<option value="" selected>— À classer —</option>\`)+ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');};
   const header=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:13px;color:var(--text-2);">\${aRanger.length?aRanger.length+' opération(s) à ranger':'<i class="ti ti-check"></i> Tout est rangé'}\${_envShowAll?' · toutes affichées':''}</span>
     <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
@@ -5748,6 +5750,7 @@ function renderAranger(ctx){
 }
 
 async function assignTx(key,cat){
+  if(!cat)return; // « — À classer — » choisi : on n'enregistre rien, l'opération reste à ranger
   try{
     const settings=dbGetObj('settings');
     settings.envTx=settings.envTx||{};
