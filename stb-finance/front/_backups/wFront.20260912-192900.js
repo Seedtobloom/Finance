@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=83" />
+  <link rel="stylesheet" href="/style.css?v=82" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v83 · pont rebranche sur remuneration fixe (plancher) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v82 · suppression doublons perso (hero+reste) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2683,7 +2683,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=83"></script>
+<script src="/app.js?v=82"></script>
 </body>
 </html>
 `;
@@ -6182,25 +6182,36 @@ function renderPersoHero(ctx){
     </div>\`;
 }
 
+function renderPersoReste(ctx){
+  const el=q('#perso-reste'); if(!el)return;
+  const {salaireConseille,besoin,resteAVivre,revenusPerso}=ctx;
+  if(besoin<=0){el.innerHTML='';return;}
+  const color=resteAVivre<200?'#8d2b21':resteAVivre<500?'#a5502e':'#456039';
+  const emoji=resteAVivre<200?'<i class="ti ti-alert-circle"></i>':resteAVivre<500?'<i class="ti ti-alert-triangle"></i>':'<i class="ti ti-circle-check"></i>';
+  const label=resteAVivre<200?'serré':resteAVivre<500?'correct':'confortable';
+  const detail=revenusPerso>0
+    ? \`Salaire conseillé \${fmt(salaireConseille)} + aides \${fmt(revenusPerso)} − besoin de vie \${fmt(besoin)}.\`
+    : \`Salaire conseillé \${fmt(salaireConseille)} − ton besoin de vie \${fmt(besoin)}.\`;
+  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
+    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;">Ton reste à vivre estimé</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:44px;font-weight:700;color:\${color};margin:4px 0 2px;">\${emoji} \${fmt(resteAVivre)}<span style="font-size:16px;color:var(--text-2);font-style:normal;"> / mois · \${label}</span></div>
+    <div style="font-size:13.5px;color:var(--text-2);margin-top:4px;line-height:1.5;">\${detail} Repères : <i class="ti ti-alert-circle"></i> sous 200 € · <i class="ti ti-alert-triangle"></i> 200–500 € · <i class="ti ti-circle-check"></i> au-delà.</div>
+  </div>\`;
+}
+
 function renderPersoBridge(ctx){
   const el=q('#perso-bridge'); if(!el)return;
-  let R; try{R=computeResteAVivre();}catch(e){R=null;}
-  if(!R){el.innerHTML='';return;}
-  const tauxU=ctx.tauxU||0, tauxC=ctx.tauxC||0, chargesPro=ctx.chargesProMensuel||0;
-  const ressources=Math.round((R.remu+R.revenusActifs)*100)/100;
-  const marge=Math.round((ressources-R.chargesFixes)*100)/100;
-  const couvre=marge>=0;
-  const caPlancher=Math.round((R.remu+chargesPro)/Math.max(0.01,1-tauxU-tauxC));
+  const {besoin,besoinNet,capacite,caRequis,revenusPerso}=ctx;
+  if(besoin<=0){el.innerHTML='';return;}
+  const ressources=capacite+revenusPerso;
+  const couvre=ressources>=besoin;
   const msg=couvre
-    ? \`<i class="ti ti-circle-check"></i> Ta rémunération fixe (<strong>\${fmt(R.remu)}</strong>)\${R.revenusActifs>0?' et tes aides ('+fmt(R.revenusActifs)+')':''} couvrent tes charges fixes perso (\${fmt(R.chargesFixes)}), avec <strong>\${fmt(marge)}</strong> au-dessus pour tes dépenses variables.\`
-    : \`<i class="ti ti-alert-triangle"></i> Ta rémunération fixe\${R.revenusActifs>0?' et tes aides':''} ne couvrent pas encore tes charges fixes perso — il manque <strong>\${fmt(-marge)} / mois</strong>.\`;
+    ? \`<i class="ti ti-circle-check"></i> Ton activité\${revenusPerso>0?' et tes aides couvrent':' couvre'} ton niveau de vie. Ton entreprise peut te verser environ <strong>\${fmt(capacite)} / mois</strong>\${ressources>besoin?', soit '+fmt(ressources-besoin)+' de marge au-dessus de ton besoin':''}.\`
+    : \`<i class="ti ti-alert-triangle"></i> Tu ne couvres pas encore ton niveau de vie. Ton entreprise soutient ~<strong>\${fmt(capacite)} / mois</strong>\${revenusPerso>0?' (+ '+fmt(revenusPerso)+' d\\'aides)':''}, il manque <strong>\${fmt(besoin-ressources)}</strong>.\`;
   el.innerHTML=\`<div class="card" style="padding:24px 26px;">
     <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;"><i class="ti ti-arrows-exchange"></i> Le pont entreprise ↔ perso</div>
-    <div style="font-size:16px;line-height:1.55;margin-bottom:14px;color:var(--navy);">\${msg}</div>
-    <div style="background:var(--surface-2);border-radius:12px;padding:14px 16px;">
-      <div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px;"><i class="ti ti-arrow-bar-to-down"></i> Plancher d'activité</div>
-      <div style="font-size:14.5px;color:var(--navy);line-height:1.55;">En dessous de <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:21px;">\${fmt(caPlancher)} de CA / mois</strong> (~\${fmt(caPlancher*12)} / an), ton activité ne peut plus assurer ta rémunération fixe de \${fmt(R.remu)}. <span style="color:var(--text-2);">C'est le minimum vital de ton entreprise, pas un objectif de facturation.</span></div>
-    </div>
+    <div style="font-size:16px;line-height:1.55;margin-bottom:12px;color:var(--navy);">\${msg}</div>
+    <div style="font-size:14px;color:var(--text-2);line-height:1.5;">Pour maintenir ton niveau de vie, ton entreprise doit générer au moins <strong style="color:var(--navy);">\${fmt(caRequis)} de CA / mois</strong> (soit ~\${fmt(caRequis*12)} / an)\${revenusPerso>0?', tes aides couvrant déjà '+fmt(revenusPerso):''}.</div>
   </div>\`;
 }
 
