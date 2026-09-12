@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=92" />
+  <link rel="stylesheet" href="/style.css?v=91" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v92 · liberte prevision (charges-aides, hors epargne) + rentabilite (charges+epargne-aides) + mention aides maintenues build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v91 · patrimoine : chiffre unique + treso hors patrimoine + liberte nette d'aides build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=92"></script>
+<script src="/app.js?v=91"></script>
 </body>
 </html>
 `;
@@ -6368,7 +6368,7 @@ function renderPatrimoine(){
       \${chart}
       <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
         \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-coins"></i> Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} / an</div></div>\`:''}
-        \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de besoin réel couvert (charges − aides)</div><div style="font-size:10.5px;opacity:.45;margin-top:1px;">en supposant tes aides maintenues</div></div>\`:''}
+        \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de besoin réel couvert (charges − aides)</div></div>\`:''}
         \${(M.tresoPro||0)>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie d'entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">hors patrimoine — provisionnée pour charges &amp; URSSAF</div></div>\`:''}
       </div>
     </div>\`;
@@ -9691,8 +9691,7 @@ function renderRapportPrevision(){
   const patriMensuel=supAll.reduce((s,e)=>s+(parseFloat(e.montant)||0),0);
   const patriFin=patriSolde+patriMensuel*(12-moisCourant+1);
   const misAnnee=patriMensuel*12;
-  const besoinPrev=Math.max(0,Math.round((perso.fixe+perso.variable-perso.revenusPerso)*100)/100); // charges − aides, sans l'épargne (si l'activité s'arrête, on n'épargne plus)
-  const liberte=besoinPrev>0?(patriFin/besoinPrev):null;
+  const liberte=perso.besoin>0?(patriFin/perso.besoin):null;
 
   const big=(emoji,lab,val,hint,color)=>\`<div style="flex:1;min-width:160px;"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;color:\${color?'var(--terre-400)':'rgba(255,255,255,.68)'};">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;font-weight:700;margin-top:3px;line-height:1.05;\${color?'color:'+color+';':''}">\${val}</div>\${hint?\`<div style="font-size:13px;margin-top:2px;color:\${color?'var(--text-2)':'rgba(255,255,255,.55)'};">\${hint}</div>\`:''}</div>\`;
   const missions=n=>\`<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
@@ -9763,7 +9762,7 @@ function renderRapportPrevision(){
       \${big('<i class="ti ti-coin"></i>','Revenu net',fmt(P.netProjete))}
       \${big('<i class="ti ti-home"></i>','Salaire',fmt(salaireMois)+' /mois')}
       \${(patriSolde>0||patriMensuel>0)?big('<i class="ti ti-briefcase"></i>','Patrimoine',fmt(patriFin),misAnnee>0?'+ '+fmt(misAnnee)+' cette année':''):''}
-      \${liberte!=null?big('<i class="ti ti-flame"></i>','Liberté',liberte.toFixed(1).replace('.',',')+' mois','charges − aides, hors épargne · si tes aides continuent'):''}
+      \${liberte!=null?big('<i class="ti ti-flame"></i>','Liberté',liberte.toFixed(1).replace('.',',')+' mois','sans nouveau revenu'):''}
     </div>
   </div>\`;
 
@@ -10152,7 +10151,7 @@ function renderRentaProjet(){
   const chargesProjet=jours>0?Math.round(chargesEnt*12/joursAn*jours):0;
   const netEnt=Math.round(prix-urssaf-chargesProjet-st-frais);
   const revJour=jours>0?Math.round(prix/jours):0;
-  const moisVie=perso.besoinNet>0?(netEnt/perso.besoinNet):null; // charges + épargne − aides (un projet doit aussi financer ta capacité d'épargne)
+  const moisVie=perso.besoin>0?(netEnt/perso.besoin):null;
   const ratioTjm=(tjmReco>0&&jours>0)?revJour/tjmReco:1;
   const ecartPct=(tjmReco>0&&revJour>0)?Math.round((revJour/tjmReco-1)*100):null;
   const prixReco=jours>0?Math.round(tjmReco*jours):0;
@@ -10166,7 +10165,7 @@ function renderRentaProjet(){
 
   const line=(lab,val,neg,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;\${strong?'border-top:1px solid var(--border);margin-top:4px;':''}"><span style="font-size:14px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};\${neg?'color:#8d2b21;':''}">\${neg?'−'+fmt(val):fmt(val)}</span></div>\`;
   const finance=[];
-  if(perso.besoinNet>0&&moisVie!=null)finance.push('<i class="ti ti-circle-check"></i> '+(moisVie>=1?moisVie.toFixed(1).replace('.',',')+' mois de tes besoins (charges + épargne, aides déduites)':Math.round(moisVie*100)+'% d\\'un mois de besoins (charges + épargne, aides déduites)'));
+  if(perso.besoin>0&&moisVie!=null)finance.push('<i class="ti ti-circle-check"></i> '+(moisVie>=1?moisVie.toFixed(1).replace('.',',')+' mois de tes dépenses personnelles':Math.round(moisVie*100)+'% d\\'un mois de dépenses'));
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
     <div style="background:var(--navy);border-radius:18px;padding:24px 28px;color:#fff;">
