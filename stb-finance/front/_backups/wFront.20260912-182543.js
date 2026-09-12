@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=78" />
+  <link rel="stylesheet" href="/style.css?v=77" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v78 · lot1 ajustements depli/date/TVA build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v77 · lot1 hierarchie ecran du mois build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2623,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=78"></script>
+<script src="/app.js?v=77"></script>
 </body>
 </html>
 `;
@@ -5011,12 +5011,21 @@ function renderCockpit(){
   const facturesAll=dbGet('factures')||[];
   const yStr=String(y);
   const enAttente=facturesAll.filter(f=>f.statut!=='payee'&&((f.date||'')+'').startsWith(yStr)).reduce((s,f)=>s+(f.montant||0),0);
-  // Jours jusqu'au prochain versement de rémunération : le 5 de chaque mois (réglable via settings.jourVersement, défaut 5).
-  const jourVersement=parseInt(settings.jourVersement)||5;
-  const todayMid=new Date(y,now.getMonth(),now.getDate());
-  let dateVersement=new Date(y,now.getMonth(),jourVersement);
-  if(dateVersement<todayMid)dateVersement=new Date(y,now.getMonth()+1,jourVersement);
-  const joursVersement=Math.round((dateVersement-todayMid)/86400000);
+  // PROXY jours jusqu'au prochain versement : début du mois suivant (pas de date de paie configurée — emplacement prêt pour le lot perso).
+  const prochainCycle=new Date(y,m,1);
+  const joursVersement=Math.max(0,Math.ceil((prochainCycle-now)/86400000));
+
+  // helpers réutilisés dans le dépli
+  const pil=(icon,nm,v)=>\`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(242,229,194,.9);margin-top:8px;"><span style="width:96px;display:flex;align-items:center;gap:6px;"><i class="ti \${icon}"></i>\${nm}</span><span style="flex:1;height:6px;border-radius:4px;background:rgba(242,229,194,.16);overflow:hidden;"><i style="display:block;height:100%;border-radius:4px;width:\${v}%;background:\${pbar(v)};"></i></span></div>\`;
+  let prIdx=0;
+  const prow=(icon,nom,det,val,hl)=>{const b=prIdx++?'border-top:1px solid var(--border);':'';return \`<div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:15px;padding:17px 0;\${b}">
+    <span style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:\${hl?'var(--glycine)':'var(--surface-2)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}"></i></span>
+    <div><div style="font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--navy);line-height:1.15;">\${nom}</div>\${det?'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:2px;">'+det+'</div>':''}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${hl?'var(--bleu)':'var(--navy)'};justify-self:end;">\${fmt(val)}</div>
+  </div>\`;};
+  const grpLbl=t=>\`<div style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--terre-600);margin:0 0 18px 4px;">\${t}</div>\`;
+  const li=(lab,val,cls)=>\`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;font-size:14px;\${cls==='tot'?'border-top:1px solid var(--border);margin-top:3px;padding-top:11px;font-weight:700;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${cls==='tot'?'22px':'18px'};\${cls==='neg'?'color:var(--danger);':''}">\${val}</span></div>\`;
+  const stat=(k,v)=>\`<div><div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);margin-top:3px;">\${v}</div></div>\`;
 
   // ── ZONE 1 · où j'en suis (chiffre dominant) ──
   const zone1=\`<div class="dash-hero">
@@ -5060,46 +5069,7 @@ function renderCockpit(){
     \${metric('Réserve',moisCouv,'de charges couvertes')}
   </div>\`;
 
-  // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
-  //    (et ne relance computeMoney) qu'à la première ouverture, via l'événement toggle.
-  //    Aucun attribut open, aucune mémorisation d'état : fermé à chaque chargement.
-  const detail=\`<details class="dash-detail" ontoggle="renderDashDetail(this)">
-    <summary><i class="ti ti-adjustments-alt"></i> Score, plan, détail et prévisions <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
-    <div class="dash-detail-body" id="dash-detail-body"></div>
-  </details>\`;
-
-  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
-    \${zone1}
-    \${zone2}
-    \${zone3}
-    \${detail}
-    <div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>
-  </div>\`;
-}
-
-
-// Rendu paresseux du dépli du tableau de bord : appelé par l'événement toggle du <details>.
-// Ne construit rien (et ne rappelle computeMoney) tant que le dépli n'est pas ouvert ; une seule fois.
-function renderDashDetail(det){
-  if(!det||!det.open||det.dataset.loaded==='1')return;
-  const body=det.querySelector('.dash-detail-body'); if(!body)return;
-  let M; try{M=computeMoney();}catch(e){return;}
-  const d=M.intel||{};
-  const settings=dbGetObj('settings');
-  const now=new Date(); const y=now.getFullYear(), m=now.getMonth()+1;
-  const scoreLabel=M.score>=80?'Solide':M.score>=55?'Correct':'Fragile';
-  const pbar=v=>v>=70?'#8fbf7f':v>=45?'#d9a878':'#e0796e';
-  const pil=(icon,nm,v)=>\`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(242,229,194,.9);margin-top:8px;"><span style="width:96px;display:flex;align-items:center;gap:6px;"><i class="ti \${icon}"></i>\${nm}</span><span style="flex:1;height:6px;border-radius:4px;background:rgba(242,229,194,.16);overflow:hidden;"><i style="display:block;height:100%;border-radius:4px;width:\${v}%;background:\${pbar(v)};"></i></span></div>\`;
-  let prIdx=0;
-  const prow=(icon,nom,det2,val,hl)=>{const b=prIdx++?'border-top:1px solid var(--border);':'';return \`<div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:15px;padding:17px 0;\${b}">
-    <span style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:\${hl?'var(--glycine)':'var(--surface-2)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}"></i></span>
-    <div><div style="font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--navy);line-height:1.15;">\${nom}</div>\${det2?'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:2px;">'+det2+'</div>':''}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${hl?'var(--bleu)':'var(--navy)'};justify-self:end;">\${fmt(val)}</div>
-  </div>\`;};
-  const grpLbl=t=>\`<div style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--terre-600);margin:0 0 18px 4px;">\${t}</div>\`;
-  const li=(lab,val,cls)=>\`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;font-size:14px;\${cls==='tot'?'border-top:1px solid var(--border);margin-top:3px;padding-top:11px;font-weight:700;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${cls==='tot'?'22px':'18px'};\${cls==='neg'?'color:var(--danger);':''}">\${val}</span></div>\`;
-  const stat=(k,v)=>\`<div><div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);margin-top:3px;">\${v}</div></div>\`;
-
+  // ── DÉPLI · le détail du mois (blocs sortis de la hiérarchie principale) ──
   const scoreBlock=\`<div style="background:var(--navy);border-radius:20px;padding:26px 30px;color:#f2e7dd;display:flex;gap:30px;flex-wrap:wrap;align-items:center;">
     <div style="flex:none;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;line-height:.85;color:#fff;">\${M.score}<span style="font-family:'Inter Tight',sans-serif;font-style:normal;font-size:19px;color:#cabf95;font-weight:600;">/100</span></div><div style="font-size:12px;color:#cabf95;margin-top:2px;">Santé financière · \${scoreLabel}</div></div>
     <div style="flex:1;min-width:240px;">\${pil('ti-building','Trésorerie',M.pillars.treso)}\${pil('ti-shield','Réserves',M.pillars.reserve)}\${pil('ti-trending-up','Activité',M.pillars.activite)}\${pil('ti-heart','Perso',M.pillars.perso)}\${pil('ti-plant-2','Patrimoine',M.pillars.patri)}</div>
@@ -5159,8 +5129,18 @@ function renderDashDetail(det){
     </div>
   </div>\`;
 
-  body.innerHTML=scoreBlock+plan+pourquoi+activite;
-  det.dataset.loaded='1';
+  const detail=\`<details class="dash-detail">
+    <summary><i class="ti ti-adjustments-alt"></i> Voir le détail du mois <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
+    <div class="dash-detail-body">\${scoreBlock}\${plan}\${pourquoi}\${activite}</div>
+  </details>\`;
+
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
+    \${zone1}
+    \${zone2}
+    \${zone3}
+    \${detail}
+    <div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>
+  </div>\`;
 }
 
 function loadDashboard(){
@@ -9106,21 +9086,14 @@ function renderRapportAnnuel(){
       </table></div>
     </div>
     <div class="card"><div class="card-title">Évolution annuelle</div><div class="chart-wrap"><canvas id="chart-ra" height="200"></canvas></div></div>
-    \${(function(){var seuilTVA=37500;var cum=totCA;var reste=Math.max(0,seuilTVA-cum);
-      if(cum<seuilTVA*0.8){
-        // Sous 80 % : simple ligne de texte discrète en pied d'écran, ni barre ni couleur.
-        return \`<p style="text-align:center;font-size:12.5px;color:var(--text-2);margin-top:20px;">Franchise TVA — CA encaissé cumulé \${fmt(cum)} / \${fmt(seuilTVA)} · encore \${fmt(reste)} de marge, aucune action requise.</p>\`;
-      }
-      // À partir de 80 % : la barre et la mise en alerte apparaissent.
-      var pct=Math.min(100,Math.round(cum/seuilTVA*100));var col=cum>=seuilTVA?'var(--rouge)':'var(--ambre)';
-      return \`<div class="card" style="margin-top:16px;box-shadow:inset 0 0 0 1px \${col};">
-      <div class="card-title" style="color:\${col};"><i class="ti ti-receipt-tax"></i> Franchise en base de TVA — seuil approché</div>
+    \${(function(){var seuilTVA=37500;var cum=totCA;var pct=Math.min(100,Math.round(cum/seuilTVA*100));var reste=Math.max(0,seuilTVA-cum);var proche=cum>=seuilTVA*0.8;var col=cum>=seuilTVA?'var(--rouge)':proche?'var(--ambre)':'var(--vert)';return \`<div class="card" style="margin-top:16px;">
+      <div class="card-title"><i class="ti ti-receipt-tax"></i> Franchise en base de TVA</div>
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
         <span style="font-size:14px;color:var(--text-2);">CA encaissé cumulé \${annee}</span>
         <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(cum)} <span style="font-size:14px;color:var(--text-2);font-style:normal;">/ \${fmt(seuilTVA)}</span></span>
       </div>
       <div style="height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${col};border-radius:6px;"></div></div>
-      <p style="font-size:13px;color:\${col};margin-top:10px;">\${cum>=seuilTVA?'Seuil dépassé — la TVA devient applicable, pense à la facturer.':('Tu approches du seuil : il te reste '+fmt(reste)+' avant de devoir facturer la TVA.')}</p>
+      <p style="font-size:13px;color:var(--text-2);margin-top:10px;">\${cum>=seuilTVA?'Seuil dépassé — la TVA devient applicable, pense à la facturer.':proche?('Tu approches du seuil : il te reste '+fmt(reste)+' avant de devoir facturer la TVA.'):('Large marge : encore '+fmt(reste)+' avant le seuil. Aucune action requise cette année.')}</p>
     </div>\`;})()}\`;
   setTimeout(()=>{
     const c=q('#chart-ra');
