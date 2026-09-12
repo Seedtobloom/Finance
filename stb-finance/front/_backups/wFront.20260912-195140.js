@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=86" />
+  <link rel="stylesheet" href="/style.css?v=85" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v86 · budget perso ajustements (categories, colonnes sortie/entree, barres) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v85 · budget perso mise en forme (3 zones, reste dominant, 2 colonnes) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -295,12 +295,10 @@ const HTML = `<!DOCTYPE html>
 
       <div class="perso-zone-title"><i class="ti ti-pencil"></i> Mes données <span class="perso-zone-sub">ce que tu saisis</span></div>
       <div class="perso-grid">
-        <div class="perso-col">
-          <div id="perso-charges"></div>
-          <div id="perso-enveloppes"></div>
-        </div>
+        <div id="perso-charges"></div>
         <div class="perso-col">
           <div id="perso-revenus"></div>
+          <div id="perso-enveloppes"></div>
           <div id="perso-epargne"></div>
         </div>
       </div>
@@ -2696,7 +2694,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=86"></script>
+<script src="/app.js?v=85"></script>
 </body>
 </html>
 `;
@@ -6154,9 +6152,9 @@ function renderPersoResteAVivre(){
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin:1px 0 6px;">\${leg('#cabf95','Rémunération',R.remu)}\${R.revenusActifs>0?leg('#8fbf7f','Aides',R.revenusActifs):''}</div>
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.chargesFixes)}%;background:#b99a7d;"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:#d8b9a2;"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:var(--glycine);"></div>
+        <div style="width:\${pw(R.chargesFixes)}%;background:#e0796e;"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:#d9a878;"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:var(--glycine);"></div>
       </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:1px;">\${leg('#b99a7d','Charges',R.chargesFixes)}\${R.envAlloue>0?leg('#d8b9a2','Enveloppes',R.envAlloue):''}\${leg('var(--glycine)','Reste à vivre',resteBar)}</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:1px;">\${leg('#e0796e','Charges',R.chargesFixes)}\${R.envAlloue>0?leg('#d9a878','Enveloppes',R.envAlloue):''}\${leg('var(--glycine)','Reste à vivre',resteBar)}</div>
     </div>
   </div>\`;
 }
@@ -6176,14 +6174,14 @@ function renderPersoEnveloppes(){
           <button onclick="deleteEnveloppe('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--ambre);"><i class="ti ti-trash"></i></button>
         </span>
       </div>
-      <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'#b99a7d'};border-radius:5px;"></div></div>
+      <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'var(--ambre)'};border-radius:5px;"></div></div>
     </div>\`;
   }).join('');
   const totAl=env.reduce((a,e)=>a+(parseFloat(e.alloue)||0),0);
   el.innerHTML=\`<div class="perso-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-600);display:grid;place-items:center;flex:none;"><i class="ti ti-wallet"></i></span> Enveloppes variables</div>
-      <span class="perso-num-2" style="color:var(--terre-400);">\${fmt(Math.round(totAl*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--ambre-bg);color:var(--ambre);display:grid;place-items:center;flex:none;"><i class="ti ti-wallet"></i></span> Enveloppes variables</div>
+      <span class="perso-num-2" style="color:var(--ambre);">−\${fmt(Math.round(totAl*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 2px;">Consommé / alloué. Saisis-le une fois par mois.</p>
     \${rows}
@@ -6634,39 +6632,43 @@ function renderPersoCharges(ctx){
   const el=q('#perso-charges'); if(!el)return;
   const charges=ctx.charges||[];
   if(!charges.length){el.innerHTML=\`<div class="perso-card" style="text-align:center;color:var(--text-2);">
-    <div style="font-size:32px;color:var(--terre-400);"><i class="ti ti-receipt-2"></i></div>
+    <div style="font-size:32px;color:var(--ambre);"><i class="ti ti-receipt-2"></i></div>
     <div style="font-size:15px;margin:8px 0;">Renseigne tes dépenses perso : loyer, courses, abonnements…</div>
     <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter ma première dépense</button>
   </div>\`;return;}
   const actifs=charges.filter(c=>c.actif!==false);
   const totalMensuel=actifs.reduce((s,c)=>s+chargeMensuel(c),0);
   const perLab={mensuelle:'',bimestrielle:'bimestriel',trimestrielle:'trimestriel',annuelle:'annuel'};
+  // Regroupe par catégorie d'affichage (inférée depuis le libellé)
   const groups={};
   charges.forEach(ch=>{const cat=persoChargeCat(ch);(groups[cat]=groups[cat]||[]).push(ch);});
   const catTotal=cat=>groups[cat].filter(c=>c.actif!==false).reduce((s,c)=>s+chargeMensuel(c),0);
   const order=Object.keys(groups).sort((a,b)=>catTotal(b)-catTotal(a));
-  const meta=it=>{const per=it.periodicite||'mensuelle';return (per!=='mensuelle'?\` <span style="font-size:11.5px;color:var(--text-2);">· \${fmt(parseFloat(it.montant)||0)} \${perLab[per]}</span>\`:'')+(it.compte==='pro'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">prélevé pro</span>':'');};
-  const right=it=>{const men=Math.round(chargeMensuel(it)*100)/100;return \`<span style="display:flex;align-items:center;gap:9px;flex:none;"><span class="perso-num-2" style="color:var(--terre-400);">\${fmt(men)}</span><button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button><button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button></span>\`;};
   const body=order.map(cat=>{
     const m=persoCatMeta(cat);
-    const items=groups[cat].slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a));
-    const pastille=\`<span style="width:30px;height:30px;border-radius:9px;background:\${m.bg};color:\${m.col};display:grid;place-items:center;flex:none;"><i class="ti \${m.icon}"></i></span>\`;
-    if(items.length>=2){
-      const header=\`<div style="display:flex;align-items:center;gap:10px;padding:12px 0 4px;border-top:1px solid var(--line);">
-        \${pastille}<span style="font-size:13.5px;font-weight:700;color:var(--navy);">\${m.lab}</span>
-        <span class="perso-num-2" style="margin-left:auto;color:var(--terre-600);font-size:19px;">\${fmt(Math.round(catTotal(cat)*100)/100)}</span></div>\`;
-      const lines=items.map(it=>{const inactif=it.actif===false;return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0 8px 42px;\${inactif?'opacity:.5;':''}">
-        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${meta(it)}</span>\${right(it)}</div>\`;}).join('');
-      return header+lines;
-    }
-    const it=items[0]; const inactif=it.actif===false;
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
-      <span style="display:flex;align-items:center;gap:10px;min-width:0;">\${pastille}<span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${meta(it)}</span></span>\${right(it)}</div>\`;
+    const lines=groups[cat].slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a)).map(it=>{
+      const men=Math.round(chargeMensuel(it)*100)/100; const per=it.periodicite||'mensuelle'; const inactif=it.actif===false;
+      return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0 9px 42px;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
+        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${per!=='mensuelle'?\` <span style="font-size:11.5px;color:var(--text-2);">· \${fmt(parseFloat(it.montant)||0)} \${perLab[per]}</span>\`:''}\${it.compte==='pro'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">prélevé pro</span>':''}</span>
+        <span style="display:flex;align-items:center;gap:9px;flex:none;">
+          <span class="perso-num-2" style="color:var(--ambre);">\${fmt(men)}</span>
+          <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
+          <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
+        </span>
+      </div>\`;
+    }).join('');
+    return \`<div style="margin-top:6px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0 4px;">
+        <span style="width:30px;height:30px;border-radius:9px;background:\${m.bg};color:\${m.col};display:grid;place-items:center;flex:none;"><i class="ti \${m.icon}"></i></span>
+        <span style="font-size:13.5px;font-weight:700;color:var(--navy);">\${m.lab}</span>
+        <span class="perso-num-2" style="margin-left:auto;color:var(--terre-600);font-size:19px;">\${fmt(Math.round(catTotal(cat)*100)/100)}</span>
+      </div>\${lines}
+    </div>\`;
   }).join('');
   el.innerHTML=\`<div class="perso-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-600);display:grid;place-items:center;flex:none;"><i class="ti ti-receipt-2"></i></span> Charges fixes perso</div>
-      <span class="perso-num-2" style="color:var(--terre-600);font-size:26px;">\${fmt(Math.round(totalMensuel*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--ambre-bg);color:var(--ambre);display:grid;place-items:center;flex:none;"><i class="ti ti-receipt-2"></i></span> Charges fixes perso</div>
+      <span class="perso-num-2" style="color:var(--ambre);font-size:26px;">−\${fmt(Math.round(totalMensuel*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
     \${body}
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><button class="btn btn-outline btn-sm" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une charge</button><span style="font-size:12px;color:var(--text-2);">Périodicités ramenées au mois. « Prélevé pro » (impôt) = charge perso.</span></div>
