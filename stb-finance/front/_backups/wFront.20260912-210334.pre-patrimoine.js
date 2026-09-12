@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=91" />
+  <link rel="stylesheet" href="/style.css?v=90" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v91 · patrimoine : chiffre unique + treso hors patrimoine + liberte nette d'aides build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v90 · budget perso colonnes rebalancees build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=91"></script>
+<script src="/app.js?v=90"></script>
 </body>
 </html>
 `;
@@ -6001,8 +6001,7 @@ function computeMoney(){
   var patriPerso=P.epargneSolde||0;
   var tresoPro=soldeReel;
   var patriTotal=Math.round((patriPerso+tresoPro)*100)/100;
-  var besoinReel=Math.max(0,Math.round((besoinMin-autresRevenus)*100)/100); // vrai besoin de vie = charges − aides
-  var moisLiberte=besoinReel>0?Math.round(patriPerso/besoinReel*10)/10:null; // PERSO, net des aides
+  var moisLiberte=depensesPerso>0?Math.round(patriPerso/depensesPerso*10)/10:null; // PERSO uniquement
   var moisCouverts=chargesFixes>0?Math.round(dispoEntreprise/chargesFixes*10)/10:null;
 
   // ── SCORE : 5 piliers ──
@@ -6024,7 +6023,7 @@ function computeMoney(){
     soldeReel:soldeReel,reserveUrssaf:reserveUrssaf,chargesFixes:chargesFixes,dispoEntreprise:dispoEntreprise,
     reserveSecu:reserveSecu,maxPonctuel:maxPonctuel,soutenable:soutenable,versement:versement,tresoRestante:tresoRestante,
     revenusPersoTotal:revenusPersoTotal,argentLibre:argentLibre,
-    patriPerso:patriPerso,tresoPro:tresoPro,patriTotal:patriTotal,besoinReel:besoinReel,moisLiberte:moisLiberte,moisCouverts:moisCouverts,
+    patriPerso:patriPerso,tresoPro:tresoPro,patriTotal:patriTotal,moisLiberte:moisLiberte,moisCouverts:moisCouverts,
     score:score,pillars:{treso:pTreso,reserve:pReserve,activite:pActivite,perso:pPerso,patri:pPatri},
     verdict:verdict,vLevel:vLevel,intel:I,perso:P
   };
@@ -6337,6 +6336,9 @@ function renderPatrimoine(){
   const totalMensuel=items.reduce((a,e)=>a+(parseFloat(e.montant)||0),0);
   const now=new Date(); const m=now.getMonth()+1;
   const misCetteAnnee=Math.round(totalMensuel*m);
+  let besoin=0; try{besoin=computePerso().besoin;}catch(e){}
+  const moisLib=besoin>0?(totalSolde/besoin):null;
+
   let chart='';
   if(totalSolde>0||totalMensuel>0){
     const base=Math.max(0,totalSolde-totalMensuel*m);
@@ -6367,9 +6369,10 @@ function renderPatrimoine(){
       \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;margin-top:4px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:''}
       \${chart}
       <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
+        <div><div style="font-size:12px;opacity:.6;"><i class="ti ti-briefcase"></i> Patrimoine total</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.patriTotal!=null?M.patriTotal:totalSolde)}</div><div style="font-size:11.5px;opacity:.6;">perso + trésorerie pro</div></div>
+        <div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie pro</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">séparée de ton patrimoine</div></div>
         \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-coins"></i> Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} / an</div></div>\`:''}
-        \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de besoin réel couvert (charges − aides)</div></div>\`:''}
-        \${(M.tresoPro||0)>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie d'entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">hors patrimoine — provisionnée pour charges &amp; URSSAF</div></div>\`:''}
+        \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de tes dépenses couvertes</div></div>\`:''}
       </div>
     </div>\`;
   }
