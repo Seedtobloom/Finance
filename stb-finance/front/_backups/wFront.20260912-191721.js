@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=81" />
+  <link rel="stylesheet" href="/style.css?v=80" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v81 · computePerso mensualise (fin double chiffre) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v80 · lot3 remuneration fixe et circuit perso build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2685,7 +2685,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=81"></script>
+<script src="/app.js?v=80"></script>
 </body>
 </html>
 `;
@@ -5778,8 +5778,7 @@ function computePerso(){
   const byId={}; cats.forEach(c=>byId[c.id]=c);
   let fixe=0,variable=0;
   charges.forEach(ch=>{
-    if(ch.actif===false)return;                 // charge inactive : jamais comptée
-    const mt=chargeMensuel(ch);                  // montant MENSUALISÉ selon la périodicité (ex. 80 € bimestriel → 40)
+    const mt=parseFloat(ch.montant)||0;
     const c=byId[ch.cat]||byId.quotidien;
     c.items.push(ch); c.total+=mt;
     if(ch.type==='variable')variable+=mt; else fixe+=mt;
