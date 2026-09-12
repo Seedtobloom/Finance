@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=80" />
+  <link rel="stylesheet" href="/style.css?v=79" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v80 · lot3 remuneration fixe et circuit perso build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v79 · lot2 carte declaration CAF build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -290,13 +290,11 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
       <div id="perso-hero" style="margin-bottom:18px;"></div>
-      <div id="perso-reste-a-vivre" style="margin-bottom:18px;"></div>
       <div id="perso-reste" style="margin-bottom:18px;"></div>
       <div id="perso-bridge" style="margin-bottom:18px;"></div>
       <div id="perso-revenus" style="margin-bottom:18px;"></div>
-      <div id="perso-charges" style="margin-bottom:18px;"></div>
-      <div id="perso-enveloppes" style="margin-bottom:18px;"></div>
       <div id="perso-epargne" style="margin-bottom:18px;"></div>
+      <div id="perso-charges" style="margin-bottom:18px;"></div>
       <div id="perso-simulateur"></div>
     </section>
 
@@ -337,52 +335,23 @@ const HTML = `<!DOCTYPE html>
             <label class="form-label">Catégorie</label>
             <select class="form-control" id="perso-charge-cat">
               <option value="logement">Logement</option>
-              <option value="alimentation">Alimentation</option>
-              <option value="énergie">Énergie</option>
-              <option value="santé">Santé</option>
-              <option value="télécom">Télécom</option>
-              <option value="abonnements">Abonnements</option>
-              <option value="impôts">Impôts</option>
-              <option value="banque">Banque</option>
               <option value="transport">Transport</option>
               <option value="quotidien">Vie quotidienne</option>
               <option value="famille">Famille</option>
               <option value="loisirs">Loisirs</option>
             </select>
           </div>
-          <div style="display:flex;gap:12px;">
-            <div style="flex:1;">
-              <label class="form-label">Montant (€)</label>
-              <input class="form-control" type="number" id="perso-charge-montant" min="0" step="1" placeholder="Ex: 80">
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Périodicité</label>
-              <select class="form-control" id="perso-charge-periodicite">
-                <option value="mensuelle">Mensuelle</option>
-                <option value="bimestrielle">Bimestrielle (tous les 2 mois)</option>
-                <option value="trimestrielle">Trimestrielle</option>
-                <option value="annuelle">Annuelle</option>
-              </select>
-            </div>
+          <div>
+            <label class="form-label">Montant mensuel (€)</label>
+            <input class="form-control" type="number" id="perso-charge-montant" min="0" step="5" placeholder="Ex: 980">
           </div>
-          <div id="perso-charge-mensuel-hint" style="font-size:12.5px;color:var(--text-2);margin-top:-8px;"></div>
-          <div style="display:flex;gap:12px;">
-            <div style="flex:1;">
-              <label class="form-label">Type</label>
-              <select class="form-control" id="perso-charge-type">
-                <option value="fixe">Fixe</option>
-                <option value="variable">Variable</option>
-              </select>
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Prélevé sur</label>
-              <select class="form-control" id="perso-charge-compte">
-                <option value="perso">Compte perso</option>
-                <option value="pro">Compte pro</option>
-              </select>
-            </div>
+          <div>
+            <label class="form-label">Type</label>
+            <select class="form-control" id="perso-charge-type">
+              <option value="fixe">Fixe (tous les mois pareil)</option>
+              <option value="variable">Variable (fluctue)</option>
+            </select>
           </div>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" id="perso-charge-actif" checked> Charge active</label>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-perso-charge').style.display='none'">Annuler</button>
             <button class="btn btn-primary" onclick="savePersoCharge()"><i class="ti ti-check"></i> Enregistrer</button>
@@ -450,29 +419,12 @@ const HTML = `<!DOCTYPE html>
           <input type="hidden" id="perso-revenu-id">
           <div>
             <label class="form-label">Intitulé</label>
-            <input class="form-control" type="text" id="perso-revenu-nom" placeholder="Ex: Prime d'activité, Aide au logement…">
+            <input class="form-control" type="text" id="perso-revenu-nom" placeholder="Ex: CAF, Prime d'activité, Pension…">
+            <div style="font-size:12px;color:var(--text-2);margin-top:4px;">Un revenu qui rentre chaque mois en dehors de ton entreprise.</div>
           </div>
-          <div style="display:flex;gap:12px;">
-            <div style="flex:1;">
-              <label class="form-label">Type</label>
-              <select class="form-control" id="perso-revenu-type">
-                <option value="variable">Variable (recalculé, ex. CAF)</option>
-                <option value="fixe">Fixe</option>
-              </select>
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Source</label>
-              <input class="form-control" type="text" id="perso-revenu-source" placeholder="Ex: CAF">
-            </div>
-          </div>
-          <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;"><input type="checkbox" id="perso-revenu-actif" checked> Revenu actif</label>
-          <div style="border-top:1px solid var(--border);padding-top:14px;">
-            <label class="form-label">Montant à compter de</label>
-            <div style="display:flex;gap:12px;">
-              <input class="form-control" type="month" id="perso-revenu-ym" style="flex:1;">
-              <input class="form-control" type="number" id="perso-revenu-montant" min="0" step="1" placeholder="€" style="flex:1;">
-            </div>
-            <div style="font-size:12px;color:var(--text-2);margin-top:6px;">Ces aides changent à chaque déclaration. Saisis le nouveau montant à partir du mois où il s'applique — l'historique précédent est conservé.</div>
+          <div>
+            <label class="form-label">Montant mensuel (€)</label>
+            <input class="form-control" type="number" id="perso-revenu-montant" min="0" step="10" placeholder="Ex: 350">
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-perso-revenu').style.display='none'">Annuler</button>
@@ -1929,20 +1881,6 @@ const HTML = `<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Rémunération (lot 3) -->
-        <div class="card">
-          <div class="card-title"><i class="ti ti-wallet"></i> Ma rémunération</div>
-          <p style="font-size:14px;color:var(--text-2);margin:0 0 12px;">Le montant fixe que tu te verses chaque mois, et le jour du versement. Ce montant remplace le versement soutenable comme rémunération réelle.</p>
-          <div class="form-group">
-            <label class="form-label">Rémunération fixe mensuelle (€)</label>
-            <input type="number" id="opt-remu-fixe" class="form-input" value="850" min="0" step="10" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Jour du versement (1–28)</label>
-            <input type="number" id="opt-jour-versement" class="form-input" value="5" min="1" max="28" step="1" />
-          </div>
-        </div>
-
         <!-- Charges fixes -->
         <div class="card">
           <div class="card-title"><i class="ti ti-repeat"></i> Charges fixes mensuelles</div>
@@ -2685,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=80"></script>
+<script src="/app.js?v=79"></script>
 </body>
 </html>
 `;
@@ -5081,20 +5019,13 @@ function renderCockpit(){
   const joursVersement=Math.round((dateVersement-todayMid)/86400000);
 
   // ── ZONE 1 · où j'en suis (chiffre dominant) ──
-  const R=(function(){try{return computeResteAVivre();}catch(e){return null;}})();
-  const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   const zone1=\`<div class="dash-hero">
     <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
     <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin:12px 0 20px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
-    <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
-    <div class="dash-hero-num">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
-    <div style="font-size:15px;color:#f2e7dd;margin-top:8px;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
-    \${R?\`<div style="font-size:13px;color:#cabf95;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);">Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}</div>\`:''}
+    <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Rémunération disponible ce mois</div>
+    <div class="dash-hero-num">\${fmt(M.versement)}</div>
+    <div style="font-size:14px;color:#cabf95;margin-top:10px;">Prochain versement dans <strong style="color:#f2e7dd;">\${joursVersement} j</strong> &nbsp;·&nbsp; besoin pour vivre \${fmt(M.besoinMin)} &nbsp;·&nbsp; argent libre \${fmt(M.argentLibre)}</div>
   </div>\`;
-  const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
-    <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
-    <div style="flex:1;font-size:15px;color:var(--navy);"><strong>Réserve de lissage : \${L.mois} mois</strong> de rémunération couverts.\${L.depasse?\` Ta rémunération fixe (\${fmt(L.remu)}) dépasse le versement soutenable ce mois (\${fmt(L.soutenable)}) — la différence est absorbée par cette réserve.\`:' Ta rémunération fixe tient sur ton activité actuelle.'}</div>
-  </div>\`:'';
 
   // ── ZONE 2 · ce qu'il me reste à faire ──
   const urssafObj=dbGetObj('urssaf');
@@ -5139,7 +5070,6 @@ function renderCockpit(){
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
     \${zone1}
-    \${lissage}
     \${zone2}
     \${zone3}
     \${detail}
@@ -5811,114 +5741,6 @@ function computePerso(){
   return {settings,charges,cats,fixe,variable,besoin,epargne,epargneMensuel,epargneSolde,revenus,revenusPerso,besoinNet,confort,objectif,revenuMoyen,capacite,salaireConseille,chargesProMensuel,caRequis,resteAVivre,disponible,soldeReel,tauxU,tauxC};
 }
 
-/* ═══ LOT 3 — Rémunération fixe & circuit perso (moteur dérivé, lecture seule sur le pro) ═══ */
-const PERSO_PERIODICITES=[
-  {id:'mensuelle',lab:'Mensuelle',div:1},
-  {id:'bimestrielle',lab:'Bimestrielle',div:2},
-  {id:'trimestrielle',lab:'Trimestrielle',div:3},
-  {id:'annuelle',lab:'Annuelle',div:12},
-];
-function chargePeriodDiv(p){var f=PERSO_PERIODICITES.find(function(x){return x.id===p;});return f?f.div:1;}
-function chargeMensuel(ch){var m=parseFloat(ch.montant)||0;return m/chargePeriodDiv(ch.periodicite||'mensuelle');}
-function persoCurYm(){var n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');}
-// Revenu perso : montant EN VIGUEUR pour un mois donné, à partir de l'historique daté.
-function revenuMontantEnVigueur(r,ym){
-  ym=ym||persoCurYm();
-  var hist=Array.isArray(r.history)?r.history.slice():[];
-  if(!hist.length)return parseFloat(r.montant)||0; // compat ancien format sans historique
-  hist=hist.filter(function(h){return h&&h.ym&&h.ym<=ym;}).sort(function(a,b){return a.ym.localeCompare(b.ym);});
-  if(!hist.length)return 0; // aucun montant encore en vigueur ce mois-là
-  return parseFloat(hist[hist.length-1].montant)||0;
-}
-function revenuDerniereMajYm(r){
-  var hist=Array.isArray(r.history)?r.history.filter(function(h){return h&&h.ym;}):[];
-  if(!hist.length)return null;
-  hist.sort(function(a,b){return a.ym.localeCompare(b.ym);});
-  return hist[hist.length-1].ym;
-}
-// Nombre de mois entre deux 'YYYY-MM'
-function ymDiffMonths(a,b){var pa=a.split('-'),pb=b.split('-');return (parseInt(pb[0])-parseInt(pa[0]))*12+(parseInt(pb[1])-parseInt(pa[1]));}
-// Reste à vivre — 4 étages : revenus (rému fixe + aides en vigueur) − charges fixes mensualisées − enveloppes.
-function computeResteAVivre(ym){
-  ym=ym||persoCurYm();
-  var s=dbGetObj('settings');
-  var remu=parseFloat(s.remunerationFixe); if(isNaN(remu))remu=850;
-  var revenus=Array.isArray(s.persoRevenus)?s.persoRevenus:[];
-  var revenusActifs=revenus.filter(function(r){return r.actif!==false;}).reduce(function(sum,r){return sum+revenuMontantEnVigueur(r,ym);},0);
-  var charges=Array.isArray(s.persoCharges)?s.persoCharges:[];
-  var chargesFixes=charges.filter(function(c){return c.actif!==false;}).reduce(function(sum,c){return sum+chargeMensuel(c);},0);
-  var env=Array.isArray(s.enveloppes)?s.enveloppes:[];
-  var envAlloue=env.reduce(function(sum,e){return sum+(parseFloat(e.alloue)||0);},0);
-  var envConsomme=env.reduce(function(sum,e){return sum+(parseFloat(e.consomme)||0);},0);
-  var revenusMois=Math.round((remu+revenusActifs)*100)/100;
-  var resteMois=Math.round((revenusMois-chargesFixes-envAlloue)*100)/100;
-  var jv=parseInt(s.jourVersement)||5;
-  var now=new Date();var todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var dv=new Date(now.getFullYear(),now.getMonth(),jv); if(dv<todayMid)dv=new Date(now.getFullYear(),now.getMonth()+1,jv);
-  var joursRestants=Math.max(1,Math.round((dv-todayMid)/86400000));
-  var resteJour=Math.round(resteMois/joursRestants);
-  return {remu:remu,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
-    envAlloue:Math.round(envAlloue*100)/100,envConsomme:Math.round(envConsomme*100)/100,
-    revenusMois:revenusMois,resteMois:resteMois,joursRestants:joursRestants,resteJour:resteJour,jourVersement:jv};
-}
-// Réserve de LISSAGE (distincte de la réserve 3 mois) : trésorerie pro disponible au-dessus de la réserve
-// de sécurité (M.maxPonctuel), lue seulement. Combien de mois de rémunération fixe elle peut couvrir.
-function reserveLissage(){
-  var remu=parseFloat(dbGetObj('settings').remunerationFixe); if(isNaN(remu))remu=850;
-  var base=0,soutenable=0;
-  try{var M=computeMoney();base=Math.max(0,M.maxPonctuel||0);soutenable=M.versement||0;}catch(e){}
-  var mois=remu>0?Math.floor(base/remu):0;
-  return {base:Math.round(base),mois:mois,remu:remu,soutenable:soutenable,depasse:remu>soutenable};
-}
-// Initialisation LOT 3 — une seule fois (flag lot3Init), sans jamais écraser des données existantes.
-async function initLot3(){
-  try{
-    var s=dbGetObj('settings');
-    if(s.lot3Init)return;
-    var changed=false;
-    if(s.remunerationFixe==null){s.remunerationFixe=850;changed=true;}
-    if(s.jourVersement==null){s.jourVersement=5;changed=true;}
-    if(!Array.isArray(s.persoCharges)||!s.persoCharges.length){
-      s.persoCharges=[
-        {id:'pc_courses',nom:'Courses',montant:280,periodicite:'mensuelle',cat:'alimentation',compte:'perso',actif:true,type:'variable'},
-        {id:'pc_loyer',nom:'Loyer',montant:150,periodicite:'mensuelle',cat:'logement',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_edf',nom:'EDF',montant:80,periodicite:'bimestrielle',cat:'énergie',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_mutuelle',nom:'Mutuelle',montant:38.99,periodicite:'mensuelle',cat:'santé',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_ir',nom:'Impôt sur le revenu',montant:40,periodicite:'mensuelle',cat:'impôts',compte:'pro',actif:true,type:'fixe'},
-        {id:'pc_internet',nom:'Internet',montant:24.99,periodicite:'mensuelle',cat:'télécom',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_netflix',nom:'Netflix',montant:14.99,periodicite:'mensuelle',cat:'abonnements',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_telephone',nom:'Téléphone',montant:9.99,periodicite:'mensuelle',cat:'télécom',compte:'perso',actif:true,type:'fixe'},
-        {id:'pc_cac',nom:'Compte à composer',montant:2.75,periodicite:'mensuelle',cat:'banque',compte:'perso',actif:true,type:'fixe'}
-      ];
-      changed=true;
-    }
-    var ym=persoCurYm();
-    if(!Array.isArray(s.persoRevenus)||!s.persoRevenus.length){
-      s.persoRevenus=[
-        {id:'pr_prime',nom:"Prime d'activité",type:'variable',source:'CAF',actif:true,montant:397,history:[{ym:ym,montant:397}]},
-        {id:'pr_apl',nom:'Aide au logement',type:'variable',source:'CAF',actif:true,montant:49,history:[{ym:ym,montant:49}]}
-      ];
-      changed=true;
-    } else {
-      s.persoRevenus.forEach(function(r){
-        if(!Array.isArray(r.history)||!r.history.length){r.history=[{ym:ym,montant:parseFloat(r.montant)||0}];changed=true;}
-        if(r.actif==null){r.actif=true;changed=true;}
-        if(r.type==null){r.type='variable';changed=true;}
-      });
-    }
-    if(!Array.isArray(s.enveloppes)){
-      s.enveloppes=[
-        {id:'env_ali',cat:'Alimentation',alloue:0,consomme:0},
-        {id:'env_loisirs',cat:'Loisirs & sorties',alloue:0,consomme:0},
-        {id:'env_imprevus',cat:'Imprévus',alloue:0,consomme:0}
-      ];
-      changed=true;
-    }
-    s.lot3Init=true;
-    _cache.settings=await api('PUT','/api/settings',s);
-  }catch(e){}
-}
-
 /* ═══════════════════════════════════════════════════════════════════
    MOTEUR FINANCIER UNIQUE — une seule vérité, vocabulaire strict.
    3 poches jamais mélangées : entreprise / personnel / patrimoine.
@@ -6065,95 +5887,15 @@ function loadReserve(){
   </div>\`;
 }
 
-function renderPersoResteAVivre(){
-  const el=q('#perso-reste-a-vivre'); if(!el)return;
-  let R; try{R=computeResteAVivre();}catch(e){el.innerHTML='';return;}
-  const step=(lab,val,sign,col)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:14.5px;"><span style="color:var(--text-2);">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:\${col||'var(--navy)'};">\${sign||''}\${fmt(val)}</span></div>\`;
-  el.innerHTML=\`<div class="card" style="padding:24px 26px;">
-    <div class="dash-sec-title" style="font-size:14px;"><i class="ti ti-cash"></i> Mon reste à vivre</div>
-    \${step('Rémunération fixe',R.remu)}
-    \${step('+ Aides & revenus perso (en vigueur)',R.revenusActifs,'+','#456039')}
-    \${step('− Charges fixes perso (mensualisées)',R.chargesFixes,'−','var(--danger)')}
-    \${R.envAlloue>0?step('− Enveloppes de dépenses variables',R.envAlloue,'−','var(--danger)'):''}
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:16px;flex-wrap:wrap;">
-      <div><div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;">Reste à vivre du mois</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;color:var(--navy);line-height:1.05;">\${fmt(R.resteMois)}</div></div>
-      <div style="text-align:right;"><div style="font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;">Par jour · \${R.joursRestants} j restants</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;color:var(--bleu);line-height:1.05;">\${fmt(R.resteJour)}</div></div>
-    </div>
-    <p style="font-size:12px;color:var(--text-2);margin-top:12px;">« Par jour » = reste à vivre du mois ÷ jours jusqu'au prochain versement (le \${R.jourVersement} du mois). C'est ton budget quotidien pour décider « est-ce que je peux acheter ça maintenant ».</p>
-  </div>\`;
-}
-function renderPersoEnveloppes(){
-  const el=q('#perso-enveloppes'); if(!el)return;
-  const s=dbGetObj('settings');
-  const env=Array.isArray(s.enveloppes)?s.enveloppes:[];
-  const rows=env.map(e=>{
-    const al=parseFloat(e.alloue)||0, co=parseFloat(e.consomme)||0;
-    const pct=al>0?Math.min(100,Math.round(co/al*100)):0; const over=co>al&&al>0;
-    return \`<div style="padding:12px 0;border-top:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-        <input value="\${escHtml(e.cat||'')}" onblur="saveEnveloppeField('\${e.id}','cat',this.value)" style="border:none;background:none;font-size:14.5px;font-weight:600;color:var(--navy);outline:none;flex:1;min-width:120px;">
-        <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);">
-          <input type="number" min="0" step="10" value="\${co}" onchange="saveEnveloppeField('\${e.id}','consomme',this.value)" style="width:74px;padding:5px 7px;border:1px solid var(--border);border-radius:7px;font-size:14px;text-align:right;"> /
-          <input type="number" min="0" step="10" value="\${al}" onchange="saveEnveloppeField('\${e.id}','alloue',this.value)" style="width:74px;padding:5px 7px;border:1px solid var(--border);border-radius:7px;font-size:14px;text-align:right;"> €
-          <button onclick="deleteEnveloppe('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;"><i class="ti ti-trash"></i></button>
-        </span>
-      </div>
-      <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'var(--vert)'};border-radius:5px;"></div></div>
-    </div>\`;
-  }).join('');
-  const totAl=env.reduce((a,e)=>a+(parseFloat(e.alloue)||0),0);
-  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
-      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-wallet"></i> Enveloppes de dépenses variables</div>
-      <span style="font-size:13px;color:var(--text-2);">Alloué : <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(Math.round(totAl*100)/100)}</strong> /mois</span>
-    </div>
-    <p style="font-size:12.5px;color:var(--text-2);margin:0 0 4px;">Consommé / alloué, par catégorie. Saisis-le une fois par mois, pas ligne par ligne.</p>
-    \${rows}
-    <div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="addEnveloppe()"><i class="ti ti-plus"></i> Ajouter une enveloppe</button></div>
-  </div>\`;
-}
-async function saveEnveloppeField(id,field,val){
-  try{
-    const s=dbGetObj('settings');
-    const env=Array.isArray(s.enveloppes)?s.enveloppes.slice():[];
-    const i=env.findIndex(e=>e.id===id); if(i<0)return;
-    if(field==='cat')env[i]={...env[i],cat:(''+val).trim()};
-    else{const o={...env[i]};o[field]=Math.max(0,parseFloat(val)||0);env[i]=o;}
-    s.enveloppes=env;
-    _cache.settings=await api('PUT','/api/settings',s);
-    renderPersoResteAVivre();renderPersoEnveloppes();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-async function addEnveloppe(){
-  try{
-    const s=dbGetObj('settings');
-    const env=Array.isArray(s.enveloppes)?s.enveloppes.slice():[];
-    env.push({id:'env_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),cat:'Nouvelle enveloppe',alloue:0,consomme:0});
-    s.enveloppes=env;
-    _cache.settings=await api('PUT','/api/settings',s);
-    renderPersoEnveloppes();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-async function deleteEnveloppe(id){
-  try{
-    const s=dbGetObj('settings');
-    s.enveloppes=(Array.isArray(s.enveloppes)?s.enveloppes:[]).filter(e=>e.id!==id);
-    _cache.settings=await api('PUT','/api/settings',s);
-    renderPersoResteAVivre();renderPersoEnveloppes();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-
 function loadBudgetPerso(){renderBudgetPerso();}
 function renderBudgetPerso(){
   const ctx=computePerso();
   renderPersoHero(ctx);
-  try{renderPersoResteAVivre();}catch(e){}
   renderPersoReste(ctx);
   renderPersoBridge(ctx);
   renderPersoRevenus(ctx);
-  renderPersoCharges(ctx);
-  try{renderPersoEnveloppes();}catch(e){}
   renderPersoEpargne(ctx);
+  renderPersoCharges(ctx);
   renderPersoSimulateur(ctx);
 }
 
@@ -6471,91 +6213,50 @@ async function deletePersoEpargne(id){
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
-function moisLongYm(ym){var p=(''+ym).split('-');var i=parseInt(p[1])-1;return (MOIS_LONG[i]||'').toLowerCase()+' '+p[0];}
 function renderPersoRevenus(ctx){
   const el=q('#perso-revenus'); if(!el)return;
-  const revenus=ctx.revenus||[];
-  const cur=persoCurYm();
-  const totalActif=revenus.filter(r=>r.actif!==false).reduce((s,r)=>s+revenuMontantEnVigueur(r,cur),0);
-  const rows=revenus.map(r=>{
-    const enVig=revenuMontantEnVigueur(r,cur);
-    const maj=revenuDerniereMajYm(r);
-    const stale=maj?ymDiffMonths(maj,cur)>3:false;
-    const inactif=r.actif===false;
-    return \`<div style="padding:11px 0;border-top:1px solid var(--border);\${inactif?'opacity:.5;':''}">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <span style="min-width:0;"><span style="font-size:14.5px;font-weight:600;color:var(--navy);"><i class="ti ti-heart-handshake" style="color:var(--terre-400);"></i> \${escHtml(r.nom||'—')}</span>\${r.source?\` <span style="font-size:12px;color:var(--text-2);">· \${escHtml(r.source)}</span>\`:''}\${r.type==='variable'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">variable</span>':''}</span>
-        <span style="display:flex;align-items:center;gap:8px;flex:none;">
-          <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#456039;">+\${fmt(enVig)}</span>
-          <button onclick="openPersoRevenuModal('\${r.id}',true)" title="Nouveau montant à partir d'un mois" style="background:none;border:none;cursor:pointer;color:var(--bleu);font-size:15px;"><i class="ti ti-calendar-plus"></i></button>
-          <button onclick="openPersoRevenuModal('\${r.id}')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
-          <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
-        </span>
-      </div>
-      \${maj?\`<div style="font-size:11.5px;color:\${stale?'var(--ambre)':'var(--text-2)'};margin-top:3px;margin-left:22px;">\${stale?'<i class="ti ti-clock-exclamation"></i> ':''}Montant en vigueur depuis \${moisLongYm(maj)}\${stale?' — inchangé depuis plus de 3 mois, pense à vérifier auprès de la CAF.':''}</div>\`:''}
-    </div>\`;
-  }).join('');
-  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-heart-handshake"></i> Mes revenus perso (hors entreprise)</div>
+  const {revenus,revenusPerso}=ctx;
+  const rows=(revenus||[]).map(r=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13.5px;"><i class="ti ti-heart-handshake"></i> \${escHtml(r.nom||'—')}</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:17px;color:#2AA9A0;">+\${fmt(parseFloat(r.montant)||0)}</span>
+        <button onclick="openPersoRevenuModal('\${r.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoRevenu('\${r.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:13px;"><i class="ti ti-trash"></i></button>
+      </span>
+    </div>\`).join('');
+  el.innerHTML=\`<div class="card" style="padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:14px;font-weight:700;color:var(--navy);"><i class="ti ti-heart-handshake"></i> Mes revenus perso (hors entreprise)</span>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:#456039;">+\${fmt(Math.round(totalActif*100)/100)} /mois</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:21px;color:#2AA9A0;">+\${fmt(revenusPerso)} / mois</span>
         <button class="btn btn-outline btn-xs" onclick="openPersoRevenuModal()"><i class="ti ti-plus"></i> Ajouter</button>
       </div>
     </div>
-    \${rows||'<div style="font-size:13px;color:var(--text-2);padding:6px 0;">Prime d\\'activité, aide au logement, pension… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}
+    \${rows||'<div style="font-size:13px;color:var(--text-2);padding:6px 0;">CAF, prime d\\'activité, pension… ajoute ce qui rentre chaque mois en dehors de ton activité. Ces revenus réduisent ce que ton entreprise doit te verser.</div>'}
   </div>\`;
 }
 
-function openPersoRevenuModal(id,nextMonth){
+function openPersoRevenuModal(id){
   const s=dbGetObj('settings');
   const items=Array.isArray(s.persoRevenus)?s.persoRevenus:[];
   const it=id?items.find(x=>x.id===id):null;
   q('#perso-revenu-id').value=it?it.id:'';
   q('#perso-revenu-nom').value=it?(it.nom||''):'';
-  if(q('#perso-revenu-type'))q('#perso-revenu-type').value=it?(it.type||'variable'):'variable';
-  if(q('#perso-revenu-source'))q('#perso-revenu-source').value=it?(it.source||''):'';
-  if(q('#perso-revenu-actif'))q('#perso-revenu-actif').checked=it?(it.actif!==false):true;
-  const cur=persoCurYm();
-  const ymField=q('#perso-revenu-ym');
-  if(ymField)ymField.value=(nextMonth&&it)?cafYmShift(revenuDerniereMajYm(it)||cur,1):cur;
-  q('#perso-revenu-montant').value=(it&&!nextMonth)?revenuMontantEnVigueur(it,cur):'';
-  q('#perso-revenu-title').textContent=it?(nextMonth?'Nouveau montant daté':'Modifier le revenu'):'Nouveau revenu perso';
+  q('#perso-revenu-montant').value=it&&it.montant!=null?it.montant:'';
+  q('#perso-revenu-title').textContent=it?'Modifier le revenu':'Nouveau revenu perso';
   q('#modal-perso-revenu').style.display='flex';
 }
 async function savePersoRevenu(){
   try{
     const nom=q('#perso-revenu-nom').value.trim();
+    const montant=parseFloat(q('#perso-revenu-montant').value);
     if(!nom){toast('Donne un intitulé','error');return;}
-    const type=q('#perso-revenu-type')?q('#perso-revenu-type').value:'variable';
-    const source=q('#perso-revenu-source')?q('#perso-revenu-source').value.trim():'';
-    const actif=q('#perso-revenu-actif')?q('#perso-revenu-actif').checked:true;
-    const ym=((q('#perso-revenu-ym')&&q('#perso-revenu-ym').value)||persoCurYm()).slice(0,7);
-    const montantRaw=q('#perso-revenu-montant').value;
-    const montant=parseFloat(montantRaw);
-    const hasMontant=montantRaw!==''&&!isNaN(montant)&&montant>=0;
-    const cur=persoCurYm();
+    if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
     const settings=dbGetObj('settings');
     const items=Array.isArray(settings.persoRevenus)?settings.persoRevenus.slice():[];
     const id=q('#perso-revenu-id').value;
-    const applyMontant=function(r){
-      if(!hasMontant)return r;
-      let hist=Array.isArray(r.history)?r.history.slice():[];
-      const idx=hist.findIndex(function(h){return h.ym===ym;});
-      if(idx>=0)hist[idx]={ym:ym,montant:montant}; else hist.push({ym:ym,montant:montant});
-      hist.sort(function(a,b){return a.ym.localeCompare(b.ym);});
-      r.history=hist;
-      r.montant=revenuMontantEnVigueur(r,cur);
-      return r;
-    };
-    if(id){
-      const i=items.findIndex(x=>x.id===id);
-      if(i>=0){let r={...items[i],nom,type,source,actif};items[i]=applyMontant(r);}
-    } else {
-      if(!hasMontant){toast('Indique un montant','error');return;}
-      let nr={id:'pr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,type,source,actif,history:[],montant:0};
-      applyMontant(nr); items.push(nr);
-    }
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,montant};}
+    else{items.push({id:'pr_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,montant});}
     settings.persoRevenus=items;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-perso-revenu').style.display='none';
@@ -6576,38 +6277,30 @@ async function deletePersoRevenu(id){
 
 function renderPersoCharges(ctx){
   const el=q('#perso-charges'); if(!el)return;
-  const charges=ctx.charges||[];
+  const {cats,charges}=ctx;
   if(!charges.length){el.innerHTML=\`<div class="card" style="padding:24px;text-align:center;color:var(--text-2);">
     <div style="font-size:32px;"><i class="ti ti-home"></i></div>
     <div style="font-size:15px;margin:8px 0;">Commence par renseigner tes dépenses perso : loyer, courses, abonnements, transport…</div>
     <button class="btn btn-primary" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter ma première dépense</button>
   </div>\`;return;}
-  const totalMensuel=charges.filter(c=>c.actif!==false).reduce((s,c)=>s+chargeMensuel(c),0);
-  const perLab={mensuelle:'',bimestrielle:'bimestriel',trimestrielle:'trimestriel',annuelle:'annuel'};
-  const rows=charges.slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a)).map(it=>{
-    const men=Math.round(chargeMensuel(it)*100)/100; const per=it.periodicite||'mensuelle'; const inactif=it.actif===false;
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--border);\${inactif?'opacity:.5;':''}">
-      <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
-        <span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${it.type==='variable'?'<i class="ti ti-target" style="color:var(--terre-400);"></i>':'<i class="ti ti-lock" style="color:var(--terre-400);"></i>'} \${escHtml(it.nom||'—')}\${inactif?' <span style="font-size:11px;color:var(--text-2);font-weight:400;">(inactive)</span>':''}</span>
-        <span style="font-size:12px;color:var(--text-2);">\${escHtml(it.cat||'')}\${per!=='mensuelle'?' · '+fmt(parseFloat(it.montant)||0)+' '+perLab[per]:''}\${it.compte==='pro'?' · <span style="color:var(--bleu);">prélevé sur le pro</span>':''}</span>
+  el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">\`+cats.filter(c=>c.items.length).map(c=>{
+    const rows=c.items.map(it=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13.5px;">\${it.type==='variable'?'<i class="ti ti-target"></i>':'<i class="ti ti-lock"></i>'} \${escHtml(it.nom||'—')}</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:17px;">\${fmt(parseFloat(it.montant)||0)}</span>
+        <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:13px;"><i class="ti ti-pencil"></i></button>
+        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:13px;"><i class="ti ti-trash"></i></button>
       </span>
-      <span style="display:flex;align-items:center;gap:10px;flex:none;">
-        <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(men)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
-        <button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
-        <button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
-      </span>
+    </div>\`).join('');
+    return \`<div class="card" style="padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+        <span style="font-size:14px;font-weight:700;color:var(--navy);">\${c.emoji} \${c.nom}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:21px;color:\${c.couleur};">\${fmt(c.total)}</span>
+      </div>\${rows}
     </div>\`;
-  }).join('');
-  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;flex-wrap:wrap;gap:8px;">
-      <div class="dash-sec-title" style="font-size:14px;margin-bottom:0;"><i class="ti ti-receipt-2"></i> Mes charges fixes perso</div>
-      <span style="font-size:13px;color:var(--text-2);">Total mensualisé : <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(Math.round(totalMensuel*100)/100)}</strong> /mois</span>
-    </div>
-    \${rows}
-    <div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une charge</button></div>
-    <p style="font-size:12px;color:var(--text-2);margin-top:10px;">Les charges non mensuelles sont ramenées au mois (ex. 80 € bimestriel = 40 €/mois). Une charge « prélevée sur le pro » (l'impôt) reste une charge perso, jamais reclassée côté entreprise.</p>
-  </div>\`;
+  }).join('')+\`</div>\`;
 }
+
 function renderPersoSimulateur(ctx){
   const el=q('#perso-simulateur'); if(!el)return;
   const def=ctx.objectif||ctx.confort||ctx.besoin||3000;
@@ -6672,9 +6365,6 @@ function openPersoChargeModal(id){
   q('#perso-charge-cat').value=it?(it.cat||'logement'):'logement';
   q('#perso-charge-montant').value=it&&it.montant!=null?it.montant:'';
   q('#perso-charge-type').value=it?(it.type||'fixe'):'fixe';
-  if(q('#perso-charge-periodicite'))q('#perso-charge-periodicite').value=it?(it.periodicite||'mensuelle'):'mensuelle';
-  if(q('#perso-charge-compte'))q('#perso-charge-compte').value=it?(it.compte||'perso'):'perso';
-  if(q('#perso-charge-actif'))q('#perso-charge-actif').checked=it?(it.actif!==false):true;
   q('#perso-charge-title').textContent=it?'Modifier la dépense':'Nouvelle dépense perso';
   q('#modal-perso-charge').style.display='flex';
 }
@@ -6685,14 +6375,11 @@ async function savePersoCharge(){
     if(!nom){toast('Donne un intitulé','error');return;}
     if(isNaN(montant)||montant<0){toast('Montant invalide','error');return;}
     const cat=q('#perso-charge-cat').value, type=q('#perso-charge-type').value;
-    const periodicite=q('#perso-charge-periodicite')?.value||'mensuelle';
-    const compte=q('#perso-charge-compte')?.value||'perso';
-    const actif=q('#perso-charge-actif')?q('#perso-charge-actif').checked:true;
     const settings=dbGetObj('settings');
     const items=Array.isArray(settings.persoCharges)?settings.persoCharges.slice():[];
     const id=q('#perso-charge-id').value;
-    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,montant,type,periodicite,compte,actif};}
-    else{items.push({id:'pc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,montant,type,periodicite,compte,actif});}
+    if(id){const i=items.findIndex(x=>x.id===id);if(i>=0)items[i]={...items[i],nom,cat,montant,type};}
+    else{items.push({id:'pc_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom,cat,montant,type});}
     settings.persoCharges=items;
     _cache.settings=await api('PUT','/api/settings',settings);
     q('#modal-perso-charge').style.display='none';
@@ -10515,8 +10202,6 @@ function loadOptions(){
   if(q('#opt-versement'))q('#opt-versement').value=s.pctVersement||65;
   if(q('#opt-epargne-pct'))q('#opt-epargne-pct').value=s.pctEpargne||15;
   if(q('#opt-tresorerie-pct'))q('#opt-tresorerie-pct').value=s.pctTresorerie||20;
-  if(q('#opt-remu-fixe'))q('#opt-remu-fixe').value=(s.remunerationFixe!=null?s.remunerationFixe:850);
-  if(q('#opt-jour-versement'))q('#opt-jour-versement').value=(s.jourVersement!=null?s.jourVersement:5);
   updateOptTotal();
 }
 function updateOptTotal(){
@@ -10545,9 +10230,7 @@ async function saveOptions(){
     qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
     pctFormation:parseFloat(q('#opt-pct-formation')?.value)||10,
     cfe:parseFloat(q('#opt-cfe').value)||0,
-    pctVersement:v,pctEpargne:e,pctTresorerie:t,
-    remunerationFixe:Math.max(0,parseFloat(q('#opt-remu-fixe')?.value)||0),
-    jourVersement:Math.min(28,Math.max(1,parseInt(q('#opt-jour-versement')?.value)||5))
+    pctVersement:v,pctEpargne:e,pctTresorerie:t
   };
   try{
     await dbSet('settings',body);
@@ -10559,7 +10242,6 @@ async function saveOptions(){
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
 async function startApp(){
   try { await loadAll(); } catch(e) { if(e.message==='401')return; toast('Erreur chargement données','error'); }
-  try { await initLot3(); } catch(e) {}
   navigate('dashboard');
 }
 
