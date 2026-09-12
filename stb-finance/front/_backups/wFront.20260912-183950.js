@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=79" />
+  <link rel="stylesheet" href="/style.css?v=78" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v79 · lot2 carte declaration CAF build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v78 · lot1 ajustements depli/date/TVA build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2623,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=79"></script>
+<script src="/app.js?v=78"></script>
 </body>
 </html>
 `;
@@ -9049,64 +9049,6 @@ function renderRapportMensuel(){
 }
 
 /* --- Rapport annuel --------------------------------------------------- */
-/* ── Carte Déclaration CAF (lot 2 réduit) — calcul dérivé des factures déjà chargées, affichage seul ── */
-let _cafStartYm=null;
-function cafLastClosedYm(){var n=new Date();var d=new Date(n.getFullYear(),n.getMonth()-1,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
-function cafYmShift(ym,delta){var p=ym.split('-');var d=new Date(parseInt(p[0]),parseInt(p[1])-1+delta,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
-function cafDeclData(startYm,abatt){
-  var factures=dbGet('factures')||[];
-  var rows=[];
-  for(var i=0;i<3;i++){
-    var ym=cafYmShift(startYm,-i);
-    var brut=factures.filter(function(f){return f.statut==='payee'&&f.datePaiement&&(''+f.datePaiement).slice(0,7)===ym;}).reduce(function(s,f){return s+(f.montant||0);},0);
-    var net=Math.round(brut*(1-abatt/100));
-    var p=ym.split('-');
-    rows.push({ym:ym,label:MOIS_LONG[parseInt(p[1])-1]+' '+p[0],brut:Math.round(brut),net:net});
-  }
-  var sansDate=factures.filter(function(f){return f.statut==='payee'&&!f.datePaiement;}).length;
-  return {rows:rows,sansDate:sansDate};
-}
-function cafShift(delta){
-  if(!_cafStartYm)_cafStartYm=cafLastClosedYm();
-  var next=cafYmShift(_cafStartYm,delta);
-  if(next>cafLastClosedYm())return; // ne dépasse jamais le dernier mois clos
-  _cafStartYm=next; renderCafDecl();
-}
-function copyCaf(v,btn){
-  try{
-    navigator.clipboard.writeText(v).then(function(){
-      if(btn){var o=btn.innerHTML;btn.innerHTML='<i class="ti ti-check"></i>';setTimeout(function(){btn.innerHTML=o;},1200);}
-    });
-  }catch(e){}
-}
-function renderCafDecl(){
-  var el=q('#caf-decl-card'); if(!el)return;
-  var settings=dbGetObj('settings');
-  var abattRaw=parseFloat(settings.abattementCaf);
-  var abatt=isNaN(abattRaw)?34:abattRaw;
-  if(!_cafStartYm)_cafStartYm=cafLastClosedYm();
-  var D=cafDeclData(_cafStartYm,abatt);
-  var atCap=_cafStartYm>=cafLastClosedYm();
-  var row=function(r){return \`<div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--border);">
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);text-transform:capitalize;">\${r.label}</div>
-    <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;margin-bottom:2px;">CA encaissé</div><span style="font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;user-select:all;cursor:text;">\${r.brut}</span></div>
-    <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);font-weight:600;margin-bottom:2px;">Après abattement</div><span style="display:inline-flex;align-items:center;gap:8px;"><span style="font-size:18px;font-weight:600;color:var(--navy);font-variant-numeric:tabular-nums;user-select:all;cursor:text;">\${r.net}</span><button onclick="copyCaf('\${r.net}',this)" title="Copier le montant à déclarer" style="background:none;border:none;color:var(--bleu);cursor:pointer;padding:2px;line-height:1;"><i class="ti ti-copy"></i></button></span></div>
-  </div>\`;};
-  el.innerHTML=\`<div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:2px;">
-      <div class="card-title" style="margin-bottom:0;"><i class="ti ti-file-euro"></i> Déclaration CAF — prime d'activité</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button onclick="cafShift(-1)" title="Un mois plus tôt" class="btn btn-ghost btn-xs"><i class="ti ti-chevron-left"></i></button>
-        <span style="font-size:12.5px;color:var(--text-2);white-space:nowrap;">3 mois glissants</span>
-        <button onclick="cafShift(1)" title="Un mois plus tard" class="btn btn-ghost btn-xs" \${atCap?'disabled style="opacity:.4;cursor:not-allowed;"':''}><i class="ti ti-chevron-right"></i></button>
-      </div>
-    </div>
-    \${D.rows.map(row).join('')}
-    <div style="font-size:12px;color:var(--text-2);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">Abattement appliqué : <strong>\${(''+abatt).replace('.',',')} %</strong> · base : CA encaissé (date de paiement). Le montant <strong>après abattement</strong> est la valeur à saisir à la CAF.</div>
-    \${D.sansDate>0?\`<div style="font-size:12.5px;color:var(--ambre);background:var(--ambre-bg);border-radius:10px;padding:10px 12px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;flex:none;"></i><span><strong>\${D.sansDate} facture(s) payée(s) sans date de paiement</strong> — non comptées ici (elles tomberaient dans le mauvais mois). Renseigne leur date de paiement pour qu'elles apparaissent. <button onclick="navigate('factures')" style="background:none;border:none;color:var(--ambre);text-decoration:underline;cursor:pointer;padding:0;font:inherit;">Voir les factures</button></span></div>\`:''}
-  </div>\`;
-}
-
 function loadRapportAnnuel(){
   const y=new Date().getFullYear();
   const sel=q('#ra-annee');
@@ -9164,7 +9106,6 @@ function renderRapportAnnuel(){
       </table></div>
     </div>
     <div class="card"><div class="card-title">Évolution annuelle</div><div class="chart-wrap"><canvas id="chart-ra" height="200"></canvas></div></div>
-    <div id="caf-decl-card" style="margin-top:16px;"></div>
     \${(function(){var seuilTVA=37500;var cum=totCA;var reste=Math.max(0,seuilTVA-cum);
       if(cum<seuilTVA*0.8){
         // Sous 80 % : simple ligne de texte discrète en pied d'écran, ni barre ni couleur.
@@ -9181,7 +9122,6 @@ function renderRapportAnnuel(){
       <div style="height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${col};border-radius:6px;"></div></div>
       <p style="font-size:13px;color:\${col};margin-top:10px;">\${cum>=seuilTVA?'Seuil dépassé — la TVA devient applicable, pense à la facturer.':('Tu approches du seuil : il te reste '+fmt(reste)+' avant de devoir facturer la TVA.')}</p>
     </div>\`;})()}\`;
-  try{renderCafDecl();}catch(e){}
   setTimeout(()=>{
     const c=q('#chart-ra');
     if(c)drawBarChart(c,MOIS_COURT,[{data:moisData.map(m=>m.ca),color:COLORS.blue},{data:moisData.map(m=>m.charges),color:COLORS.violet}]);
