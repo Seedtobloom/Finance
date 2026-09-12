@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=87" />
+  <link rel="stylesheet" href="/style.css?v=86" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v87 · versement recentre sur remuneration fixe build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v86 · budget perso ajustements (categories, colonnes sortie/entree, barres) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=87"></script>
+<script src="/app.js?v=86"></script>
 </body>
 </html>
 `;
@@ -6036,41 +6036,27 @@ function loadVersement(){
       <button class="btn btn-primary btn-sm" onclick="navigate('budget-perso')"><i class="ti ti-arrow-right"></i> Mon budget perso</button>
     </div>\`;return;
   }
-  let R; try{R=computeResteAVivre();}catch(e){R={remu:850,revenusActifs:0};}
-  const remu=R.remu, aides=R.revenusActifs;
-  const plafond=M.versement;                       // ex « versement conseillé » = plafond soutenable
-  const confort=M.confortable, maxP=M.maxPonctuel;
-  const salaireMin=Math.max(0,Math.round((M.besoinMin-aides)*100)/100); // charges perso − aides
-  const sousPlafond=remu<=plafond;
-  const pctConfort=confort>0?Math.round(remu/confort*100):null;
-  const rep=(icon,ttl,sub,val)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-radius:12px;background:var(--surface-2);">
-    <div style="display:flex;align-items:center;gap:11px;"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${icon}" style="font-size:17px;"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:var(--text-2);font-size:12.5px;">\${sub}</small></div></div>
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--navy);">\${fmt(val)}</div></div>\`;
+  const min=M.besoinMin, conseille=M.versement, confort=M.confortable, maxP=M.maxPonctuel;
+  const couvre=conseille>=confort, manque=Math.max(0,Math.round(confort-conseille));
+  const lvl=(icon,ttl,sub,val,hl)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-radius:14px;background:\${hl?'var(--glycine)':'var(--surface-2)'};">
+    <div style="display:flex;align-items:center;gap:11px;"><span style="width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:\${hl?'#fff':'var(--card)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}" style="font-size:19px;"></i></span><div style="font-size:15px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:\${hl?'var(--bleu)':'var(--text-2)'};font-size:13px;">\${sub}</small></div></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;color:var(--navy);">\${fmt(val)}</div></div>\`;
   el.innerHTML=\`
-  <div class="card" style="padding:30px 32px;margin-bottom:18px;background:var(--glycine);border:none;">
-    <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bleu);"><i class="ti ti-wallet"></i> Ma rémunération fixe · décision prise</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;color:var(--navy);line-height:1.02;margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
-    <div style="font-size:14.5px;color:var(--bleu);">C'est ce que je me verse chaque mois. Modifiable dans <a onclick="navigate('options')" style="color:var(--bleu);text-decoration:underline;cursor:pointer;">Options</a>.</div>
-    <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:#fff;color:\${sousPlafond?'var(--vert)':'var(--terre-600)'};font-size:14.5px;display:flex;gap:9px;align-items:flex-start;">
-      <i class="ti \${sousPlafond?'ti-circle-check':'ti-info-circle'}" style="margin-top:2px;"></i>
-      <span>\${sousPlafond?\`Sous le plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — ton activité soutient ta rémunération fixe sans puiser dans tes réserves.\`:\`Au-dessus du plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — la différence est absorbée par ta réserve de lissage (voir l'accueil).\`}</span>
-    </div>
-  </div>
   <div class="card" style="padding:28px 30px;margin-bottom:18px;">
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
-    <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      \${rep('ti-arrow-bar-to-down','Salaire minimum (charges − aides)','le plancher : tes charges perso une fois tes aides déduites',salaireMin)}
-      \${rep('ti-arrow-bar-to-up','Plafond soutenable','ce que l\\'activité soutient sans puiser — à ne pas dépasser durablement',plafond)}
-      \${rep('ti-target','Niveau de vie confortable','objectif que tu as fixé toi-même',confort)}
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:18px;">Tes 4 repères de versement</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      \${lvl('ti-coins','Salaire minimum','ton niveau de vie essentiel',min,false)}
+      \${lvl('ti-target','Versement conseillé','soutenable par ton activité',conseille,true)}
+      \${lvl('ti-heart','Confortable','dépenses + épargne + projets + marge',confort,false)}
+      \${lvl('ti-bolt','Maximum ponctuel','sans toucher à tes réserves',maxP,false)}
     </div>
-    \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:14px;line-height:1.5;">Ta rémunération fixe représente <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif de niveau de vie confortable. Tu l'ajusteras à la hausse quand ton activité le permettra.</div>\`:''}
+    <div style="margin-top:18px;border-radius:14px;padding:15px 18px;background:\${couvre?'var(--vert-bg)':'var(--ambre-bg)'};color:\${couvre?'var(--vert)':'var(--ambre)'};font-size:15px;display:flex;gap:9px;align-items:flex-start;"><i class="ti \${couvre?'ti-circle-check':'ti-alert-triangle'}" style="margin-top:2px;"></i><span>\${couvre?'Ton activité soutient ton niveau de vie cible. Tu peux te verser sereinement.':'Tu couvres ton quotidien, mais pas encore ton niveau de vie cible ('+fmt(confort)+'). Il manque ~<strong>'+fmt(manque)+'/mois</strong> de CA soutenable.'}</span></div>
   </div>
   <div class="card" style="padding:28px 30px;">
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
-    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois <small style="color:var(--text-2);">(sans toucher aux réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
-    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(plafond)}</span></div>
-    <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Le maximum ponctuel est une <strong>capacité exceptionnelle</strong>, pas un salaire mensuel. Le rythme soutenable, lui, tient sur la durée — et c'est le plafond de ta rémunération fixe.</p>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Ce mois-ci, exceptionnellement</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(conseille)}</span></div>
+    <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Te verser le maximum chaque mois puiserait dans tes réserves. Le rythme soutenable, lui, tient sur la durée.</p>
   </div>\`;
 }
 
