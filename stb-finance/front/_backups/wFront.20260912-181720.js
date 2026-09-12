@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=77" />
+  <link rel="stylesheet" href="/style.css?v=76" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v77 · lot1 hierarchie ecran du mois build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v76 · categories importees renommables build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2623,7 +2623,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=77"></script>
+<script src="/app.js?v=76"></script>
 </body>
 </html>
 `;
@@ -3012,23 +3012,6 @@ html, body {
   gap: 8px;
 }
 .dash-sec-title .ti { font-size: 18px; color: var(--violet-ink); }
-
-/* --- Écran du mois : hiérarchie (lot 1) --- */
-.dash-hero { background: var(--navy); border-radius: 24px; padding: 34px 40px; color: #f2e7dd; }
-.dash-hero-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #cabf95; }
-.dash-hero-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 84px; line-height: 0.9; color: var(--glycine); }
-.dash-zone3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.dash-detail { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); overflow: hidden; }
-.dash-detail > summary { list-style: none; cursor: pointer; padding: 16px 24px; font-size: 14px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--terre); display: flex; align-items: center; gap: 10px; user-select: none; }
-.dash-detail > summary::-webkit-details-marker { display: none; }
-.dash-detail > summary .dash-detail-chev { margin-left: auto; transition: transform 0.2s ease; }
-.dash-detail[open] > summary .dash-detail-chev { transform: rotate(180deg); }
-.dash-detail-body { padding: 4px 24px 26px; display: flex; flex-direction: column; gap: 20px; }
-@media (max-width: 900px) {
-  .dash-hero { padding: 26px 22px; }
-  .dash-hero-num { font-size: 54px; }
-  .dash-zone3 { grid-template-columns: 1fr; }
-}
 
 /* ===========================
    KPI CARDS
@@ -5006,81 +4989,49 @@ function renderCockpit(){
     return;
   }
 
-  // ════ ÉCRAN DU MOIS — hiérarchie (lot 1) ════
-  // Couche d'affichage uniquement : lecture de valeurs déjà calculées, aucune écriture, aucune logique de calcul modifiée.
-  const facturesAll=dbGet('factures')||[];
-  const yStr=String(y);
-  const enAttente=facturesAll.filter(f=>f.statut!=='payee'&&((f.date||'')+'').startsWith(yStr)).reduce((s,f)=>s+(f.montant||0),0);
-  // PROXY jours jusqu'au prochain versement : début du mois suivant (pas de date de paie configurée — emplacement prêt pour le lot perso).
-  const prochainCycle=new Date(y,m,1);
-  const joursVersement=Math.max(0,Math.ceil((prochainCycle-now)/86400000));
-
-  // helpers réutilisés dans le dépli
+  // ── niveau 1 : héros marron ──
+  const fig=(k,val,s,big)=>\`<div><div style="font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:\${big?'54px':'40px'};line-height:.95;margin-top:7px;color:\${big?'var(--glycine)':'#fff'};">\${fmt(val)}</div><div style="font-size:13px;color:#cabf95;margin-top:4px;">\${s}</div></div>\`;
   const pil=(icon,nm,v)=>\`<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(242,229,194,.9);margin-top:8px;"><span style="width:96px;display:flex;align-items:center;gap:6px;"><i class="ti \${icon}"></i>\${nm}</span><span style="flex:1;height:6px;border-radius:4px;background:rgba(242,229,194,.16);overflow:hidden;"><i style="display:block;height:100%;border-radius:4px;width:\${v}%;background:\${pbar(v)};"></i></span></div>\`;
-  let prIdx=0;
-  const prow=(icon,nom,det,val,hl)=>{const b=prIdx++?'border-top:1px solid var(--border);':'';return \`<div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:15px;padding:17px 0;\${b}">
-    <span style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:\${hl?'var(--glycine)':'var(--surface-2)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}"></i></span>
-    <div><div style="font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--navy);line-height:1.15;">\${nom}</div>\${det?'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:2px;">'+det+'</div>':''}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${hl?'var(--bleu)':'var(--navy)'};justify-self:end;">\${fmt(val)}</div>
-  </div>\`;};
-  const grpLbl=t=>\`<div style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--terre-600);margin:0 0 18px 4px;">\${t}</div>\`;
-  const li=(lab,val,cls)=>\`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;font-size:14px;\${cls==='tot'?'border-top:1px solid var(--border);margin-top:3px;padding-top:11px;font-weight:700;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${cls==='tot'?'22px':'18px'};\${cls==='neg'?'color:var(--danger);':''}">\${val}</span></div>\`;
-  const stat=(k,v)=>\`<div><div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);margin-top:3px;">\${v}</div></div>\`;
-
-  // ── ZONE 1 · où j'en suis (chiffre dominant) ──
-  const zone1=\`<div class="dash-hero">
-    <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
-    <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin:12px 0 20px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
-    <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Rémunération disponible ce mois</div>
-    <div class="dash-hero-num">\${fmt(M.versement)}</div>
-    <div style="font-size:14px;color:#cabf95;margin-top:10px;">Prochain versement dans <strong style="color:#f2e7dd;">\${joursVersement} j</strong> &nbsp;·&nbsp; besoin pour vivre \${fmt(M.besoinMin)} &nbsp;·&nbsp; argent libre \${fmt(M.argentLibre)}</div>
+  const hero=\`<div style="background:var(--navy);border-radius:24px;padding:32px 36px;color:#f2e7dd;display:flex;gap:32px;flex-wrap:wrap;justify-content:space-between;">
+    <div style="flex:1;min-width:280px;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#cabf95;">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;line-height:1.12;margin:12px 0 24px;color:#fff;display:flex;align-items:center;gap:12px;"><span style="width:12px;height:12px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
+      <div style="display:flex;gap:34px;flex-wrap:wrap;align-items:flex-end;">
+        \${fig('Versement conseillé',M.versement,'à te verser',true)}
+        \${fig('Besoin',M.besoinMin,'pour vivre',false)}
+        \${fig('Argent libre',M.argentLibre,'sans mission',false)}
+      </div>
+    </div>
+    <div style="flex:none;min-width:196px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:60px;line-height:.85;color:#fff;">\${M.score}<span style="font-family:inherit;font-style:normal;font-size:20px;color:#cabf95;font-weight:600;font-family:'Inter Tight',sans-serif;">/100</span></div>
+      <div style="font-size:12px;color:#cabf95;margin:2px 0 14px;">Santé financière · \${scoreLabel}</div>
+      \${pil('ti-building','Trésorerie',M.pillars.treso)}\${pil('ti-shield','Réserves',M.pillars.reserve)}\${pil('ti-trending-up','Activité',M.pillars.activite)}\${pil('ti-heart','Perso',M.pillars.perso)}\${pil('ti-plant-2','Patrimoine',M.pillars.patri)}
+    </div>
   </div>\`;
 
-  // ── ZONE 2 · ce qu'il me reste à faire ──
-  const urssafObj=dbGetObj('urssaf');
-  const QL={T1:'T1 · jan–mar',T2:'T2 · avr–jun',T3:'T3 · jul–sep',T4:'T4 · oct–déc'};
-  const tasks=[];
-  if(d.urssafProchain&&d.urssafProchain.jours<=60)tasks.push({done:false,urgent:d.urssafProchain.jours<=45,icon:'ti-calendar-due',titre:'URSSAF '+(d.urssafProchain.t||'')+' à provisionner',sub:'échéance dans '+d.urssafProchain.jours+' j',nav:'charges-urssaf'});
-  if(d.retard&&d.retard.length)tasks.push({done:false,urgent:true,icon:'ti-file-invoice',titre:'Relancer '+d.retard.length+' facture'+(d.retard.length>1?'s':'')+' en retard',sub:'paiement en attente',nav:'factures'});
-  if(d.devisRelance&&d.devisRelance.length)tasks.push({done:false,urgent:false,icon:'ti-file-text',titre:'Relancer '+d.devisRelance.length+' devis',sub:'sans réponse',nav:'devis'});
-  if(d.aRanger)tasks.push({done:false,urgent:false,icon:'ti-inbox',titre:'Ranger '+d.aRanger+' opération'+(d.aRanger>1?'s':''),sub:'à catégoriser',nav:'enveloppes'});
-  ['T1','T2','T3','T4'].forEach(t=>{const u=urssafObj[t+'-'+y]||{};if(u.statut==='paye')tasks.push({done:true,urgent:false,icon:'ti-calendar-check',titre:'URSSAF '+QL[t],sub:'payé',nav:'charges-urssaf'});});
-  // (lot 2) l'icône de gauche est l'emplacement prévu pour la case à cocher horodatée.
-  const taskRow=(it,first)=>\`<button onclick="navigate('\${it.nav}')" style="width:100%;display:flex;align-items:center;gap:13px;text-align:left;background:none;\${first?'border:none;':'border:none;border-top:1px solid var(--border);'}padding:\${it.done?'9px 2px':'15px 2px'};cursor:pointer;font-family:inherit;\${it.done?'opacity:.55;':''}">
-    <span style="width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;background:\${it.done?'var(--vert-bg)':it.urgent?'var(--ambre-bg)':'var(--bleu-bg)'};color:\${it.done?'var(--vert)':it.urgent?'var(--ambre)':'var(--bleu)'};"><i class="ti \${it.done?'ti-check':it.icon}"></i></span>
-    <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
-    <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
-  </button>\`;
-  const zone2=\`<div class="card" style="padding:22px 28px;">
-    <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
-    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
-  </div>\`;
+  // ── soonbar (échéance URSSAF / relance) ──
+  let soon='';
+  if(d.urssafProchain&&d.urssafProchain.jours<=45){
+    soon=\`<div style="display:flex;align-items:center;gap:14px;background:var(--ambre-bg);box-shadow:inset 0 0 0 1px #e7c3ac;border-radius:16px;padding:16px 18px;">
+      <span style="width:38px;height:38px;border-radius:11px;background:var(--ambre);color:#fff;display:grid;place-items:center;flex:none;"><i class="ti ti-alert-triangle"></i></span>
+      <div style="flex:1;font-size:15px;color:#3d1c0b;">URSSAF \${d.urssafProchain.t} — échéance <strong>dans \${d.urssafProchain.jours} j</strong>. Garde de côté ce qu'il faut.</div>
+      <button class="btn btn-sm" style="background:var(--terre);color:var(--paille);border:none;font-weight:700;" onclick="navigate('charges-urssaf')">Voir</button>
+    </div>\`;
+  }
 
-  // ── ZONE 3 · le contexte (exactement 3 métriques, poids inférieur) ──
-  const moisCouv=M.moisCouverts!=null?(String(M.moisCouverts).replace('.',',')+' mois'):'—';
-  const metric=(k,v,sub)=>\`<div class="card" style="padding:22px 24px;">
-    <div style="font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--navy);margin-top:4px;line-height:1.05;">\${v}</div>
-    <div style="font-size:12.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
-  </div>\`;
-  const zone3=\`<div class="dash-zone3">
-    \${metric('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte')}
-    \${metric('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé')}
-    \${metric('Réserve',moisCouv,'de charges couvertes')}
-  </div>\`;
-
-  // ── DÉPLI · le détail du mois (blocs sortis de la hiérarchie principale) ──
-  const scoreBlock=\`<div style="background:var(--navy);border-radius:20px;padding:26px 30px;color:#f2e7dd;display:flex;gap:30px;flex-wrap:wrap;align-items:center;">
-    <div style="flex:none;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;line-height:.85;color:#fff;">\${M.score}<span style="font-family:'Inter Tight',sans-serif;font-style:normal;font-size:19px;color:#cabf95;font-weight:600;">/100</span></div><div style="font-size:12px;color:#cabf95;margin-top:2px;">Santé financière · \${scoreLabel}</div></div>
-    <div style="flex:1;min-width:240px;">\${pil('ti-building','Trésorerie',M.pillars.treso)}\${pil('ti-shield','Réserves',M.pillars.reserve)}\${pil('ti-trending-up','Activité',M.pillars.activite)}\${pil('ti-heart','Perso',M.pillars.perso)}\${pil('ti-plant-2','Patrimoine',M.pillars.patri)}</div>
-  </div>\`;
-
+  // ── niveau 2 : le plan (crème) ──
   const supAll=Array.isArray(settings.persoEpargne)?settings.persoEpargne:[];
   const projVie=Array.isArray(settings.projetsVie)?settings.projetsVie:[];
   const detEp=supAll.filter(e=>(parseFloat(e.montant)||0)>0).map(e=>escHtml(e.nom||supType(e.cat).nom)+' '+fmt(parseFloat(e.montant)||0)).join(' · ');
   const detPr=projVie.filter(p=>(parseFloat(p.mensualite)||0)>0).map(p=>escHtml(p.nom||'Projet')+' '+fmt(parseFloat(p.mensualite)||0)).join(' · ');
   const ymC=y+'-'+String(m).padStart(2,'0');
   const canApply=supAll.some(e=>(parseFloat(e.montant)||0)>0&&e.lastVersement!==ymC)||projVie.some(p=>(parseFloat(p.mensualite)||0)>0&&p.lastVersement!==ymC);
+  let prIdx=0;
+  const prow=(icon,nom,det,val,hl)=>{const b=prIdx++?'border-top:1px solid var(--border);':'';return \`<div style="display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:15px;padding:17px 0;\${b}">
+    <span style="width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;background:\${hl?'var(--glycine)':'var(--surface-2)'};color:\${hl?'var(--bleu)':'var(--terre-600)'};"><i class="ti \${icon}"></i></span>
+    <div><div style="font-family:'Cormorant Garamond',serif;font-size:23px;color:var(--navy);line-height:1.15;">\${nom}</div>\${det?'<div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:2px;">'+det+'</div>':''}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:\${hl?'var(--bleu)':'var(--navy)'};justify-self:end;">\${fmt(val)}</div>
+  </div>\`;};
   const plan=\`<div class="card" style="padding:28px 30px;">
     <div class="dash-sec-title" style="font-size:14px;"><i class="ti ti-bulb"></i> Ton plan de \${MOIS_LONG[m-1]} — ce que Finance te recommande</div>
     \${prow('ti-wallet','Te verser','Versement personnel',M.versement,true)}
@@ -5093,7 +5044,10 @@ function renderCockpit(){
     </div>
   </div>\`;
 
-  const pourquoi=\`<div>\${grpLbl('Pourquoi ces montants')}
+  // ── niveau 3 : sections ──
+  const grpLbl=t=>\`<div style="font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--terre-600);margin:0 0 18px 4px;">\${t}</div>\`;
+  const li=(lab,val,cls)=>\`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:11px 0;font-size:14px;\${cls==='tot'?'border-top:1px solid var(--border);margin-top:3px;padding-top:11px;font-weight:700;color:var(--navy);':'color:var(--text-2);'}"><span>\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${cls==='tot'?'22px':'18px'};\${cls==='neg'?'color:var(--danger);':''}">\${val}</span></div>\`;
+  const pourquoi=\`<div style="padding-top:8px;">\${grpLbl('Pourquoi ces montants')}
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:stretch;">
       <div style="background:var(--surface);border-radius:20px;padding:26px 28px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-building" style="font-style:normal;color:var(--terre-600);"></i> Ton entreprise</div>
@@ -5113,7 +5067,9 @@ function renderCockpit(){
   </div>\`;
 
   const objCA=parseFloat(settings.objectifCA)||0;
-  const activite=\`<div>\${grpLbl('Activité & avenir')}
+  const pctO=objCA>0?Math.min(100,Math.round(d.caYTD/objCA*100)):0;
+  const stat=(k,v)=>\`<div><div style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--terre-400);">\${k}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);margin-top:3px;">\${v}</div></div>\`;
+  const activite=\`<div style="padding-top:30px;">\${grpLbl('Activité & avenir')}
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:stretch;">
       <div class="card" style="padding:26px 28px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-trending-up" style="font-style:normal;color:var(--terre-600);"></i> Ton activité</div>
@@ -5129,17 +5085,21 @@ function renderCockpit(){
     </div>
   </div>\`;
 
-  const detail=\`<details class="dash-detail">
-    <summary><i class="ti ti-adjustments-alt"></i> Voir le détail du mois <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
-    <div class="dash-detail-body">\${scoreBlock}\${plan}\${pourquoi}\${activite}</div>
-  </details>\`;
+  // à retenir
+  const todo=[];
+  if(d.retard&&d.retard.length)todo.push({lv:'r',ic:'ti-file-invoice',t:'Factures',s:d.retard.length+' en retard',nav:'factures'});
+  if(d.devisRelance&&d.devisRelance.length)todo.push({lv:'n',ic:'ti-file-text',t:'Devis',s:d.devisRelance.length+' à relancer',nav:'devis'});
+  if(d.urssafProchain&&d.urssafProchain.jours<=45)todo.push({lv:'n',ic:'ti-calendar',t:'URSSAF',s:'dans '+d.urssafProchain.jours+' j',nav:'charges-urssaf'});
+  if(d.aRanger)todo.push({lv:'c',ic:'ti-inbox',t:'À ranger',s:d.aRanger+' opération'+(d.aRanger>1?'s':''),nav:'enveloppes'});
+  const indic=t=>{var bg=t.lv==='r'?'var(--paille)':t.lv==='n'?'var(--bleu-bg)':'var(--surface-2)';var ib=t.lv==='r'?'background:var(--ambre);color:#fff;':t.lv==='n'?'background:var(--glycine);color:var(--bleu);':'background:var(--surface);color:var(--text-2);';return \`<button onclick="navigate('\${t.nav}')" style="display:flex;align-items:center;gap:12px;text-align:left;background:\${bg};border:none;border-radius:13px;padding:16px 18px;cursor:pointer;height:100%;font-family:inherit;"><span style="width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${t.ic}"></i></span><span style="flex:1;min-width:0;"><b style="display:block;font-size:14px;color:var(--navy);">\${t.t}</b><small style="font-size:12px;color:var(--text-2);">\${t.s}</small></span><span style="font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;\${ib}">→</span></button>\`;};
+  const aretenir=todo.length?\`<div style="padding-top:38px;">\${grpLbl('À faire · à surveiller')}
+    <div class="card" style="padding:26px 28px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">\${todo.slice(0,4).map(indic).join('')}</div>
+    </div>
+  </div>\`:'';
 
-  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
-    \${zone1}
-    \${zone2}
-    \${zone3}
-    \${detail}
-    <div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">\${hero}\${soon}\${plan}\${pourquoi}\${activite}\${aretenir}
+    <div style="text-align:center;padding-top:8px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>
   </div>\`;
 }
 
@@ -9085,16 +9045,7 @@ function renderRapportAnnuel(){
         </tr>\`).join('')}</tbody>
       </table></div>
     </div>
-    <div class="card"><div class="card-title">Évolution annuelle</div><div class="chart-wrap"><canvas id="chart-ra" height="200"></canvas></div></div>
-    \${(function(){var seuilTVA=37500;var cum=totCA;var pct=Math.min(100,Math.round(cum/seuilTVA*100));var reste=Math.max(0,seuilTVA-cum);var proche=cum>=seuilTVA*0.8;var col=cum>=seuilTVA?'var(--rouge)':proche?'var(--ambre)':'var(--vert)';return \`<div class="card" style="margin-top:16px;">
-      <div class="card-title"><i class="ti ti-receipt-tax"></i> Franchise en base de TVA</div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-        <span style="font-size:14px;color:var(--text-2);">CA encaissé cumulé \${annee}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(cum)} <span style="font-size:14px;color:var(--text-2);font-style:normal;">/ \${fmt(seuilTVA)}</span></span>
-      </div>
-      <div style="height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:\${col};border-radius:6px;"></div></div>
-      <p style="font-size:13px;color:var(--text-2);margin-top:10px;">\${cum>=seuilTVA?'Seuil dépassé — la TVA devient applicable, pense à la facturer.':proche?('Tu approches du seuil : il te reste '+fmt(reste)+' avant de devoir facturer la TVA.'):('Large marge : encore '+fmt(reste)+' avant le seuil. Aucune action requise cette année.')}</p>
-    </div>\`;})()}\`;
+    <div class="card"><div class="card-title">Évolution annuelle</div><div class="chart-wrap"><canvas id="chart-ra" height="200"></canvas></div></div>\`;
   setTimeout(()=>{
     const c=q('#chart-ra');
     if(c)drawBarChart(c,MOIS_COURT,[{data:moisData.map(m=>m.ca),color:COLORS.blue},{data:moisData.map(m=>m.charges),color:COLORS.violet}]);
