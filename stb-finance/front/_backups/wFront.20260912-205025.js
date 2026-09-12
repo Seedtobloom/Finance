@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=90" />
+  <link rel="stylesheet" href="/style.css?v=89" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v90 · budget perso colonnes rebalancees build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v89 · saveOptions decouple la garde 100pct du reste build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -297,11 +297,11 @@ const HTML = `<!DOCTYPE html>
       <div class="perso-grid">
         <div class="perso-col">
           <div id="perso-charges"></div>
+          <div id="perso-enveloppes"></div>
         </div>
         <div class="perso-col">
           <div id="perso-revenus"></div>
           <div id="perso-epargne"></div>
-          <div id="perso-enveloppes"></div>
         </div>
       </div>
 
@@ -2696,7 +2696,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=90"></script>
+<script src="/app.js?v=89"></script>
 </body>
 </html>
 `;
