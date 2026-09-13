@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=98" />
+  <link rel="stylesheet" href="/style.css?v=97" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v98 · accueil : ligne de detail ramenee dans le bloc sombre (equilibrage rangee 1) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v97 · accueil en grille 12 colonnes (8+4 / 7+5 / 12) + bloc sombre resserre + graphique encaisse 12 mois build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=98"></script>
+<script src="/app.js?v=97"></script>
 </body>
 </html>
 `;
@@ -5192,7 +5192,8 @@ function renderCockpit(){
   // ── ZONE 1 · où j'en suis (chiffre dominant) ──
   const R=(function(){try{return computeResteAVivre();}catch(e){return null;}})();
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
-  // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
+  // Décomposition du reste à vivre — déplacée du bloc sombre vers le bloc de contexte (colonne 4)
+  // pour tenir le bloc sombre sous 220px sans tasser la typo.
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   const zone1=\`<div class="dash-hero">
     <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
@@ -5200,7 +5201,6 @@ function renderCockpit(){
     <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
     <div class="dash-hero-num">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
     <div style="font-size:15px;color:#f2e7dd;margin-top:6px;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
-    \${breakdown?\`<div style="font-size:13px;color:#cabf95;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);">\${breakdown}</div>\`:''}
   </div>\`;
   const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
     <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
@@ -5238,6 +5238,7 @@ function renderCockpit(){
     \${ctxRow('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',true)}
     \${ctxRow('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé')}
     \${ctxRow('Réserve',moisCouv,'de charges couvertes')}
+    \${breakdown?\`<div style="font-size:11.5px;color:var(--text-2);margin-top:12px;padding-top:10px;border-top:1px solid var(--line);line-height:1.5;">\${breakdown}</div>\`:''}
   </div>\`;
   // Colonne de droite (4 col) : réserve de lissage en tête, puis les 3 chiffres de contexte empilés
   const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${contexte}</div>\`;
