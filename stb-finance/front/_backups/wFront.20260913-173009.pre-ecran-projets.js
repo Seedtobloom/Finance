@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=108" />
+  <link rel="stylesheet" href="/style.css?v=107" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v108 · ecran Projets : projets replies (detail au clic) + termines separes + graphe fantomes/moyenne + alertes remontees + KPI en bande build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v107 · accueil : 2 panneaux pleine largeur (dark+bande / graphe+taches) fond en gouttiere ; variation encaisse a meme date ; bloc sombre resserre build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -1129,16 +1129,29 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
         </div>
       </div>
-      <div id="proj-alerts"></div>
-      <div class="card mb-16" style="padding:20px 24px;">
-        <div class="stat-strip">
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">CA sécurisé (facturé)</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-actifs">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Reste à facturer</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-contrat">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Factures à émettre</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-facture">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Paiements en attente</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-reste">—</div></div>
+      <div class="kpi-grid kpi-grid-4 mb-16">
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-shield-check"></i></div>
+          <span class="kpi-label">CA sécurisé (facturé)</span>
+          <span class="kpi-value green" id="proj-kpi-actifs">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">Reste à facturer</span>
+          <span class="kpi-value warning" id="proj-kpi-contrat">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
+          <span class="kpi-label">Factures à émettre</span>
+          <span class="kpi-value" id="proj-kpi-facture">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-hourglass"></i></div>
+          <span class="kpi-label">Paiements en attente</span>
+          <span class="kpi-value" id="proj-kpi-reste">—</span>
         </div>
       </div>
-      <div id="proj-forecast" class="mb-16"></div>
+      <div id="proj-forecast" class="mb-24"></div>
       <div id="projets-list"></div>
     </section><!-- /projets -->
 
@@ -2691,7 +2704,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=108"></script>
+<script src="/app.js?v=107"></script>
 </body>
 </html>
 `;
@@ -3144,13 +3157,6 @@ html, body {
 .panel-split.split-b { grid-template-columns: 1fr minmax(320px, 400px); }
 .panel-split > * { min-width: 0; }
 .panel-split > *:nth-child(2) { border-left: 1px solid var(--line); padding-left: 28px; margin-left: 28px; }
-/* Projet replie : une ligne cliquable, detail au clic */
-.proj-summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 14px 18px; }
-.proj-summary::-webkit-details-marker { display: none; }
-.proj-summary:hover { background: var(--surface-2); }
-.proj-item + .proj-item { border-top: 1px solid var(--line); }
-.proj-chev { color: var(--text-2); flex: none; transition: transform 0.2s ease; }
-.proj-item[open] .proj-chev { transform: rotate(180deg); }
 @media (max-width: 1100px) {
   .panel-split { grid-template-columns: 1fr; }
   .panel-split > *:nth-child(2) { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px solid var(--line); padding-top: 22px; margin-top: 22px; }
@@ -8697,7 +8703,7 @@ function renderProjetsForecast(){
   const factures=dbGet('factures');
   const now=new Date();
   const months=[];
-  for(let k=0;k<6;k++){const dt=new Date(now.getFullYear(),now.getMonth()+k,1);months.push({y:dt.getFullYear(),m:dt.getMonth(),label:MOIS_COURT[dt.getMonth()],total:0});}
+  for(let k=0;k<4;k++){const dt=new Date(now.getFullYear(),now.getMonth()+k,1);months.push({y:dt.getFullYear(),m:dt.getMonth(),label:MOIS_COURT[dt.getMonth()]+' '+dt.getFullYear(),total:0});}
   let recMens=0;
   projets.forEach(p=>{
     if(p.type==='mensuel'){
@@ -8715,20 +8721,21 @@ function renderProjetsForecast(){
       if(reste>0)months[0].total+=reste;
     }
   });
-  const settings=dbGetObj('settings');
-  const objMensuel=Math.round((parseFloat(settings.objectifCA)||0)/12);
-  const vals=months.map(mo=>Math.round(mo.total));
-  const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+  const max=Math.max(1,months[0].total,months[1].total,months[2].total,months[3].total);
+  el.innerHTML=\`<div class="card" style="padding:22px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-calendar"></i> Revenus attendus · prochains mois</span>
-      \${recMens>0?\`<span style="font-size:13px;color:var(--text-2);"><i class="ti ti-repeat"></i> Récurrent sécurisé <strong style="color:var(--vert);">\${fmt(recMens)} / mois</strong></span>\`:''}
+      \${recMens>0?\`<span style="font-size:13px;color:var(--text-2);"><i class="ti ti-repeat"></i> Récurrent sécurisé : <strong style="color:#456039;">\${fmt(recMens)} / mois</strong></span>\`:''}
     </div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Barre pleine = attendu. Barre grise = ton objectif mensuel. Pointillé = ta moyenne. Un mois creux = le bon moment pour prospecter.</div>
-    <div class="chart-wrap"><canvas id="chart-proj-forecast" height="190"></canvas></div>
+    <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:14px;align-items:end;">
+      \${months.map(mo=>\`<div style="text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--navy);">\${fmt(Math.round(mo.total))}</div>
+        <div style="height:\${Math.round(mo.total/max*90)+4}px;background:var(--navy);border-radius:6px 6px 0 0;margin:8px auto 6px;width:56%;opacity:.85;"></div>
+        <div style="font-size:12px;color:var(--text-2);">\${mo.label}</div>
+      </div>\`).join('')}
+    </div>
+    <div style="font-size:12.5px;color:var(--text-2);margin-top:14px;">Basé sur tes projets mensuels et le reste à facturer. Un mois creux = le bon moment pour prospecter.</div>
   </div>\`;
-  const c=q('#chart-proj-forecast');
-  if(c)drawBarChart(c,months.map(mo=>mo.label),[{data:vals,color:COLORS.blue}],{ghost:objMensuel>0?months.map(()=>objMensuel):null,avgLine:avg>0?avg:0});
 }
 
 function renderProjets(){
@@ -8766,7 +8773,6 @@ function renderProjets(){
   const container=q('#projets-list');if(!container)return;
   if(!list.length){
     container.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-2);">Aucun projet. Crée ton premier projet pour suivre ta facturation.</div>';
-    const _ae=q('#proj-alerts'); if(_ae)_ae.innerHTML='';
     return;
   }
   const typeLabel={unique:'Unique',echelonne:'Échelonné',mensuel:'Mensuel'};
@@ -8795,8 +8801,7 @@ function renderProjets(){
       <span></span>
     </div>\`;
   }
-  const alerts=[];
-  const projCard=(p)=>{
+  container.innerHTML=list.map(p=>{
     const linked=factures.filter(f=>f.projetId===p.id);
     const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
     const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
@@ -8824,9 +8829,8 @@ function renderProjets(){
         }else if(slotFacs.length===1){
           facsHtml+=facRow(slotFacs[0]);
         }else{
-          // Doublon détecté → remonté en tête d'écran
-          alerts.push({id:p.id,msg:'<strong>'+escHtml(p.nom||'Projet')+'</strong> — '+slotFacs.length+' factures sur '+dateLabel+', doublon probable'});
-          facsHtml+=\`<div style="background:var(--ambre-bg);border-radius:6px;padding:5px 9px;margin:3px 0;font-size:12px;color:var(--ambre);"><i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
+          // Doublon détecté
+          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:12px;color:#a5502e;"><i class="ti ti-alert-triangle"></i> <i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
           slotFacs.forEach(f=>facsHtml+=facRow(f));
         }
       }
@@ -8860,37 +8864,39 @@ function renderProjets(){
       facsHtml=sorted.map(f=>facRow(f)).join('');
       if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
     }
-    const devisTag=p.devisId?(' · <span style="color:var(--vert);"><i class="ti ti-file"></i> '+(((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero||'')+'</span>'):'';
-    // Projet REPLIÉ : une ligne (nom, client, statut, facturé/total, progression) ; détail des échéances au clic.
-    return\`<details class="proj-item" id="proj-item-\${p.id}">
-      <summary class="proj-summary">
-        <span class="kpi-icon blue" style="width:34px;height:34px;font-size:15px;flex:none;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></span>
-        <span style="flex:1;min-width:0;"><b style="font-size:15px;color:var(--navy);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escHtml(p.nom||'')}</b><small style="font-size:12.5px;color:var(--text-2);">\${escHtml(p.client||'—')} · \${typeLabel[p.type]||p.type}\${devisTag}</small></span>
-        <span class="badge badge-\${sttBadge[p.statut]||'attente'}" style="flex:none;">\${sttLabel[p.statut]||p.statut}</span>
-        <span style="font-size:13px;color:var(--text-2);white-space:nowrap;flex:none;"><strong style="color:var(--navy);">\${fmt(montantFacture)}</strong> / \${fmt(p.montantTotal||0)}</span>
-        <span style="width:80px;height:7px;background:var(--line);border-radius:4px;overflow:hidden;flex:none;"><span style="display:block;height:100%;width:\${pct}%;background:\${pct>=100?'var(--vert)':'var(--bleu)'};"></span></span>
-        <i class="ti ti-chevron-down proj-chev"></i>
-      </summary>
-      <div style="padding:14px 18px 16px;border-top:1px solid var(--line);">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:10px;flex-wrap:wrap;gap:6px;"><span>\${fmt(montantFacture)} facturé sur \${fmt(p.montantTotal||0)}</span><span style="color:\${reste>0?'var(--ambre)':'var(--vert)'};">\${reste>0?fmt(reste)+' restant à facturer':'✓ Complet'}</span></div>
-        \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:12px;"><span style="color:var(--text-2);">\${fmt(montantFacture)} facturé − \${fmt(stLiee)} sous-traitance</span><span style="font-weight:700;color:\${marge>=0?'var(--vert)':'var(--danger)'};">Marge \${fmt(marge)}</span></div>\`:''}
-        \${facsHtml?'<div>'+facsHtml+'</div>':''}
-        \${p.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text-2);font-style:italic;">'+escHtml(p.notes)+'</div>':''}
-        <div style="margin-top:12px;display:flex;gap:8px;"><button class="btn btn-outline btn-sm" onclick="editProjet('\${p.id}')"><i class="ti ti-edit"></i> Modifier</button><button class="btn btn-ghost btn-sm" onclick="deleteProjet('\${p.id}')"><i class="ti ti-trash"></i></button></div>
+    return\`<div class="card mb-16" style="padding:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #ece3d4;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
+          <div>
+            <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
+            <div style="font-size:13px;color:#6b533b;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#456039;"><i class="ti ti-file"></i> '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge badge-\${sttBadge[p.statut]||'attente'}">\${sttLabel[p.statut]||p.statut}</span>
+          <button class="btn btn-ghost btn-xs" onclick="editProjet('\${p.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-ghost btn-xs" onclick="deleteProjet('\${p.id}')"><i class="ti ti-trash"></i></button>
+        </div>
       </div>
-    </details>\`;
-  };
-  // Actifs (et en pause) dans le panneau principal ; terminés dans une section repliée en bas.
-  const actifs=list.filter(p=>p.statut!=='termine');
-  const finis=list.filter(p=>p.statut==='termine');
-  let html='<div class="card" style="padding:0;overflow:hidden;">'+(actifs.length?actifs.map(projCard).join(''):'<div style="padding:20px;color:var(--text-2);font-size:14px;">Aucun projet actif avec ces filtres.</div>')+'</div>';
-  if(finis.length){
-    html+='<details class="dash-detail" style="margin-top:18px;"><summary><i class="ti ti-checks"></i> Projets terminés ('+finis.length+') <i class="ti ti-chevron-down dash-detail-chev"></i></summary><div class="dash-detail-body" style="padding:8px 0 4px;"><div class="card" style="padding:0;overflow:hidden;box-shadow:none;border:1px solid var(--line);">'+finis.map(projCard).join('')+'</div></div></details>';
-  }
-  container.innerHTML=html;
-  // Alertes remontées en tête d'écran, avec lien vers le projet concerné.
-  const alertsEl=q('#proj-alerts');
-  if(alertsEl)alertsEl.innerHTML=alerts.length?'<div class="card" style="padding:12px 18px;margin-bottom:16px;border-left:3px solid var(--ambre);"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ambre);margin-bottom:6px;"><i class="ti ti-alert-triangle"></i> À vérifier</div>'+alerts.map(a=>\`<div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--navy);padding:5px 0;flex-wrap:wrap;"><span style="flex:1;min-width:180px;">\${a.msg}</span><button class="btn btn-ghost btn-sm" onclick="var d=document.getElementById('proj-item-\${a.id}');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});}">Voir le projet →</button></div>\`).join('')+'</div>':'';
+      <div style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#6b533b;margin-bottom:6px;">
+          <span>\${fmt(montantFacture)} facturé</span>
+          <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'<i class="ti ti-check"></i> Complet'}</span></span>
+        </div>
+        <div style="background:#ece3d4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
+          <div style="background:\${pct>=100?'var(--success)':'#E4F0FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
+        </div>
+        \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
+          <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:var(--text-2);">− \${fmt(stLiee)} sous-traitance</span></span>
+          <span style="font-weight:700;color:\${marge>=0?'var(--success)':'var(--danger)'};">Marge \${fmt(marge)}</span>
+        </div>\`:''}
+        \${facsHtml?'<div>'+facsHtml+'</div>':''}
+        \${p.notes?'<div style="margin-top:10px;font-size:13px;color:#6b533b;font-style:italic;">'+p.notes+'</div>':''}
+      </div>
+    </div>\`;
+  }).join('');
 }
 function openProjetModal(data={}){
   q('#modal-projet-title').textContent=data.id?'Modifier le projet':'Nouveau projet';
