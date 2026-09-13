@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=107" />
+  <link rel="stylesheet" href="/style.css?v=106" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v107 · accueil : 2 panneaux pleine largeur (dark+bande / graphe+taches) fond en gouttiere ; variation encaisse a meme date ; bloc sombre resserre build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v106 · accueil en 2 panneaux (fond reduit aux gouttieres) : bloc sombre compact + bande de contexte posee + graphique barres fantomes/moyenne build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2704,7 +2704,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=107"></script>
+<script src="/app.js?v=106"></script>
 </body>
 </html>
 `;
@@ -3151,16 +3151,6 @@ html, body {
 /* Grand chiffre Cormorant : le line-height contient les jambages, 20px garantis dessous */
 .fig-hero { font-family: 'Cormorant Garamond', serif; font-style: italic; line-height: 1.14; }
 .fig-hero + * { margin-top: 20px; }
-/* Panneau large decoupe en deux colonnes internes, separees par un filet vertical (horizontal sous 1100px) */
-.panel-split { display: grid; align-items: start; }
-.panel-split.split-a { grid-template-columns: minmax(300px, 360px) 1fr; }
-.panel-split.split-b { grid-template-columns: 1fr minmax(320px, 400px); }
-.panel-split > * { min-width: 0; }
-.panel-split > *:nth-child(2) { border-left: 1px solid var(--line); padding-left: 28px; margin-left: 28px; }
-@media (max-width: 1100px) {
-  .panel-split { grid-template-columns: 1fr; }
-  .panel-split > *:nth-child(2) { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px solid var(--line); padding-top: 22px; margin-top: 22px; }
-}
 .dash-hero-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #cabf95; }
 .dash-hero-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 84px; line-height: 0.9; color: var(--glycine); }
 .dash-zone3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -5272,14 +5262,16 @@ function renderCockpit(){
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   // Bloc sombre COMPACT (sous-bloc du panneau 1) : chiffre dominant conservé (.fig-hero 84px), mais surface
   // réduite — nombre à gauche, verdict + /jour à droite sur la même hauteur, décomposition en pied.
-  const darkBlock=\`<div class="screen-hero" style="padding:22px 24px;border-radius:18px;">
+  const darkBlock=\`<div class="screen-hero" style="padding:22px 26px;border-radius:18px;">
     <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre · \${MOIS_LONG[m-1]} \${y}</div>
-    <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:#f2e7dd;">
-      <span style="display:inline-flex;align-items:center;gap:7px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#fff;"><span style="width:9px;height:9px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</span>
-      <span style="color:#cabf95;">·</span><span><strong>\${R?fmt(R.resteJour):'—'} / jour</strong> · dans \${R?R.joursRestants:joursVersement} j</span>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:2px;">
+      <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
+      <div style="text-align:right;padding-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#fff;line-height:1.2;"><span style="width:9px;height:9px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
+        <div style="font-size:14px;color:#f2e7dd;margin-top:6px;"><strong>\${R?fmt(R.resteJour):'—'} / jour</strong> · dans \${R?R.joursRestants:joursVersement} j</div>
+      </div>
     </div>
-    \${breakdown?\`<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#cabf95;">\${breakdown}</div>\`:''}
+    \${breakdown?\`<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#cabf95;">\${breakdown}</div>\`:''}
   </div>\`;
   // Réserve de lissage : ligne compacte (pastille colorée par niveau), pas de grand aplat teinté.
   const lissageLine=L?\`<div style="display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--navy);line-height:1.5;">
@@ -5320,15 +5312,9 @@ function renderCockpit(){
   for(let i=11;i>=0;i--){const dt=new Date(y,now.getMonth()-i,1);const kk=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');encLabels.push(MOIS_COURT[dt.getMonth()]);encMois.push(facturesAll.filter(f=>f.statut==='payee'&&((f.datePaiement||f.date||'')+'').startsWith(kk)).reduce((s,f)=>s+(f.montant||0),0));}
   const encComplete=encMois.slice(0,11);                    // mois complets (on exclut le mois en cours, partiel)
   const hasEncHist=encComplete.filter(v=>v>0).length>=2;    // micro-courbe uniquement si l'historique existe réellement
-  const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation mois complet vs mois complet (trompeuse pour un mois en cours)
-  // Variation HONNÊTE : encaissé à date (jour ≤ aujourd'hui) ce mois vs même période le mois dernier (agrégation d'affichage)
-  const todayDay=now.getDate();
-  const mtdEnc=(yy,mm)=>{const key=yy+'-'+String(mm).padStart(2,'0');return facturesAll.filter(f=>{if(f.statut!=='payee')return false;const dr=((f.datePaiement||f.date||'')+'');return dr.startsWith(key)&&(parseInt(dr.slice(8,10))||99)<=todayDay;}).reduce((s,f)=>s+(f.montant||0),0);};
-  const _pmM=m===1?12:m-1,_pyM=m===1?y-1:y;
-  const encMTDprev=mtdEnc(_pyM,_pmM);
-  const deltaEncMTD=encMTDprev>0?Math.round((mtdEnc(y,m)-encMTDprev)/encMTDprev*100):null;
+  const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation vs mois précédent (déjà calculée par computeIntel)
 
-  const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="à même date le mois dernier" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
+  const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="vs mois précédent" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
   // Bande d'indicateurs de contexte : chiffres POSÉS (sans fond ni ombre), filets verticaux (.stat-strip),
   // badge de variation là où l'historique existe. Remplace les 4 cartes empilées.
   const bandItem=(k,v,extra,sub)=>\`<div>
@@ -5339,7 +5325,7 @@ function renderCockpit(){
   const attSub=vieilImpaye?{amber:impDepasse,txt:\`facturé, pas encore encaissé · plus ancienne \${impAge} j\${impDepasse?' (à relancer)':''}\`}:'facturé, pas encore encaissé';
   const urSub=\`Dû \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · éch. \${urProchain.t} dans \${urProchain.jours} j\`:''}\`;
   const bandHtml=\`<div class="stat-strip">
-    \${bandItem('Encaissé du mois',fmt(d.caMois||0),varBadge(deltaEncMTD),'entré sur ton compte · évolution à même date')}
+    \${bandItem('Encaissé du mois',fmt(d.caMois||0),varBadge(deltaEnc),'entré sur ton compte')}
     \${bandItem('URSSAF · à garder de côté',fmt(euReste),'<span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span>',urSub)}
     \${bandItem('En attente de paiement',fmt(enAttente),'',attSub)}
   </div>\`;
@@ -5353,20 +5339,15 @@ function renderCockpit(){
     <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="200"></canvas></div>
   </div>\`;
 
-  const tasksHtml=\`<div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
-    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}\`;
   const fil='<div style="border-top:1px solid var(--line);margin:22px 0;"></div>';
-  // Deux panneaux PLEINE LARGEUR empilés, chacun découpé en deux colonnes par un filet interne : le blanc
-  // occupe l'écran, le fond ne réapparaît qu'en gouttière entre les panneaux et en marge.
-  // Panneau A : bloc sombre | bande de contexte.  Panneau B : graphique | (réserve de lissage + à faire).
-  const panelA=\`<div class="card" style="padding:24px 26px;"><div class="panel-split split-a">
-    <div>\${darkBlock}</div>
-    <div style="align-self:center;">\${bandHtml}</div>
-  </div></div>\`;
-  const panelB=\`<div class="card" style="padding:24px 26px;"><div class="panel-split split-b">
-    <div>\${graphHtml}</div>
-    <div>\${lissageLine?lissageLine+fil:''}\${tasksHtml}</div>
-  </div></div>\`;
+  // PANNEAU 1 (large) : situation (bloc sombre) + contexte (bande) + graphique, séparés par des filets internes.
+  const panel1=\`<div class="card" style="padding:24px 26px;">\${darkBlock}\${fil}\${bandHtml}\${fil}\${graphHtml}</div>\`;
+  // PANNEAU 2 : réserve de lissage + « ce qu'il me reste à faire ».
+  const panel2=\`<div class="card" style="padding:22px 24px;">
+    \${lissageLine?lissageLine+fil:''}
+    <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
+    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
+  </div>\`;
 
   const detail=\`<details class="dash-detail" ontoggle="renderDashDetail(this)">
     <summary><i class="ti ti-adjustments-alt"></i> Score, plan, détail et prévisions <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
@@ -5374,9 +5355,10 @@ function renderCockpit(){
   </details>\`;
   const trendsLink=\`<div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>\`;
 
+  // Deux panneaux principaux : le blanc occupe la majorité de la surface, le fond réduit aux gouttières.
   el.innerHTML=\`<div class="grid12">
-    <div class="col-12">\${panelA}</div>
-    <div class="col-12">\${panelB}</div>
+    <div class="col-8">\${panel1}</div>
+    <div class="col-4">\${panel2}</div>
     <div class="col-12">\${detail}</div>
     <div class="col-12">\${trendsLink}</div>
   </div>\`;
