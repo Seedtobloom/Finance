@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=109" />
+  <link rel="stylesheet" href="/style.css?v=108" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v109 · propagation panneaux : Budget perso (situation en 2 panneaux pleine largeur) + Combien me verser (reperes/horizons fusionnes en un panneau filet) · Mon patrimoine deja conforme</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v108 · ecran Projets : projets replies (detail au clic) + termines separes + graphe fantomes/moyenne + alertes remontees + KPI en bande build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -291,8 +291,8 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="perso-zone-title"><i class="ti ti-eye"></i> Ma situation <span class="perso-zone-sub">ce que dit ton budget</span></div>
       <div class="grid12" style="margin-bottom:18px;">
-        <div class="col-12" id="perso-reste-a-vivre"></div>
-        <div class="col-12" id="perso-bridge"></div>
+        <div class="col-8" id="perso-reste-a-vivre"></div>
+        <div class="col-4" id="perso-bridge"></div>
       </div>
 
       <div class="perso-zone-title"><i class="ti ti-pencil"></i> Mes données <span class="perso-zone-sub">ce que tu saisis</span></div>
@@ -2691,7 +2691,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=109"></script>
+<script src="/app.js?v=108"></script>
 </body>
 </html>
 `;
@@ -3142,7 +3142,6 @@ html, body {
 .panel-split { display: grid; align-items: start; }
 .panel-split.split-a { grid-template-columns: minmax(300px, 360px) 1fr; }
 .panel-split.split-b { grid-template-columns: 1fr minmax(320px, 400px); }
-.panel-split.split-even { grid-template-columns: 1fr 1fr; }
 .panel-split > * { min-width: 0; }
 .panel-split > *:nth-child(2) { border-left: 1px solid var(--line); padding-left: 28px; margin-left: 28px; }
 /* Projet replie : une ligne cliquable, detail au clic */
@@ -6274,8 +6273,7 @@ function loadVersement(){
       <span>\${sousPlafond?\`Sous le plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — ton activité soutient ta rémunération fixe sans puiser dans tes réserves.\`:\`Au-dessus du plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — la différence est absorbée par ta réserve de lissage (voir l'accueil).\`}</span>
     </div>
   </div></div>
-  <div class="col-12"><div class="card" style="padding:28px 30px;"><div class="panel-split split-even">
-    <div>
+  <div class="col-6"><div class="card" style="padding:28px 30px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
     \${posBar}
@@ -6285,14 +6283,13 @@ function loadVersement(){
       \${rep('ti-target','Niveau de vie confortable','objectif que tu as fixé toi-même',confort)}
     </div>
     \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:14px;line-height:1.5;">Ta rémunération fixe représente <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif de niveau de vie confortable. Tu l'ajusteras à la hausse quand ton activité le permettra.</div>\`:''}
-    </div>
-    <div>
+  </div></div>
+  <div class="col-6"><div class="card" style="padding:28px 30px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois <small style="color:var(--text-2);">(sans toucher aux réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(plafond)}</span></div>
     <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Le maximum ponctuel est une <strong>capacité exceptionnelle</strong>, pas un salaire mensuel. Le rythme soutenable, lui, tient sur la durée — et c'est le plafond de ta rémunération fixe.</p>
-    </div>
-  </div></div></div></div>\`;
+  </div></div></div>\`;
 }
 
 function loadReserve(){
