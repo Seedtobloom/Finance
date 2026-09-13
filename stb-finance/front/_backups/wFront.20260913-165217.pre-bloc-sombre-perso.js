@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=104" />
+  <link rel="stylesheet" href="/style.css?v=103" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v104 · budget perso : barres bloc sombre (accent/neutre) + montants intermediaires + donut aux couleurs des categories ; barre de positionnement remuneration build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v103 · Temps 2 groupe 1 : systeme applique a Budget perso (+ donut charges), Combien me verser, Mon patrimoine build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2704,7 +2704,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=104"></script>
+<script src="/app.js?v=103"></script>
 </body>
 </html>
 `;
@@ -6225,18 +6225,6 @@ function loadVersement(){
   const salaireMin=Math.max(0,Math.round((M.besoinMin-aides)*100)/100); // charges perso − aides
   const sousPlafond=remu<=plafond;
   const pctConfort=confort>0?Math.round(remu/confort*100):null;
-  // Barre de positionnement : où se situe la rémunération fixe entre plancher, plafond soutenable et confort (4 valeurs réelles)
-  const dmax=Math.max(confort,plafond,remu,salaireMin,1)*1.08;
-  const px=v=>Math.max(0,Math.min(100,(v/dmax)*100));
-  const tick=v=>\`<div style="position:absolute;left:\${px(v)}%;top:-3px;bottom:-3px;width:1.5px;background:var(--terre-400);opacity:.55;transform:translateX(-.75px);"></div>\`;
-  const posBar=\`<div style="margin:2px 0 16px;">
-    <div style="position:relative;height:12px;border-radius:6px;background:var(--surface-2);">
-      <div style="position:absolute;left:\${px(salaireMin)}%;width:\${Math.max(0,px(plafond)-px(salaireMin))}%;top:0;bottom:0;background:var(--bleu-bg);border-radius:6px;"></div>
-      \${tick(salaireMin)}\${tick(plafond)}\${tick(confort)}
-      <div style="position:absolute;left:\${px(remu)}%;top:-5px;bottom:-5px;width:3px;background:var(--bleu);transform:translateX(-1.5px);border-radius:2px;"></div>
-    </div>
-    <div style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">Le trait bleu, c'est ta rémunération fixe (<strong style="color:var(--navy);">\${fmt(remu)}</strong>). La zone claire va du plancher (\${fmt(salaireMin)}) au plafond soutenable (\${fmt(plafond)}).</div>
-  </div>\`;
   const rep=(icon,ttl,sub,val)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-radius:12px;background:var(--surface-2);">
     <div style="display:flex;align-items:center;gap:11px;"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${icon}" style="font-size:17px;"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:var(--text-2);font-size:12.5px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--navy);">\${fmt(val)}</div></div>\`;
@@ -6253,7 +6241,6 @@ function loadVersement(){
   <div class="col-6"><div class="card" style="padding:28px 30px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
-    \${posBar}
     <div style="display:flex;flex-direction:column;gap:10px;">
       \${rep('ti-arrow-bar-to-down','Salaire minimum (charges − aides)','le plancher : tes charges perso une fois tes aides déduites',salaireMin)}
       \${rep('ti-arrow-bar-to-up','Plafond soutenable','ce que l\\'activité soutient sans puiser — à ne pas dépasser durablement',plafond)}
@@ -6348,13 +6335,7 @@ function renderPersoResteAVivre(){
   const total=Math.max(1,R.revenusMois);
   const pw=v=>Math.max(0,Math.min(100,(v/total)*100));
   const resteBar=Math.max(0,R.resteMois);
-  // Une seule logique de couleur : l'accent (glycine) = le segment qui compte ; le reste en crème à
-  // plusieurs intensités (contexte). Niveau typo intermédiaire : libellé 11px + montant 19px.
-  const ACC='var(--glycine)', crS='rgba(242,229,194,.72)', crM='rgba(242,229,194,.5)', crL='rgba(242,229,194,.3)';
-  const leg=(col,lab,val)=>\`<div style="display:flex;flex-direction:column;gap:2px;">
-    <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#cabf95;"><span style="width:9px;height:9px;border-radius:3px;background:\${col};flex:none;"></span>\${lab}</span>
-    <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:#f2e7dd;">\${fmt(val)}</span>
-  </div>\`;
+  const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:rgba(242,229,194,.85);"><span style="width:10px;height:10px;border-radius:3px;background:\${col};flex:none;"></span>\${lab} <strong style="color:#f2e7dd;font-weight:600;">\${fmt(val)}</strong></span>\`;
   el.innerHTML=\`<div class="screen-hero">
     <div class="dash-hero-eyebrow"><i class="ti ti-cash"></i> Ce qu'il me reste pour vivre</div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:6px 0 2px;">
@@ -6367,14 +6348,14 @@ function renderPersoResteAVivre(){
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:7px;">
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Entrées \${fmt(R.revenusMois)}</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.remu)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
+        <div style="width:\${pw(R.remu)}%;background:#cabf95;"></div><div style="width:\${pw(R.revenusActifs)}%;background:#8fbf7f;"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,'Rémunération',R.remu)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin:1px 0 6px;">\${leg('#cabf95','Rémunération',R.remu)}\${R.revenusActifs>0?leg('#8fbf7f','Aides',R.revenusActifs):''}</div>
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.chargesFixes)}%;background:\${crM};"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:\${crL};"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:\${ACC};"></div>
+        <div style="width:\${pw(R.chargesFixes)}%;background:#b99a7d;"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:#d8b9a2;"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:var(--glycine);"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:3px;">\${leg(crM,'Charges',R.chargesFixes)}\${R.envAlloue>0?leg(crL,'Enveloppes',R.envAlloue):''}\${leg(ACC,'Reste à vivre',resteBar)}</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:1px;">\${leg('#b99a7d','Charges',R.chargesFixes)}\${R.envAlloue>0?leg('#d8b9a2','Enveloppes',R.envAlloue):''}\${leg('var(--glycine)','Reste à vivre',resteBar)}</div>
     </div>
   </div>\`;
 }
@@ -6459,19 +6440,17 @@ function renderPersoChargesDonut(ctx){
   const charges=(ctx.charges||[]).filter(c=>c.actif!==false);
   const byCat={};
   charges.forEach(ch=>{const cat=persoChargeCat(ch);byCat[cat]=(byCat[cat]||0)+chargeMensuel(ch);});
-  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,col:persoCatMeta(k).col,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
+  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
   if(parts.length<2){el.innerHTML='';return;}   // pas de répartition parlante sous 2 catégories
-  const total=parts.reduce((s,p)=>s+p.val,0);
-  // Regroupe les petites parts (< 6% du total) et garde au plus 5 catégories nommées ; couleurs = celles des catégories dans la liste
-  const named=[]; let autres=0;
-  parts.forEach((p,i)=>{ if(i<5 && p.val>=total*0.06) named.push(p); else autres+=p.val; });
-  if(autres>0) named.push({lab:'Autres',col:'#b3a892',val:Math.round(autres*100)/100});
+  if(parts.length>6){const keep=parts.slice(0,5);const rest=parts.slice(5).reduce((s,p)=>s+p.val,0);keep.push({lab:'Autres',val:Math.round(rest*100)/100});parts=keep;}
+  const RAMP=['#2c4a72','#4a6285','#6a7f9b','#8b9cb1','#adbac8','#cdd6e0'];
+  const colors=parts.map((_,i)=>RAMP[Math.min(i,RAMP.length-1)]);
   el.innerHTML=\`<div class="card" style="padding:20px 22px;margin-bottom:18px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:10px;"><i class="ti ti-chart-donut"></i> Répartition de tes charges</div>
     <div class="chart-wrap"><canvas id="chart-perso-charges" height="180"></canvas></div>
   </div>\`;
   const c=q('#chart-perso-charges');
-  if(c)drawDonutChart(c,named.map(p=>p.lab),named.map(p=>p.val),named.map(p=>p.col));
+  if(c)drawDonutChart(c,parts.map(p=>p.lab),parts.map(p=>p.val),colors);
 }
 
 function renderPersoHero(ctx){
