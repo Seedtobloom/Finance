@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=101" />
+  <link rel="stylesheet" href="/style.css?v=100" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v101 · accueil : carte URSSAF (du/paye/ecart) + anciennete des impayes ; reserve deplacee vers patrimoine build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v100 · accueil : 3 cartes contexte autonomes + carte encaisse teintee + badge variation + micro-courbe + hauteurs de rangee alignees build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=101"></script>
+<script src="/app.js?v=100"></script>
 </body>
 </html>
 `;
@@ -5253,16 +5253,8 @@ function renderCockpit(){
     \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
   </div>\`;
 
-  // ── ZONE 3 · contexte : cartes autonomes empilées (fond, ombre et arrondi propres) ──
-  // URSSAF (option A) — dû / déjà payé / écart, sur l'encaissé (moteur enveloppes, aucun calcul nouveau)
-  let euBudget=0,euPaye=0,euReste=0; try{const _ev=computeEnveloppes();const _eu=(_ev&&_ev.env&&_ev.env.urssaf)||{};euBudget=_eu.budget||0;euPaye=_eu.paye||0;euReste=_eu.reste||0;}catch(e){}
-  const urProchain=d.urssafProchain||null;
-  // Ancienneté du plus ancien impayé + repère si au-delà des conditions de paiement (agrégation d'affichage)
-  const todayStr=y+'-'+String(m).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-  const delaiPaiement=parseInt(settings.delaiPaiement)||30;
-  let vieilImpaye=null; facturesAll.forEach(f=>{if(f.statut==='payee')return;const dref=f.date||f.dateEcheance;if(!dref)return;if(!vieilImpaye||dref<vieilImpaye.dref)vieilImpaye={dref:dref,ech:f.dateEcheance||null};});
-  let impAge=null,impDepasse=false;
-  if(vieilImpaye){impAge=Math.max(0,Math.floor((todayMid-new Date(vieilImpaye.dref+'T00:00'))/86400000));impDepasse=vieilImpaye.ech?(vieilImpaye.ech<todayStr):(impAge>delaiPaiement);}
+  // ── ZONE 3 · contexte : 3 cartes autonomes empilées (fond, ombre et arrondi propres) ──
+  const moisCouv=M.moisCouverts!=null?(String(M.moisCouverts).replace('.',',')+' mois'):'—';
 
   // Agrégation d'affichage : encaissé par mois sur 12 mois (factures payées déjà chargées, aucun calcul métier)
   const encLabels=[],encMois=[];
@@ -5276,19 +5268,13 @@ function renderCockpit(){
     <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
     <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${v}</span>\${o.badge||''}</div>
     <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
-    \${o.foot||''}
     \${o.spark?\`<div class="spark-wrap" style="margin-top:8px;"><canvas id="\${o.spark}" height="22"></canvas></div>\`:''}
   </div>\`;
-  const impFoot=vieilImpaye?\`<div style="font-size:11.5px;margin-top:6px;\${impDepasse?'color:var(--ambre);':'color:var(--text-2);'}">\${impDepasse?'<i class="ti ti-clock-exclamation"></i> ':''}Plus ancienne : \${impAge} j\${impDepasse?\` · au-delà de ton délai (\${delaiPaiement} j), à relancer\`:''}</div>\`:'';
-  const cardUrssaf=\`<div class="card" style="padding:16px 18px;">
-    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">URSSAF · à garder de côté</div>
-    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${fmt(euReste)}</span><span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span></div>
-    <div style="font-size:11.5px;color:var(--text-2);margin-top:6px;line-height:1.55;">Dû sur ton encaissé \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · prochaine échéance \${urProchain.t} dans \${urProchain.jours} j\`:''}</div>
-  </div>\`;
   const cardEnc=metricCard('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',{tint:true,badge:varBadge(deltaEnc),spark:hasEncHist?'spark-encaisse':null});
-  const cardAtt=metricCard('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé',{foot:impFoot});
-  // Colonne de droite (4 col) : réserve de lissage, puis URSSAF (l'alerte), encaissé (teinté), en attente. Réserve « mois couverts » déplacée vers Patrimoine.
-  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardUrssaf}\${cardEnc}\${cardAtt}</div>\`;
+  const cardAtt=metricCard('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé');
+  const cardRes=metricCard('Réserve',moisCouv,'de charges couvertes');
+  // Colonne de droite (4 col) : réserve de lissage en tête, puis 3 cartes de contexte autonomes empilées
+  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardEnc}\${cardAtt}\${cardRes}</div>\`;
 
   const chartBlock=\`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;height:100%;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
@@ -6517,7 +6503,6 @@ function renderPatrimoine(){
         \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-coins"></i> Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} / an</div></div>\`:''}
         \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de besoin réel couvert (charges − aides)</div><div style="font-size:10.5px;opacity:.45;margin-top:1px;">en supposant tes aides maintenues</div></div>\`:''}
         \${(M.tresoPro||0)>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie d'entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">hors patrimoine — provisionnée pour charges &amp; URSSAF</div></div>\`:''}
-        \${M.moisCouverts!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-battery-3"></i> Réserve</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisCouverts).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de charges couvertes</div></div>\`:''}
       </div>
     </div>\`;
   }
