@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=112" />
+  <link rel="stylesheet" href="/style.css?v=111" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v112 · Projets de vie : bandeau au systeme (reste a epargner en grand + bande de contexte, alerte sur-affectation preservee) ; Previsions : blocs sombres harmonises en screen-hero. Aucune logique metier touchee.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v111 · Repartition tresorerie : hero au systeme visuel (dispo en grand + bande de contexte) + depassements d'enveloppe surfaces (additif : le trop-paye n'est plus ecrase a zero, badge et alerte rouges, reste/reserve/disponible inchanges)</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2691,7 +2691,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=112"></script>
+<script src="/app.js?v=111"></script>
 </body>
 </html>
 `;
@@ -7126,18 +7126,19 @@ function renderProjetsVie(){
   const besoinReel=Math.round((Number(M.besoinReel)||0)*100)/100;        // charges − aides
   const reserveMois=(s.reserveProjetsMois!=null?Math.max(0,parseInt(s.reserveProjetsMois)):6);
   const plancher=Math.round(reserveMois*besoinReel);                     // ex. 6 × 272 = 1 632 €
-  const overview=\`<div class="screen-hero" style="margin-bottom:18px;">
-    <div class="dash-hero-eyebrow"><i class="ti ti-target"></i> Mes projets de vie</div>
-    <div class="fig-hero" style="font-size:80px;color:var(--glycine);">\${fmt(totalReste)}</div>
-    <div style="font-size:14px;opacity:.72;">reste à épargner pour \${enrich.length} projet\${enrich.length>1?'s':''}\${premEta!=null?\` · premier objectif \${moisEnDate(premEta)}\`:''}</div>
-    <div class="stat-strip stat-strip--dark" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
-      <div><div style="font-size:12px;opacity:.6;">Projets actifs</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${enrich.length}</div></div>
-      <div><div style="font-size:12px;opacity:.6;">Mensualités affectées</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
-      <div><div style="font-size:12px;opacity:.6;">Enveloppe épargne réelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(enveloppe)} / mois</div></div>
-      <div><div style="font-size:12px;opacity:.6;">\${overAlloc?'Dépassement':'Disponible'}</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:\${overAlloc?'#f2b8ae':'#b7d3ad'};">\${overAlloc?'−'+fmt(affecte-enveloppe):fmt(dispoEnv)} / mois</div></div>
+  const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;">
+    <div class="stat-strip stat-strip--dark">
+      <div><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
+      <div><div style="font-size:12px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalReste)}</div></div>
+      <div><div style="font-size:12px;opacity:.6;">Mensualités affectées aux projets</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
+      \${premEta!=null?\`<div><div style="font-size:12px;opacity:.6;">Premier objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${moisEnDate(premEta)}</div></div>\`:''}
     </div>
-    \${overAlloc?\`<div style="margin-top:14px;border-radius:12px;padding:12px 15px;background:rgba(242,184,174,.14);border:1px solid rgba(242,184,174,.3);font-size:13.5px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:2px;color:#f2b8ae;"></i><span>Tes projets réclament <strong>\${fmt(affecte)}/mois</strong> alors que tu épargnes réellement <strong>\${fmt(enveloppe)}/mois</strong> — soit tu ralentis un projet, soit tu augmentes ton enveloppe.</span></div>\`:''}
-    \${mobilisable>0?\`<div style="margin-top:12px;font-size:12.5px;opacity:.62;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · réserve plancher gardée intacte \${fmt(plancher)} (\${reserveMois} mois de charges réelles, réglable dans Options)</div>\`:''}
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:13.5px;">
+      <span style="opacity:.72;">Enveloppe épargne réelle <strong style="opacity:1;">\${fmt(enveloppe)}/mois</strong></span>
+      <span style="opacity:.72;">Affecté <strong style="opacity:1;">\${fmt(affecte)}/mois</strong></span>
+      <span style="color:\${overAlloc?'#f2b8ae':'#b7d3ad'};font-weight:600;">\${overAlloc?\`<i class="ti ti-alert-triangle"></i> Dépassement de \${fmt(affecte-enveloppe)}/mois — tes projets réclament plus que ce que tu épargnes\`:\`Disponible \${fmt(dispoEnv)}/mois\`}</span>
+    </div>
+    \${mobilisable>0?\`<div style="margin-top:8px;font-size:12.5px;opacity:.6;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · réserve plancher gardée intacte \${fmt(plancher)} (\${reserveMois} mois de charges réelles, réglable dans Options)</div>\`:''}
   </div>\`;
   enrich.sort((a,b)=>(b.prio-a.prio)||((a.eta==null?1e9:a.eta)-(b.eta==null?1e9:b.eta)));
   // Financabilité aujourd'hui : on sert les projets dans l'ordre de priorité, en déduisant au fur et à mesure du patrimoine au-dessus du plancher
@@ -10013,7 +10014,7 @@ function renderRapportPrevision(){
 
   // <i class="ti ti-target"></i> Que dois-je signer ?
   if(P.objectifCA>0&&manque>0){
-    html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+    html+=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Que dois-je signer d'ici décembre ?</div>
       <div style="font-size:15.5px;opacity:.85;margin:8px 0 4px;">Pour atteindre ton objectif, il te faudrait encore sécuriser</div>
       <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;line-height:1;">\${fmt(manque)}</div>
@@ -10069,7 +10070,7 @@ function renderRapportPrevision(){
   </div>\`;
 
   // <i class="ti ti-briefcase"></i> Fin d'année tu auras probablement
-  html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+  html+=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
     <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;"><i class="ti ti-target"></i> Fin \${annee}, tu auras probablement</div>
     <div class="stat-strip stat-strip--dark">
       \${big('<i class="ti ti-coin"></i>','Revenu net',fmt(P.netProjete))}
