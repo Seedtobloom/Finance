@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=100" />
+  <link rel="stylesheet" href="/style.css?v=99" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v100 · accueil : 3 cartes contexte autonomes + carte encaisse teintee + badge variation + micro-courbe + hauteurs de rangee alignees build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v99 · accueil : rythme interne du bloc sombre a 3 groupes + marges internes + air autour du grand chiffre build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=100"></script>
+<script src="/app.js?v=99"></script>
 </body>
 </html>
 `;
@@ -3101,9 +3101,7 @@ html, body {
    GRILLE 12 COLONNES (partagée)
    Gouttière constante ; repli à 1 colonne sous 1100px (ordre du DOM conservé).
    =========================== */
-.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: stretch; }
-.spark-wrap { width: 100%; }
-.spark-wrap canvas { display: block; width: 100%; height: 22px; }
+.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: start; }
 .grid12 > .col-4  { grid-column: span 4; }
 .grid12 > .col-5  { grid-column: span 5; }
 .grid12 > .col-6  { grid-column: span 6; }
@@ -4870,22 +4868,6 @@ function drawLineChart(canvas,labels,data,color=COLORS.navy,dashed=false){
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+(i/n)*cW,pad.top+cH+16));
 }
 
-// Micro-courbe (sparkline) : tendance sur quelques mois, hauteur d'une ligne, sans axe ni étiquette, une seule teinte.
-function drawSparkline(canvas,data,color){
-  if(!canvas||!Array.isArray(data)||data.length<2)return;
-  const{ctx,W,H}=setupCanvas(canvas);
-  ctx.clearRect(0,0,W,H);
-  const pad=3;
-  const min=Math.min.apply(null,data),max=Math.max.apply(null,data);
-  const range=(max-min)||1,n=data.length-1;
-  const pts=data.map((v,i)=>({x:pad+(i/n)*(W-2*pad),y:H-pad-((v-min)/range)*(H-2*pad)}));
-  ctx.beginPath();
-  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
-  const last=pts[pts.length-1];
-  ctx.beginPath();ctx.arc(last.x,last.y,2.2,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
-}
-
 function drawDonutChart(canvas,labels,data,colors){
   if(!canvas)return;
   const{ctx,W,H}=setupCanvas(canvas);
@@ -5214,19 +5196,15 @@ function renderCockpit(){
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   // Rythme interne à 3 groupes : contexte (mois + verdict), principal (libellé + grand chiffre + /jour),
   // détail (après filet). Écart franc entre les groupes, serré à l'intérieur ; le grand chiffre respire.
-  // Flex colonne + gap minimal + space-between : le bloc remplit la hauteur de la rangée (alignée par la grille)
-  // en écartant les 3 groupes ; l'espacement interne absorbe la différence, jamais un vide figé en bas.
-  const zone1=\`<div class="dash-hero" style="padding:30px 36px 28px;display:flex;flex-direction:column;gap:26px;justify-content:space-between;height:100%;">
-    <div>
-      <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
-      <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin-top:5px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
-    </div>
-    <div>
+  const zone1=\`<div class="dash-hero" style="padding:30px 36px 28px;">
+    <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
+    <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin-top:5px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
+    <div style="margin-top:26px;">
       <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
       <div class="dash-hero-num" style="margin:10px 0 8px;">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
       <div style="font-size:15px;color:#f2e7dd;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
     </div>
-    \${breakdown?\`<div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#cabf95;">\${breakdown}</div>\`:''}
+    \${breakdown?\`<div style="margin-top:26px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#cabf95;">\${breakdown}</div>\`:''}
   </div>\`;
   const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
     <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
@@ -5248,38 +5226,33 @@ function renderCockpit(){
     <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
     <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
   </button>\`;
-  const zone2=\`<div class="card" style="padding:22px 28px;height:100%;">
+  const zone2=\`<div class="card" style="padding:22px 28px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
     \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
   </div>\`;
 
-  // ── ZONE 3 · contexte : 3 cartes autonomes empilées (fond, ombre et arrondi propres) ──
+  // ── ZONE 3 · le contexte (3 chiffres empilés dans la colonne de droite) ──
   const moisCouv=M.moisCouverts!=null?(String(M.moisCouverts).replace('.',',')+' mois'):'—';
+  const ctxRow=(k,v,sub,first)=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;\${first?'':'border-top:1px solid var(--line);'}">
+    <span style="min-width:0;"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);display:block;">\${k}</span><span style="font-size:11.5px;color:var(--text-2);">\${sub}</span></span>
+    <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:27px;color:var(--navy);flex:none;">\${v}</span>
+  </div>\`;
+  const contexte=\`<div class="card" style="padding:20px 22px;">
+    <div class="dash-sec-title" style="font-size:13px;margin-bottom:2px;"><i class="ti ti-info-circle"></i> Contexte</div>
+    \${ctxRow('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',true)}
+    \${ctxRow('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé')}
+    \${ctxRow('Réserve',moisCouv,'de charges couvertes')}
+  </div>\`;
+  // Colonne de droite (4 col) : réserve de lissage en tête, puis les 3 chiffres de contexte empilés
+  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${contexte}</div>\`;
 
-  // Agrégation d'affichage : encaissé par mois sur 12 mois (factures payées déjà chargées, aucun calcul métier)
+  // ── GRAPHIQUE · encaissé mensuel, 12 derniers mois (agrégation d'affichage des factures payées) ──
   const encLabels=[],encMois=[];
   for(let i=11;i>=0;i--){const dt=new Date(y,now.getMonth()-i,1);const kk=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');encLabels.push(MOIS_COURT[dt.getMonth()]);encMois.push(facturesAll.filter(f=>f.statut==='payee'&&((f.datePaiement||f.date||'')+'').startsWith(kk)).reduce((s,f)=>s+(f.montant||0),0));}
-  const encComplete=encMois.slice(0,11);                    // mois complets (on exclut le mois en cours, partiel)
-  const hasEncHist=encComplete.filter(v=>v>0).length>=2;    // micro-courbe uniquement si l'historique existe réellement
-  const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation vs mois précédent (déjà calculée par computeIntel)
-
-  const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="vs mois précédent" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
-  const metricCard=(k,v,sub,o={})=>\`<div class="card" style="padding:16px 18px;\${o.tint?'background:var(--bleu-bg);':''}">
-    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
-    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${v}</span>\${o.badge||''}</div>
-    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
-    \${o.spark?\`<div class="spark-wrap" style="margin-top:8px;"><canvas id="\${o.spark}" height="22"></canvas></div>\`:''}
-  </div>\`;
-  const cardEnc=metricCard('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',{tint:true,badge:varBadge(deltaEnc),spark:hasEncHist?'spark-encaisse':null});
-  const cardAtt=metricCard('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé');
-  const cardRes=metricCard('Réserve',moisCouv,'de charges couvertes');
-  // Colonne de droite (4 col) : réserve de lissage en tête, puis 3 cartes de contexte autonomes empilées
-  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardEnc}\${cardAtt}\${cardRes}</div>\`;
-
-  const chartBlock=\`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;height:100%;">
+  const chartBlock=\`<div class="card" style="padding:22px 24px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
     <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ce qui est réellement entré sur ton compte. Barre pâle = mois en cours, encore incomplet.</div>
-    <div class="chart-wrap" style="flex:1;display:flex;align-items:center;"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
+    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
   </div>\`;
 
   // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
@@ -5303,8 +5276,6 @@ function renderCockpit(){
   </div>\`;
   const cEnc=q('#chart-dash-encaisse');
   if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11});
-  const cSp=q('#spark-encaisse');
-  if(cSp&&hasEncHist)drawSparkline(cSp,encComplete,COLORS.blue);
 }
 
 
