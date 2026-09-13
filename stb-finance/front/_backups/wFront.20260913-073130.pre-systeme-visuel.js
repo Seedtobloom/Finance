@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=94" />
+  <link rel="stylesheet" href="/style.css?v=93" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v94 · systeme visuel : relief fond/cartes + ombres douces + accent bleu unique + pastilles categorie desaturees + listes resserrees build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v93 · projets : enveloppe unique (fin du double comptage) + financabilite via patrimoine global avec plancher configurable build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=94"></script>
+<script src="/app.js?v=93"></script>
 </body>
 </html>
 `;
@@ -2717,7 +2717,7 @@ const CSS  = `/* =============================================
   /* ── DA Écrin · marron dominant ── */
   --terre:#110704; --terre-600:#5A2A11; --terre-400:#744f30; --terre-200:#d8b9a2;
   --nuit:#110704; --ivoire:#f6efe6;
-  --bone:#ffffff; --card:#FDFBF7; --line:#ece3d4;
+  --bone:#ffffff; --card:#F7F3EC; --line:#ece3d4;
 
   /* ── accents : bleu clair + crème/paille ── */
   --glycine:#C5DEFF; --brume:#E4F0FF; --paille:#F0E9D6;
@@ -2741,11 +2741,9 @@ const CSS  = `/* =============================================
   --focus:#7fa8d0;
 
   /* ── alias de compatibilité (mappés sur la charte) ── */
-  --bg:         #EAE1D2;
-  --surface:    #FDFBF7;
+  --bg:         #ffffff;
+  --surface:    #F7F3EC;
   --surface-2:  #E4D9C5;
-  --shadow-card: 0 1px 2px rgba(60,40,20,.05), 0 8px 24px rgba(60,40,20,.06);
-  --shadow-card-hover: 0 2px 4px rgba(60,40,20,.06), 0 12px 32px rgba(60,40,20,.09);
   --cream:      #F0E9D6;
   --navy:       #110704;
   --blue:       #2c4a72;
@@ -3057,7 +3055,6 @@ html, body {
   border: none;
   border-radius: var(--r-panel);
   padding: 24px;
-  box-shadow: var(--shadow-card);
 }
 .card-cream {
   background: var(--paille);
@@ -3080,7 +3077,7 @@ html, body {
   align-items: center;
   gap: 8px;
 }
-.card-title .ti { font-size: 17px; color: var(--terre-400); }
+.card-title .ti { font-size: 17px; color: var(--violet-ink); }
 .dash-sec-title {
   font-size: 14px;
   font-weight: 700;
@@ -3092,7 +3089,7 @@ html, body {
   align-items: center;
   gap: 8px;
 }
-.dash-sec-title .ti { font-size: 18px; color: var(--terre-400); }
+.dash-sec-title .ti { font-size: 18px; color: var(--violet-ink); }
 
 /* --- Écran du mois : hiérarchie (lot 1) --- */
 .dash-hero { background: var(--navy); border-radius: 24px; padding: 34px 40px; color: #f2e7dd; }
@@ -3123,7 +3120,7 @@ html, body {
 .perso-sim summary .ti-chevron-down { transition: transform 0.2s ease; }
 .perso-sim[open] summary .ti-chevron-down { transform: rotate(180deg); }
 /* échelle typo perso : base plus grande, 3 niveaux nets */
-.perso-card { background: var(--card); border: none; border-radius: 18px; padding: 22px 24px; box-shadow: var(--shadow-card); }
+.perso-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px 24px; }
 .perso-card-title { font-size: 15px; font-weight: 700; color: var(--navy); display: flex; align-items: center; gap: 9px; }
 .perso-num-2 { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 22px; }
 .perso-line { font-size: 15px; }
@@ -3145,12 +3142,11 @@ html, body {
 
 .kpi-card {
   background: var(--surface);
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 22px 24px 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
 }
 .kpi-icon {
   position: absolute;
@@ -3164,15 +3160,13 @@ html, body {
   justify-content: center;
   font-size: 17px;
 }
-/* Accent bleu = seule couleur d'appel ; le reste des icônes KPI passe en neutre terre.
-   Vert/ambre/rouge réservés au statut, appliqués via classes sémantiques et non décoratives. */
 .kpi-icon.blue   { background: var(--blue-10);    color: #2c4a72; }
-.kpi-icon.violet { background: var(--surface-2);  color: var(--terre-400); }
-.kpi-icon.green  { background: var(--surface-2);  color: var(--terre-400); }
-.kpi-icon.orange { background: var(--surface-2);  color: var(--terre-400); }
+.kpi-icon.violet { background: var(--violet-10);  color: #2c4a72; }
+.kpi-icon.green  { background: var(--success-10); color: var(--success); }
+.kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
 .kpi-icon.red    { background: var(--danger-10);  color: var(--danger); }
 .kpi-icon.navy   { background: var(--navy-10);    color: var(--navy); }
-.kpi-icon.cream  { background: var(--surface-2);  color: var(--terre-400); }
+.kpi-icon.cream  { background: var(--cream-10);   color: var(--brown); }
 
 .kpi-label {
   font-size: 13px;
@@ -3255,7 +3249,7 @@ table { width: 100%; border-collapse: collapse; }
 thead { background: var(--surface-2); }
 thead th {
   text-align: left;
-  padding: 10px 18px;
+  padding: 12px 18px;
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -3268,7 +3262,7 @@ thead th:first-child { border-radius: 8px 0 0 0; }
 thead th:last-child  { border-radius: 0 8px 0 0; }
 
 tbody td {
-  padding: 10px 18px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-size: 15px;
@@ -3276,22 +3270,6 @@ tbody td {
 }
 tbody tr:last-child td { border-bottom: none; }
 tbody tr:hover td { background: var(--surface-2); }
-
-/* ===========================
-   LIGNES DE LISTE COMPACTES (partagé — densité resserrée)
-   =========================== */
-.list-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 8px 0;
-  border-top: 1px solid var(--line);
-}
-.list-row:first-child { border-top: none; }
-.list-row.inactif { opacity: .5; }
-.list-row-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.list-row-actions { display: flex; align-items: center; gap: 9px; flex: none; }
 
 .td-mono {
   font-size: 13px;
@@ -5165,7 +5143,7 @@ function renderCockpit(){
   ['T1','T2','T3','T4'].forEach(t=>{const u=urssafObj[t+'-'+y]||{};if(u.statut==='paye')tasks.push({done:true,urgent:false,icon:'ti-calendar-check',titre:'URSSAF '+QL[t],sub:'payé',nav:'charges-urssaf'});});
   // (lot 2) l'icône de gauche est l'emplacement prévu pour la case à cocher horodatée.
   const taskRow=(it,first)=>\`<button onclick="navigate('\${it.nav}')" style="width:100%;display:flex;align-items:center;gap:13px;text-align:left;background:none;\${first?'border:none;':'border:none;border-top:1px solid var(--border);'}padding:\${it.done?'9px 2px':'15px 2px'};cursor:pointer;font-family:inherit;\${it.done?'opacity:.55;':''}">
-    <span style="width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;background:\${it.done?'var(--vert-bg)':it.urgent?'var(--ambre-bg)':'var(--surface-2)'};color:\${it.done?'var(--vert)':it.urgent?'var(--ambre)':'var(--terre-400)'};"><i class="ti \${it.done?'ti-check':it.icon}"></i></span>
+    <span style="width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;background:\${it.done?'var(--vert-bg)':it.urgent?'var(--ambre-bg)':'var(--bleu-bg)'};color:\${it.done?'var(--vert)':it.urgent?'var(--ambre)':'var(--bleu)'};"><i class="ti \${it.done?'ti-check':it.icon}"></i></span>
     <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
     <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
   </button>\`;
@@ -5260,7 +5238,7 @@ function renderDashDetail(det){
         \${li('Trésorerie restante',fmt(M.tresoRestante))}
       </div>
       <div style="background:var(--bleu-bg);border-radius:20px;padding:26px 28px;">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-home" style="font-style:normal;color:var(--terre-400);"></i> Ton budget perso</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-home" style="font-style:normal;color:var(--bleu);"></i> Ton budget perso</div>
         \${li('Versement + autres revenus',fmt(M.revenusPersoTotal),'tot')}
         \${li('− dépenses',fmt(M.depensesPerso),'neg')}
         \${M.epargnePrevue>0?li('− épargne (projets inclus)',fmt(M.epargnePrevue),'neg'):''}
@@ -5279,7 +5257,7 @@ function renderDashDetail(det){
         <button class="btn btn-outline btn-sm" style="margin-top:18px;" onclick="navigate('rapport-prevision')">Voir mes prévisions <i class="ti ti-arrow-right"></i></button>
       </div>
       <div class="card" style="padding:26px 28px;">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-plant-2" style="font-style:normal;color:var(--terre-400);"></i> Ce que tu construis</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-plant-2" style="font-style:normal;color:var(--bleu);"></i> Ce que tu construis</div>
         <div style="display:flex;gap:30px;flex-wrap:wrap;">\${stat('Patrimoine perso',fmt(M.patriPerso))}\${stat('Trésorerie pro',fmt(M.tresoPro))}\${M.moisLiberte!=null?stat('Liberté',String(M.moisLiberte).replace('.',',')+' mois'):''}</div>
         <button class="btn btn-outline btn-sm" style="margin-top:18px;" onclick="navigate('patrimoine')">Voir mon patrimoine <i class="ti ti-arrow-right"></i></button>
       </div>
@@ -5485,12 +5463,12 @@ async function syncQonto(silent=false){
 /* Enveloppes = lecture des vraies transactions Qonto, jamais de virement manuel.
    URSSAF & Charges se calculent seules ; Formation & Trésorerie = budgets que tu fixes. */
 const ENV_DEF=[
-  {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#7a4139', auto:true },
-  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#7a4f2c', auto:true },
-  {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#5f5670', auto:false},
-  {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#4a6360', auto:false},
-  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#46536a', auto:false},
-  {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#4c5a3a', auto:false},
+  {id:'urssaf',       nom:'URSSAF + CFP',   icone:'ti-building-bank', couleur:'#8d2b21', auto:true },
+  {id:'charges',      nom:'Charges fixes',  icone:'ti-receipt',       couleur:'#a5502e', auto:true },
+  {id:'formation',    nom:'Formation',      icone:'ti-school',        couleur:'#7C3AED', auto:false},
+  {id:'soustraitance',nom:'Sous-traitance', icone:'ti-users-group',   couleur:'#2AA9A0', auto:false},
+  {id:'engagements',  nom:'Engagements à venir', icone:'ti-calendar-check', couleur:'#2c4a72', auto:false},
+  {id:'tresorerie',   nom:'Trésorerie',     icone:'ti-safe',          couleur:'#456039', auto:false},
 ];
 // Catégories assignables à une opération (dans l'ordre proposé au re-classement)
 const ENV_CATS=['urssaf','charges','formation','soustraitance','versement','ignore'];
@@ -5609,10 +5587,8 @@ function renderEnveloppes(){
     if(def.id==='engagements')return renderEngagementsCard(def,e);
     const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
     const badge=def.auto
-      ? '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:var(--terre-400);background:var(--surface-2);">Automatique</span>'
-      : (e.budget>0
-          ? '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:var(--vert);background:var(--vert-bg);">Budget défini</span>'
-          : '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:var(--terre-400);background:var(--surface-2);">À définir</span>');
+      ? '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#456039;background:rgba(62,158,116,.13);">Automatique</span>'
+      : '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#7C3AED;background:rgba(124,58,237,.13);">'+(e.budget>0?'Budget défini':'À définir')+'</span>';
     const row=(k,v)=>\`<div style="display:flex;justify-content:space-between;"><span style="color:var(--text-2);">\${k}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(v)}</span></div>\`;
     let detail='';
     if(def.id==='urssaf')          detail=row('Dû sur ton CA encaissé',e.budget)+row('Déjà payé (Qonto)',e.paye);
@@ -6143,23 +6119,20 @@ function loadReserve(){
   </div>\`;
 }
 
-// Pastilles catégorie désaturées (option b) : la teinte de l'icône garde l'identité (sauge=alim,
-// ardoise=télécom, terracotta=énergie, argile=santé…) mais assez sourde pour ne jamais rivaliser
-// avec l'accent bleu. Fond neutre uniforme, plus aucune couleur pleine saturée.
 const PERSO_CAT_META={
-  logement:{lab:'Logement',icon:'ti-home',col:'#5f4c3c',bg:'var(--surface-2)'},
-  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#4c5a3a',bg:'var(--surface-2)'},
-  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#7a4f2c',bg:'var(--surface-2)'},
-  'santé':{lab:'Santé',icon:'ti-heart',col:'#7a4139',bg:'var(--surface-2)'},
-  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#46536a',bg:'var(--surface-2)'},
-  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#6b5749',bg:'var(--surface-2)'},
-  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#4a3c30',bg:'var(--surface-2)'},
-  banque:{lab:'Banque',icon:'ti-credit-card',col:'#6b5749',bg:'var(--surface-2)'},
-  transport:{lab:'Transport',icon:'ti-car',col:'#7a4f2c',bg:'var(--surface-2)'},
-  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#4c5a3a',bg:'var(--surface-2)'},
-  famille:{lab:'Famille',icon:'ti-users',col:'#7a4139',bg:'var(--surface-2)'},
-  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#6b5240',bg:'var(--surface-2)'},
-  autre:{lab:'Autre',icon:'ti-dots',col:'#6b5240',bg:'var(--surface-2)'}
+  logement:{lab:'Logement',icon:'ti-home',col:'#5A2A11',bg:'var(--surface-2)'},
+  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#456039',bg:'var(--vert-bg)'},
+  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#a5502e',bg:'var(--ambre-bg)'},
+  'santé':{lab:'Santé',icon:'ti-heart',col:'#8d2b21',bg:'var(--rouge-bg)'},
+  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#2c4a72',bg:'var(--bleu-bg)'},
+  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#744f30',bg:'var(--surface-2)'},
+  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#3d1c0b',bg:'var(--surface-2)'},
+  banque:{lab:'Banque',icon:'ti-credit-card',col:'#744f30',bg:'var(--surface-2)'},
+  transport:{lab:'Transport',icon:'ti-car',col:'#a5502e',bg:'var(--ambre-bg)'},
+  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#456039',bg:'var(--vert-bg)'},
+  famille:{lab:'Famille',icon:'ti-users',col:'#8d2b21',bg:'var(--rouge-bg)'},
+  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#7a5540',bg:'var(--surface-2)'},
+  autre:{lab:'Autre',icon:'ti-dots',col:'#7a5540',bg:'var(--surface-2)'}
 };
 function persoCatMeta(cat){return PERSO_CAT_META[cat]||PERSO_CAT_META.autre;}
 // Catégorie d'AFFICHAGE : infère depuis le libellé pour corriger les rangements anciens
@@ -6304,8 +6277,8 @@ function renderPersoHero(ctx){
       \${aidesLine}
     </div>
     <div style="display:flex;gap:14px;flex-wrap:wrap;">
-      \${palier('ti-circle-check','Minimum vital',besoin,'var(--terre-400)','var(--surface-2)','tes dépenses actuelles')}
-      \${palier('ti-circle-half-2','Confort',confort,'var(--terre-400)','var(--surface-2)',confort>0?'ta cible de confort':'à définir')}
+      \${palier('ti-circle-check','Minimum vital',besoin,'var(--vert)','var(--vert-bg)','tes dépenses actuelles')}
+      \${palier('ti-circle-half-2','Confort',confort,'var(--ambre)','var(--ambre-bg)',confort>0?'ta cible de confort':'à définir')}
       \${palier('ti-target','Objectif',objectif,'var(--bleu)','var(--bleu-bg)',objectif>0?'ton objectif de vie':'à définir')}
     </div>\`;
 }
@@ -6420,7 +6393,7 @@ function renderPatrimoine(){
     const nom=escHtml(e.nom||t.nom);
     return \`<div class="card" style="padding:24px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-        <div style="display:flex;align-items:center;gap:11px;min-width:0;"><span style="width:40px;height:40px;border-radius:12px;background:var(--surface-2);color:var(--terre-400);display:grid;place-items:center;font-size:19px;flex:none;">\${t.emoji}</span><span style="font-size:15px;font-weight:700;color:var(--navy);">\${nom}</span></div>
+        <div style="display:flex;align-items:center;gap:11px;min-width:0;"><span style="width:40px;height:40px;border-radius:12px;background:var(--bleu-bg);color:var(--bleu);display:grid;place-items:center;font-size:19px;flex:none;">\${t.emoji}</span><span style="font-size:15px;font-weight:700;color:var(--navy);">\${nom}</span></div>
         <span style="display:flex;gap:6px;flex:none;">
           <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:15px;"><i class="ti ti-pencil"></i></button>
           <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--danger);font-size:15px;"><i class="ti ti-trash"></i></button>
@@ -6523,20 +6496,20 @@ function renderPersoEpargne(ctx){
   const {epargne,epargneMensuel,epargneSolde}=ctx;
   const rows=(epargne||[]).map(e=>{
     const mt=parseFloat(e.montant)||0, sd=parseFloat(e.solde)||0;
-    return \`<div class="list-row">
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);">
       <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(e.nom||'—')}</span>\${sd>0?\` <span style="font-size:12px;color:var(--text-2);">· solde \${fmt(sd)}</span>\`:''}</span>
       <span style="display:flex;align-items:center;gap:9px;flex:none;">
-        <span class="perso-num-2" style="color:var(--navy);">\${fmt(mt)}</span>
+        <span class="perso-num-2" style="color:var(--bleu);">\${fmt(mt)}</span>
         <button onclick="openPersoEpargneModal('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
         <button onclick="deletePersoEpargne('\${e.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
       </span>
     </div>\`;
   }).join('');
-  const proj=epargneMensuel>0?\`<div style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.5;"><i class="ti ti-trending-up" style="color:var(--terre-400);"></i> À ce rythme, dans 12 mois tu auras mis <strong style="color:var(--navy);">\${fmt(epargneMensuel*12)}</strong> de côté\${epargneSolde>0?\` (total ~\${fmt(epargneSolde+epargneMensuel*12)})\`:''}.</div>\`:'';
+  const proj=epargneMensuel>0?\`<div style="font-size:13px;color:var(--text-2);margin-top:12px;line-height:1.5;"><i class="ti ti-trending-up" style="color:var(--bleu);"></i> À ce rythme, dans 12 mois tu auras mis <strong style="color:var(--navy);">\${fmt(epargneMensuel*12)}</strong> de côté\${epargneSolde>0?\` (total ~\${fmt(epargneSolde+epargneMensuel*12)})\`:''}.</div>\`:'';
   el.innerHTML=\`<div class="perso-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-400);display:grid;place-items:center;flex:none;"><i class="ti ti-coin"></i></span> Épargne mensuelle</div>
-      <span class="perso-num-2" style="color:var(--navy);">\${fmt(epargneMensuel)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
+      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--bleu-bg);color:var(--bleu);display:grid;place-items:center;flex:none;"><i class="ti ti-coin"></i></span> Épargne mensuelle</div>
+      <span class="perso-num-2" style="color:var(--bleu);">\${fmt(epargneMensuel)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
     \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Livret A, assurance vie, PEA… combien tu mets de côté chaque mois. Compté dans ton besoin de vie.</div>'}
     \${proj}
@@ -6601,9 +6574,9 @@ function renderPersoRevenus(ctx){
     const maj=revenuDerniereMajYm(r);
     const stale=maj?ymDiffMonths(maj,cur)>3:false;
     const inactif=r.actif===false;
-    return \`<div style="padding:9px 0;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
+    return \`<div style="padding:12px 0;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(r.nom||'—')}</span>\${r.source?\` <span style="font-size:12px;color:var(--text-2);">· \${escHtml(r.source)}</span>\`:''}\${r.type==='variable'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--terre-400);background:var(--surface-2);padding:1px 6px;border-radius:999px;">variable</span>':''}</span>
+        <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(r.nom||'—')}</span>\${r.source?\` <span style="font-size:12px;color:var(--text-2);">· \${escHtml(r.source)}</span>\`:''}\${r.type==='variable'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">variable</span>':''}</span>
         <span style="display:flex;align-items:center;gap:8px;flex:none;">
           <span class="perso-num-2" style="color:var(--vert);">+\${fmt(enVig)}</span>
           <button onclick="openPersoRevenuModal('\${r.id}',true)" title="Nouveau montant à partir d'un mois" style="background:none;border:none;cursor:pointer;color:var(--bleu);font-size:15px;"><i class="ti ti-calendar-plus"></i></button>
@@ -6616,7 +6589,7 @@ function renderPersoRevenus(ctx){
   }).join('');
   el.innerHTML=\`<div class="perso-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;flex-wrap:wrap;gap:8px;">
-      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-400);display:grid;place-items:center;flex:none;"><i class="ti ti-heart-handshake"></i></span> Revenus perso</div>
+      <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--vert-bg);color:var(--vert);display:grid;place-items:center;flex:none;"><i class="ti ti-heart-handshake"></i></span> Revenus perso</div>
       <span class="perso-num-2" style="color:var(--vert);font-size:26px;">+\${fmt(Math.round(totalActif*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
     \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Prime d\\'activité, aide au logement… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}
@@ -6705,7 +6678,7 @@ function renderPersoCharges(ctx){
   charges.forEach(ch=>{const cat=persoChargeCat(ch);(groups[cat]=groups[cat]||[]).push(ch);});
   const catTotal=cat=>groups[cat].filter(c=>c.actif!==false).reduce((s,c)=>s+chargeMensuel(c),0);
   const order=Object.keys(groups).sort((a,b)=>catTotal(b)-catTotal(a));
-  const meta=it=>{const per=it.periodicite||'mensuelle';return (per!=='mensuelle'?\` <span style="font-size:11.5px;color:var(--text-2);">· \${fmt(parseFloat(it.montant)||0)} \${perLab[per]}</span>\`:'')+(it.compte==='pro'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--terre-400);background:var(--surface-2);padding:1px 6px;border-radius:999px;">prélevé pro</span>':'');};
+  const meta=it=>{const per=it.periodicite||'mensuelle';return (per!=='mensuelle'?\` <span style="font-size:11.5px;color:var(--text-2);">· \${fmt(parseFloat(it.montant)||0)} \${perLab[per]}</span>\`:'')+(it.compte==='pro'?' <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--bleu);background:var(--bleu-bg);padding:1px 6px;border-radius:999px;">prélevé pro</span>':'');};
   const right=it=>{const men=Math.round(chargeMensuel(it)*100)/100;return \`<span style="display:flex;align-items:center;gap:9px;flex:none;"><span class="perso-num-2" style="color:var(--terre-400);">\${fmt(men)}</span><button onclick="openPersoChargeModal('\${it.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button><button onclick="deletePersoCharge('\${it.id}')" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button></span>\`;};
   const body=order.map(cat=>{
     const m=persoCatMeta(cat);
@@ -6720,7 +6693,7 @@ function renderPersoCharges(ctx){
       return header+lines;
     }
     const it=items[0]; const inactif=it.actif===false;
-    return \`<div class="list-row\${inactif?' inactif':''}">
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line);\${inactif?'opacity:.5;':''}">
       <span style="display:flex;align-items:center;gap:10px;min-width:0;">\${pastille}<span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${meta(it)}</span></span>\${right(it)}</div>\`;
   }).join('');
   el.innerHTML=\`<div class="perso-card">
@@ -7561,7 +7534,7 @@ function loadFactures(){
     _cav.innerHTML=\`<div class="card" style="padding:26px 28px;"><div class="dash-sec-title" style="margin-bottom:6px;"><i class="ti ti-versions"></i> Les visages de ton CA · \${yy}</div><p style="font-size:13.5px;color:var(--text-2);margin:0 0 14px;">Cinq façons de compter ton chiffre d'affaires — pour ne plus les confondre.</p>\`
       +rowV('ti-file-invoice','var(--surface-2)','var(--terre-600)','CA facturé','tout ce que tu as facturé cette année',caFacture)
       +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc,true)
-      +rowV('ti-clock','var(--surface-2)','var(--terre-600)','CA à encaisser','facturé mais pas encore payé',caAEnc)
+      +rowV('ti-clock','var(--warning-10)','#a5502e','CA à encaisser','facturé mais pas encore payé',caAEnc)
       +rowV('ti-calendar-plus','var(--glycine)','#2c4a72','CA à facturer','projets & récurrents à venir',caAFac)
       +rowV('ti-chart-line','var(--surface-2)','var(--terre-600)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
       +\`<div style="background:var(--success-10);border-radius:12px;padding:13px 16px;font-size:13.5px;color:#456039;margin-top:14px;display:flex;gap:9px;align-items:flex-start;"><i class="ti ti-info-circle" style="margin-top:1px;"></i><span>Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</span></div></div>\`;
@@ -8666,7 +8639,7 @@ function renderProjets(){
           <div style="background:\${pct>=100?'var(--success)':'#E4F0FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
         </div>
         \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
-          <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:var(--text-2);">− \${fmt(stLiee)} sous-traitance</span></span>
+          <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:#2AA9A0;">− \${fmt(stLiee)} sous-traitance</span></span>
           <span style="font-weight:700;color:\${marge>=0?'var(--success)':'var(--danger)'};">Marge \${fmt(marge)}</span>
         </div>\`:''}
         \${facsHtml?'<div>'+facsHtml+'</div>':''}
