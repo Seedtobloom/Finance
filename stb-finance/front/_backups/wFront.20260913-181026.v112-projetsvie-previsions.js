@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=115" />
+  <link rel="stylesheet" href="/style.css?v=112" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v115 · Repartition tresorerie : categories de classement creables (nom libre + destination de provision obligatoire, gerees dans Reglages). Le calcul d'enveloppes ne voit que la destination — logique inchangee. Destination explicite requise, sinon la categorie n'est pas enregistree.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v112 · Projets de vie : bandeau au systeme (reste a epargner en grand + bande de contexte, alerte sur-affectation preservee) ; Previsions : blocs sombres harmonises en screen-hero. Aucune logique metier touchee.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -230,24 +230,6 @@ const HTML = `<!DOCTYPE html>
             <label class="form-label">Charges fixes à couvrir (mois d'avance)</label>
             <input class="form-control" type="number" id="env-horizon-charges" min="0" max="12" step="1" placeholder="1">
             <div style="font-size:12px;color:var(--text-2);margin-top:4px;">Combien de mois d'abonnements garder de côté.</div>
-          </div>
-          <div style="border-top:1px solid var(--border);padding-top:14px;">
-            <label class="form-label"><i class="ti ti-tags"></i> Mes catégories de classement</label>
-            <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Crée tes propres catégories de dépense. Chacune pointe vers une destination de provision — <strong>obligatoire</strong> : sans destination, la catégorie n'est pas enregistrée.</div>
-            <div id="env-cat-list" style="margin-bottom:10px;"></div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <input class="form-control" type="text" id="env-cat-nom" placeholder="Nom (ex : Matériel & équipement)" style="flex:1;min-width:150px;">
-              <select class="form-select" id="env-cat-dest" style="flex:none;width:auto;">
-                <option value="">— Destination ? —</option>
-                <option value="charges">Charges fixes</option>
-                <option value="urssaf">URSSAF</option>
-                <option value="formation">Formation</option>
-                <option value="soustraitance">Sous-traitance</option>
-                <option value="versement">Versement perso</option>
-                <option value="ignore">Ignorer (hors provision)</option>
-              </select>
-              <button class="btn btn-outline" onclick="addEnvCategory()"><i class="ti ti-plus"></i> Créer</button>
-            </div>
           </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-env-reglages').style.display='none'">Annuler</button>
@@ -2709,7 +2691,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=115"></script>
+<script src="/app.js?v=112"></script>
 </body>
 </html>
 `;
@@ -5703,17 +5685,6 @@ function classifyTx(t,overrides){
   return 'autre';
 }
 
-// Jetons de destination "en dur" : les seules valeurs que le calcul de provision sait traiter.
-const ENV_DEST_BUILTIN=['urssaf','charges','formation','soustraitance','versement','ignore','autre','ca'];
-// Resout un jeton de classement vers sa destination de provision.
-// - jeton en dur -> lui-meme ; - id de categorie perso -> sa destination choisie ;
-// - id inconnu (categorie supprimee) -> 'autre' (l'operation repart "a ranger", jamais perdue).
-function envDestOf(token,cats){
-  if(ENV_DEST_BUILTIN.indexOf(token)>=0)return token;
-  const cc=(cats||[]).find(x=>x.id===token);
-  return cc?cc.dest:'autre';
-}
-
 let _envCtx=null;
 
 async function loadEnveloppes(){
@@ -5728,7 +5699,6 @@ function computeEnveloppes(){
   const abonnements=dbGet('abonnements')||[];
   const annee=new Date().getFullYear();
   const overrides=settings.envTx||{};
-  const customCats=Array.isArray(settings.envCategories)?settings.envCategories:[];
 
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100;
   const tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
@@ -5748,13 +5718,12 @@ function computeEnveloppes(){
   const debits=[]; // toutes les dépenses avec leur catégorie courante (pour re-classer)
   transactions.forEach(t=>{
     if(t.type!=='debit')return;
-    const c=classifyTx(t,overrides);          // jeton assigne (categorie perso ou destination) — pour l'UI
-    const dest=envDestOf(c,customCats);        // destination de provision — pour le calcul
-    debits.push({...t,cat:c,dest:dest});
-    if(dest==='ignore')return;
-    if(dest==='autre'){listes.autre.push(t);return;}
-    if(paye[dest]!=null)paye[dest]+=(t.montant||0);
-    if(listes[dest])listes[dest].push(t);
+    const c=classifyTx(t,overrides);
+    debits.push({...t,cat:c});
+    if(c==='ignore')return;
+    if(c==='autre'){listes.autre.push(t);return;}
+    if(paye[c]!=null)paye[c]+=(t.montant||0);
+    if(listes[c])listes[c].push(t);
   });
 
   const aboMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
@@ -5781,7 +5750,7 @@ function computeEnveloppes(){
   };
   const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.soustraitance.reste+env.engagements.reste+env.tresorerie.reste;
   const totalDepassement=env.urssaf.depassement+env.charges.depassement+env.formation.depassement+env.soustraitance.depassement+env.engagements.depassement;
-  return {settings,soldeReel,caEncaisse,env,totalReserve,totalDepassement,disponible:soldeReel-totalReserve,aranger:listes.autre,debits,customCats};
+  return {settings,soldeReel,caEncaisse,env,totalReserve,totalDepassement,disponible:soldeReel-totalReserve,aranger:listes.autre,debits};
 }
 
 function renderEnveloppes(){
@@ -5965,31 +5934,21 @@ function renderAranger(ctx){
   if(!el)return;
   const debits=(ctx.debits||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   if(!debits.length){el.innerHTML='<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Aucune dépense Qonto pour le moment. Clique « Sync Qonto ».</div>';return;}
-  const aRanger=debits.filter(t=>t.dest==='autre');
+  const aRanger=debits.filter(t=>t.cat==='autre');
   const list=(_envShowAll?debits:aRanger).slice(0,80);
   const projets=dbGet('projets')||[];
   const txProjet=(ctx.settings&&ctx.settings.txProjet)||{};
-  const customCats=ctx.customCats||[];
-  const opt=(cur)=>{
-    const known=ENV_CATS.indexOf(cur)>=0||customCats.some(c=>c.id===cur);
-    let h=(known?'':\`<option value="" selected>— À classer —</option>\`);
-    if(customCats.length)h+=\`<optgroup label="Mes catégories">\`+customCats.map(c=>\`<option value="\${c.id}"\${c.id===cur?' selected':''}>\${escHtml(c.nom)}</option>\`).join('')+\`</optgroup>\`;
-    h+=\`<optgroup label="Destinations">\`+ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('')+\`</optgroup>\`;
-    return h;
-  };
+  const opt=(cur)=>{const known=ENV_CATS.indexOf(cur)>=0;return (known?'':\`<option value="" selected>— À classer —</option>\`)+ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');};
   const header=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:13px;color:var(--text-2);">\${aRanger.length?aRanger.length+' opération(s) à ranger':'<i class="ti ti-check"></i> Tout est rangé'}\${_envShowAll?' · toutes affichées':''}</span>
-    <span style="display:flex;gap:8px;">
-      <button onclick="openEnvReglages()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);"><i class="ti ti-tags"></i> Gérer mes catégories</button>
-      <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
-    </span>
+    <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
   </div>\`;
   if(!list.length){el.innerHTML=header+'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;"><i class="ti ti-check"></i> Rien à ranger. Clique « Voir toutes les opérations » pour re-catégoriser.</div>';return;}
   const selStyle='border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text-1);background:var(--surface-2);cursor:pointer;';
   el.innerHTML=header+'<div class="list">'+list.map(t=>{
     const key=t.qontoId||t.id;
-    const isRanger=t.dest==='autre';
-    const projSel=t.dest==='soustraitance'
+    const isRanger=t.cat==='autre';
+    const projSel=t.cat==='soustraitance'
       ? \`<select onchange="assignTxProjet('\${key}',this.value)" style="\${selStyle}max-width:150px;" title="Rattacher à un projet">
           <option value="">— Projet ? —</option>
           \${projets.map(p=>\`<option value="\${p.id}"\${txProjet[key]===p.id?' selected':''}>\${escHtml(p.nom)}</option>\`).join('')}
@@ -6037,52 +5996,7 @@ function openEnvReglages(){
   q('#env-budget-soustraitance').value=s.budgetSoustraitance!=null?s.budgetSoustraitance:'';
   q('#env-cible-treso').value=s.objectifTresorerie!=null?s.objectifTresorerie:'';
   q('#env-horizon-charges').value=s.chargesHorizonMois!=null?s.chargesHorizonMois:1;
-  if(q('#env-cat-nom'))q('#env-cat-nom').value='';
-  if(q('#env-cat-dest'))q('#env-cat-dest').value='';
-  renderEnvCatList();
   q('#modal-env-reglages').style.display='flex';
-}
-function renderEnvCatList(){
-  const el=q('#env-cat-list'); if(!el)return;
-  const s=dbGetObj('settings');
-  const cats=Array.isArray(s.envCategories)?s.envCategories:[];
-  if(!cats.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);font-style:italic;">Aucune catégorie personnalisée pour le moment.</div>';return;}
-  el.innerHTML=cats.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
-    <span style="font-size:13.5px;color:var(--navy);font-weight:600;">\${escHtml(c.nom)}</span>
-    <span style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11.5px;color:var(--text-2);"><i class="ti ti-arrow-right"></i> \${ENV_LABELS[c.dest]||c.dest}</span>
-      <button onclick="deleteEnvCategory('\${c.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
-    </span>
-  </div>\`).join('');
-}
-async function addEnvCategory(){
-  const nom=(q('#env-cat-nom').value||'').trim();
-  const dest=q('#env-cat-dest').value;
-  if(!nom){toast('Donne un nom à la catégorie','error');return;}
-  if(!dest||ENV_CATS.indexOf(dest)<0){toast('Choisis une destination de provision — c\\'est obligatoire','error');return;}
-  try{
-    const settings=dbGetObj('settings');
-    const cats=Array.isArray(settings.envCategories)?settings.envCategories.slice():[];
-    cats.push({id:'cat_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nom,dest});
-    settings.envCategories=cats;
-    _cache.settings=await api('PUT','/api/settings',settings);
-    q('#env-cat-nom').value=''; q('#env-cat-dest').value='';
-    renderEnvCatList();
-    renderEnveloppes();
-    toast('Catégorie « '+nom+' » créée','success');
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-async function deleteEnvCategory(id){
-  try{
-    const settings=dbGetObj('settings');
-    settings.envCategories=(Array.isArray(settings.envCategories)?settings.envCategories:[]).filter(c=>c.id!==id);
-    // Nettoie les operations pointant vers cette categorie : elles repartent en classement auto (« à ranger »).
-    if(settings.envTx){Object.keys(settings.envTx).forEach(k=>{if(settings.envTx[k]===id)delete settings.envTx[k];});}
-    _cache.settings=await api('PUT','/api/settings',settings);
-    renderEnvCatList();
-    renderEnveloppes();
-    toast('Catégorie supprimée','success');
-  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 async function saveEnvReglages(){
   try{
@@ -7212,22 +7126,18 @@ function renderProjetsVie(){
   const besoinReel=Math.round((Number(M.besoinReel)||0)*100)/100;        // charges − aides
   const reserveMois=(s.reserveProjetsMois!=null?Math.max(0,parseInt(s.reserveProjetsMois)):6);
   const plancher=Math.round(reserveMois*besoinReel);                     // ex. 6 × 272 = 1 632 €
-  const chip=(lab,val,color)=>\`<span style="display:inline-flex;align-items:baseline;gap:6px;"><span style="opacity:.6;">\${lab}</span><strong style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;\${color?'color:'+color+';':''}">\${val}</strong></span>\`;
-  const overview=\`<div class="screen-hero" style="padding:18px 24px;margin-bottom:18px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;">
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1;">\${fmt(totalReste)}</span>
-        <span style="font-size:13px;opacity:.66;">reste à épargner · \${enrich.length} projet\${enrich.length>1?'s':''}\${premEta!=null?\` · 1er objectif \${moisEnDate(premEta)}\`:''}</span>
-      </div>
+  const overview=\`<div class="screen-hero" style="margin-bottom:18px;">
+    <div class="dash-hero-eyebrow"><i class="ti ti-target"></i> Mes projets de vie</div>
+    <div class="fig-hero" style="font-size:80px;color:var(--glycine);">\${fmt(totalReste)}</div>
+    <div style="font-size:14px;opacity:.72;">reste à épargner pour \${enrich.length} projet\${enrich.length>1?'s':''}\${premEta!=null?\` · premier objectif \${moisEnDate(premEta)}\`:''}</div>
+    <div class="stat-strip stat-strip--dark" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
+      <div><div style="font-size:12px;opacity:.6;">Projets actifs</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${enrich.length}</div></div>
+      <div><div style="font-size:12px;opacity:.6;">Mensualités affectées</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
+      <div><div style="font-size:12px;opacity:.6;">Enveloppe épargne réelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(enveloppe)} / mois</div></div>
+      <div><div style="font-size:12px;opacity:.6;">\${overAlloc?'Dépassement':'Disponible'}</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;color:\${overAlloc?'#f2b8ae':'#b7d3ad'};">\${overAlloc?'−'+fmt(affecte-enveloppe):fmt(dispoEnv)} / mois</div></div>
     </div>
-    <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;align-items:baseline;">
-      \${chip('Enveloppe réelle',fmt(enveloppe)+'/mois')}
-      \${chip('Affecté',fmt(affecte)+'/mois')}
-      \${chip(overAlloc?'Dépassement':'Disponible',overAlloc?'−'+fmt(affecte-enveloppe)+'/mois':fmt(dispoEnv)+'/mois',overAlloc?'#f2b8ae':'#b7d3ad')}
-      \${mobilisable>0?\`<span style="opacity:.55;font-size:12px;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · plancher \${fmt(plancher)} intact (\${reserveMois} mois, réglable dans Options)</span>\`:''}
-    </div>
-    \${overAlloc?\`<div style="margin-top:11px;border-radius:10px;padding:9px 13px;background:rgba(242,184,174,.14);border:1px solid rgba(242,184,174,.3);font-size:13px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:2px;color:#f2b8ae;"></i><span>Tes projets réclament <strong>\${fmt(affecte)}/mois</strong> alors que tu épargnes <strong>\${fmt(enveloppe)}/mois</strong> — soit tu ralentis un projet, soit tu augmentes ton enveloppe.</span></div>\`:''}
+    \${overAlloc?\`<div style="margin-top:14px;border-radius:12px;padding:12px 15px;background:rgba(242,184,174,.14);border:1px solid rgba(242,184,174,.3);font-size:13.5px;line-height:1.5;display:flex;gap:9px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:2px;color:#f2b8ae;"></i><span>Tes projets réclament <strong>\${fmt(affecte)}/mois</strong> alors que tu épargnes réellement <strong>\${fmt(enveloppe)}/mois</strong> — soit tu ralentis un projet, soit tu augmentes ton enveloppe.</span></div>\`:''}
+    \${mobilisable>0?\`<div style="margin-top:12px;font-size:12.5px;opacity:.62;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · réserve plancher gardée intacte \${fmt(plancher)} (\${reserveMois} mois de charges réelles, réglable dans Options)</div>\`:''}
   </div>\`;
   enrich.sort((a,b)=>(b.prio-a.prio)||((a.eta==null?1e9:a.eta)-(b.eta==null?1e9:b.eta)));
   // Financabilité aujourd'hui : on sert les projets dans l'ordre de priorité, en déduisant au fur et à mesure du patrimoine au-dessus du plancher
@@ -7238,54 +7148,37 @@ function renderProjetsVie(){
     if(p.reste<=dispoAvant){consomme=Math.round((consomme+p.reste)*100)/100;finMap[p.id]={financable:true,reserveApres:Math.round((mobilisable-consomme)*100)/100};}
     else{finMap[p.id]={financable:false};}
   });
-  // UNE SEULE representation : barres de progression comparees, enrichies de tout ce que
-  // portaient les anciennes cartes (mensualite, support, reserve, suggestion). Aucun doublon.
-  const maxCible=Math.max(1,...enrich.map(p=>p.cible||0));
-  const rows=enrich.map(p=>{
+  const cards=enrich.map(p=>{
     const c=pvieCat(p.cat);
     const stars='<i class="ti ti-star"></i>'.repeat(p.prio);
     const fin=finMap[p.id]||{};
-    const trackW=Math.max(14,Math.round((p.cible||0)/maxCible*100));
-    // Statut / echeance (a droite du titre)
-    let ech;
-    if(p.reste<=0)ech='<span style="color:#456039;font-weight:600;white-space:nowrap;"><i class="ti ti-confetti"></i> Objectif atteint</span>';
-    else if(fin.financable)ech='<span style="color:#456039;font-weight:600;white-space:nowrap;"><i class="ti ti-circle-check"></i> Finançable aujourd\\'hui</span>';
-    else if(p.eta!=null)ech=\`<span style="white-space:nowrap;"><strong style="color:var(--navy);">\${escHtml(moisEnDate(p.eta))}</strong> <span style="opacity:.6;">· \${p.eta} mois</span></span>\`;
-    else ech='<span style="opacity:.6;white-space:nowrap;">échéance à définir</span>';
-    // Meta sous la barre : montants, mensualite, support
-    const meta=[\`\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%\`];
-    if(p.mens>0)meta.push(fmt(p.mens)+' /mois');
-    if(p.support)meta.push('<i class="ti ti-map-pin"></i> '+escHtml(supName(p.support)));
-    // Note a droite : reserve (financable) ou suggestion d'acceleration
-    let note='';
-    if(fin.financable)note=\`<i class="ti ti-plant-2"></i> te laisserait <strong style="color:var(--navy);">\${fmt(fin.reserveApres)}</strong> de réserve\`;
-    else if(p.mens>0&&p.reste>0){const eta2=Math.ceil(p.reste/(p.mens*2));const gain=(p.eta||0)-eta2;if(gain>0)note=\`<i class="ti ti-bulb"></i> à \${fmt(p.mens*2)}/mois : dès \${moisEnDate(eta2)} <span style="color:#456039;font-weight:600;">(−\${gain} mois)</span>\`;}
-    return \`<div style="padding:15px 0;border-top:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:7px;">
-        <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0;">
-          <span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span>
-          <span style="font-size:11px;color:#a5502e;">\${stars}</span>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:12px;flex:none;">
-          <span style="font-size:13px;color:var(--text-2);">\${p.reste>0?\`<strong style="color:var(--navy);font-size:14.5px;">\${fmt(p.reste)}</strong> restant · \`:''}\${ech}</span>
-          <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);align-self:center;"><i class="ti ti-pencil"></i></button>
-        </div>
+    let timeBlock;
+    if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;"><i class="ti ti-confetti"></i> Objectif atteint</div>\`;}
+    else if(fin.financable){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;line-height:1.05;"><i class="ti ti-circle-check"></i> Finançable aujourd'hui</div><div style="font-size:13px;color:var(--text-2);margin-top:2px;">avec ton patrimoine — te laisserait <strong style="color:var(--navy);">\${fmt(fin.reserveApres)}</strong> de réserve</div>\`;}
+    else if(p.eta!=null){timeBlock=\`<div style="font-size:12px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:13px;color:var(--text-2);">\${moisEnDate(p.eta)}\${mobilisable>0?' · au-delà de ta capacité mobilisable actuelle':''}</div>\`;}
+    else{timeBlock=\`<div style="font-size:14px;color:var(--text-2);">Ajoute une épargne mensuelle pour estimer la date <i class="ti ti-calendar"></i></div>\`;}
+    let proj='';
+    if(p.mens>0&&p.reste>0&&!fin.financable){
+      const eta2=Math.ceil(p.reste/(p.mens*2));
+      const gain=p.eta-eta2;
+      if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-1);line-height:1.5;"><i class="ti ti-bulb"></i> En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#456039;font-weight:600;">tu gagnes \${gain} mois <i class="ti ti-flame"></i></span></div>\`;
+    }
+    const prioColor=p.prio>=3?'#8d2b21':p.prio===2?'#a5502e':'#8b98ad';
+    return \`<div class="card" style="padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:12px;color:#a5502e;margin-top:2px;">\${stars}</div></div>
+        <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
-      <div style="height:14px;background:var(--surface-2);border-radius:7px;width:\${trackW}%;min-width:80px;overflow:hidden;">
-        <div style="height:100%;width:\${p.pct}%;background:var(--violet-ink);border-radius:7px;transition:width .5s;"></div>
+      <div style="margin-bottom:12px;">\${timeBlock}</div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:var(--violet-ink);border-radius:5px;transition:width .5s;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-top:6px;">
+        <span>\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%</span><span>\${p.mens>0?fmt(p.mens)+' / mois':''}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-2);margin-top:6px;">
-        <span>\${meta.join(' · ')}</span>
-        \${note?\`<span style="text-align:right;">\${note}</span>\`:''}
-      </div>
+      \${p.support?\`<div style="font-size:12px;color:var(--text-2);margin-top:6px;"><i class="ti ti-map-pin"></i> Placé sur \${escHtml(supName(p.support))}</div>\`:''}
+      \${proj}
     </div>\`;
   }).join('');
-  const list=\`<div class="card" style="padding:22px 24px;">
-    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Mes projets · progression comparée</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:2px;">Largeur de barre = ampleur du projet (montant cible) · remplissage = déjà épargné.</div>
-    \${rows}
-  </div>\`;
-  el.innerHTML=overview+list;
+  el.innerHTML=overview+\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">\`+cards+\`</div>\`;
 }
 
 function openProjetVieModal(id){

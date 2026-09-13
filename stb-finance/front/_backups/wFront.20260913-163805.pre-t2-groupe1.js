@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=115" />
+  <link rel="stylesheet" href="/style.css?v=102" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v115 · Repartition tresorerie : categories de classement creables (nom libre + destination de provision obligatoire, gerees dans Reglages). Le calcul d'enveloppes ne voit que la destination — logique inchangee. Destination explicite requise, sinon la categorie n'est pas enregistree.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v102 · systeme visuel partage (grid12, screen-hero, stack-groups, card-compact, fig-hero) + accueil remis conforme build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -231,24 +231,6 @@ const HTML = `<!DOCTYPE html>
             <input class="form-control" type="number" id="env-horizon-charges" min="0" max="12" step="1" placeholder="1">
             <div style="font-size:12px;color:var(--text-2);margin-top:4px;">Combien de mois d'abonnements garder de côté.</div>
           </div>
-          <div style="border-top:1px solid var(--border);padding-top:14px;">
-            <label class="form-label"><i class="ti ti-tags"></i> Mes catégories de classement</label>
-            <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Crée tes propres catégories de dépense. Chacune pointe vers une destination de provision — <strong>obligatoire</strong> : sans destination, la catégorie n'est pas enregistrée.</div>
-            <div id="env-cat-list" style="margin-bottom:10px;"></div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-              <input class="form-control" type="text" id="env-cat-nom" placeholder="Nom (ex : Matériel & équipement)" style="flex:1;min-width:150px;">
-              <select class="form-select" id="env-cat-dest" style="flex:none;width:auto;">
-                <option value="">— Destination ? —</option>
-                <option value="charges">Charges fixes</option>
-                <option value="urssaf">URSSAF</option>
-                <option value="formation">Formation</option>
-                <option value="soustraitance">Sous-traitance</option>
-                <option value="versement">Versement perso</option>
-                <option value="ignore">Ignorer (hors provision)</option>
-              </select>
-              <button class="btn btn-outline" onclick="addEnvCategory()"><i class="ti ti-plus"></i> Créer</button>
-            </div>
-          </div>
           <div style="display:flex;gap:8px;justify-content:flex-end;">
             <button class="btn btn-outline" onclick="q('#modal-env-reglages').style.display='none'">Annuler</button>
             <button class="btn btn-primary" onclick="saveEnvReglages()"><i class="ti ti-check"></i> Enregistrer</button>
@@ -308,15 +290,12 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
       <div class="perso-zone-title"><i class="ti ti-eye"></i> Ma situation <span class="perso-zone-sub">ce que dit ton budget</span></div>
-      <div class="grid12" style="margin-bottom:18px;">
-        <div class="col-12" id="perso-reste-a-vivre"></div>
-        <div class="col-12" id="perso-bridge"></div>
-      </div>
+      <div id="perso-reste-a-vivre" style="margin-bottom:18px;"></div>
+      <div id="perso-bridge"></div>
 
       <div class="perso-zone-title"><i class="ti ti-pencil"></i> Mes données <span class="perso-zone-sub">ce que tu saisis</span></div>
       <div class="perso-grid">
         <div class="perso-col">
-          <div id="perso-charges-donut"></div>
           <div id="perso-charges"></div>
         </div>
         <div class="perso-col">
@@ -1147,16 +1126,29 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
         </div>
       </div>
-      <div id="proj-alerts"></div>
-      <div class="card mb-16" style="padding:20px 24px;">
-        <div class="stat-strip">
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">CA sécurisé (facturé)</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-actifs">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Reste à facturer</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-contrat">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Factures à émettre</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-facture">—</div></div>
-          <div><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">Paiements en attente</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);margin-top:3px;" id="proj-kpi-reste">—</div></div>
+      <div class="kpi-grid kpi-grid-4 mb-16">
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="ti ti-shield-check"></i></div>
+          <span class="kpi-label">CA sécurisé (facturé)</span>
+          <span class="kpi-value green" id="proj-kpi-actifs">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
+          <span class="kpi-label">Reste à facturer</span>
+          <span class="kpi-value warning" id="proj-kpi-contrat">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
+          <span class="kpi-label">Factures à émettre</span>
+          <span class="kpi-value" id="proj-kpi-facture">—</span>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="ti ti-hourglass"></i></div>
+          <span class="kpi-label">Paiements en attente</span>
+          <span class="kpi-value" id="proj-kpi-reste">—</span>
         </div>
       </div>
-      <div id="proj-forecast" class="mb-16"></div>
+      <div id="proj-forecast" class="mb-24"></div>
       <div id="projets-list"></div>
     </section><!-- /projets -->
 
@@ -2709,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=115"></script>
+<script src="/app.js?v=102"></script>
 </body>
 </html>
 `;
@@ -2749,11 +2741,11 @@ const CSS  = `/* =============================================
   --focus:#7fa8d0;
 
   /* ── alias de compatibilité (mappés sur la charte) ── */
-  --bg:         #F5F0E8;
+  --bg:         #EAE1D2;
   --surface:    #FDFBF7;
-  --surface-2:  #E7DECB;
-  --shadow-card: 0 1px 2px rgba(60,40,20,.06), 0 8px 24px rgba(60,40,20,.09);
-  --shadow-card-hover: 0 2px 5px rgba(60,40,20,.08), 0 14px 34px rgba(60,40,20,.12);
+  --surface-2:  #E4D9C5;
+  --shadow-card: 0 1px 2px rgba(60,40,20,.05), 0 8px 24px rgba(60,40,20,.06);
+  --shadow-card-hover: 0 2px 4px rgba(60,40,20,.06), 0 12px 32px rgba(60,40,20,.09);
   --cream:      #F0E9D6;
   --navy:       #110704;
   --blue:       #2c4a72;
@@ -3156,24 +3148,6 @@ html, body {
 /* Grand chiffre Cormorant : le line-height contient les jambages, 20px garantis dessous */
 .fig-hero { font-family: 'Cormorant Garamond', serif; font-style: italic; line-height: 1.14; }
 .fig-hero + * { margin-top: 20px; }
-/* Panneau large decoupe en deux colonnes internes, separees par un filet vertical (horizontal sous 1100px) */
-.panel-split { display: grid; align-items: start; }
-.panel-split.split-a { grid-template-columns: minmax(300px, 360px) 1fr; }
-.panel-split.split-b { grid-template-columns: 1fr minmax(320px, 400px); }
-.panel-split.split-even { grid-template-columns: 1fr 1fr; }
-.panel-split > * { min-width: 0; }
-.panel-split > *:nth-child(2) { border-left: 1px solid var(--line); padding-left: 28px; margin-left: 28px; }
-/* Projet replie : une ligne cliquable, detail au clic */
-.proj-summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 14px; padding: 14px 18px; }
-.proj-summary::-webkit-details-marker { display: none; }
-.proj-summary:hover { background: var(--surface-2); }
-.proj-item + .proj-item { border-top: 1px solid var(--line); }
-.proj-chev { color: var(--text-2); flex: none; transition: transform 0.2s ease; }
-.proj-item[open] .proj-chev { transform: rotate(180deg); }
-@media (max-width: 1100px) {
-  .panel-split { grid-template-columns: 1fr; }
-  .panel-split > *:nth-child(2) { border-left: none; padding-left: 0; margin-left: 0; border-top: 1px solid var(--line); padding-top: 22px; margin-top: 22px; }
-}
 .dash-hero-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #cabf95; }
 .dash-hero-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 84px; line-height: 0.9; color: var(--glycine); }
 .dash-zone3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -4831,16 +4805,14 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   const{ctx,W,H}=setupCanvas(canvas);
   ctx.clearRect(0,0,W,H);
   // Reserve right space for target label if needed
-  const pad={top:16,right:(opts.targetLine||opts.avgLine)?58:12,bottom:36,left:52};
+  const pad={top:16,right:opts.targetLine?56:12,bottom:36,left:52};
   const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
   const allVals=datasets.flatMap(d=>d.data);
-  const maxVal=Math.max(...allVals,opts.targetLine||0,opts.seuilLine||0,opts.avgLine||0,...(opts.ghost||[0]),1);
+  const maxVal=Math.max(...allVals,opts.targetLine||0,opts.seuilLine||0,1);
   const step=niceStep(maxVal);
   const yMax=Math.ceil(maxVal/step)*step;
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const groupW=cW/labels.length;
-  // Barres fantômes : valeur de référence en gris très pâle, derrière les barres réelles
-  if(opts.ghost){const gp=Math.min(6,groupW*0.12);opts.ghost.forEach((v,i)=>{if(!v)return;const bH=(v/yMax)*cH;ctx.fillStyle='rgba(60,40,20,.08)';roundTopRect(ctx,pad.left+i*groupW+gp,pad.top+cH-bH,groupW-2*gp,bH,4);ctx.fill();});}
   const bc=datasets.length,gap=Math.min(6,groupW*0.12);
   const bw=Math.max(5,(groupW-gap*(bc+1))/bc);
   const single=datasets.length===1;
@@ -4867,15 +4839,6 @@ function drawBarChart(canvas,labels,datasets,opts={}){
       }
     });
   });
-  // Ligne de moyenne (pointillés) avec étiquette
-  if(opts.avgLine&&opts.avgLine>0&&opts.avgLine<=yMax){
-    const ay=pad.top+cH-(opts.avgLine/yMax)*cH;
-    ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#8a7a63';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(pad.left,ay);ctx.lineTo(pad.left+cW,ay);ctx.stroke();
-    ctx.setLineDash([]);ctx.restore();
-    ctx.fillStyle='#8a7a63';ctx.font='bold 10px Inter Tight,sans-serif';ctx.textAlign='left';
-    ctx.fillText('Moyenne',pad.left+cW+4,ay+4);
-  }
   // Seuil de rentabilité (ligne pointillée grise)
   if(opts.seuilLine&&opts.seuilLine>0&&opts.seuilLine<=yMax){
     const sy=pad.top+cH-(opts.seuilLine/yMax)*cH;
@@ -4962,9 +4925,8 @@ function drawDonutChart(canvas,labels,data,colors){
   ctx.clearRect(0,0,W,H);
   const total=data.reduce((a,b)=>a+b,0);
   if(!total)return;
-  // Cercle collé à gauche, légende juste à sa droite (évite le grand vide autour du cercle)
-  const r=Math.min(H/2-8, W*0.26),ir=r*0.6;
-  const cx=r+12,cy=H/2;
+  const legendW=140;
+  const cx=(W-legendW)/2,cy=H/2,r=Math.min(cx-10,cy-10),ir=r*0.62;
   const gap=data.filter(v=>v>0).length>1?0.02:0;
   let angle=-Math.PI/2;
   ctx.lineWidth=r-ir;
@@ -4982,7 +4944,7 @@ function drawDonutChart(canvas,labels,data,colors){
   ctx.fillText(fmtShort(total),cx,cy+2);
   ctx.fillStyle='#744f30';ctx.font='9px Inter Tight,sans-serif';
   ctx.fillText('TOTAL',cx,cy+15);
-  const lx=cx+r+22;
+  const lx=W-legendW+8;
   let li=0;
   labels.forEach((l,i)=>{
     if(!data[i])return;
@@ -5283,21 +5245,23 @@ function renderCockpit(){
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
-  // Bloc sombre COMPACT (sous-bloc du panneau 1) : chiffre dominant conservé (.fig-hero 84px), mais surface
-  // réduite — nombre à gauche, verdict + /jour à droite sur la même hauteur, décomposition en pied.
-  const darkBlock=\`<div class="screen-hero" style="padding:22px 24px;border-radius:18px;">
-    <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre · \${MOIS_LONG[m-1]} \${y}</div>
-    <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:#f2e7dd;">
-      <span style="display:inline-flex;align-items:center;gap:7px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:#fff;"><span style="width:9px;height:9px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</span>
-      <span style="color:#cabf95;">·</span><span><strong>\${R?fmt(R.resteJour):'—'} / jour</strong> · dans \${R?R.joursRestants:joursVersement} j</span>
+  // Bloc de situation conforme au système : .screen-hero + .stack-groups (3 groupes, hauteur naturelle,
+  // aucun étirement) ; le grand chiffre en .fig-hero (jambages contenus + 20px garantis dessous).
+  const zone1=\`<div class="screen-hero stack-groups">
+    <div>
+      <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
+      <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin-top:5px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
     </div>
-    \${breakdown?\`<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#cabf95;">\${breakdown}</div>\`:''}
+    <div>
+      <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
+      <div class="fig-hero" style="font-size:84px;color:var(--glycine);margin-top:8px;">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
+      <div style="font-size:15px;color:#f2e7dd;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
+    </div>
+    \${breakdown?\`<div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#cabf95;">\${breakdown}</div>\`:''}
   </div>\`;
-  // Réserve de lissage : ligne compacte (pastille colorée par niveau), pas de grand aplat teinté.
-  const lissageLine=L?\`<div style="display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--navy);line-height:1.5;">
-    <span style="width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px;background:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"></span>
-    <div><strong>Réserve de lissage : \${L.mois} mois</strong> de rémunération couverts.\${L.depasse?' Ta rémunération fixe dépasse le versement soutenable ce mois — la différence est absorbée par cette réserve.':' Ta rémunération fixe tient sur ton activité actuelle.'}</div>
+  const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
+    <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
+    <div style="flex:1;font-size:15px;color:var(--navy);"><strong>Réserve de lissage : \${L.mois} mois</strong> de rémunération couverts.\${L.depasse?\` Ta rémunération fixe (\${fmt(L.remu)}) dépasse le versement soutenable ce mois (\${fmt(L.soutenable)}) — la différence est absorbée par cette réserve.\`:' Ta rémunération fixe tient sur ton activité actuelle.'}</div>
   </div>\`:'';
 
   // ── ZONE 2 · ce qu'il me reste à faire ──
@@ -5315,7 +5279,10 @@ function renderCockpit(){
     <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
     <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
   </button>\`;
-  // (le panneau « Ce qu'il me reste à faire » est construit plus bas dans panel2)
+  const zone2=\`<div class="card" style="padding:22px 28px;">
+    <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
+    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
+  </div>\`;
 
   // ── ZONE 3 · contexte : cartes autonomes empilées (fond, ombre et arrondi propres) ──
   // URSSAF (option A) — dû / déjà payé / écart, sur l'encaissé (moteur enveloppes, aucun calcul nouveau)
@@ -5333,68 +5300,56 @@ function renderCockpit(){
   for(let i=11;i>=0;i--){const dt=new Date(y,now.getMonth()-i,1);const kk=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');encLabels.push(MOIS_COURT[dt.getMonth()]);encMois.push(facturesAll.filter(f=>f.statut==='payee'&&((f.datePaiement||f.date||'')+'').startsWith(kk)).reduce((s,f)=>s+(f.montant||0),0));}
   const encComplete=encMois.slice(0,11);                    // mois complets (on exclut le mois en cours, partiel)
   const hasEncHist=encComplete.filter(v=>v>0).length>=2;    // micro-courbe uniquement si l'historique existe réellement
-  const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation mois complet vs mois complet (trompeuse pour un mois en cours)
-  // Variation HONNÊTE : encaissé à date (jour ≤ aujourd'hui) ce mois vs même période le mois dernier (agrégation d'affichage)
-  const todayDay=now.getDate();
-  const mtdEnc=(yy,mm)=>{const key=yy+'-'+String(mm).padStart(2,'0');return facturesAll.filter(f=>{if(f.statut!=='payee')return false;const dr=((f.datePaiement||f.date||'')+'');return dr.startsWith(key)&&(parseInt(dr.slice(8,10))||99)<=todayDay;}).reduce((s,f)=>s+(f.montant||0),0);};
-  const _pmM=m===1?12:m-1,_pyM=m===1?y-1:y;
-  const encMTDprev=mtdEnc(_pyM,_pmM);
-  const deltaEncMTD=encMTDprev>0?Math.round((mtdEnc(y,m)-encMTDprev)/encMTDprev*100):null;
+  const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation vs mois précédent (déjà calculée par computeIntel)
 
-  const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="à même date le mois dernier" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
-  // Bande d'indicateurs de contexte : chiffres POSÉS (sans fond ni ombre), filets verticaux (.stat-strip),
-  // badge de variation là où l'historique existe. Remplace les 4 cartes empilées.
-  const bandItem=(k,v,extra,sub)=>\`<div>
+  const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="vs mois précédent" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
+  const metricCard=(k,v,sub,o={})=>\`<div class="card" style="padding:16px 18px;\${o.tint?'background:var(--bleu-bg);':''}">
     <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
-    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:4px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);line-height:1;">\${v}</span>\${extra||''}</div>
-    \${sub?\`<div style="font-size:11.5px;margin-top:5px;line-height:1.5;\${sub.amber?'color:var(--ambre);':'color:var(--text-2);'}">\${sub.txt||sub}</div>\`:''}
+    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${v}</span>\${o.badge||''}</div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
+    \${o.foot||''}
+    \${o.spark?\`<div class="spark-wrap" style="margin-top:8px;"><canvas id="\${o.spark}" height="22"></canvas></div>\`:''}
   </div>\`;
-  const attSub=vieilImpaye?{amber:impDepasse,txt:\`facturé, pas encore encaissé · plus ancienne \${impAge} j\${impDepasse?' (à relancer)':''}\`}:'facturé, pas encore encaissé';
-  const urSub=\`Dû \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · éch. \${urProchain.t} dans \${urProchain.jours} j\`:''}\`;
-  const bandHtml=\`<div class="stat-strip">
-    \${bandItem('Encaissé du mois',fmt(d.caMois||0),varBadge(deltaEncMTD),'entré sur ton compte · évolution à même date')}
-    \${bandItem('URSSAF · à garder de côté',fmt(euReste),'<span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span>',urSub)}
-    \${bandItem('En attente de paiement',fmt(enAttente),'',attSub)}
+  const impFoot=vieilImpaye?\`<div style="font-size:11.5px;margin-top:6px;\${impDepasse?'color:var(--ambre);':'color:var(--text-2);'}">\${impDepasse?'<i class="ti ti-clock-exclamation"></i> ':''}Plus ancienne : \${impAge} j\${impDepasse?\` · au-delà de ton délai (\${delaiPaiement} j), à relancer\`:''}</div>\`:'';
+  const cardUrssaf=\`<div class="card" style="padding:16px 18px;">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">URSSAF · à garder de côté</div>
+    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${fmt(euReste)}</span><span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span></div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:6px;line-height:1.55;">Dû sur ton encaissé \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · prochaine échéance \${urProchain.t} dans \${urProchain.jours} j\`:''}</div>
   </div>\`;
+  const cardEnc=metricCard('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',{tint:true,badge:varBadge(deltaEnc),spark:hasEncHist?'spark-encaisse':null});
+  const cardAtt=metricCard('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé',{foot:impFoot});
+  // Colonne de droite (4 col) : réserve de lissage, puis URSSAF (l'alerte), encaissé (teinté), en attente. Réserve « mois couverts » déplacée vers Patrimoine.
+  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardUrssaf}\${cardEnc}\${cardAtt}</div>\`;
 
-  // Graphique : barres fantômes (objectif mensuel) derrière, barres réelles par-dessus, ligne de moyenne, axe gradué.
-  const objMensuel=Math.round((parseFloat(settings.objectifCA)||0)/12);
-  const avgEnc=encComplete.length?Math.round(encComplete.reduce((a,b)=>a+b,0)/encComplete.length):0;
-  const graphHtml=\`<div>
+  const chartBlock=\`<div class="card" style="padding:22px 24px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Barre pleine = encaissé réel (pâle = mois en cours, incomplet). Barre grise = ton objectif mensuel. Pointillé = ta moyenne.</div>
-    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="200"></canvas></div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ce qui est réellement entré sur ton compte. Barre pâle = mois en cours, encore incomplet.</div>
+    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
   </div>\`;
 
-  const tasksHtml=\`<div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
-    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}\`;
-  const fil='<div style="border-top:1px solid var(--line);margin:22px 0;"></div>';
-  // Deux panneaux PLEINE LARGEUR empilés, chacun découpé en deux colonnes par un filet interne : le blanc
-  // occupe l'écran, le fond ne réapparaît qu'en gouttière entre les panneaux et en marge.
-  // Panneau A : bloc sombre | bande de contexte.  Panneau B : graphique | (réserve de lissage + à faire).
-  const panelA=\`<div class="card" style="padding:24px 26px;"><div class="panel-split split-a">
-    <div>\${darkBlock}</div>
-    <div style="align-self:center;">\${bandHtml}</div>
-  </div></div>\`;
-  const panelB=\`<div class="card" style="padding:24px 26px;"><div class="panel-split split-b">
-    <div>\${graphHtml}</div>
-    <div>\${lissageLine?lissageLine+fil:''}\${tasksHtml}</div>
-  </div></div>\`;
-
+  // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
+  //    (et ne relance computeMoney) qu'à la première ouverture, via l'événement toggle.
+  //    Aucun attribut open, aucune mémorisation d'état : fermé à chaque chargement.
   const detail=\`<details class="dash-detail" ontoggle="renderDashDetail(this)">
     <summary><i class="ti ti-adjustments-alt"></i> Score, plan, détail et prévisions <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
     <div class="dash-detail-body" id="dash-detail-body"></div>
   </details>\`;
   const trendsLink=\`<div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>\`;
 
+  // Grille 12 colonnes (système). Gauche (8) : bloc sombre + tâches empilés (vrai contenu, hauteur naturelle,
+  // pas d'étirement). Droite (4) : cartes de contexte. Graphique en pleine largeur (12), puis dépli (12).
+  // Ordre du DOM = ordre du repli 1 colonne sous 1100px : reste à vivre → tâches → contexte → graphique → dépli.
   el.innerHTML=\`<div class="grid12">
-    <div class="col-12">\${panelA}</div>
-    <div class="col-12">\${panelB}</div>
+    <div class="col-8"><div style="display:flex;flex-direction:column;gap:20px;">\${zone1}\${zone2}</div></div>
+    <div class="col-4">\${colContexte}</div>
+    <div class="col-12">\${chartBlock}</div>
     <div class="col-12">\${detail}</div>
     <div class="col-12">\${trendsLink}</div>
   </div>\`;
   const cEnc=q('#chart-dash-encaisse');
-  if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11,ghost:objMensuel>0?encLabels.map(()=>objMensuel):null,avgLine:avgEnc>0?avgEnc:0});
+  if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11});
+  const cSp=q('#spark-encaisse');
+  if(cSp&&hasEncHist)drawSparkline(cSp,encComplete,COLORS.blue);
 }
 
 
@@ -5703,17 +5658,6 @@ function classifyTx(t,overrides){
   return 'autre';
 }
 
-// Jetons de destination "en dur" : les seules valeurs que le calcul de provision sait traiter.
-const ENV_DEST_BUILTIN=['urssaf','charges','formation','soustraitance','versement','ignore','autre','ca'];
-// Resout un jeton de classement vers sa destination de provision.
-// - jeton en dur -> lui-meme ; - id de categorie perso -> sa destination choisie ;
-// - id inconnu (categorie supprimee) -> 'autre' (l'operation repart "a ranger", jamais perdue).
-function envDestOf(token,cats){
-  if(ENV_DEST_BUILTIN.indexOf(token)>=0)return token;
-  const cc=(cats||[]).find(x=>x.id===token);
-  return cc?cc.dest:'autre';
-}
-
 let _envCtx=null;
 
 async function loadEnveloppes(){
@@ -5728,7 +5672,6 @@ function computeEnveloppes(){
   const abonnements=dbGet('abonnements')||[];
   const annee=new Date().getFullYear();
   const overrides=settings.envTx||{};
-  const customCats=Array.isArray(settings.envCategories)?settings.envCategories:[];
 
   const tauxU=(parseFloat(settings.tauxUrssaf)||25.6)/100;
   const tauxC=(parseFloat(settings.tauxCfp)||0.2)/100;
@@ -5748,13 +5691,12 @@ function computeEnveloppes(){
   const debits=[]; // toutes les dépenses avec leur catégorie courante (pour re-classer)
   transactions.forEach(t=>{
     if(t.type!=='debit')return;
-    const c=classifyTx(t,overrides);          // jeton assigne (categorie perso ou destination) — pour l'UI
-    const dest=envDestOf(c,customCats);        // destination de provision — pour le calcul
-    debits.push({...t,cat:c,dest:dest});
-    if(dest==='ignore')return;
-    if(dest==='autre'){listes.autre.push(t);return;}
-    if(paye[dest]!=null)paye[dest]+=(t.montant||0);
-    if(listes[dest])listes[dest].push(t);
+    const c=classifyTx(t,overrides);
+    debits.push({...t,cat:c});
+    if(c==='ignore')return;
+    if(c==='autre'){listes.autre.push(t);return;}
+    if(paye[c]!=null)paye[c]+=(t.montant||0);
+    if(listes[c])listes[c].push(t);
   });
 
   const aboMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
@@ -5766,22 +5708,17 @@ function computeEnveloppes(){
   const engTotal=engagements.reduce((s,e)=>s+(parseFloat(e.total)||0),0);
   const engPaye=engagements.reduce((s,e)=>s+(parseFloat(e.paye)||0),0);
   const engReste=engagements.reduce((s,e)=>s+Math.max(0,(parseFloat(e.total)||0)-(parseFloat(e.paye)||0)),0);
-  // Depassement = ce qui a ete paye AU-DELA du budget/du. Purement additif : n'entre dans
-  // aucun agregat existant (reste, totalReserve, disponible restent inchanges), on ne fait
-  // que reveler un negatif jusqu'ici ecrase par le max(0,...) du reste.
-  const engDepassement=engagements.reduce((s,e)=>s+Math.max(0,(parseFloat(e.paye)||0)-(parseFloat(e.total)||0)),0);
 
   const env={
-    urssaf:      {budget:urssafDu,           paye:paye.urssaf,       reste:Math.max(0,urssafDu-paye.urssaf),                   depassement:Math.max(0,paye.urssaf-urssafDu),                                        liste:listes.urssaf},
-    charges:     {budget:chargesBudget,      paye:paye.charges,      reste:chargesBudget,                                      depassement:chargesBudget>0?Math.max(0,paye.charges-chargesBudget):0,               liste:listes.charges},
-    formation:   {budget:budgetFormation,    paye:paye.formation,    reste:Math.max(0,budgetFormation-paye.formation),         depassement:Math.max(0,paye.formation-budgetFormation),                              liste:listes.formation},
-    soustraitance:{budget:budgetSoustraitance,paye:paye.soustraitance,reste:budgetSoustraitance>0?Math.max(0,budgetSoustraitance-paye.soustraitance):0,depassement:budgetSoustraitance>0?Math.max(0,paye.soustraitance-budgetSoustraitance):0,liste:listes.soustraitance},
-    engagements: {budget:engTotal,           paye:engPaye,           reste:engReste,                                           depassement:engDepassement,                                                          liste:[], items:engagements},
-    tresorerie:  {budget:cibleTreso,         paye:0,                 reste:cibleTreso,                                         depassement:0,                                                                       liste:[]},
+    urssaf:      {budget:urssafDu,           paye:paye.urssaf,       reste:Math.max(0,urssafDu-paye.urssaf),                   liste:listes.urssaf},
+    charges:     {budget:chargesBudget,      paye:paye.charges,      reste:chargesBudget,                                      liste:listes.charges},
+    formation:   {budget:budgetFormation,    paye:paye.formation,    reste:Math.max(0,budgetFormation-paye.formation),         liste:listes.formation},
+    soustraitance:{budget:budgetSoustraitance,paye:paye.soustraitance,reste:budgetSoustraitance>0?Math.max(0,budgetSoustraitance-paye.soustraitance):0,liste:listes.soustraitance},
+    engagements: {budget:engTotal,           paye:engPaye,           reste:engReste,                                           liste:[], items:engagements},
+    tresorerie:  {budget:cibleTreso,         paye:0,                 reste:cibleTreso,                                         liste:[]},
   };
   const totalReserve=env.urssaf.reste+env.charges.reste+env.formation.reste+env.soustraitance.reste+env.engagements.reste+env.tresorerie.reste;
-  const totalDepassement=env.urssaf.depassement+env.charges.depassement+env.formation.depassement+env.soustraitance.depassement+env.engagements.depassement;
-  return {settings,soldeReel,caEncaisse,env,totalReserve,totalDepassement,disponible:soldeReel-totalReserve,aranger:listes.autre,debits,customCats};
+  return {settings,soldeReel,caEncaisse,env,totalReserve,disponible:soldeReel-totalReserve,aranger:listes.autre,debits};
 }
 
 function renderEnveloppes(){
@@ -5789,30 +5726,25 @@ function renderEnveloppes(){
   if(!g)return;
   const ctx=computeEnveloppes();
   _envCtx=ctx;
-  const {soldeReel,totalReserve,totalDepassement,disponible,env,aranger}=ctx;
+  const {soldeReel,totalReserve,disponible,env,aranger}=ctx;
 
-  // Bandeau hero : Disponible en grand + bande de contexte (Solde − Réservé) + alerte dépassement
+  // Bandeau : Solde réel − Réservé = Disponible
   const banner=q('#enveloppes-banner');
   if(banner){
-    const strip=(lab,val,hint,color)=>\`<div>
+    const dispColor=disponible<0?'#F87171':'#b7d3ad';
+    const col=(lab,val,hint,color)=>\`<div>
       <div style="font-size:11px;text-transform:uppercase;letter-spacing:.09em;opacity:.6;margin-bottom:5px;">\${lab}</div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:600;\${color?'color:'+color+';':''}">\${fmt(val)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:31px;font-weight:\${color?700:600};\${color?'color:'+color+';':''}">\${fmt(val)}</div>
       <div style="font-size:12px;opacity:.55;margin-top:4px;">\${hint}</div>
     </div>\`;
-    const deps=ENV_DEF.filter(d=>env[d.id]&&env[d.id].depassement>0).map(d=>escHtml(d.nom)+' <strong>+'+fmt(env[d.id].depassement)+'</strong>');
-    banner.innerHTML=\`<div class="screen-hero">
-      <div class="dash-hero-eyebrow"><i class="ti ti-wallet"></i> Répartition de ta trésorerie</div>
-      <div class="fig-hero" style="font-size:80px;color:\${disponible<0?'#F0A9A0':'var(--glycine)'};">\${fmt(disponible)}</div>
-      <div style="font-size:14px;opacity:.72;">Disponible à te verser — \${disponible<0?'tes réserves dépassent ton solde réel':'ce qui reste vraiment libre après provisions'}</div>
-      <div class="stat-strip stat-strip--dark" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
-        \${strip('Solde réel Qonto',soldeReel,'Synchronisé depuis ta banque')}
-        \${strip('Total réservé',totalReserve,'Somme des enveloppes à sécuriser')}
-        \${totalDepassement>0?strip('Dépassé',totalDepassement,'Payé au-delà du budget','#F0A9A0'):strip('Disponible',disponible,'Solde réel − réservé',disponible<0?'#F0A9A0':'var(--glycine)')}
+    banner.innerHTML=\`<div style="background:var(--navy);border-radius:14px;padding:20px 26px;color:#fff;">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;">
+        \${col('Solde réel Qonto',soldeReel,'Synchronisé depuis ta banque')}
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;opacity:.4;text-align:center;">−</div>
+        \${col('Total réservé',totalReserve,'Somme des enveloppes')}
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;opacity:.4;text-align:center;">=</div>
+        \${col('Disponible à te verser',disponible,disponible<0?'Tes réserves dépassent ton solde':'Ce qui reste vraiment libre',dispColor)}
       </div>
-      \${totalDepassement>0?\`<div style="margin-top:16px;border-radius:12px;padding:13px 16px;background:rgba(240,169,160,.14);border:1px solid rgba(240,169,160,.3);font-size:13.5px;line-height:1.55;display:flex;gap:9px;align-items:flex-start;">
-        <i class="ti ti-alert-triangle" style="margin-top:2px;color:#F0A9A0;"></i>
-        <span>Tu as payé <strong>\${fmt(totalDepassement)}</strong> au-delà du budget sur : \${deps.join(' · ')}. Un dépassement n'est pas caché à zéro — c'est une info : soit un budget à réviser, soit une dépense à vérifier.</span>
-      </div>\`:''}
     </div>\`;
   }
 
@@ -5822,7 +5754,6 @@ function renderEnveloppes(){
   g.innerHTML=_envDefsOrdered.map(({def})=>{
     const e=env[def.id];
     if(def.id==='engagements')return renderEngagementsCard(def,e);
-    const over=e.depassement>0;
     const pct=e.budget>0?Math.min(100,Math.round((e.paye/e.budget)*100)):0;
     const badge=def.auto
       ? '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:var(--terre-400);background:var(--surface-2);">Automatique</span>'
@@ -5836,9 +5767,8 @@ function renderEnveloppes(){
     else if(def.id==='charges')    detail=row('Abonnements couverts',e.budget);
     else if(def.id==='soustraitance')detail=(e.budget>0?row('Budget / an',e.budget):'')+row('Déjà payé (Qonto)',e.paye);
     const noBudget=(def.id==='tresorerie'||def.id==='soustraitance')&&e.budget===0;
-    const bigVal=over?('+'+fmt(e.depassement)):(noBudget?(def.id==='soustraitance'?fmt(e.paye):'—'):fmt(e.reste));
-    const bigLab=over?'dépassé — payé au-delà du budget':(noBudget?(def.id==='soustraitance'?'dépensé cette année':'aucun montant défini'):'à garder de côté');
-    const bigColor=over?'#8d2b21':def.couleur;
+    const bigVal=noBudget?(def.id==='soustraitance'?fmt(e.paye):'—'):fmt(e.reste);
+    const bigLab=noBudget?(def.id==='soustraitance'?'dépensé cette année':'aucun montant défini'):'à garder de côté';
     const txHtml=e.liste.length
       ? e.liste.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,4).map(t=>\`<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;">
           <span style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${fmtDate(t.date)} · \${escHtml(t.libelle||'—')}</span>
@@ -5849,20 +5779,17 @@ function renderEnveloppes(){
       ? '<button onclick="openEnvReglages()" style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy);"><i class="ti ti-plus"></i> Définir un montant</button>'
       : (txHtml?\`<div style="border-top:1px dashed var(--border);padding-top:8px;">\${txHtml}</div>\`:'');
 
-    const badgeFinal=over
-      ? '<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#8d2b21;background:rgba(141,43,33,.1);"><i class="ti ti-alert-triangle"></i> Dépassé</span>'
-      : badge;
-    return \`<div class="card" style="padding:18px;\${over?'border-left:3px solid #8d2b21;':''}">
+    return \`<div class="card" style="padding:18px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:8px;">
-          <i class="ti \${def.icone}" style="color:\${bigColor};font-size:17px;"></i>
+          <i class="ti \${def.icone}" style="color:\${def.couleur};font-size:17px;"></i>
           <span style="font-size:14px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${def.nom}</span>
         </div>
-        \${badgeFinal}
+        \${badge}
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:37px;font-weight:600;color:\${bigColor};">\${bigVal}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:37px;font-weight:600;color:\${def.couleur};">\${bigVal}</div>
       <div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">\${bigLab}</div>
-      \${e.budget>0?\`<div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:\${over?100:pct}%;background:\${over?'#8d2b21':def.couleur};border-radius:4px;transition:width .5s;"></div></div>\`:''}
+      \${e.budget>0?\`<div style="height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;transition:width .5s;"></div></div>\`:''}
       \${detail?\`<div style="display:flex;flex-direction:column;gap:4px;font-size:12.5px;margin-bottom:10px;">\${detail}</div>\`:''}
       \${footer}
     </div>\`;
@@ -5878,21 +5805,20 @@ function renderEngagementsCard(def,e){
   const items=e.items||[];
   const rows=items.map(it=>{
     const total=parseFloat(it.total)||0,paye=parseFloat(it.paye)||0,reste=Math.max(0,total-paye);
-    const over=paye>total;
     const pct=total>0?Math.min(100,Math.round(paye/total*100)):0;
     return \`<div style="padding:9px 0;border-bottom:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline;">
         <span style="font-size:13.5px;font-weight:600;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escHtml(it.nom||'Engagement')}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:19px;white-space:nowrap;color:\${over?'#8d2b21':def.couleur};">\${over?'+'+fmt(paye-total):fmt(reste)}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:19px;white-space:nowrap;color:\${def.couleur};">\${fmt(reste)}</span>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:3px;">
-        <span style="font-size:11.5px;color:\${over?'#8d2b21':'var(--text-2)'};">\${it.date?fmtDate(it.date)+' · ':''}payé \${fmt(paye)} / \${fmt(total)}\${over?' · dépassé':''}</span>
+        <span style="font-size:11.5px;color:var(--text-2);">\${it.date?fmtDate(it.date)+' · ':''}payé \${fmt(paye)} / \${fmt(total)}</span>
         <span style="display:flex;gap:8px;">
           <button onclick="openEngagementModal('\${it.id}')" title="Modifier" style="background:none;border:none;cursor:pointer;color:var(--text-2);font-size:14px;"><i class="ti ti-pencil"></i></button>
           <button onclick="deleteEngagement('\${it.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
         </span>
       </div>
-      \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${over?100:pct}%;background:\${over?'#8d2b21':def.couleur};border-radius:4px;"></div></div>\`:''}
+      \${total>0?\`<div style="height:5px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px;"><div style="height:100%;width:\${pct}%;background:\${def.couleur};border-radius:4px;"></div></div>\`:''}
     </div>\`;
   }).join('');
   const badge='<span style="font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:4px 8px;border-radius:999px;color:#2c4a72;background:#E8F1FF;">'+(items.length?items.length+' engagement'+(items.length>1?'s':''):'À définir')+'</span>';
@@ -5965,31 +5891,21 @@ function renderAranger(ctx){
   if(!el)return;
   const debits=(ctx.debits||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   if(!debits.length){el.innerHTML='<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Aucune dépense Qonto pour le moment. Clique « Sync Qonto ».</div>';return;}
-  const aRanger=debits.filter(t=>t.dest==='autre');
+  const aRanger=debits.filter(t=>t.cat==='autre');
   const list=(_envShowAll?debits:aRanger).slice(0,80);
   const projets=dbGet('projets')||[];
   const txProjet=(ctx.settings&&ctx.settings.txProjet)||{};
-  const customCats=ctx.customCats||[];
-  const opt=(cur)=>{
-    const known=ENV_CATS.indexOf(cur)>=0||customCats.some(c=>c.id===cur);
-    let h=(known?'':\`<option value="" selected>— À classer —</option>\`);
-    if(customCats.length)h+=\`<optgroup label="Mes catégories">\`+customCats.map(c=>\`<option value="\${c.id}"\${c.id===cur?' selected':''}>\${escHtml(c.nom)}</option>\`).join('')+\`</optgroup>\`;
-    h+=\`<optgroup label="Destinations">\`+ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('')+\`</optgroup>\`;
-    return h;
-  };
+  const opt=(cur)=>{const known=ENV_CATS.indexOf(cur)>=0;return (known?'':\`<option value="" selected>— À classer —</option>\`)+ENV_CATS.map(c=>\`<option value="\${c}"\${c===cur?' selected':''}>\${ENV_LABELS[c]}</option>\`).join('');};
   const header=\`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:13px;color:var(--text-2);">\${aRanger.length?aRanger.length+' opération(s) à ranger':'<i class="ti ti-check"></i> Tout est rangé'}\${_envShowAll?' · toutes affichées':''}</span>
-    <span style="display:flex;gap:8px;">
-      <button onclick="openEnvReglages()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);"><i class="ti ti-tags"></i> Gérer mes catégories</button>
-      <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
-    </span>
+    <button onclick="toggleEnvShowAll()" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--text-2);">\${_envShowAll?'Voir seulement à ranger':'Voir toutes les opérations'}</button>
   </div>\`;
   if(!list.length){el.innerHTML=header+'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;"><i class="ti ti-check"></i> Rien à ranger. Clique « Voir toutes les opérations » pour re-catégoriser.</div>';return;}
   const selStyle='border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text-1);background:var(--surface-2);cursor:pointer;';
   el.innerHTML=header+'<div class="list">'+list.map(t=>{
     const key=t.qontoId||t.id;
-    const isRanger=t.dest==='autre';
-    const projSel=t.dest==='soustraitance'
+    const isRanger=t.cat==='autre';
+    const projSel=t.cat==='soustraitance'
       ? \`<select onchange="assignTxProjet('\${key}',this.value)" style="\${selStyle}max-width:150px;" title="Rattacher à un projet">
           <option value="">— Projet ? —</option>
           \${projets.map(p=>\`<option value="\${p.id}"\${txProjet[key]===p.id?' selected':''}>\${escHtml(p.nom)}</option>\`).join('')}
@@ -6037,52 +5953,7 @@ function openEnvReglages(){
   q('#env-budget-soustraitance').value=s.budgetSoustraitance!=null?s.budgetSoustraitance:'';
   q('#env-cible-treso').value=s.objectifTresorerie!=null?s.objectifTresorerie:'';
   q('#env-horizon-charges').value=s.chargesHorizonMois!=null?s.chargesHorizonMois:1;
-  if(q('#env-cat-nom'))q('#env-cat-nom').value='';
-  if(q('#env-cat-dest'))q('#env-cat-dest').value='';
-  renderEnvCatList();
   q('#modal-env-reglages').style.display='flex';
-}
-function renderEnvCatList(){
-  const el=q('#env-cat-list'); if(!el)return;
-  const s=dbGetObj('settings');
-  const cats=Array.isArray(s.envCategories)?s.envCategories:[];
-  if(!cats.length){el.innerHTML='<div style="font-size:12.5px;color:var(--text-2);font-style:italic;">Aucune catégorie personnalisée pour le moment.</div>';return;}
-  el.innerHTML=cats.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
-    <span style="font-size:13.5px;color:var(--navy);font-weight:600;">\${escHtml(c.nom)}</span>
-    <span style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:11.5px;color:var(--text-2);"><i class="ti ti-arrow-right"></i> \${ENV_LABELS[c.dest]||c.dest}</span>
-      <button onclick="deleteEnvCategory('\${c.id}')" title="Supprimer" style="background:none;border:none;cursor:pointer;color:#8d2b21;font-size:14px;"><i class="ti ti-trash"></i></button>
-    </span>
-  </div>\`).join('');
-}
-async function addEnvCategory(){
-  const nom=(q('#env-cat-nom').value||'').trim();
-  const dest=q('#env-cat-dest').value;
-  if(!nom){toast('Donne un nom à la catégorie','error');return;}
-  if(!dest||ENV_CATS.indexOf(dest)<0){toast('Choisis une destination de provision — c\\'est obligatoire','error');return;}
-  try{
-    const settings=dbGetObj('settings');
-    const cats=Array.isArray(settings.envCategories)?settings.envCategories.slice():[];
-    cats.push({id:'cat_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nom,dest});
-    settings.envCategories=cats;
-    _cache.settings=await api('PUT','/api/settings',settings);
-    q('#env-cat-nom').value=''; q('#env-cat-dest').value='';
-    renderEnvCatList();
-    renderEnveloppes();
-    toast('Catégorie « '+nom+' » créée','success');
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
-async function deleteEnvCategory(id){
-  try{
-    const settings=dbGetObj('settings');
-    settings.envCategories=(Array.isArray(settings.envCategories)?settings.envCategories:[]).filter(c=>c.id!==id);
-    // Nettoie les operations pointant vers cette categorie : elles repartent en classement auto (« à ranger »).
-    if(settings.envTx){Object.keys(settings.envTx).forEach(k=>{if(settings.envTx[k]===id)delete settings.envTx[k];});}
-    _cache.settings=await api('PUT','/api/settings',settings);
-    renderEnvCatList();
-    renderEnveloppes();
-    toast('Catégorie supprimée','success');
-  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 async function saveEnvReglages(){
   try{
@@ -6351,50 +6222,35 @@ function loadVersement(){
   const salaireMin=Math.max(0,Math.round((M.besoinMin-aides)*100)/100); // charges perso − aides
   const sousPlafond=remu<=plafond;
   const pctConfort=confort>0?Math.round(remu/confort*100):null;
-  // Barre de positionnement : où se situe la rémunération fixe entre plancher, plafond soutenable et confort (4 valeurs réelles)
-  const dmax=Math.max(confort,plafond,remu,salaireMin,1)*1.08;
-  const px=v=>Math.max(0,Math.min(100,(v/dmax)*100));
-  const tick=v=>\`<div style="position:absolute;left:\${px(v)}%;top:-3px;bottom:-3px;width:1.5px;background:var(--terre-400);opacity:.55;transform:translateX(-.75px);"></div>\`;
-  const posBar=\`<div style="margin:2px 0 16px;">
-    <div style="position:relative;height:12px;border-radius:6px;background:var(--surface-2);">
-      <div style="position:absolute;left:\${px(salaireMin)}%;width:\${Math.max(0,px(plafond)-px(salaireMin))}%;top:0;bottom:0;background:var(--bleu-bg);border-radius:6px;"></div>
-      \${tick(salaireMin)}\${tick(plafond)}\${tick(confort)}
-      <div style="position:absolute;left:\${px(remu)}%;top:-5px;bottom:-5px;width:3px;background:var(--bleu);transform:translateX(-1.5px);border-radius:2px;"></div>
-    </div>
-    <div style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">Le trait bleu, c'est ta rémunération fixe (<strong style="color:var(--navy);">\${fmt(remu)}</strong>). La zone claire va du plancher (\${fmt(salaireMin)}) au plafond soutenable (\${fmt(plafond)}).</div>
-  </div>\`;
   const rep=(icon,ttl,sub,val)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-radius:12px;background:var(--surface-2);">
     <div style="display:flex;align-items:center;gap:11px;"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${icon}" style="font-size:17px;"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:var(--text-2);font-size:12.5px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--navy);">\${fmt(val)}</div></div>\`;
-  el.innerHTML=\`<div class="grid12">
-  <div class="col-12"><div class="card" style="padding:30px 32px;background:var(--glycine);border:none;">
+  el.innerHTML=\`
+  <div class="card" style="padding:30px 32px;margin-bottom:18px;background:var(--glycine);border:none;">
     <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bleu);"><i class="ti ti-wallet"></i> Ma rémunération fixe · décision prise</div>
-    <div class="fig-hero" style="font-size:56px;font-weight:700;color:var(--navy);margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;color:var(--navy);line-height:1.02;margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
     <div style="font-size:14.5px;color:var(--bleu);">C'est ce que je me verse chaque mois. Modifiable dans <a onclick="navigate('options')" style="color:var(--bleu);text-decoration:underline;cursor:pointer;">Options</a>.</div>
     <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:#fff;color:\${sousPlafond?'var(--vert)':'var(--terre-600)'};font-size:14.5px;display:flex;gap:9px;align-items:flex-start;">
       <i class="ti \${sousPlafond?'ti-circle-check':'ti-info-circle'}" style="margin-top:2px;"></i>
       <span>\${sousPlafond?\`Sous le plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — ton activité soutient ta rémunération fixe sans puiser dans tes réserves.\`:\`Au-dessus du plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — la différence est absorbée par ta réserve de lissage (voir l'accueil).\`}</span>
     </div>
-  </div></div>
-  <div class="col-12"><div class="card" style="padding:28px 30px;"><div class="panel-split split-even">
-    <div>
+  </div>
+  <div class="card" style="padding:28px 30px;margin-bottom:18px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
-    \${posBar}
     <div style="display:flex;flex-direction:column;gap:10px;">
       \${rep('ti-arrow-bar-to-down','Salaire minimum (charges − aides)','le plancher : tes charges perso une fois tes aides déduites',salaireMin)}
       \${rep('ti-arrow-bar-to-up','Plafond soutenable','ce que l\\'activité soutient sans puiser — à ne pas dépasser durablement',plafond)}
       \${rep('ti-target','Niveau de vie confortable','objectif que tu as fixé toi-même',confort)}
     </div>
     \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:14px;line-height:1.5;">Ta rémunération fixe représente <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif de niveau de vie confortable. Tu l'ajusteras à la hausse quand ton activité le permettra.</div>\`:''}
-    </div>
-    <div>
+  </div>
+  <div class="card" style="padding:28px 30px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois <small style="color:var(--text-2);">(sans toucher aux réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(plafond)}</span></div>
     <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Le maximum ponctuel est une <strong>capacité exceptionnelle</strong>, pas un salaire mensuel. Le rythme soutenable, lui, tient sur la durée — et c'est le plafond de ta rémunération fixe.</p>
-    </div>
-  </div></div></div></div>\`;
+  </div>\`;
 }
 
 function loadReserve(){
@@ -6437,22 +6293,20 @@ function loadReserve(){
 // Pastilles catégorie désaturées (option b) : la teinte de l'icône garde l'identité (sauge=alim,
 // ardoise=télécom, terracotta=énergie, argile=santé…) mais assez sourde pour ne jamais rivaliser
 // avec l'accent bleu. Fond neutre uniforme, plus aucune couleur pleine saturée.
-// col = teinte sourde pour la pastille sur fond clair ; light = version claire/lumineuse (même famille)
-// pour les parts de donut sur fond blanc — pas de tons boueux, chaque catégorie reste distincte.
 const PERSO_CAT_META={
-  logement:{lab:'Logement',icon:'ti-home',col:'#5f4c3c',bg:'var(--surface-2)',light:'#E0B877'},
-  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#4c5a3a',bg:'var(--surface-2)',light:'#AFCE88'},
-  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#7a4f2c',bg:'var(--surface-2)',light:'#F2B279'},
-  'santé':{lab:'Santé',icon:'ti-heart',col:'#7a4139',bg:'var(--surface-2)',light:'#EF9E8E'},
-  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#46536a',bg:'var(--surface-2)',light:'#93BCE6'},
-  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#6b5749',bg:'var(--surface-2)',light:'#DFC08C'},
-  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#4a3c30',bg:'var(--surface-2)',light:'#CBB58C'},
-  banque:{lab:'Banque',icon:'ti-credit-card',col:'#6b5749',bg:'var(--surface-2)',light:'#D5BE9A'},
-  transport:{lab:'Transport',icon:'ti-car',col:'#7a4f2c',bg:'var(--surface-2)',light:'#F0B279'},
-  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#4c5a3a',bg:'var(--surface-2)',light:'#C3D98F'},
-  famille:{lab:'Famille',icon:'ti-users',col:'#7a4139',bg:'var(--surface-2)',light:'#F0AE8C'},
-  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#6b5240',bg:'var(--surface-2)',light:'#F2C971'},
-  autre:{lab:'Autre',icon:'ti-dots',col:'#6b5240',bg:'var(--surface-2)',light:'#DAD0BE'}
+  logement:{lab:'Logement',icon:'ti-home',col:'#5f4c3c',bg:'var(--surface-2)'},
+  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#4c5a3a',bg:'var(--surface-2)'},
+  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#7a4f2c',bg:'var(--surface-2)'},
+  'santé':{lab:'Santé',icon:'ti-heart',col:'#7a4139',bg:'var(--surface-2)'},
+  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#46536a',bg:'var(--surface-2)'},
+  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#6b5749',bg:'var(--surface-2)'},
+  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#4a3c30',bg:'var(--surface-2)'},
+  banque:{lab:'Banque',icon:'ti-credit-card',col:'#6b5749',bg:'var(--surface-2)'},
+  transport:{lab:'Transport',icon:'ti-car',col:'#7a4f2c',bg:'var(--surface-2)'},
+  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#4c5a3a',bg:'var(--surface-2)'},
+  famille:{lab:'Famille',icon:'ti-users',col:'#7a4139',bg:'var(--surface-2)'},
+  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#6b5240',bg:'var(--surface-2)'},
+  autre:{lab:'Autre',icon:'ti-dots',col:'#6b5240',bg:'var(--surface-2)'}
 };
 function persoCatMeta(cat){return PERSO_CAT_META[cat]||PERSO_CAT_META.autre;}
 // Catégorie d'AFFICHAGE : infère depuis le libellé pour corriger les rangements anciens
@@ -6478,18 +6332,11 @@ function renderPersoResteAVivre(){
   const total=Math.max(1,R.revenusMois);
   const pw=v=>Math.max(0,Math.min(100,(v/total)*100));
   const resteBar=Math.max(0,R.resteMois);
-  // Une seule logique de couleur : l'accent (glycine) = le segment qui compte ; le reste en crème à
-  // plusieurs intensités (contexte). Niveau typo intermédiaire : libellé 11px + montant 19px.
-  const ACC='var(--glycine)', crS='rgba(242,229,194,.72)', crM='rgba(242,229,194,.5)', crL='rgba(242,229,194,.3)';
-  const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:baseline;gap:7px;">
-    <span style="width:9px;height:9px;border-radius:3px;background:\${col};flex:none;align-self:center;"></span>
-    <span style="font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:#cabf95;">\${lab}</span>
-    <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:#f2e7dd;">\${fmt(val)}</span>
-  </span>\`;
-  el.innerHTML=\`<div class="screen-hero">
+  const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:rgba(242,229,194,.85);"><span style="width:10px;height:10px;border-radius:3px;background:\${col};flex:none;"></span>\${lab} <strong style="color:#f2e7dd;font-weight:600;">\${fmt(val)}</strong></span>\`;
+  el.innerHTML=\`<div class="dash-hero" style="padding:30px 34px;">
     <div class="dash-hero-eyebrow"><i class="ti ti-cash"></i> Ce qu'il me reste pour vivre</div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:6px 0 2px;">
-      <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${fmt(R.resteMois)}</div>
+      <div class="dash-hero-num">\${fmt(R.resteMois)}</div>
       <div style="text-align:right;padding-bottom:10px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;color:#fff;line-height:1;">\${fmt(R.resteJour)}<span style="font-size:16px;color:#cabf95;font-style:normal;"> / jour</span></div>
         <div style="font-size:13px;color:#cabf95;margin-top:3px;">sur \${R.joursRestants} jours jusqu'au versement</div>
@@ -6498,14 +6345,14 @@ function renderPersoResteAVivre(){
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:7px;">
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Entrées \${fmt(R.revenusMois)}</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.remu)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
+        <div style="width:\${pw(R.remu)}%;background:#cabf95;"></div><div style="width:\${pw(R.revenusActifs)}%;background:#8fbf7f;"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,'Rémunération',R.remu)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin:1px 0 6px;">\${leg('#cabf95','Rémunération',R.remu)}\${R.revenusActifs>0?leg('#8fbf7f','Aides',R.revenusActifs):''}</div>
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.chargesFixes)}%;background:\${crM};"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:\${crL};"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:\${ACC};"></div>
+        <div style="width:\${pw(R.chargesFixes)}%;background:#b99a7d;"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:#d8b9a2;"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:var(--glycine);"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:3px;">\${leg(crM,'Charges',R.chargesFixes)}\${R.envAlloue>0?leg(crL,'Enveloppes',R.envAlloue):''}\${leg(ACC,'Reste à vivre',resteBar)}</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:1px;">\${leg('#b99a7d','Charges',R.chargesFixes)}\${R.envAlloue>0?leg('#d8b9a2','Enveloppes',R.envAlloue):''}\${leg('var(--glycine)','Reste à vivre',resteBar)}</div>
     </div>
   </div>\`;
 }
@@ -6575,34 +6422,11 @@ function renderBudgetPerso(){
   const ctx=computePerso();
   try{renderPersoResteAVivre();}catch(e){}
   renderPersoBridge(ctx);
-  try{renderPersoChargesDonut(ctx);}catch(e){}
   renderPersoRevenus(ctx);
   renderPersoCharges(ctx);
   try{renderPersoEnveloppes();}catch(e){}
   renderPersoEpargne(ctx);
   renderPersoSimulateur(ctx);
-}
-// Répartition des charges par catégorie (donut). Agrégation d'affichage : charges actives mensualisées,
-// regroupées par catégorie ; on garde les 5 plus grosses et on somme le reste en « Autres » (donut lisible).
-// Teintes : rampe accent bleu → neutre clair, pas de multicolore.
-function renderPersoChargesDonut(ctx){
-  const el=q('#perso-charges-donut'); if(!el)return;
-  const charges=(ctx.charges||[]).filter(c=>c.actif!==false);
-  const byCat={};
-  charges.forEach(ch=>{const cat=persoChargeCat(ch);byCat[cat]=(byCat[cat]||0)+chargeMensuel(ch);});
-  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,col:persoCatMeta(k).light,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
-  if(parts.length<2){el.innerHTML='';return;}   // pas de répartition parlante sous 2 catégories
-  const total=parts.reduce((s,p)=>s+p.val,0);
-  // Regroupe les petites parts (< 6% du total) et garde au plus 5 catégories nommées ; teintes claires alignées sur les catégories
-  const named=[]; let autres=0;
-  parts.forEach((p,i)=>{ if(i<5 && p.val>=total*0.06) named.push(p); else autres+=p.val; });
-  if(autres>0) named.push({lab:'Autres',col:'#DAD0BE',val:Math.round(autres*100)/100});
-  el.innerHTML=\`<div class="card" style="padding:20px 22px;margin-bottom:18px;">
-    <div class="dash-sec-title" style="font-size:14px;margin-bottom:10px;"><i class="ti ti-chart-donut"></i> Répartition de tes charges</div>
-    <div class="chart-wrap"><canvas id="chart-perso-charges" height="180"></canvas></div>
-  </div>\`;
-  const c=q('#chart-perso-charges');
-  if(c)drawDonutChart(c,named.map(p=>p.lab),named.map(p=>p.val),named.map(p=>p.col));
 }
 
 function renderPersoHero(ctx){
@@ -6714,9 +6538,9 @@ function renderPatrimoine(){
 
   let M;try{M=computeMoney();}catch(e){M={};}
   if(gEl){
-    gEl.innerHTML=\`<div class="screen-hero">
+    gEl.innerHTML=\`<div style="background:var(--navy);border-radius:20px;padding:28px 32px;color:#fff;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-plant-2"></i> Ton patrimoine</div>
-      <div class="fig-hero" style="font-size:56px;font-weight:700;">\${fmt(totalSolde)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
       <div style="font-size:12px;opacity:.6;">Patrimoine personnel — ton argent, mobilisable</div>
       \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;margin-top:4px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:''}
       \${chart}
@@ -7212,22 +7036,19 @@ function renderProjetsVie(){
   const besoinReel=Math.round((Number(M.besoinReel)||0)*100)/100;        // charges − aides
   const reserveMois=(s.reserveProjetsMois!=null?Math.max(0,parseInt(s.reserveProjetsMois)):6);
   const plancher=Math.round(reserveMois*besoinReel);                     // ex. 6 × 272 = 1 632 €
-  const chip=(lab,val,color)=>\`<span style="display:inline-flex;align-items:baseline;gap:6px;"><span style="opacity:.6;">\${lab}</span><strong style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;\${color?'color:'+color+';':''}">\${val}</strong></span>\`;
-  const overview=\`<div class="screen-hero" style="padding:18px 24px;margin-bottom:18px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px 16px;">
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
-        <span style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1;">\${fmt(totalReste)}</span>
-        <span style="font-size:13px;opacity:.66;">reste à épargner · \${enrich.length} projet\${enrich.length>1?'s':''}\${premEta!=null?\` · 1er objectif \${moisEnDate(premEta)}\`:''}</span>
-      </div>
+  const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;">
+    <div class="stat-strip stat-strip--dark">
+      <div><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
+      <div><div style="font-size:12px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalReste)}</div></div>
+      <div><div style="font-size:12px;opacity:.6;">Mensualités affectées aux projets</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
+      \${premEta!=null?\`<div><div style="font-size:12px;opacity:.6;">Premier objectif</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${moisEnDate(premEta)}</div></div>\`:''}
     </div>
-    <div style="margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-wrap:wrap;gap:6px 20px;font-size:13px;align-items:baseline;">
-      \${chip('Enveloppe réelle',fmt(enveloppe)+'/mois')}
-      \${chip('Affecté',fmt(affecte)+'/mois')}
-      \${chip(overAlloc?'Dépassement':'Disponible',overAlloc?'−'+fmt(affecte-enveloppe)+'/mois':fmt(dispoEnv)+'/mois',overAlloc?'#f2b8ae':'#b7d3ad')}
-      \${mobilisable>0?\`<span style="opacity:.55;font-size:12px;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · plancher \${fmt(plancher)} intact (\${reserveMois} mois, réglable dans Options)</span>\`:''}
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;font-size:13.5px;">
+      <span style="opacity:.72;">Enveloppe épargne réelle <strong style="opacity:1;">\${fmt(enveloppe)}/mois</strong></span>
+      <span style="opacity:.72;">Affecté <strong style="opacity:1;">\${fmt(affecte)}/mois</strong></span>
+      <span style="color:\${overAlloc?'#f2b8ae':'#b7d3ad'};font-weight:600;">\${overAlloc?\`<i class="ti ti-alert-triangle"></i> Dépassement de \${fmt(affecte-enveloppe)}/mois — tes projets réclament plus que ce que tu épargnes\`:\`Disponible \${fmt(dispoEnv)}/mois\`}</span>
     </div>
-    \${overAlloc?\`<div style="margin-top:11px;border-radius:10px;padding:9px 13px;background:rgba(242,184,174,.14);border:1px solid rgba(242,184,174,.3);font-size:13px;line-height:1.5;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:2px;color:#f2b8ae;"></i><span>Tes projets réclament <strong>\${fmt(affecte)}/mois</strong> alors que tu épargnes <strong>\${fmt(enveloppe)}/mois</strong> — soit tu ralentis un projet, soit tu augmentes ton enveloppe.</span></div>\`:''}
+    \${mobilisable>0?\`<div style="margin-top:8px;font-size:12.5px;opacity:.6;"><i class="ti ti-plant-2"></i> Patrimoine mobilisable \${fmt(mobilisable)} · réserve plancher gardée intacte \${fmt(plancher)} (\${reserveMois} mois de charges réelles, réglable dans Options)</div>\`:''}
   </div>\`;
   enrich.sort((a,b)=>(b.prio-a.prio)||((a.eta==null?1e9:a.eta)-(b.eta==null?1e9:b.eta)));
   // Financabilité aujourd'hui : on sert les projets dans l'ordre de priorité, en déduisant au fur et à mesure du patrimoine au-dessus du plancher
@@ -7238,54 +7059,37 @@ function renderProjetsVie(){
     if(p.reste<=dispoAvant){consomme=Math.round((consomme+p.reste)*100)/100;finMap[p.id]={financable:true,reserveApres:Math.round((mobilisable-consomme)*100)/100};}
     else{finMap[p.id]={financable:false};}
   });
-  // UNE SEULE representation : barres de progression comparees, enrichies de tout ce que
-  // portaient les anciennes cartes (mensualite, support, reserve, suggestion). Aucun doublon.
-  const maxCible=Math.max(1,...enrich.map(p=>p.cible||0));
-  const rows=enrich.map(p=>{
+  const cards=enrich.map(p=>{
     const c=pvieCat(p.cat);
     const stars='<i class="ti ti-star"></i>'.repeat(p.prio);
     const fin=finMap[p.id]||{};
-    const trackW=Math.max(14,Math.round((p.cible||0)/maxCible*100));
-    // Statut / echeance (a droite du titre)
-    let ech;
-    if(p.reste<=0)ech='<span style="color:#456039;font-weight:600;white-space:nowrap;"><i class="ti ti-confetti"></i> Objectif atteint</span>';
-    else if(fin.financable)ech='<span style="color:#456039;font-weight:600;white-space:nowrap;"><i class="ti ti-circle-check"></i> Finançable aujourd\\'hui</span>';
-    else if(p.eta!=null)ech=\`<span style="white-space:nowrap;"><strong style="color:var(--navy);">\${escHtml(moisEnDate(p.eta))}</strong> <span style="opacity:.6;">· \${p.eta} mois</span></span>\`;
-    else ech='<span style="opacity:.6;white-space:nowrap;">échéance à définir</span>';
-    // Meta sous la barre : montants, mensualite, support
-    const meta=[\`\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%\`];
-    if(p.mens>0)meta.push(fmt(p.mens)+' /mois');
-    if(p.support)meta.push('<i class="ti ti-map-pin"></i> '+escHtml(supName(p.support)));
-    // Note a droite : reserve (financable) ou suggestion d'acceleration
-    let note='';
-    if(fin.financable)note=\`<i class="ti ti-plant-2"></i> te laisserait <strong style="color:var(--navy);">\${fmt(fin.reserveApres)}</strong> de réserve\`;
-    else if(p.mens>0&&p.reste>0){const eta2=Math.ceil(p.reste/(p.mens*2));const gain=(p.eta||0)-eta2;if(gain>0)note=\`<i class="ti ti-bulb"></i> à \${fmt(p.mens*2)}/mois : dès \${moisEnDate(eta2)} <span style="color:#456039;font-weight:600;">(−\${gain} mois)</span>\`;}
-    return \`<div style="padding:15px 0;border-top:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:7px;">
-        <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;min-width:0;">
-          <span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span>
-          <span style="font-size:11px;color:#a5502e;">\${stars}</span>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:12px;flex:none;">
-          <span style="font-size:13px;color:var(--text-2);">\${p.reste>0?\`<strong style="color:var(--navy);font-size:14.5px;">\${fmt(p.reste)}</strong> restant · \`:''}\${ech}</span>
-          <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);align-self:center;"><i class="ti ti-pencil"></i></button>
-        </div>
+    let timeBlock;
+    if(p.reste<=0){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;"><i class="ti ti-confetti"></i> Objectif atteint</div>\`;}
+    else if(fin.financable){timeBlock=\`<div style="font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:#456039;line-height:1.05;"><i class="ti ti-circle-check"></i> Finançable aujourd'hui</div><div style="font-size:13px;color:var(--text-2);margin-top:2px;">avec ton patrimoine — te laisserait <strong style="color:var(--navy);">\${fmt(fin.reserveApres)}</strong> de réserve</div>\`;}
+    else if(p.eta!=null){timeBlock=\`<div style="font-size:12px;color:var(--text-2);">Dans environ</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;color:var(--navy);line-height:1.05;">\${p.eta} mois</div><div style="font-size:13px;color:var(--text-2);">\${moisEnDate(p.eta)}\${mobilisable>0?' · au-delà de ta capacité mobilisable actuelle':''}</div>\`;}
+    else{timeBlock=\`<div style="font-size:14px;color:var(--text-2);">Ajoute une épargne mensuelle pour estimer la date <i class="ti ti-calendar"></i></div>\`;}
+    let proj='';
+    if(p.mens>0&&p.reste>0&&!fin.financable){
+      const eta2=Math.ceil(p.reste/(p.mens*2));
+      const gain=p.eta-eta2;
+      if(gain>0)proj=\`<div style="margin-top:10px;padding:10px 12px;background:var(--surface-2);border-radius:10px;font-size:13px;color:var(--text-1);line-height:1.5;"><i class="ti ti-bulb"></i> En passant à <strong>\${fmt(p.mens*2)} / mois</strong>, objectif dès <strong>\${moisEnDate(eta2)}</strong> — <span style="color:#456039;font-weight:600;">tu gagnes \${gain} mois <i class="ti ti-flame"></i></span></div>\`;
+    }
+    const prioColor=p.prio>=3?'#8d2b21':p.prio===2?'#a5502e':'#8b98ad';
+    return \`<div class="card" style="padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div><span style="font-size:15px;font-weight:700;color:var(--navy);">\${c.emoji} \${escHtml(p.nom||'Projet')}</span><div style="font-size:12px;color:#a5502e;margin-top:2px;">\${stars}</div></div>
+        <button onclick="openProjetVieModal('\${p.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-2);"><i class="ti ti-pencil"></i></button>
       </div>
-      <div style="height:14px;background:var(--surface-2);border-radius:7px;width:\${trackW}%;min-width:80px;overflow:hidden;">
-        <div style="height:100%;width:\${p.pct}%;background:var(--violet-ink);border-radius:7px;transition:width .5s;"></div>
+      <div style="margin-bottom:12px;">\${timeBlock}</div>
+      <div style="height:8px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${p.pct}%;background:var(--violet-ink);border-radius:5px;transition:width .5s;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-2);margin-top:6px;">
+        <span>\${fmt(p.epargne)} / \${fmt(p.cible)} · \${p.pct}%</span><span>\${p.mens>0?fmt(p.mens)+' / mois':''}</span>
       </div>
-      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-2);margin-top:6px;">
-        <span>\${meta.join(' · ')}</span>
-        \${note?\`<span style="text-align:right;">\${note}</span>\`:''}
-      </div>
+      \${p.support?\`<div style="font-size:12px;color:var(--text-2);margin-top:6px;"><i class="ti ti-map-pin"></i> Placé sur \${escHtml(supName(p.support))}</div>\`:''}
+      \${proj}
     </div>\`;
   }).join('');
-  const list=\`<div class="card" style="padding:22px 24px;">
-    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Mes projets · progression comparée</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:2px;">Largeur de barre = ampleur du projet (montant cible) · remplissage = déjà épargné.</div>
-    \${rows}
-  </div>\`;
-  el.innerHTML=overview+list;
+  el.innerHTML=overview+\`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">\`+cards+\`</div>\`;
 }
 
 function openProjetVieModal(id){
@@ -8792,12 +8596,8 @@ function loadProjets(){
   const enCours=projets.filter(p=>p.statut==='en_cours');
   const termines=projets.filter(p=>p.statut==='termine');
   const totalContrat=enCours.reduce((s,p)=>s+(p.montantTotal||0),0);
-  let totalFacture=0, totalReste=0, attente=0, aEmettre=0;
-  enCours.forEach(p=>{
-    const facd=factures.filter(f=>f.projetId===p.id).reduce((s,f)=>s+(f.montant||0),0);
-    totalFacture+=facd;
-    totalReste+=Math.max(0,(p.montantTotal||0)-facd);
-  });
+  let totalFacture=0, attente=0, aEmettre=0;
+  projets.forEach(p=>{const linked=factures.filter(f=>f.projetId===p.id);totalFacture+=linked.reduce((s,f)=>s+(f.montant||0),0);});
   factures.forEach(f=>{if(f.statut!=='payee'&&f.projetId)attente+=(f.montant||0);});
   const ymNow=now.toISOString().slice(0,7);
   enCours.forEach(p=>{
@@ -8810,7 +8610,8 @@ function loadProjets(){
       if((p.montantTotal||0)-facd>0.5)aEmettre+=1;
     }
   });
-  const pctSecu=totalContrat>0?Math.min(100,Math.round(totalFacture/totalContrat*100)):0;
+  const totalReste=Math.max(0,totalContrat-totalFacture);
+  const pctSecu=totalContrat>0?Math.round(totalFacture/totalContrat*100):0;
   if(q('#proj-kpi-actifs'))q('#proj-kpi-actifs').textContent=fmt(totalFacture);
   if(q('#proj-kpi-contrat'))q('#proj-kpi-contrat').textContent=fmt(totalReste);
   if(q('#proj-kpi-facture'))q('#proj-kpi-facture').textContent=aEmettre;
@@ -8825,7 +8626,7 @@ function renderProjetsForecast(){
   const factures=dbGet('factures');
   const now=new Date();
   const months=[];
-  for(let k=0;k<6;k++){const dt=new Date(now.getFullYear(),now.getMonth()+k,1);months.push({y:dt.getFullYear(),m:dt.getMonth(),label:MOIS_COURT[dt.getMonth()],total:0});}
+  for(let k=0;k<4;k++){const dt=new Date(now.getFullYear(),now.getMonth()+k,1);months.push({y:dt.getFullYear(),m:dt.getMonth(),label:MOIS_COURT[dt.getMonth()]+' '+dt.getFullYear(),total:0});}
   let recMens=0;
   projets.forEach(p=>{
     if(p.type==='mensuel'){
@@ -8843,19 +8644,21 @@ function renderProjetsForecast(){
       if(reste>0)months[0].total+=reste;
     }
   });
-  const vals=months.map(mo=>Math.round(mo.total));
-  const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-  const recRef=Math.round(recMens);
-  el.innerHTML=\`<div class="card" style="padding:22px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:6px;">
+  const max=Math.max(1,months[0].total,months[1].total,months[2].total,months[3].total);
+  el.innerHTML=\`<div class="card" style="padding:22px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-calendar"></i> Revenus attendus · prochains mois</span>
-      \${recRef>0?\`<span style="font-size:13px;color:var(--text-2);"><i class="ti ti-repeat"></i> Socle récurrent sécurisé <strong style="color:var(--vert);">\${fmt(recRef)} / mois</strong></span>\`:''}
+      \${recMens>0?\`<span style="font-size:13px;color:var(--text-2);"><i class="ti ti-repeat"></i> Récurrent sécurisé : <strong style="color:#456039;">\${fmt(recMens)} / mois</strong></span>\`:''}
     </div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Barre pleine = contractualisé attendu. Barre grise = ton socle récurrent sécurisé, ce qui retombe chaque mois (pas un objectif). Pointillé = ta moyenne. Un mois sous le socle = le bon moment pour prospecter.</div>
-    <div class="chart-wrap"><canvas id="chart-proj-forecast" height="190"></canvas></div>
+    <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:14px;align-items:end;">
+      \${months.map(mo=>\`<div style="text-align:center;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--navy);">\${fmt(Math.round(mo.total))}</div>
+        <div style="height:\${Math.round(mo.total/max*90)+4}px;background:var(--navy);border-radius:6px 6px 0 0;margin:8px auto 6px;width:56%;opacity:.85;"></div>
+        <div style="font-size:12px;color:var(--text-2);">\${mo.label}</div>
+      </div>\`).join('')}
+    </div>
+    <div style="font-size:12.5px;color:var(--text-2);margin-top:14px;">Basé sur tes projets mensuels et le reste à facturer. Un mois creux = le bon moment pour prospecter.</div>
   </div>\`;
-  const c=q('#chart-proj-forecast');
-  if(c)drawBarChart(c,months.map(mo=>mo.label),[{data:vals,color:COLORS.blue}],{ghost:recRef>0?months.map(()=>recRef):null,avgLine:avg>0?avg:0});
 }
 
 function renderProjets(){
@@ -8893,7 +8696,6 @@ function renderProjets(){
   const container=q('#projets-list');if(!container)return;
   if(!list.length){
     container.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-2);">Aucun projet. Crée ton premier projet pour suivre ta facturation.</div>';
-    const _ae=q('#proj-alerts'); if(_ae)_ae.innerHTML='';
     return;
   }
   const typeLabel={unique:'Unique',echelonne:'Échelonné',mensuel:'Mensuel'};
@@ -8922,8 +8724,7 @@ function renderProjets(){
       <span></span>
     </div>\`;
   }
-  const alerts=[];
-  const projCard=(p)=>{
+  container.innerHTML=list.map(p=>{
     const linked=factures.filter(f=>f.projetId===p.id);
     const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
     const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
@@ -8951,9 +8752,8 @@ function renderProjets(){
         }else if(slotFacs.length===1){
           facsHtml+=facRow(slotFacs[0]);
         }else{
-          // Doublon détecté → remonté en tête d'écran
-          alerts.push({id:p.id,msg:'<strong>'+escHtml(p.nom||'Projet')+'</strong> — '+slotFacs.length+' factures sur '+dateLabel+', doublon probable'});
-          facsHtml+=\`<div style="background:var(--ambre-bg);border-radius:6px;padding:5px 9px;margin:3px 0;font-size:12px;color:var(--ambre);"><i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
+          // Doublon détecté
+          facsHtml+=\`<div style="background:#FFF3CD;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:12px;color:#a5502e;"><i class="ti ti-alert-triangle"></i> <i class="ti ti-alert-triangle"></i> \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
           slotFacs.forEach(f=>facsHtml+=facRow(f));
         }
       }
@@ -8987,37 +8787,39 @@ function renderProjets(){
       facsHtml=sorted.map(f=>facRow(f)).join('');
       if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
     }
-    const devisTag=p.devisId?(' · <span style="color:var(--vert);"><i class="ti ti-file"></i> '+(((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero||'')+'</span>'):'';
-    // Projet REPLIÉ : une ligne (nom, client, statut, facturé/total, progression) ; détail des échéances au clic.
-    return\`<details class="proj-item" id="proj-item-\${p.id}">
-      <summary class="proj-summary">
-        <span class="kpi-icon blue" style="width:34px;height:34px;font-size:15px;flex:none;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></span>
-        <span style="flex:1;min-width:0;"><b style="font-size:15px;color:var(--navy);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">\${escHtml(p.nom||'')}</b><small style="font-size:12.5px;color:var(--text-2);">\${escHtml(p.client||'—')} · \${typeLabel[p.type]||p.type}\${devisTag}</small></span>
-        <span class="badge badge-\${sttBadge[p.statut]||'attente'}" style="flex:none;">\${sttLabel[p.statut]||p.statut}</span>
-        <span style="font-size:13px;color:var(--text-2);white-space:nowrap;flex:none;"><strong style="color:var(--navy);">\${fmt(montantFacture)}</strong> / \${fmt(p.montantTotal||0)}</span>
-        <span style="width:80px;height:7px;background:var(--line);border-radius:4px;overflow:hidden;flex:none;"><span style="display:block;height:100%;width:\${pct}%;background:\${pct>=100?'var(--vert)':'var(--bleu)'};"></span></span>
-        <i class="ti ti-chevron-down proj-chev"></i>
-      </summary>
-      <div style="padding:14px 18px 16px;border-top:1px solid var(--line);">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);margin-bottom:10px;flex-wrap:wrap;gap:6px;"><span>\${fmt(montantFacture)} facturé sur \${fmt(p.montantTotal||0)}</span><span style="color:\${reste>0?'var(--ambre)':'var(--vert)'};">\${reste>0?fmt(reste)+' restant à facturer':'✓ Complet'}</span></div>
-        \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:12px;"><span style="color:var(--text-2);">\${fmt(montantFacture)} facturé − \${fmt(stLiee)} sous-traitance</span><span style="font-weight:700;color:\${marge>=0?'var(--vert)':'var(--danger)'};">Marge \${fmt(marge)}</span></div>\`:''}
-        \${facsHtml?'<div>'+facsHtml+'</div>':''}
-        \${p.notes?'<div style="margin-top:10px;font-size:13px;color:var(--text-2);font-style:italic;">'+escHtml(p.notes)+'</div>':''}
-        <div style="margin-top:12px;display:flex;gap:8px;"><button class="btn btn-outline btn-sm" onclick="editProjet('\${p.id}')"><i class="ti ti-edit"></i> Modifier</button><button class="btn btn-ghost btn-sm" onclick="deleteProjet('\${p.id}')"><i class="ti ti-trash"></i></button></div>
+    return\`<div class="card mb-16" style="padding:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #ece3d4;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
+          <div>
+            <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
+            <div style="font-size:13px;color:#6b533b;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#456039;"><i class="ti ti-file"></i> '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="badge badge-\${sttBadge[p.statut]||'attente'}">\${sttLabel[p.statut]||p.statut}</span>
+          <button class="btn btn-ghost btn-xs" onclick="editProjet('\${p.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn btn-ghost btn-xs" onclick="deleteProjet('\${p.id}')"><i class="ti ti-trash"></i></button>
+        </div>
       </div>
-    </details>\`;
-  };
-  // Actifs (et en pause) dans le panneau principal ; terminés dans une section repliée en bas.
-  const actifs=list.filter(p=>p.statut!=='termine');
-  const finis=list.filter(p=>p.statut==='termine');
-  let html='<div class="card" style="padding:0;overflow:hidden;">'+(actifs.length?actifs.map(projCard).join(''):'<div style="padding:20px;color:var(--text-2);font-size:14px;">Aucun projet actif avec ces filtres.</div>')+'</div>';
-  if(finis.length){
-    html+='<details class="dash-detail" style="margin-top:18px;"><summary><i class="ti ti-checks"></i> Projets terminés ('+finis.length+') <i class="ti ti-chevron-down dash-detail-chev"></i></summary><div class="dash-detail-body" style="padding:8px 0 4px;"><div class="card" style="padding:0;overflow:hidden;box-shadow:none;border:1px solid var(--line);">'+finis.map(projCard).join('')+'</div></div></details>';
-  }
-  container.innerHTML=html;
-  // Alertes remontées en tête d'écran, avec lien vers le projet concerné.
-  const alertsEl=q('#proj-alerts');
-  if(alertsEl)alertsEl.innerHTML=alerts.length?'<div class="card" style="padding:12px 18px;margin-bottom:16px;border-left:3px solid var(--ambre);"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ambre);margin-bottom:6px;"><i class="ti ti-alert-triangle"></i> À vérifier</div>'+alerts.map(a=>\`<div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--navy);padding:5px 0;flex-wrap:wrap;"><span style="flex:1;min-width:180px;">\${a.msg}</span><button class="btn btn-ghost btn-sm" onclick="var d=document.getElementById('proj-item-\${a.id}');if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'center'});}">Voir le projet →</button></div>\`).join('')+'</div>':'';
+      <div style="padding:16px 20px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#6b533b;margin-bottom:6px;">
+          <span>\${fmt(montantFacture)} facturé</span>
+          <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'<i class="ti ti-check"></i> Complet'}</span></span>
+        </div>
+        <div style="background:#ece3d4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
+          <div style="background:\${pct>=100?'var(--success)':'#E4F0FF'};height:100%;width:\${pct}%;border-radius:4px;"></div>
+        </div>
+        \${stLiee>0?\`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;background:var(--surface-2);border-radius:8px;padding:8px 12px;margin-bottom:\${facsHtml?16:4}px;">
+          <span style="color:var(--text-2);">\${fmt(montantFacture)} facturé <span style="color:var(--text-2);">− \${fmt(stLiee)} sous-traitance</span></span>
+          <span style="font-weight:700;color:\${marge>=0?'var(--success)':'var(--danger)'};">Marge \${fmt(marge)}</span>
+        </div>\`:''}
+        \${facsHtml?'<div>'+facsHtml+'</div>':''}
+        \${p.notes?'<div style="margin-top:10px;font-size:13px;color:#6b533b;font-style:italic;">'+p.notes+'</div>':''}
+      </div>
+    </div>\`;
+  }).join('');
 }
 function openProjetModal(data={}){
   q('#modal-projet-title').textContent=data.id?'Modifier le projet':'Nouveau projet';
@@ -10120,7 +9922,7 @@ function renderRapportPrevision(){
 
   // <i class="ti ti-target"></i> Que dois-je signer ?
   if(P.objectifCA>0&&manque>0){
-    html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+    html+=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Que dois-je signer d'ici décembre ?</div>
       <div style="font-size:15.5px;opacity:.85;margin:8px 0 4px;">Pour atteindre ton objectif, il te faudrait encore sécuriser</div>
       <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;line-height:1;">\${fmt(manque)}</div>
@@ -10176,7 +9978,7 @@ function renderRapportPrevision(){
   </div>\`;
 
   // <i class="ti ti-briefcase"></i> Fin d'année tu auras probablement
-  html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+  html+=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
     <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;"><i class="ti ti-target"></i> Fin \${annee}, tu auras probablement</div>
     <div class="stat-strip stat-strip--dark">
       \${big('<i class="ti ti-coin"></i>','Revenu net',fmt(P.netProjete))}
