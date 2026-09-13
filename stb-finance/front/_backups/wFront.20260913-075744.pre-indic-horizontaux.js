@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=96" />
+  <link rel="stylesheet" href="/style.css?v=95" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v96 · indicateurs horizontaux : classe .stat-strip partagee (filets legers, max 4 colonnes, repli 4-2-1) build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v95 · densite des listes : classe .list-row partagee + zone de liste bornee (montant pres du libelle) + tableaux resserres build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=96"></script>
+<script src="/app.js?v=95"></script>
 </body>
 </html>
 `;
@@ -3296,34 +3296,6 @@ tbody tr:hover td { background: var(--surface-2); }
 /* Conteneur de liste : borne aussi la zone quand les lignes ne portent pas la classe (ex. en-têtes de groupe) */
 .list { max-width: 640px; }
 .list .list-row { max-width: none; }
-
-/* ===========================
-   BANDEAU D'INDICATEURS HORIZONTAL (partagé)
-   Colonnes séparées par un filet léger. Max 4 par ligne (par conception :
-   on n'y met jamais plus de 4 cellules). Repli 4 → 2 → 1 selon la largeur.
-   =========================== */
-.stat-strip {
-  --strip-line: var(--line);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-}
-.stat-strip > * { flex: 1 1 auto; min-width: 130px; padding: 2px 22px; }
-.stat-strip > *:first-child { padding-left: 0; }
-.stat-strip > * + * { border-left: 1px solid var(--strip-line); }
-.stat-strip--dark { --strip-line: rgba(255,255,255,.18); }
-/* Repli en deux colonnes */
-@media (max-width: 820px) {
-  .stat-strip > * { flex: 1 1 44% !important; }
-  .stat-strip > *:nth-child(2n+1) { border-left: none; padding-left: 0; }
-  .stat-strip > *:nth-child(n+3) { border-top: 1px solid var(--strip-line); padding-top: 12px; margin-top: 12px; }
-}
-/* Repli en une seule colonne */
-@media (max-width: 520px) {
-  .stat-strip { flex-direction: column; }
-  .stat-strip > * { flex: 1 1 100% !important; border-left: none; padding-left: 0; }
-  .stat-strip > *:nth-child(n+2) { border-top: 1px solid var(--strip-line); padding-top: 12px; margin-top: 12px; }
-}
 
 .td-mono {
   font-size: 13px;
@@ -5306,13 +5278,13 @@ function renderDashDetail(det){
     <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:stretch;">
       <div class="card" style="padding:26px 28px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-trending-up" style="font-style:normal;color:var(--terre-600);"></i> Ton activité</div>
-        <div class="stat-strip">\${stat('CA encaissé · mois',fmt(d.caMois||0))}\${stat('CA encaissé · année',fmt(d.caYTD||0))}\${objCA>0?stat('Objectif',fmt(objCA)):''}</div>
+        <div style="display:flex;gap:34px;flex-wrap:wrap;">\${stat('CA encaissé · mois',fmt(d.caMois||0))}\${stat('CA encaissé · année',fmt(d.caYTD||0))}\${objCA>0?stat('Objectif',fmt(objCA)):''}</div>
         \${d.ecartObjectif<0?\`<div style="font-size:14px;color:var(--ambre);background:var(--ambre-bg);border-radius:12px;padding:12px 14px;margin-top:16px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:2px;"></i><span>Retard de \${fmt(-d.ecartObjectif)} sur ton objectif. Le CA encaissé n'est pas de l'argent disponible.</span></div>\`:''}
         <button class="btn btn-outline btn-sm" style="margin-top:18px;" onclick="navigate('rapport-prevision')">Voir mes prévisions <i class="ti ti-arrow-right"></i></button>
       </div>
       <div class="card" style="padding:26px 28px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:9px;"><i class="ti ti-plant-2" style="font-style:normal;color:var(--terre-400);"></i> Ce que tu construis</div>
-        <div class="stat-strip">\${stat('Patrimoine perso',fmt(M.patriPerso))}\${stat('Trésorerie pro',fmt(M.tresoPro))}\${M.moisLiberte!=null?stat('Liberté',String(M.moisLiberte).replace('.',',')+' mois'):''}</div>
+        <div style="display:flex;gap:30px;flex-wrap:wrap;">\${stat('Patrimoine perso',fmt(M.patriPerso))}\${stat('Trésorerie pro',fmt(M.tresoPro))}\${M.moisLiberte!=null?stat('Liberté',String(M.moisLiberte).replace('.',',')+' mois'):''}</div>
         <button class="btn btn-outline btn-sm" style="margin-top:18px;" onclick="navigate('patrimoine')">Voir mon patrimoine <i class="ti ti-arrow-right"></i></button>
       </div>
     </div>
@@ -6429,7 +6401,7 @@ function renderPatrimoine(){
       <div style="font-size:12px;opacity:.6;">Patrimoine personnel — ton argent, mobilisable</div>
       \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;margin-top:4px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:''}
       \${chart}
-      <div class="stat-strip stat-strip--dark" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
+      <div style="display:flex;gap:30px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
         \${totalMensuel>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-coins"></i> Tu investis</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(totalMensuel)} / mois</div><div style="font-size:11.5px;opacity:.6;">≈ \${fmt(totalMensuel*12)} / an</div></div>\`:''}
         \${M.moisLiberte!=null?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-lifebuoy"></i> Liberté personnelle</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${String(M.moisLiberte).replace('.',',')} mois</div><div style="font-size:11.5px;opacity:.6;">de besoin réel couvert (charges − aides)</div><div style="font-size:10.5px;opacity:.45;margin-top:1px;">en supposant tes aides maintenues</div></div>\`:''}
         \${(M.tresoPro||0)>0?\`<div><div style="font-size:12px;opacity:.6;"><i class="ti ti-building"></i> Trésorerie d'entreprise</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;">\${fmt(M.tresoPro||0)}</div><div style="font-size:11.5px;opacity:.6;">hors patrimoine — provisionnée pour charges &amp; URSSAF</div></div>\`:''}
@@ -6921,7 +6893,7 @@ function renderProjetsVie(){
   const reserveMois=(s.reserveProjetsMois!=null?Math.max(0,parseInt(s.reserveProjetsMois)):6);
   const plancher=Math.round(reserveMois*besoinReel);                     // ex. 6 × 272 = 1 632 €
   const overview=\`<div style="background:var(--navy);border-radius:20px;padding:24px 30px;color:#fff;margin-bottom:18px;">
-    <div class="stat-strip stat-strip--dark">
+    <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
       <div><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Mes projets de vie</div><div style="font-family:'Cormorant Garamond',serif;font-size:39px;font-weight:700;">\${enrich.length} projet\${enrich.length>1?'s':''}</div></div>
       <div><div style="font-size:12px;opacity:.6;">À épargner</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(totalReste)}</div></div>
       <div><div style="font-size:12px;opacity:.6;">Mensualités affectées aux projets</div><div style="font-family:'Cormorant Garamond',serif;font-size:26px;">\${fmt(affecte)} / mois</div></div>
@@ -7947,7 +7919,9 @@ function crmPipeline(){
   const cell=(lab,val)=>\`<div><div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.68);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:34px;font-weight:700;margin-top:2px;">\${val}</div></div>\`;
   el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;display:flex;gap:40px;flex-wrap:wrap;align-items:center;">
     <div style="min-width:160px;"><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.65;display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Mon pipeline</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;font-weight:700;margin-top:3px;line-height:1.05;">\${open.length} prospect\${open.length>1?'s':''} actif\${open.length>1?'s':''}</div></div>
-    <div class="stat-strip stat-strip--dark" style="flex:1 1 auto;">\${cell('CA potentiel',fmt(caPot))}\${cell('Relances à faire',relances)}\${cell('Devis en cours',devis)}</div>
+    \${cell('CA potentiel',fmt(caPot))}
+    \${cell('Relances à faire',relances)}
+    \${cell('Devis en cours',devis)}
   </div>\`;
 }
 
@@ -9821,7 +9795,7 @@ function renderRapportPrevision(){
   // <i class="ti ti-sparkles"></i> Si rien ne change
   html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
     <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:14px;"><i class="ti ti-sparkles"></i> Si rien ne change · fin \${annee}</div>
-    <div class="stat-strip">
+    <div style="display:flex;gap:24px;flex-wrap:wrap;">
       \${big('<i class="ti ti-coin"></i>','CA estimé',fmt(P.caProjete),P.pctObj!=null?P.pctObj+'% de ton objectif':'objectif non défini','var(--navy)')}
       \${big('<i class="ti ti-receipt"></i>','Disponible après charges & cotisations',fmt(P.netProjete),'ce que l\\'activité dégage — avant versement','var(--navy)')}
       \${big('<i class="ti ti-home"></i>','Versement moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
@@ -9864,7 +9838,7 @@ function renderRapportPrevision(){
   // <i class="ti ti-briefcase"></i> Fin d'année tu auras probablement
   html+=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;margin-bottom:18px;">
     <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;"><i class="ti ti-target"></i> Fin \${annee}, tu auras probablement</div>
-    <div class="stat-strip stat-strip--dark">
+    <div style="display:flex;gap:28px;flex-wrap:wrap;">
       \${big('<i class="ti ti-coin"></i>','Revenu net',fmt(P.netProjete))}
       \${big('<i class="ti ti-home"></i>','Salaire',fmt(salaireMois)+' /mois')}
       \${(patriSolde>0||patriMensuel>0)?big('<i class="ti ti-briefcase"></i>','Patrimoine',fmt(patriFin),misAnnee>0?'+ '+fmt(misAnnee)+' cette année':''):''}
@@ -9877,7 +9851,7 @@ function renderRapportPrevision(){
     const ecart=confort-salaireMois;
     html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;"><i class="ti ti-home"></i> Ton salaire vs ton niveau de vie</div>
-      <div class="stat-strip">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
         \${big('<i class="ti ti-cash"></i>','Salaire possible',fmt(salaireMois)+' /mois','','var(--navy)')}
         \${confort>0?big('<i class="ti ti-target"></i>','Niveau confortable',fmt(confort)+' /mois','','var(--navy)'):''}
       </div>
@@ -10196,7 +10170,7 @@ function renderTJM(){
   const stat=(lab,val,hint,color,big)=>\`<div style="\${big?'':'flex:1;min-width:150px;'}"><div style="font-size:12px;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-size:\${big?'40px':'26px'};font-weight:700;color:\${color||'var(--navy)'};line-height:1.05;">\${val}</div>\${hint?\`<div style="font-size:12px;color:var(--text-2);">\${hint}</div>\`:''}</div>\`;
 
   const ecartBlock=tjmActuel>0?\`<div class="card" style="padding:20px;">
-    <div class="stat-strip">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
       \${stat('TJM actuel estimé',fmt(tjmActuel)+' /j','sur '+jours+' jours facturés')}
       \${stat('TJM recommandé',fmt(tjm)+' /j','','#456039')}
       \${stat('Écart',(ecart>=0?'+':'')+fmt(ecart)+' /j','',ecart>0?'#8d2b21':'#456039')}
@@ -10217,7 +10191,7 @@ function renderTJM(){
     </div>
     <div class="card" style="padding:20px;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">Ton modèle économique</div>
-      <div class="stat-strip">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
         \${stat('CA nécessaire',fmt(caAn)+' /an',fmt(caMois)+' /mois')}
         \${stat('Dont URSSAF',fmt(Math.round(caAn*(tauxU+tauxC)))+' /an','cotisations')}
         \${stat('Charges entreprise',fmt(chargesEnt*12)+' /an','abonnements + PAS')}
@@ -10292,7 +10266,7 @@ function renderRentaProjet(){
     </div>
     \${(jours>0&&tjmReco>0)?\`<div class="card" style="padding:20px;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;"><i class="ti ti-target"></i> Face à ton tarif recommandé</div>
-      <div class="stat-strip">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
         <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">Ce projet</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);">\${fmt(revJour)} /j</div></div>
         <div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">Recommandé</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#456039;">\${fmt(tjmReco)} /j</div></div>
         \${ecartPct!=null?\`<div style="flex:1;min-width:130px;"><div style="font-size:12px;color:var(--text-2);">Écart</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:\${ecartPct<0?'#8d2b21':'#456039'};">\${ecartPct>=0?'+':''}\${ecartPct}%</div></div>\`:''}
@@ -10448,7 +10422,7 @@ function chResult(){
     </div>
     <div class="card" style="padding:20px;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:10px;">⏱ Ton budget-temps</div>
-      <div class="stat-strip">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
         <div style="flex:1;min-width:110px;"><div style="font-size:12px;color:var(--text-2);">Temps prévu</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--navy);">\${totalH} h</div></div>
         \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:12px;color:var(--text-2);">Max avant de perdre</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:#456039;">\${maxH} h</div></div>\`:''}
         \${maxH!=null?\`<div style="flex:1;min-width:110px;"><div style="font-size:12px;color:var(--text-2);">Marge</div><div style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:\${(maxH-totalH)>=0?'#456039':'#8d2b21'};">\${Math.round((maxH-totalH)*10)/10} h</div></div>\`:''}
