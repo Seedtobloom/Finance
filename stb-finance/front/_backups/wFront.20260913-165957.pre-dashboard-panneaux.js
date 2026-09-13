@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=105" />
+  <link rel="stylesheet" href="/style.css?v=104" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v105 · donut teintes claires + equilibre cercle/legende + legende bloc sombre sur une ligne + fond de page eclairci build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v104 · budget perso : barres bloc sombre (accent/neutre) + montants intermediaires + donut aux couleurs des categories ; barre de positionnement remuneration build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2704,7 +2704,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=105"></script>
+<script src="/app.js?v=104"></script>
 </body>
 </html>
 `;
@@ -2744,11 +2744,11 @@ const CSS  = `/* =============================================
   --focus:#7fa8d0;
 
   /* ── alias de compatibilité (mappés sur la charte) ── */
-  --bg:         #F5F0E8;
+  --bg:         #EAE1D2;
   --surface:    #FDFBF7;
-  --surface-2:  #E7DECB;
-  --shadow-card: 0 1px 2px rgba(60,40,20,.06), 0 8px 24px rgba(60,40,20,.09);
-  --shadow-card-hover: 0 2px 5px rgba(60,40,20,.08), 0 14px 34px rgba(60,40,20,.12);
+  --surface-2:  #E4D9C5;
+  --shadow-card: 0 1px 2px rgba(60,40,20,.05), 0 8px 24px rgba(60,40,20,.06);
+  --shadow-card-hover: 0 2px 4px rgba(60,40,20,.06), 0 12px 32px rgba(60,40,20,.09);
   --cream:      #F0E9D6;
   --navy:       #110704;
   --blue:       #2c4a72;
@@ -4928,9 +4928,8 @@ function drawDonutChart(canvas,labels,data,colors){
   ctx.clearRect(0,0,W,H);
   const total=data.reduce((a,b)=>a+b,0);
   if(!total)return;
-  // Cercle collé à gauche, légende juste à sa droite (évite le grand vide autour du cercle)
-  const r=Math.min(H/2-8, W*0.26),ir=r*0.6;
-  const cx=r+12,cy=H/2;
+  const legendW=140;
+  const cx=(W-legendW)/2,cy=H/2,r=Math.min(cx-10,cy-10),ir=r*0.62;
   const gap=data.filter(v=>v>0).length>1?0.02:0;
   let angle=-Math.PI/2;
   ctx.lineWidth=r-ir;
@@ -4948,7 +4947,7 @@ function drawDonutChart(canvas,labels,data,colors){
   ctx.fillText(fmtShort(total),cx,cy+2);
   ctx.fillStyle='#744f30';ctx.font='9px Inter Tight,sans-serif';
   ctx.fillText('TOTAL',cx,cy+15);
-  const lx=cx+r+22;
+  const lx=W-legendW+8;
   let li=0;
   labels.forEach((l,i)=>{
     if(!data[i])return;
@@ -6310,22 +6309,20 @@ function loadReserve(){
 // Pastilles catégorie désaturées (option b) : la teinte de l'icône garde l'identité (sauge=alim,
 // ardoise=télécom, terracotta=énergie, argile=santé…) mais assez sourde pour ne jamais rivaliser
 // avec l'accent bleu. Fond neutre uniforme, plus aucune couleur pleine saturée.
-// col = teinte sourde pour la pastille sur fond clair ; light = version claire/lumineuse (même famille)
-// pour les parts de donut sur fond blanc — pas de tons boueux, chaque catégorie reste distincte.
 const PERSO_CAT_META={
-  logement:{lab:'Logement',icon:'ti-home',col:'#5f4c3c',bg:'var(--surface-2)',light:'#E0B877'},
-  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#4c5a3a',bg:'var(--surface-2)',light:'#AFCE88'},
-  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#7a4f2c',bg:'var(--surface-2)',light:'#F2B279'},
-  'santé':{lab:'Santé',icon:'ti-heart',col:'#7a4139',bg:'var(--surface-2)',light:'#EF9E8E'},
-  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#46536a',bg:'var(--surface-2)',light:'#93BCE6'},
-  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#6b5749',bg:'var(--surface-2)',light:'#DFC08C'},
-  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#4a3c30',bg:'var(--surface-2)',light:'#CBB58C'},
-  banque:{lab:'Banque',icon:'ti-credit-card',col:'#6b5749',bg:'var(--surface-2)',light:'#D5BE9A'},
-  transport:{lab:'Transport',icon:'ti-car',col:'#7a4f2c',bg:'var(--surface-2)',light:'#F0B279'},
-  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#4c5a3a',bg:'var(--surface-2)',light:'#C3D98F'},
-  famille:{lab:'Famille',icon:'ti-users',col:'#7a4139',bg:'var(--surface-2)',light:'#F0AE8C'},
-  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#6b5240',bg:'var(--surface-2)',light:'#F2C971'},
-  autre:{lab:'Autre',icon:'ti-dots',col:'#6b5240',bg:'var(--surface-2)',light:'#DAD0BE'}
+  logement:{lab:'Logement',icon:'ti-home',col:'#5f4c3c',bg:'var(--surface-2)'},
+  alimentation:{lab:'Alimentation',icon:'ti-shopping-cart',col:'#4c5a3a',bg:'var(--surface-2)'},
+  'énergie':{lab:'Énergie',icon:'ti-bolt',col:'#7a4f2c',bg:'var(--surface-2)'},
+  'santé':{lab:'Santé',icon:'ti-heart',col:'#7a4139',bg:'var(--surface-2)'},
+  'télécom':{lab:'Télécom',icon:'ti-device-mobile',col:'#46536a',bg:'var(--surface-2)'},
+  abonnements:{lab:'Abonnements',icon:'ti-repeat',col:'#6b5749',bg:'var(--surface-2)'},
+  'impôts':{lab:'Impôts',icon:'ti-building-bank',col:'#4a3c30',bg:'var(--surface-2)'},
+  banque:{lab:'Banque',icon:'ti-credit-card',col:'#6b5749',bg:'var(--surface-2)'},
+  transport:{lab:'Transport',icon:'ti-car',col:'#7a4f2c',bg:'var(--surface-2)'},
+  quotidien:{lab:'Vie quotidienne',icon:'ti-basket',col:'#4c5a3a',bg:'var(--surface-2)'},
+  famille:{lab:'Famille',icon:'ti-users',col:'#7a4139',bg:'var(--surface-2)'},
+  loisirs:{lab:'Loisirs',icon:'ti-confetti',col:'#6b5240',bg:'var(--surface-2)'},
+  autre:{lab:'Autre',icon:'ti-dots',col:'#6b5240',bg:'var(--surface-2)'}
 };
 function persoCatMeta(cat){return PERSO_CAT_META[cat]||PERSO_CAT_META.autre;}
 // Catégorie d'AFFICHAGE : infère depuis le libellé pour corriger les rangements anciens
@@ -6354,11 +6351,10 @@ function renderPersoResteAVivre(){
   // Une seule logique de couleur : l'accent (glycine) = le segment qui compte ; le reste en crème à
   // plusieurs intensités (contexte). Niveau typo intermédiaire : libellé 11px + montant 19px.
   const ACC='var(--glycine)', crS='rgba(242,229,194,.72)', crM='rgba(242,229,194,.5)', crL='rgba(242,229,194,.3)';
-  const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:baseline;gap:7px;">
-    <span style="width:9px;height:9px;border-radius:3px;background:\${col};flex:none;align-self:center;"></span>
-    <span style="font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:#cabf95;">\${lab}</span>
+  const leg=(col,lab,val)=>\`<div style="display:flex;flex-direction:column;gap:2px;">
+    <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#cabf95;"><span style="width:9px;height:9px;border-radius:3px;background:\${col};flex:none;"></span>\${lab}</span>
     <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:#f2e7dd;">\${fmt(val)}</span>
-  </span>\`;
+  </div>\`;
   el.innerHTML=\`<div class="screen-hero">
     <div class="dash-hero-eyebrow"><i class="ti ti-cash"></i> Ce qu'il me reste pour vivre</div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:6px 0 2px;">
@@ -6463,13 +6459,13 @@ function renderPersoChargesDonut(ctx){
   const charges=(ctx.charges||[]).filter(c=>c.actif!==false);
   const byCat={};
   charges.forEach(ch=>{const cat=persoChargeCat(ch);byCat[cat]=(byCat[cat]||0)+chargeMensuel(ch);});
-  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,col:persoCatMeta(k).light,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
+  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,col:persoCatMeta(k).col,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
   if(parts.length<2){el.innerHTML='';return;}   // pas de répartition parlante sous 2 catégories
   const total=parts.reduce((s,p)=>s+p.val,0);
-  // Regroupe les petites parts (< 6% du total) et garde au plus 5 catégories nommées ; teintes claires alignées sur les catégories
+  // Regroupe les petites parts (< 6% du total) et garde au plus 5 catégories nommées ; couleurs = celles des catégories dans la liste
   const named=[]; let autres=0;
   parts.forEach((p,i)=>{ if(i<5 && p.val>=total*0.06) named.push(p); else autres+=p.val; });
-  if(autres>0) named.push({lab:'Autres',col:'#DAD0BE',val:Math.round(autres*100)/100});
+  if(autres>0) named.push({lab:'Autres',col:'#b3a892',val:Math.round(autres*100)/100});
   el.innerHTML=\`<div class="card" style="padding:20px 22px;margin-bottom:18px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:10px;"><i class="ti ti-chart-donut"></i> Répartition de tes charges</div>
     <div class="chart-wrap"><canvas id="chart-perso-charges" height="180"></canvas></div>
