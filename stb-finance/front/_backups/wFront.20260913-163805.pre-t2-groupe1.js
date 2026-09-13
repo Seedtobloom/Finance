@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=103" />
+  <link rel="stylesheet" href="/style.css?v=102" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v103 · Temps 2 groupe 1 : systeme applique a Budget perso (+ donut charges), Combien me verser, Mon patrimoine build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v102 · systeme visuel partage (grid12, screen-hero, stack-groups, card-compact, fig-hero) + accueil remis conforme build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -290,15 +290,12 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
       <div class="perso-zone-title"><i class="ti ti-eye"></i> Ma situation <span class="perso-zone-sub">ce que dit ton budget</span></div>
-      <div class="grid12" style="margin-bottom:18px;">
-        <div class="col-8" id="perso-reste-a-vivre"></div>
-        <div class="col-4" id="perso-bridge"></div>
-      </div>
+      <div id="perso-reste-a-vivre" style="margin-bottom:18px;"></div>
+      <div id="perso-bridge"></div>
 
       <div class="perso-zone-title"><i class="ti ti-pencil"></i> Mes données <span class="perso-zone-sub">ce que tu saisis</span></div>
       <div class="perso-grid">
         <div class="perso-col">
-          <div id="perso-charges-donut"></div>
           <div id="perso-charges"></div>
         </div>
         <div class="perso-col">
@@ -2704,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=103"></script>
+<script src="/app.js?v=102"></script>
 </body>
 </html>
 `;
@@ -6228,17 +6225,17 @@ function loadVersement(){
   const rep=(icon,ttl,sub,val)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-radius:12px;background:var(--surface-2);">
     <div style="display:flex;align-items:center;gap:11px;"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${icon}" style="font-size:17px;"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:var(--text-2);font-size:12.5px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--navy);">\${fmt(val)}</div></div>\`;
-  el.innerHTML=\`<div class="grid12">
-  <div class="col-12"><div class="card" style="padding:30px 32px;background:var(--glycine);border:none;">
+  el.innerHTML=\`
+  <div class="card" style="padding:30px 32px;margin-bottom:18px;background:var(--glycine);border:none;">
     <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bleu);"><i class="ti ti-wallet"></i> Ma rémunération fixe · décision prise</div>
-    <div class="fig-hero" style="font-size:56px;font-weight:700;color:var(--navy);margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;color:var(--navy);line-height:1.02;margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
     <div style="font-size:14.5px;color:var(--bleu);">C'est ce que je me verse chaque mois. Modifiable dans <a onclick="navigate('options')" style="color:var(--bleu);text-decoration:underline;cursor:pointer;">Options</a>.</div>
     <div style="margin-top:16px;border-radius:12px;padding:14px 16px;background:#fff;color:\${sousPlafond?'var(--vert)':'var(--terre-600)'};font-size:14.5px;display:flex;gap:9px;align-items:flex-start;">
       <i class="ti \${sousPlafond?'ti-circle-check':'ti-info-circle'}" style="margin-top:2px;"></i>
       <span>\${sousPlafond?\`Sous le plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — ton activité soutient ta rémunération fixe sans puiser dans tes réserves.\`:\`Au-dessus du plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — la différence est absorbée par ta réserve de lissage (voir l'accueil).\`}</span>
     </div>
-  </div></div>
-  <div class="col-6"><div class="card" style="padding:28px 30px;">
+  </div>
+  <div class="card" style="padding:28px 30px;margin-bottom:18px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
     <div style="display:flex;flex-direction:column;gap:10px;">
@@ -6247,13 +6244,13 @@ function loadVersement(){
       \${rep('ti-target','Niveau de vie confortable','objectif que tu as fixé toi-même',confort)}
     </div>
     \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:14px;line-height:1.5;">Ta rémunération fixe représente <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif de niveau de vie confortable. Tu l'ajusteras à la hausse quand ton activité le permettra.</div>\`:''}
-  </div></div>
-  <div class="col-6"><div class="card" style="padding:28px 30px;">
+  </div>
+  <div class="card" style="padding:28px 30px;">
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois <small style="color:var(--text-2);">(sans toucher aux réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
     <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(plafond)}</span></div>
     <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Le maximum ponctuel est une <strong>capacité exceptionnelle</strong>, pas un salaire mensuel. Le rythme soutenable, lui, tient sur la durée — et c'est le plafond de ta rémunération fixe.</p>
-  </div></div></div>\`;
+  </div>\`;
 }
 
 function loadReserve(){
@@ -6336,10 +6333,10 @@ function renderPersoResteAVivre(){
   const pw=v=>Math.max(0,Math.min(100,(v/total)*100));
   const resteBar=Math.max(0,R.resteMois);
   const leg=(col,lab,val)=>\`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:rgba(242,229,194,.85);"><span style="width:10px;height:10px;border-radius:3px;background:\${col};flex:none;"></span>\${lab} <strong style="color:#f2e7dd;font-weight:600;">\${fmt(val)}</strong></span>\`;
-  el.innerHTML=\`<div class="screen-hero">
+  el.innerHTML=\`<div class="dash-hero" style="padding:30px 34px;">
     <div class="dash-hero-eyebrow"><i class="ti ti-cash"></i> Ce qu'il me reste pour vivre</div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:6px 0 2px;">
-      <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${fmt(R.resteMois)}</div>
+      <div class="dash-hero-num">\${fmt(R.resteMois)}</div>
       <div style="text-align:right;padding-bottom:10px;">
         <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;color:#fff;line-height:1;">\${fmt(R.resteJour)}<span style="font-size:16px;color:#cabf95;font-style:normal;"> / jour</span></div>
         <div style="font-size:13px;color:#cabf95;margin-top:3px;">sur \${R.joursRestants} jours jusqu'au versement</div>
@@ -6425,32 +6422,11 @@ function renderBudgetPerso(){
   const ctx=computePerso();
   try{renderPersoResteAVivre();}catch(e){}
   renderPersoBridge(ctx);
-  try{renderPersoChargesDonut(ctx);}catch(e){}
   renderPersoRevenus(ctx);
   renderPersoCharges(ctx);
   try{renderPersoEnveloppes();}catch(e){}
   renderPersoEpargne(ctx);
   renderPersoSimulateur(ctx);
-}
-// Répartition des charges par catégorie (donut). Agrégation d'affichage : charges actives mensualisées,
-// regroupées par catégorie ; on garde les 5 plus grosses et on somme le reste en « Autres » (donut lisible).
-// Teintes : rampe accent bleu → neutre clair, pas de multicolore.
-function renderPersoChargesDonut(ctx){
-  const el=q('#perso-charges-donut'); if(!el)return;
-  const charges=(ctx.charges||[]).filter(c=>c.actif!==false);
-  const byCat={};
-  charges.forEach(ch=>{const cat=persoChargeCat(ch);byCat[cat]=(byCat[cat]||0)+chargeMensuel(ch);});
-  let parts=Object.keys(byCat).map(k=>({lab:persoCatMeta(k).lab,val:Math.round(byCat[k]*100)/100})).filter(p=>p.val>0).sort((a,b)=>b.val-a.val);
-  if(parts.length<2){el.innerHTML='';return;}   // pas de répartition parlante sous 2 catégories
-  if(parts.length>6){const keep=parts.slice(0,5);const rest=parts.slice(5).reduce((s,p)=>s+p.val,0);keep.push({lab:'Autres',val:Math.round(rest*100)/100});parts=keep;}
-  const RAMP=['#2c4a72','#4a6285','#6a7f9b','#8b9cb1','#adbac8','#cdd6e0'];
-  const colors=parts.map((_,i)=>RAMP[Math.min(i,RAMP.length-1)]);
-  el.innerHTML=\`<div class="card" style="padding:20px 22px;margin-bottom:18px;">
-    <div class="dash-sec-title" style="font-size:14px;margin-bottom:10px;"><i class="ti ti-chart-donut"></i> Répartition de tes charges</div>
-    <div class="chart-wrap"><canvas id="chart-perso-charges" height="180"></canvas></div>
-  </div>\`;
-  const c=q('#chart-perso-charges');
-  if(c)drawDonutChart(c,parts.map(p=>p.lab),parts.map(p=>p.val),colors);
 }
 
 function renderPersoHero(ctx){
@@ -6562,9 +6538,9 @@ function renderPatrimoine(){
 
   let M;try{M=computeMoney();}catch(e){M={};}
   if(gEl){
-    gEl.innerHTML=\`<div class="screen-hero">
+    gEl.innerHTML=\`<div style="background:var(--navy);border-radius:20px;padding:28px 32px;color:#fff;">
       <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-plant-2"></i> Ton patrimoine</div>
-      <div class="fig-hero" style="font-size:56px;font-weight:700;">\${fmt(totalSolde)}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:56px;font-weight:700;margin:2px 0;">\${fmt(totalSolde)}</div>
       <div style="font-size:12px;opacity:.6;">Patrimoine personnel — ton argent, mobilisable</div>
       \${misCetteAnnee>0?\`<div style="font-size:14px;color:#b7d3ad;margin-top:4px;"><i class="ti ti-trending-up" style="vertical-align:-1px;"></i> +\${fmt(misCetteAnnee)} cette année</div>\`:''}
       \${chart}
