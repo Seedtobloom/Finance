@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=97" />
+  <link rel="stylesheet" href="/style.css?v=96" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v97 · accueil en grille 12 colonnes (8+4 / 7+5 / 12) + bloc sombre resserre + graphique encaisse 12 mois build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v96 · indicateurs horizontaux : classe .stat-strip partagee (filets legers, max 4 colonnes, repli 4-2-1) build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=97"></script>
+<script src="/app.js?v=96"></script>
 </body>
 </html>
 `;
@@ -3095,24 +3095,7 @@ html, body {
 .dash-sec-title .ti { font-size: 18px; color: var(--terre-400); }
 
 /* --- Écran du mois : hiérarchie (lot 1) --- */
-.dash-hero { background: var(--navy); border-radius: 24px; padding: 22px 30px; color: #f2e7dd; }
-
-/* ===========================
-   GRILLE 12 COLONNES (partagée)
-   Gouttière constante ; repli à 1 colonne sous 1100px (ordre du DOM conservé).
-   =========================== */
-.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: start; }
-.grid12 > .col-4  { grid-column: span 4; }
-.grid12 > .col-5  { grid-column: span 5; }
-.grid12 > .col-6  { grid-column: span 6; }
-.grid12 > .col-7  { grid-column: span 7; }
-.grid12 > .col-8  { grid-column: span 8; }
-.grid12 > .col-12 { grid-column: span 12; }
-.grid12 > * { min-width: 0; }
-@media (max-width: 1100px) {
-  .grid12 { grid-template-columns: 1fr; }
-  .grid12 > * { grid-column: auto !important; }
-}
+.dash-hero { background: var(--navy); border-radius: 24px; padding: 34px 40px; color: #f2e7dd; }
 .dash-hero-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #cabf95; }
 .dash-hero-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 84px; line-height: 0.9; color: var(--glycine); }
 .dash-zone3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -4793,8 +4776,6 @@ function drawBarChart(canvas,labels,datasets,opts={}){
         const ratio=v/opts.targetLine;
         color=ratio>=1?'#456039':ratio>=0.8?'#a5502e':'#8d2b21';
       }
-      // Mois en cours (incomplet) : barre en teinte pâle pour ne pas laisser croire à une chute
-      if(di===0&&opts.fadeIndex!=null&&i===opts.fadeIndex)color=COLORS.blue+'59';
       ctx.fillStyle=color;
       roundTopRect(ctx,x,y,bw,bH,Math.min(6,bw/2));
       ctx.fill();
@@ -5192,15 +5173,13 @@ function renderCockpit(){
   // ── ZONE 1 · où j'en suis (chiffre dominant) ──
   const R=(function(){try{return computeResteAVivre();}catch(e){return null;}})();
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
-  // Décomposition du reste à vivre — déplacée du bloc sombre vers le bloc de contexte (colonne 4)
-  // pour tenir le bloc sombre sous 220px sans tasser la typo.
-  const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   const zone1=\`<div class="dash-hero">
     <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
-    <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin:7px 0 11px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
+    <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin:12px 0 20px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
     <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
     <div class="dash-hero-num">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
-    <div style="font-size:15px;color:#f2e7dd;margin-top:6px;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
+    <div style="font-size:15px;color:#f2e7dd;margin-top:8px;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
+    \${R?\`<div style="font-size:13px;color:#cabf95;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14);">Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}</div>\`:''}
   </div>\`;
   const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
     <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
@@ -5227,29 +5206,17 @@ function renderCockpit(){
     \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
   </div>\`;
 
-  // ── ZONE 3 · le contexte (3 chiffres empilés dans la colonne de droite) ──
+  // ── ZONE 3 · le contexte (exactement 3 métriques, poids inférieur) ──
   const moisCouv=M.moisCouverts!=null?(String(M.moisCouverts).replace('.',',')+' mois'):'—';
-  const ctxRow=(k,v,sub,first)=>\`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;\${first?'':'border-top:1px solid var(--line);'}">
-    <span style="min-width:0;"><span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);display:block;">\${k}</span><span style="font-size:11.5px;color:var(--text-2);">\${sub}</span></span>
-    <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:27px;color:var(--navy);flex:none;">\${v}</span>
+  const metric=(k,v,sub)=>\`<div class="card" style="padding:22px 24px;">
+    <div style="font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--navy);margin-top:4px;line-height:1.05;">\${v}</div>
+    <div style="font-size:12.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
   </div>\`;
-  const contexte=\`<div class="card" style="padding:20px 22px;">
-    <div class="dash-sec-title" style="font-size:13px;margin-bottom:2px;"><i class="ti ti-info-circle"></i> Contexte</div>
-    \${ctxRow('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',true)}
-    \${ctxRow('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé')}
-    \${ctxRow('Réserve',moisCouv,'de charges couvertes')}
-    \${breakdown?\`<div style="font-size:11.5px;color:var(--text-2);margin-top:12px;padding-top:10px;border-top:1px solid var(--line);line-height:1.5;">\${breakdown}</div>\`:''}
-  </div>\`;
-  // Colonne de droite (4 col) : réserve de lissage en tête, puis les 3 chiffres de contexte empilés
-  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${contexte}</div>\`;
-
-  // ── GRAPHIQUE · encaissé mensuel, 12 derniers mois (agrégation d'affichage des factures payées) ──
-  const encLabels=[],encMois=[];
-  for(let i=11;i>=0;i--){const dt=new Date(y,now.getMonth()-i,1);const kk=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');encLabels.push(MOIS_COURT[dt.getMonth()]);encMois.push(facturesAll.filter(f=>f.statut==='payee'&&((f.datePaiement||f.date||'')+'').startsWith(kk)).reduce((s,f)=>s+(f.montant||0),0));}
-  const chartBlock=\`<div class="card" style="padding:22px 24px;">
-    <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ce qui est réellement entré sur ton compte. Barre pâle = mois en cours, encore incomplet.</div>
-    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
+  const zone3=\`<div class="dash-zone3">
+    \${metric('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte')}
+    \${metric('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé')}
+    \${metric('Réserve',moisCouv,'de charges couvertes')}
   </div>\`;
 
   // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
@@ -5259,20 +5226,15 @@ function renderCockpit(){
     <summary><i class="ti ti-adjustments-alt"></i> Score, plan, détail et prévisions <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
     <div class="dash-detail-body" id="dash-detail-body"></div>
   </details>\`;
-  const trendsLink=\`<div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>\`;
 
-  // Grille 12 colonnes — rangée 1 : reste à vivre (8) + contexte (4) ; rangée 2 : à faire (7) + graphique (5) ; puis dépli (12).
-  // Ordre du DOM = ordre du repli 1 colonne sous 1100px : reste à vivre → lissage+contexte → à faire → graphique → dépli.
-  el.innerHTML=\`<div class="grid12">
-    <div class="col-8">\${zone1}</div>
-    <div class="col-4">\${colContexte}</div>
-    <div class="col-7">\${zone2}</div>
-    <div class="col-5">\${chartBlock}</div>
-    <div class="col-12">\${detail}</div>
-    <div class="col-12">\${trendsLink}</div>
+  el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:20px;">
+    \${zone1}
+    \${lissage}
+    \${zone2}
+    \${zone3}
+    \${detail}
+    <div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>
   </div>\`;
-  const cEnc=q('#chart-dash-encaisse');
-  if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11});
 }
 
 
