@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=106" />
+  <link rel="stylesheet" href="/style.css?v=105" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v106 · accueil en 2 panneaux (fond reduit aux gouttieres) : bloc sombre compact + bande de contexte posee + graphique barres fantomes/moyenne build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v105 · donut teintes claires + equilibre cercle/legende + legende bloc sombre sur une ligne + fond de page eclairci build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2704,7 +2704,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=106"></script>
+<script src="/app.js?v=105"></script>
 </body>
 </html>
 `;
@@ -4808,16 +4808,14 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   const{ctx,W,H}=setupCanvas(canvas);
   ctx.clearRect(0,0,W,H);
   // Reserve right space for target label if needed
-  const pad={top:16,right:(opts.targetLine||opts.avgLine)?58:12,bottom:36,left:52};
+  const pad={top:16,right:opts.targetLine?56:12,bottom:36,left:52};
   const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
   const allVals=datasets.flatMap(d=>d.data);
-  const maxVal=Math.max(...allVals,opts.targetLine||0,opts.seuilLine||0,opts.avgLine||0,...(opts.ghost||[0]),1);
+  const maxVal=Math.max(...allVals,opts.targetLine||0,opts.seuilLine||0,1);
   const step=niceStep(maxVal);
   const yMax=Math.ceil(maxVal/step)*step;
   drawGrid(ctx,pad,cW,cH,yMax,step);
   const groupW=cW/labels.length;
-  // Barres fantômes : valeur de référence en gris très pâle, derrière les barres réelles
-  if(opts.ghost){const gp=Math.min(6,groupW*0.12);opts.ghost.forEach((v,i)=>{if(!v)return;const bH=(v/yMax)*cH;ctx.fillStyle='rgba(60,40,20,.08)';roundTopRect(ctx,pad.left+i*groupW+gp,pad.top+cH-bH,groupW-2*gp,bH,4);ctx.fill();});}
   const bc=datasets.length,gap=Math.min(6,groupW*0.12);
   const bw=Math.max(5,(groupW-gap*(bc+1))/bc);
   const single=datasets.length===1;
@@ -4844,15 +4842,6 @@ function drawBarChart(canvas,labels,datasets,opts={}){
       }
     });
   });
-  // Ligne de moyenne (pointillés) avec étiquette
-  if(opts.avgLine&&opts.avgLine>0&&opts.avgLine<=yMax){
-    const ay=pad.top+cH-(opts.avgLine/yMax)*cH;
-    ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#8a7a63';ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(pad.left,ay);ctx.lineTo(pad.left+cW,ay);ctx.stroke();
-    ctx.setLineDash([]);ctx.restore();
-    ctx.fillStyle='#8a7a63';ctx.font='bold 10px Inter Tight,sans-serif';ctx.textAlign='left';
-    ctx.fillText('Moyenne',pad.left+cW+4,ay+4);
-  }
   // Seuil de rentabilité (ligne pointillée grise)
   if(opts.seuilLine&&opts.seuilLine>0&&opts.seuilLine<=yMax){
     const sy=pad.top+cH-(opts.seuilLine/yMax)*cH;
@@ -5260,23 +5249,23 @@ function renderCockpit(){
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
-  // Bloc sombre COMPACT (sous-bloc du panneau 1) : chiffre dominant conservé (.fig-hero 84px), mais surface
-  // réduite — nombre à gauche, verdict + /jour à droite sur la même hauteur, décomposition en pied.
-  const darkBlock=\`<div class="screen-hero" style="padding:22px 26px;border-radius:18px;">
-    <div style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre · \${MOIS_LONG[m-1]} \${y}</div>
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:2px;">
-      <div class="fig-hero" style="font-size:84px;color:var(--glycine);">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
-      <div style="text-align:right;padding-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:#fff;line-height:1.2;"><span style="width:9px;height:9px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
-        <div style="font-size:14px;color:#f2e7dd;margin-top:6px;"><strong>\${R?fmt(R.resteJour):'—'} / jour</strong> · dans \${R?R.joursRestants:joursVersement} j</div>
-      </div>
+  // Bloc de situation conforme au système : .screen-hero + .stack-groups (3 groupes, hauteur naturelle,
+  // aucun étirement) ; le grand chiffre en .fig-hero (jambages contenus + 20px garantis dessous).
+  const zone1=\`<div class="screen-hero stack-groups">
+    <div>
+      <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
+      <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin-top:5px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
     </div>
-    \${breakdown?\`<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.14);font-size:12.5px;color:#cabf95;">\${breakdown}</div>\`:''}
+    <div>
+      <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
+      <div class="fig-hero" style="font-size:84px;color:var(--glycine);margin-top:8px;">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
+      <div style="font-size:15px;color:#f2e7dd;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
+    </div>
+    \${breakdown?\`<div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#cabf95;">\${breakdown}</div>\`:''}
   </div>\`;
-  // Réserve de lissage : ligne compacte (pastille colorée par niveau), pas de grand aplat teinté.
-  const lissageLine=L?\`<div style="display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--navy);line-height:1.5;">
-    <span style="width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px;background:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"></span>
-    <div><strong>Réserve de lissage : \${L.mois} mois</strong> de rémunération couverts.\${L.depasse?' Ta rémunération fixe dépasse le versement soutenable ce mois — la différence est absorbée par cette réserve.':' Ta rémunération fixe tient sur ton activité actuelle.'}</div>
+  const lissage=L?\`<div style="display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 18px;background:\${L.mois>=3?'var(--vert-bg)':L.mois>=1?'var(--ambre-bg)':'var(--rouge-bg)'};">
+    <span style="width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center;flex:none;color:\${L.mois>=3?'var(--vert)':L.mois>=1?'var(--ambre)':'var(--rouge)'};"><i class="ti ti-battery-3"></i></span>
+    <div style="flex:1;font-size:15px;color:var(--navy);"><strong>Réserve de lissage : \${L.mois} mois</strong> de rémunération couverts.\${L.depasse?\` Ta rémunération fixe (\${fmt(L.remu)}) dépasse le versement soutenable ce mois (\${fmt(L.soutenable)}) — la différence est absorbée par cette réserve.\`:' Ta rémunération fixe tient sur ton activité actuelle.'}</div>
   </div>\`:'';
 
   // ── ZONE 2 · ce qu'il me reste à faire ──
@@ -5294,7 +5283,10 @@ function renderCockpit(){
     <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
     <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
   </button>\`;
-  // (le panneau « Ce qu'il me reste à faire » est construit plus bas dans panel2)
+  const zone2=\`<div class="card" style="padding:22px 28px;">
+    <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
+    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
+  </div>\`;
 
   // ── ZONE 3 · contexte : cartes autonomes empilées (fond, ombre et arrondi propres) ──
   // URSSAF (option A) — dû / déjà payé / écart, sur l'encaissé (moteur enveloppes, aucun calcul nouveau)
@@ -5315,55 +5307,53 @@ function renderCockpit(){
   const deltaEnc=(d.deltaMois!=null&&isFinite(d.deltaMois))?d.deltaMois:null; // variation vs mois précédent (déjà calculée par computeIntel)
 
   const varBadge=(pct)=>{if(pct==null)return '';const up=pct>=0;return \`<span title="vs mois précédent" style="display:inline-flex;align-items:center;gap:2px;font-size:11.5px;font-weight:700;padding:2px 7px;border-radius:999px;\${up?'background:var(--vert-bg);color:var(--vert);':'background:var(--ambre-bg);color:var(--ambre);'}"><i class="ti \${up?'ti-arrow-up-right':'ti-arrow-down-right'}"></i>\${up?'+':''}\${pct}%</span>\`;};
-  // Bande d'indicateurs de contexte : chiffres POSÉS (sans fond ni ombre), filets verticaux (.stat-strip),
-  // badge de variation là où l'historique existe. Remplace les 4 cartes empilées.
-  const bandItem=(k,v,extra,sub)=>\`<div>
+  const metricCard=(k,v,sub,o={})=>\`<div class="card" style="padding:16px 18px;\${o.tint?'background:var(--bleu-bg);':''}">
     <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">\${k}</div>
-    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:4px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:28px;color:var(--navy);line-height:1;">\${v}</span>\${extra||''}</div>
-    \${sub?\`<div style="font-size:11.5px;margin-top:5px;line-height:1.5;\${sub.amber?'color:var(--ambre);':'color:var(--text-2);'}">\${sub.txt||sub}</div>\`:''}
+    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${v}</span>\${o.badge||''}</div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;">\${sub}</div>
+    \${o.foot||''}
+    \${o.spark?\`<div class="spark-wrap" style="margin-top:8px;"><canvas id="\${o.spark}" height="22"></canvas></div>\`:''}
   </div>\`;
-  const attSub=vieilImpaye?{amber:impDepasse,txt:\`facturé, pas encore encaissé · plus ancienne \${impAge} j\${impDepasse?' (à relancer)':''}\`}:'facturé, pas encore encaissé';
-  const urSub=\`Dû \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · éch. \${urProchain.t} dans \${urProchain.jours} j\`:''}\`;
-  const bandHtml=\`<div class="stat-strip">
-    \${bandItem('Encaissé du mois',fmt(d.caMois||0),varBadge(deltaEnc),'entré sur ton compte')}
-    \${bandItem('URSSAF · à garder de côté',fmt(euReste),'<span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span>',urSub)}
-    \${bandItem('En attente de paiement',fmt(enAttente),'',attSub)}
+  const impFoot=vieilImpaye?\`<div style="font-size:11.5px;margin-top:6px;\${impDepasse?'color:var(--ambre);':'color:var(--text-2);'}">\${impDepasse?'<i class="ti ti-clock-exclamation"></i> ':''}Plus ancienne : \${impAge} j\${impDepasse?\` · au-delà de ton délai (\${delaiPaiement} j), à relancer\`:''}</div>\`:'';
+  const cardUrssaf=\`<div class="card" style="padding:16px 18px;">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--terre-400);">URSSAF · à garder de côté</div>
+    <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-top:3px;"><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:29px;color:var(--navy);line-height:1;">\${fmt(euReste)}</span><span style="font-size:11.5px;font-weight:600;color:var(--ambre);">écart à provisionner</span></div>
+    <div style="font-size:11.5px;color:var(--text-2);margin-top:6px;line-height:1.55;">Dû sur ton encaissé \${fmt(euBudget)} · déjà payé \${fmt(euPaye)}\${urProchain?\` · prochaine échéance \${urProchain.t} dans \${urProchain.jours} j\`:''}</div>
   </div>\`;
+  const cardEnc=metricCard('Encaissé du mois',fmt(d.caMois||0),'entré sur ton compte',{tint:true,badge:varBadge(deltaEnc),spark:hasEncHist?'spark-encaisse':null});
+  const cardAtt=metricCard('En attente de paiement',fmt(enAttente),'facturé, pas encore encaissé',{foot:impFoot});
+  // Colonne de droite (4 col) : réserve de lissage, puis URSSAF (l'alerte), encaissé (teinté), en attente. Réserve « mois couverts » déplacée vers Patrimoine.
+  const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardUrssaf}\${cardEnc}\${cardAtt}</div>\`;
 
-  // Graphique : barres fantômes (objectif mensuel) derrière, barres réelles par-dessus, ligne de moyenne, axe gradué.
-  const objMensuel=Math.round((parseFloat(settings.objectifCA)||0)/12);
-  const avgEnc=encComplete.length?Math.round(encComplete.reduce((a,b)=>a+b,0)/encComplete.length):0;
-  const graphHtml=\`<div>
+  const chartBlock=\`<div class="card" style="padding:22px 24px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Barre pleine = encaissé réel (pâle = mois en cours, incomplet). Barre grise = ton objectif mensuel. Pointillé = ta moyenne.</div>
-    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="200"></canvas></div>
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ce qui est réellement entré sur ton compte. Barre pâle = mois en cours, encore incomplet.</div>
+    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
   </div>\`;
 
-  const fil='<div style="border-top:1px solid var(--line);margin:22px 0;"></div>';
-  // PANNEAU 1 (large) : situation (bloc sombre) + contexte (bande) + graphique, séparés par des filets internes.
-  const panel1=\`<div class="card" style="padding:24px 26px;">\${darkBlock}\${fil}\${bandHtml}\${fil}\${graphHtml}</div>\`;
-  // PANNEAU 2 : réserve de lissage + « ce qu'il me reste à faire ».
-  const panel2=\`<div class="card" style="padding:22px 24px;">
-    \${lissageLine?lissageLine+fil:''}
-    <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
-    \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
-  </div>\`;
-
+  // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
+  //    (et ne relance computeMoney) qu'à la première ouverture, via l'événement toggle.
+  //    Aucun attribut open, aucune mémorisation d'état : fermé à chaque chargement.
   const detail=\`<details class="dash-detail" ontoggle="renderDashDetail(this)">
     <summary><i class="ti ti-adjustments-alt"></i> Score, plan, détail et prévisions <i class="ti ti-chevron-down dash-detail-chev"></i></summary>
     <div class="dash-detail-body" id="dash-detail-body"></div>
   </details>\`;
   const trendsLink=\`<div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>\`;
 
-  // Deux panneaux principaux : le blanc occupe la majorité de la surface, le fond réduit aux gouttières.
+  // Grille 12 colonnes (système). Gauche (8) : bloc sombre + tâches empilés (vrai contenu, hauteur naturelle,
+  // pas d'étirement). Droite (4) : cartes de contexte. Graphique en pleine largeur (12), puis dépli (12).
+  // Ordre du DOM = ordre du repli 1 colonne sous 1100px : reste à vivre → tâches → contexte → graphique → dépli.
   el.innerHTML=\`<div class="grid12">
-    <div class="col-8">\${panel1}</div>
-    <div class="col-4">\${panel2}</div>
+    <div class="col-8"><div style="display:flex;flex-direction:column;gap:20px;">\${zone1}\${zone2}</div></div>
+    <div class="col-4">\${colContexte}</div>
+    <div class="col-12">\${chartBlock}</div>
     <div class="col-12">\${detail}</div>
     <div class="col-12">\${trendsLink}</div>
   </div>\`;
   const cEnc=q('#chart-dash-encaisse');
-  if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11,ghost:objMensuel>0?encLabels.map(()=>objMensuel):null,avgLine:avgEnc>0?avgEnc:0});
+  if(cEnc)drawBarChart(cEnc,encLabels,[{data:encMois,color:COLORS.blue}],{fadeIndex:11});
+  const cSp=q('#spark-encaisse');
+  if(cSp&&hasEncHist)drawSparkline(cSp,encComplete,COLORS.blue);
 }
 
 
