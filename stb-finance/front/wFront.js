@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=101" />
+  <link rel="stylesheet" href="/style.css?v=102" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v101 · accueil : carte URSSAF (du/paye/ecart) + anciennete des impayes ; reserve deplacee vers patrimoine build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v102 · systeme visuel partage (grid12, screen-hero, stack-groups, card-compact, fig-hero) + accueil remis conforme build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=101"></script>
+<script src="/app.js?v=102"></script>
 </body>
 </html>
 `;
@@ -3097,13 +3097,34 @@ html, body {
 /* --- Écran du mois : hiérarchie (lot 1) --- */
 .dash-hero { background: var(--navy); border-radius: 24px; padding: 22px 30px; color: #f2e7dd; }
 
-/* ===========================
-   GRILLE 12 COLONNES (partagée)
-   Gouttière constante ; repli à 1 colonne sous 1100px (ordre du DOM conservé).
-   =========================== */
-.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: stretch; }
-.spark-wrap { width: 100%; }
-.spark-wrap canvas { display: block; width: 100%; height: 22px; }
+/* =====================================================================
+   SYSTÈME VISUEL PARTAGÉ (posé sur l'accueil, appliqué écran par écran)
+   ---------------------------------------------------------------------
+   Patron d'écran : un bandeau sombre de situation (.screen-hero) portant
+   le chiffre dominant ; une colonne de cartes de contexte à droite ; du
+   contenu détaillé (listes, graphique, dépli) en dessous.
+   Règles :
+   • Grille .grid12, gouttière 20px. Répartitions : 8+4, 7+5, 6+6,
+     4+4+4, 12. Repli à 1 colonne sous 1100px (ordre du DOM conservé).
+   • align-items:start → chaque bloc fait la hauteur de son CONTENU, la
+     grille gère l'alignement. JAMAIS d'étirement interne (pas de
+     height:100% + justify space-between) : ça crée des trous morts. Si
+     une colonne est trop courte, on DÉPLACE du contenu, on ne comble pas
+     avec du vide. Une colonne qui empile plusieurs blocs utilise un
+     wrapper flex-colonne (gap 20px), pas les rangées implicites.
+   • Rythme interne (.stack-groups) : 3 groupes max, écart FRANC entre
+     (26px), serré DEDANS (4–8px).
+   • Marges de carte : .card 24px ; .card + .card-compact 16/18px ;
+     bandeau sombre .screen-hero 30/36/28.
+   • Grand chiffre Cormorant (.fig-hero) : line-height 1.14 pour CONTENIR
+     les jambages (chiffres, €), + 20px garantis sous lui (.fig-hero + *).
+     On ne touche JAMAIS à la taille du chiffre.
+   • Graphiques : un par écran quand la donnée existe (drawBarChart /
+     drawDonutChart / drawSparkline). Accent bleu ou neutres désaturées,
+     jamais de palette multicolore. Mois en cours partiel = teinte pâle ;
+     variation / sparkline seulement sur historique réel, jamais inventé.
+   ===================================================================== */
+.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: start; }
 .grid12 > .col-4  { grid-column: span 4; }
 .grid12 > .col-5  { grid-column: span 5; }
 .grid12 > .col-6  { grid-column: span 6; }
@@ -3115,6 +3136,18 @@ html, body {
   .grid12 { grid-template-columns: 1fr; }
   .grid12 > * { grid-column: auto !important; }
 }
+.spark-wrap { width: 100%; }
+.spark-wrap canvas { display: block; width: 100%; height: 22px; }
+
+/* Bandeau sombre de situation (chiffre dominant de l'écran) */
+.screen-hero { background: var(--navy); border-radius: 24px; padding: 30px 36px 28px; color: #f2e7dd; }
+/* Rythme interne : 3 groupes, écart franc entre / serré dedans, HAUTEUR NATURELLE */
+.stack-groups { display: flex; flex-direction: column; gap: 26px; }
+/* Carte de contexte compacte — à poser avec .card (class="card card-compact") */
+.card-compact { padding: 16px 18px; }
+/* Grand chiffre Cormorant : le line-height contient les jambages, 20px garantis dessous */
+.fig-hero { font-family: 'Cormorant Garamond', serif; font-style: italic; line-height: 1.14; }
+.fig-hero + * { margin-top: 20px; }
 .dash-hero-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #cabf95; }
 .dash-hero-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 84px; line-height: 0.9; color: var(--glycine); }
 .dash-zone3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -5212,18 +5245,16 @@ function renderCockpit(){
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
   const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
-  // Rythme interne à 3 groupes : contexte (mois + verdict), principal (libellé + grand chiffre + /jour),
-  // détail (après filet). Écart franc entre les groupes, serré à l'intérieur ; le grand chiffre respire.
-  // Flex colonne + gap minimal + space-between : le bloc remplit la hauteur de la rangée (alignée par la grille)
-  // en écartant les 3 groupes ; l'espacement interne absorbe la différence, jamais un vide figé en bas.
-  const zone1=\`<div class="dash-hero" style="padding:30px 36px 28px;display:flex;flex-direction:column;gap:26px;justify-content:space-between;height:100%;">
+  // Bloc de situation conforme au système : .screen-hero + .stack-groups (3 groupes, hauteur naturelle,
+  // aucun étirement) ; le grand chiffre en .fig-hero (jambages contenus + 20px garantis dessous).
+  const zone1=\`<div class="screen-hero stack-groups">
     <div>
       <div class="dash-hero-eyebrow">Ton mois · \${MOIS_LONG[m-1]} \${y}</div>
       <div style="display:flex;align-items:center;gap:11px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;color:#fff;margin-top:5px;line-height:1.15;"><span style="width:11px;height:11px;border-radius:50%;background:\${dotCol};flex:none;"></span>\${M.verdict}</div>
     </div>
     <div>
       <div style="font-size:13px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:#cabf95;">Ce qu'il me reste pour vivre ce mois</div>
-      <div class="dash-hero-num" style="margin:10px 0 8px;">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
+      <div class="fig-hero" style="font-size:84px;color:var(--glycine);margin-top:8px;">\${R?fmt(R.resteMois):fmt(M.versement)}</div>
       <div style="font-size:15px;color:#f2e7dd;">Soit <strong>\${R?fmt(R.resteJour):'—'} / jour</strong> jusqu'au prochain versement (dans \${R?R.joursRestants:joursVersement} j)</div>
     </div>
     \${breakdown?\`<div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:13px;color:#cabf95;">\${breakdown}</div>\`:''}
@@ -5248,7 +5279,7 @@ function renderCockpit(){
     <span style="flex:1;min-width:0;"><b style="display:block;font-size:\${it.done?'13.5px':'15.5px'};font-weight:600;color:var(--navy);\${it.done?'text-decoration:line-through;text-decoration-color:var(--text-2);':''}">\${it.titre}</b><small style="font-size:12.5px;color:var(--text-2);">\${it.sub}</small></span>
     <span style="color:var(--text-2);flex:none;font-weight:700;">→</span>
   </button>\`;
-  const zone2=\`<div class="card" style="padding:22px 28px;height:100%;">
+  const zone2=\`<div class="card" style="padding:22px 28px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:4px;"><i class="ti ti-checklist"></i> Ce qu'il me reste à faire</div>
     \${tasks.length?tasks.map((it,i)=>taskRow(it,i===0)).join(''):\`<div style="font-size:15px;color:var(--vert);padding:12px 2px;display:flex;align-items:center;gap:8px;"><i class="ti ti-circle-check"></i> Rien d'urgent ce mois — tu es à jour.</div>\`}
   </div>\`;
@@ -5290,10 +5321,10 @@ function renderCockpit(){
   // Colonne de droite (4 col) : réserve de lissage, puis URSSAF (l'alerte), encaissé (teinté), en attente. Réserve « mois couverts » déplacée vers Patrimoine.
   const colContexte=\`<div style="display:flex;flex-direction:column;gap:14px;">\${lissage}\${cardUrssaf}\${cardEnc}\${cardAtt}</div>\`;
 
-  const chartBlock=\`<div class="card" style="padding:22px 24px;display:flex;flex-direction:column;height:100%;">
+  const chartBlock=\`<div class="card" style="padding:22px 24px;">
     <div class="dash-sec-title" style="font-size:14px;margin-bottom:2px;"><i class="ti ti-chart-bar"></i> Encaissé · 12 derniers mois</div>
     <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Ce qui est réellement entré sur ton compte. Barre pâle = mois en cours, encore incomplet.</div>
-    <div class="chart-wrap" style="flex:1;display:flex;align-items:center;"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
+    <div class="chart-wrap"><canvas id="chart-dash-encaisse" height="190"></canvas></div>
   </div>\`;
 
   // ── DÉPLI · rendu PARESSEUX : le corps reste vide au chargement, il n'est construit
@@ -5305,13 +5336,13 @@ function renderCockpit(){
   </details>\`;
   const trendsLink=\`<div style="text-align:center;padding-top:4px;"><span style="font-size:13.5px;color:var(--text-2);cursor:pointer;" onclick="var t=q('#dash-trends');if(t)t.scrollIntoView({behavior:'smooth'});">Voir mes tendances sur 12 mois <i class="ti ti-chevron-down"></i></span></div>\`;
 
-  // Grille 12 colonnes — rangée 1 : reste à vivre (8) + contexte (4) ; rangée 2 : à faire (7) + graphique (5) ; puis dépli (12).
-  // Ordre du DOM = ordre du repli 1 colonne sous 1100px : reste à vivre → lissage+contexte → à faire → graphique → dépli.
+  // Grille 12 colonnes (système). Gauche (8) : bloc sombre + tâches empilés (vrai contenu, hauteur naturelle,
+  // pas d'étirement). Droite (4) : cartes de contexte. Graphique en pleine largeur (12), puis dépli (12).
+  // Ordre du DOM = ordre du repli 1 colonne sous 1100px : reste à vivre → tâches → contexte → graphique → dépli.
   el.innerHTML=\`<div class="grid12">
-    <div class="col-8">\${zone1}</div>
+    <div class="col-8"><div style="display:flex;flex-direction:column;gap:20px;">\${zone1}\${zone2}</div></div>
     <div class="col-4">\${colContexte}</div>
-    <div class="col-7">\${zone2}</div>
-    <div class="col-5">\${chartBlock}</div>
+    <div class="col-12">\${chartBlock}</div>
     <div class="col-12">\${detail}</div>
     <div class="col-12">\${trendsLink}</div>
   </div>\`;
