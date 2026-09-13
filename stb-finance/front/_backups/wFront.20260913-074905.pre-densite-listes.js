@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=95" />
+  <link rel="stylesheet" href="/style.css?v=94" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v95 · densite des listes : classe .list-row partagee + zone de liste bornee (montant pres du libelle) + tableaux resserres build v25 · patrimoine vivant projets vivants</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v94 · systeme visuel : relief fond/cartes + ombres douces + accent bleu unique + pastilles categorie desaturees + listes resserrees build v25 · patrimoine vivant projets vivants</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2701,7 +2701,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=95"></script>
+<script src="/app.js?v=94"></script>
 </body>
 </html>
 `;
@@ -3255,7 +3255,7 @@ table { width: 100%; border-collapse: collapse; }
 thead { background: var(--surface-2); }
 thead th {
   text-align: left;
-  padding: 8px 18px;
+  padding: 10px 18px;
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0.07em;
@@ -3268,7 +3268,7 @@ thead th:first-child { border-radius: 8px 0 0 0; }
 thead th:last-child  { border-radius: 0 8px 0 0; }
 
 tbody td {
-  padding: 8px 18px;
+  padding: 10px 18px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-size: 15px;
@@ -3284,18 +3284,14 @@ tbody tr:hover td { background: var(--surface-2); }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 7px 0;
+  gap: 10px;
+  padding: 8px 0;
   border-top: 1px solid var(--line);
-  max-width: 640px;          /* écrans larges : le montant reste près de son libellé */
 }
 .list-row:first-child { border-top: none; }
 .list-row.inactif { opacity: .5; }
 .list-row-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .list-row-actions { display: flex; align-items: center; gap: 9px; flex: none; }
-/* Conteneur de liste : borne aussi la zone quand les lignes ne portent pas la classe (ex. en-têtes de groupe) */
-.list { max-width: 640px; }
-.list .list-row { max-width: none; }
 
 .td-mono {
   font-size: 13px;
@@ -5759,7 +5755,7 @@ function renderAranger(ctx){
   </div>\`;
   if(!list.length){el.innerHTML=header+'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;"><i class="ti ti-check"></i> Rien à ranger. Clique « Voir toutes les opérations » pour re-catégoriser.</div>';return;}
   const selStyle='border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;color:var(--text-1);background:var(--surface-2);cursor:pointer;';
-  el.innerHTML=header+'<div class="list">'+list.map(t=>{
+  el.innerHTML=header+list.map(t=>{
     const key=t.qontoId||t.id;
     const isRanger=t.cat==='autre';
     const projSel=t.cat==='soustraitance'
@@ -5768,7 +5764,7 @@ function renderAranger(ctx){
           \${projets.map(p=>\`<option value="\${p.id}"\${txProjet[key]===p.id?' selected':''}>\${escHtml(p.nom)}</option>\`).join('')}
         </select>\`
       : '';
-    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(138,100,20,.08);':''}">
+    return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 6px;border-bottom:1px solid var(--border);flex-wrap:wrap;border-radius:6px;\${isRanger?'background:rgba(138,100,20,.08);':''}">
       <div style="min-width:150px;flex:1;">
         <div style="font-size:13.5px;font-weight:500;">\${escHtml(t.libelle||'—')}</div>
         <div style="font-size:12px;color:var(--text-2);">\${fmtDate(t.date)} · −\${fmt(t.montant)}</div>
@@ -5778,7 +5774,7 @@ function renderAranger(ctx){
         <select onchange="assignTx('\${key}',this.value)" style="\${selStyle}">\${opt(t.cat)}</select>
       </div>
     </div>\`;
-  }).join('')+'</div>';
+  }).join('');
 }
 
 async function assignTx(key,cat){
@@ -6542,7 +6538,7 @@ function renderPersoEpargne(ctx){
       <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-400);display:grid;place-items:center;flex:none;"><i class="ti ti-coin"></i></span> Épargne mensuelle</div>
       <span class="perso-num-2" style="color:var(--navy);">\${fmt(epargneMensuel)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
-    <div class="list">\${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Livret A, assurance vie, PEA… combien tu mets de côté chaque mois. Compté dans ton besoin de vie.</div>'}</div>
+    \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Livret A, assurance vie, PEA… combien tu mets de côté chaque mois. Compté dans ton besoin de vie.</div>'}
     \${proj}
     <div style="margin-top:12px;"><button class="btn btn-outline btn-sm" onclick="openPersoEpargneModal()"><i class="ti ti-plus"></i> Ajouter un support</button></div>
   </div>\`;
@@ -6623,7 +6619,7 @@ function renderPersoRevenus(ctx){
       <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-400);display:grid;place-items:center;flex:none;"><i class="ti ti-heart-handshake"></i></span> Revenus perso</div>
       <span class="perso-num-2" style="color:var(--vert);font-size:26px;">+\${fmt(Math.round(totalActif*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
-    <div class="list">\${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Prime d\\'activité, aide au logement… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}</div>
+    \${rows||'<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Prime d\\'activité, aide au logement… Ces aides ne comptent jamais dans le versement soutenable de ton entreprise.</div>'}
     <div style="margin-top:12px;"><button class="btn btn-outline btn-sm" onclick="openPersoRevenuModal()"><i class="ti ti-plus"></i> Ajouter un revenu</button></div>
   </div>\`;
 }
@@ -6716,10 +6712,10 @@ function renderPersoCharges(ctx){
     const items=groups[cat].slice().sort((a,b)=>chargeMensuel(b)-chargeMensuel(a));
     const pastille=\`<span style="width:30px;height:30px;border-radius:9px;background:\${m.bg};color:\${m.col};display:grid;place-items:center;flex:none;"><i class="ti \${m.icon}"></i></span>\`;
     if(items.length>=2){
-      const header=\`<div style="display:flex;align-items:center;gap:10px;padding:8px 0 3px;border-top:1px solid var(--line);">
+      const header=\`<div style="display:flex;align-items:center;gap:10px;padding:12px 0 4px;border-top:1px solid var(--line);">
         \${pastille}<span style="font-size:13.5px;font-weight:700;color:var(--navy);">\${m.lab}</span>
         <span class="perso-num-2" style="margin-left:auto;color:var(--terre-600);font-size:19px;">\${fmt(Math.round(catTotal(cat)*100)/100)}</span></div>\`;
-      const lines=items.map(it=>{const inactif=it.actif===false;return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:5px 0 5px 42px;\${inactif?'opacity:.5;':''}">
+      const lines=items.map(it=>{const inactif=it.actif===false;return \`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0 8px 42px;\${inactif?'opacity:.5;':''}">
         <span style="min-width:0;"><span class="perso-line" style="font-weight:600;color:var(--navy);">\${escHtml(it.nom||'—')}</span>\${inactif?' <span style="font-size:11px;color:var(--text-2);">(inactive)</span>':''}\${meta(it)}</span>\${right(it)}</div>\`;}).join('');
       return header+lines;
     }
@@ -6732,7 +6728,7 @@ function renderPersoCharges(ctx){
       <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-600);display:grid;place-items:center;flex:none;"><i class="ti ti-receipt-2"></i></span> Charges fixes perso</div>
       <span class="perso-num-2" style="color:var(--terre-600);font-size:26px;">\${fmt(Math.round(totalMensuel*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
-    <div class="list">\${body}</div>
+    \${body}
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;"><button class="btn btn-outline btn-sm" onclick="openPersoChargeModal()"><i class="ti ti-plus"></i> Ajouter une charge</button><span style="font-size:12px;color:var(--text-2);">Périodicités ramenées au mois. « Prélevé pro » (impôt) = charge perso.</span></div>
   </div>\`;
 }
@@ -7566,7 +7562,7 @@ function loadFactures(){
       +rowV('ti-file-invoice','var(--surface-2)','var(--terre-600)','CA facturé','tout ce que tu as facturé cette année',caFacture)
       +rowV('ti-check','var(--success-10)','#456039','CA encaissé','réellement entré sur ton compte',caEnc,true)
       +rowV('ti-clock','var(--surface-2)','var(--terre-600)','CA à encaisser','facturé mais pas encore payé',caAEnc)
-      +rowV('ti-calendar-plus','var(--surface-2)','var(--terre-600)','CA à facturer','projets & récurrents à venir',caAFac)
+      +rowV('ti-calendar-plus','var(--glycine)','#2c4a72','CA à facturer','projets & récurrents à venir',caAFac)
       +rowV('ti-chart-line','var(--surface-2)','var(--terre-600)','CA prévisionnel','encaissé + à encaisser + à facturer',caPrev)
       +\`<div style="background:var(--success-10);border-radius:12px;padding:13px 16px;font-size:13.5px;color:#456039;margin-top:14px;display:flex;gap:9px;align-items:flex-start;"><i class="ti ti-info-circle" style="margin-top:1px;"></i><span>Seul le <strong>CA encaissé</strong> est de l'argent réellement disponible — et il passe encore par tes réserves avant ton versement.</span></div></div>\`;
   })();
