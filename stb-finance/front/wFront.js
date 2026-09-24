@@ -6177,37 +6177,75 @@ function revenuDerniereMajYm(r){
 }
 // Nombre de mois entre deux 'YYYY-MM'
 function ymDiffMonths(a,b){var pa=a.split('-'),pb=b.split('-');return (parseInt(pb[0])-parseInt(pa[0]))*12+(parseInt(pb[1])-parseInt(pa[1]));}
+/* ── LE SALAIRE, DIT UNE SEULE FOIS ──────────────────────────────────────
+   Il n'existe que DEUX chiffres, et jamais un troisième :
+     verse        ce que je me verse, ma décision (settings.remunerationFixe)
+     soutenable   ce que mon activité soutient (computeMoney().versement)
+   La capacité brute, le conseillé plafonné par l'objectif et le maximum
+   ponctuel restent des intermédiaires de calcul : ils ne s'affichent jamais
+   comme un salaire. Tout écran qui parle de salaire lit CETTE fonction.
+   ---------------------------------------------------------------------- */
+function salaireVerseFixe(){
+  var v=parseFloat(dbGetObj('settings').remunerationFixe);
+  return isNaN(v)?850:Math.round(v);
+}
+function salaireRef(){
+  var verse=salaireVerseFixe();
+  var soutenable=0;
+  try{var M=computeMoney();soutenable=Math.max(0,Math.round(M.versement||0));}catch(e){}
+  return {verse:Math.round(verse),soutenable:soutenable,depasse:verse>soutenable&&soutenable>0};
+}
+/* Ce que je me suis RÉELLEMENT versé un mois donné : les dépenses rangées en
+   « Versement perso ». C'est un fait, pas une intention — c'est donc lui qui
+   commande la répartition. */
+function salaireVerseMois(ym){
+  ym=ym||persoCurYm();
+  var dep=[];try{dep=dbGet('depenses')||[];}catch(e){}
+  var t=dep.filter(function(d){return d&&d.categorie==='Versement perso'&&String(d.date||'').slice(0,7)===ym;})
+           .reduce(function(sum,d){return sum+(parseFloat(d.montant)||0);},0);
+  return Math.round(t*100)/100;
+}
 // Reste à vivre — 4 étages : revenus (rému fixe + aides en vigueur) − charges fixes mensualisées − enveloppes.
 function computeResteAVivre(ym){
   ym=ym||persoCurYm();
   var s=dbGetObj('settings');
-  var remu=parseFloat(s.remunerationFixe); if(isNaN(remu))remu=850;
+  var remu=salaireVerseFixe();
   var revenus=Array.isArray(s.persoRevenus)?s.persoRevenus:[];
   var revenusActifs=revenus.filter(function(r){return r.actif!==false;}).reduce(function(sum,r){return sum+revenuMontantEnVigueur(r,ym);},0);
   var charges=Array.isArray(s.persoCharges)?s.persoCharges:[];
   var chargesFixes=charges.filter(function(c){return c.actif!==false;}).reduce(function(sum,c){return sum+chargeMensuel(c);},0);
   var env=Array.isArray(s.enveloppes)?s.enveloppes:[];
-  var envAlloue=env.reduce(function(sum,e){return sum+(parseFloat(e.alloue)||0);},0);
+  var envPrevu=env.reduce(function(sum,e){return sum+(parseFloat(e.alloue)||0);},0);
   var envConsomme=env.reduce(function(sum,e){return sum+(parseFloat(e.consomme)||0);},0);
-  var revenusMois=Math.round((remu+revenusActifs)*100)/100;
+  /* La répartition suit le salaire RÉELLEMENT versé ce mois-là, pas la
+     décision de principe. Chaque enveloppe garde sa PART : un seul facteur,
+     appliqué à toutes, plutôt qu'un arbitrage enveloppe par enveloppe.
+     Tant qu'aucun versement n'est enregistré pour le mois, la rémunération
+     fixe sert de référence : on ne rabote pas un budget sur une absence. */
+  var verseReel=salaireVerseMois(ym);
+  var salaireBase=verseReel>0?verseReel:remu;
+  var facteur=(remu>0&&verseReel>0)?(verseReel/remu):1;
+  var envAlloue=Math.round(envPrevu*facteur*100)/100;
+  var revenusMois=Math.round((salaireBase+revenusActifs)*100)/100;
   var resteMois=Math.round((revenusMois-chargesFixes-envAlloue)*100)/100;
   var jv=parseInt(s.jourVersement)||5;
   var now=new Date();var todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   var dv=new Date(now.getFullYear(),now.getMonth(),jv); if(dv<todayMid)dv=new Date(now.getFullYear(),now.getMonth()+1,jv);
   var joursRestants=Math.max(1,Math.round((dv-todayMid)/86400000));
   var resteJour=Math.round(resteMois/joursRestants);
-  return {remu:remu,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
+  return {remu:remu,verseReel:verseReel,salaireBase:salaireBase,facteur:facteur,
+    envPrevu:Math.round(envPrevu*100)/100,
+    revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
     envAlloue:Math.round(envAlloue*100)/100,envConsomme:Math.round(envConsomme*100)/100,
     revenusMois:revenusMois,resteMois:resteMois,joursRestants:joursRestants,resteJour:resteJour,jourVersement:jv};
 }
 // Réserve de LISSAGE (distincte de la réserve 3 mois) : trésorerie pro disponible au-dessus de la réserve
 // de sécurité (M.maxPonctuel), lue seulement. Combien de mois de rémunération fixe elle peut couvrir.
 function reserveLissage(){
-  var remu=parseFloat(dbGetObj('settings').remunerationFixe); if(isNaN(remu))remu=850;
-  var base=0,soutenable=0;
-  try{var M=computeMoney();base=Math.max(0,M.maxPonctuel||0);soutenable=M.versement||0;}catch(e){}
-  var mois=remu>0?Math.floor(base/remu):0;
-  return {base:Math.round(base),mois:mois,remu:remu,soutenable:soutenable,depasse:remu>soutenable};
+  var S=salaireRef();
+  var base=0; try{base=Math.max(0,computeMoney().maxPonctuel||0);}catch(e){}
+  var mois=S.verse>0?Math.floor(base/S.verse):0;
+  return {base:Math.round(base),mois:mois,remu:S.verse,soutenable:S.soutenable,depasse:S.depasse};
 }
 // Initialisation LOT 3 — une seule fois (flag lot3Init), sans jamais écraser des données existantes.
 async function initLot3(){
@@ -6550,28 +6588,38 @@ function renderPersoEnveloppes(){
   const el=q('#perso-enveloppes'); if(!el)return;
   const s=dbGetObj('settings');
   const env=Array.isArray(s.enveloppes)?s.enveloppes:[];
+  /* Le facteur du mois : ce que je me suis réellement versé rapporté à ma
+     rémunération fixe. Il vient de computeResteAVivre, pas d'un second
+     calcul : deux facteurs, ce serait deux budgets différents. */
+  let RV=null; try{RV=computeResteAVivre();}catch(e){}
+  const fact=(RV&&RV.facteur)?RV.facteur:1;
+  const reduit=fact<0.995;
   const rows=env.map(e=>{
-    const al=parseFloat(e.alloue)||0, co=parseFloat(e.consomme)||0;
+    const prevu=parseFloat(e.alloue)||0, co=parseFloat(e.consomme)||0;
+    const al=Math.round(prevu*fact*100)/100;
     const pct=al>0?Math.min(100,Math.round(co/al*100)):0; const over=co>al&&al>0;
     return \`<div style="padding:13px 0;border-top:1px solid var(--line);">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
         <input value="\${escHtml(e.cat||'')}" onblur="saveEnveloppeField('\${e.id}','cat',this.value)" style="border:none;background:none;font-size:15px;font-weight:600;color:var(--navy);outline:none;flex:1;min-width:110px;">
         <span style="display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text-2);">
           <input type="number" min="0" step="10" value="\${co}" onchange="saveEnveloppeField('\${e.id}','consomme',this.value)" style="width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;text-align:right;"> /
-          <input type="number" min="0" step="10" value="\${al}" onchange="saveEnveloppeField('\${e.id}','alloue',this.value)" style="width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;text-align:right;"> €
+          <input type="number" min="0" step="10" value="\${prevu}" onchange="saveEnveloppeField('\${e.id}','alloue',this.value)" style="width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14.5px;text-align:right;"> €
+          \${reduit?\`<span title="Ramené à ce que tu t'es versé ce mois" style="font-size:12.5px;color:var(--terre-600);white-space:nowrap;">→ \${fmt(al)}</span>\`:''}
           <button onclick="deleteEnveloppe('\${e.id}')" style="background:none;border:none;cursor:pointer;color:var(--ambre);"><i class="ti ti-trash"></i></button>
         </span>
       </div>
       <div style="height:7px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin-top:8px;"><div style="height:100%;width:\${pct}%;background:\${over?'var(--rouge)':'#b99a7d'};border-radius:5px;"></div></div>
     </div>\`;
   }).join('');
-  const totAl=env.reduce((a,e)=>a+(parseFloat(e.alloue)||0),0);
+  const totPrevu=env.reduce((a,e)=>a+(parseFloat(e.alloue)||0),0);
+  const totAl=Math.round(totPrevu*fact*100)/100;
   el.innerHTML=\`<div class="perso-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
       <div class="perso-card-title"><span style="width:30px;height:30px;border-radius:9px;background:var(--surface-2);color:var(--terre-600);display:grid;place-items:center;flex:none;"><i class="ti ti-wallet"></i></span> Enveloppes variables</div>
       <span class="perso-num-2" style="color:var(--terre-400);">\${fmt(Math.round(totAl*100)/100)}<span style="font-size:12px;color:var(--text-2);font-style:normal;"> /mois</span></span>
     </div>
     <p style="font-size:13px;color:var(--text-2);margin:0 0 2px;">Consommé / alloué. Saisis-le une fois par mois.</p>
+    \${reduit?\`<p style="font-size:13px;color:var(--terre-600);margin:6px 0 2px;line-height:1.5;">Tu t'es versé <strong>\${fmt(RV.verseReel)}</strong> ce mois pour une rémunération fixe de <strong>\${fmt(RV.remu)}</strong> : chaque enveloppe garde sa part et descend d'autant. Le chiffre que tu saisis reste ton budget de référence.</p>\`:''}
     \${rows}
     <div style="margin-top:14px;"><button class="btn btn-outline btn-sm" onclick="addEnveloppe()"><i class="ti ti-plus"></i> Ajouter une enveloppe</button></div>
   </div>\`;
@@ -7134,7 +7182,7 @@ function renderPersoDash(){
   const {besoin,revenusPerso,disponible}=ctx;
   // Harmonisation : le conseille affiche ici = #2 (computeMoney.versement, soutenable), comme partout ailleurs.
   // Rebase a l'affichage seulement ; computePerso n'est pas modifie.
-  let conseille=ctx.salaireConseille; try{const MM=computeMoney();if(MM&&MM.versement!=null)conseille=MM.versement;}catch(e){}
+  const conseille=salaireRef().soutenable;
   const resteAVivre=Math.round((conseille+(revenusPerso||0)-besoin)*100)/100;
   const rColor=resteAVivre<200?'#F87171':resteAVivre<500?'#F6C453':'#b7d3ad';
   const cell=(emoji,lab,val,color)=>\`<div style="flex:1;min-width:140px;">
@@ -10582,7 +10630,7 @@ function renderTJM(){
 
   // Valeurs par défaut à partir des vraies données
   const salIn=q('#tjm-salaire'), epIn=q('#tjm-epargne'), jrIn=q('#tjm-jours');
-  const salaire=salIn&&salIn.value!==''?parseFloat(salIn.value)||0:Math.round(perso.besoin||perso.salaireConseille||0);
+  const salaire=salIn&&salIn.value!==''?parseFloat(salIn.value)||0:Math.round(perso.besoin||salaireRef().verse||0);
   const epargne=epIn&&epIn.value!==''?parseFloat(epIn.value)||0:Math.round(perso.epargneMensuel||0);
   const jours=Math.max(1,jrIn&&jrIn.value!==''?parseInt(jrIn.value)||145:145);
   if(salIn&&salIn.value==='')salIn.value=salaire;
@@ -10597,8 +10645,10 @@ function renderTJM(){
   const caActuelAn=Math.round((intel.revenuMoyen||0)*12);
   const tjmActuel=caActuelAn>0?Math.round(caActuelAn/jours):0;
   const ecart=tjm-tjmActuel;
-  // Durabilité : l'entreprise soutient-elle déjà ce salaire ?
-  const capacite=perso.capacite||0;
+  // Durabilité : l'entreprise soutient-elle déjà ce salaire ? On lit le MÊME
+  // plafond soutenable qu'ailleurs, jamais la capacité brute : deux chiffres
+  // pour « ce que mon activité permet » n'en font aucun de fiable.
+  const capacite=salaireRef().soutenable;
   const durable=capacite>=salaire;
   const haussePct=capacite>0&&!durable?Math.round((salaire/capacite-1)*100):null;
 
@@ -10615,7 +10665,7 @@ function renderTJM(){
 
   const duraBlock=(salaire>0)?\`<div class="card" style="padding:20px;">
     <div style="font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);margin-bottom:8px;"><i class="ti ti-stethoscope"></i> Cohérence</div>
-    \${durable?\`<div style="font-size:14.5px;color:#456039;"><i class="ti ti-circle-check"></i> Ton activité soutient déjà ce salaire (capacité ~\${fmt(capacite)} / mois).</div>\`:(capacite>0?\`<div style="font-size:14.5px;color:#C43030;"><i class="ti ti-alert-triangle"></i> Ton activité génère aujourd'hui de quoi te verser ~\${fmt(capacite)} / mois. Pour tenir \${fmt(salaire)} / mois durablement, il faudrait augmenter ton CA d'environ <strong>\${haussePct}%</strong>.</div>\`:\`<div style="font-size:14px;color:var(--text-2);">Ajoute des factures pour que Finance estime ta capacité actuelle.</div>\`)}
+    \${durable?\`<div style="font-size:14.5px;color:#456039;"><i class="ti ti-circle-check"></i> Ton activité soutient déjà ce salaire (plafond soutenable \${fmt(capacite)} / mois).</div>\`:(capacite>0?\`<div style="font-size:14.5px;color:#C43030;"><i class="ti ti-alert-triangle"></i> Ton plafond soutenable est aujourd'hui de \${fmt(capacite)} / mois. Pour tenir \${fmt(salaire)} / mois durablement, il faudrait augmenter ton CA d'environ <strong>\${haussePct}%</strong>.</div>\`:\`<div style="font-size:14px;color:var(--text-2);">Ajoute des factures pour que Finance estime ta capacité actuelle.</div>\`)}
   </div>\`:'';
 
   el.innerHTML=\`<div style="display:flex;flex-direction:column;gap:16px;">
@@ -10649,7 +10699,7 @@ function renderRentaProjet(){
   const chargesEnt=aboMois+pas;
   const jrIn=q('#tjm-jours');
   const joursAn=Math.max(1,jrIn&&jrIn.value!==''?parseInt(jrIn.value)||145:145);
-  const salaireCible=Math.round(perso.besoin||perso.salaireConseille||0);
+  const salaireCible=Math.round(perso.besoin||salaireRef().verse||0);
   const epargneCible=Math.round(perso.epargneMensuel||0);
   const caAnReco=Math.round((salaireCible+epargneCible+chargesEnt)/Math.max(0.01,1-taux)*12);
   const tjmReco=Math.round(caAnReco/joursAn);
@@ -10820,7 +10870,7 @@ function chResult(){
 
   if(totalH<=0){el.innerHTML=\`<div class="card" style="padding:28px;text-align:center;color:var(--text-2);"><div style="font-size:30px;"><i class="ti ti-wall"></i></div><div style="font-size:15px;margin-top:8px;">Assemble les briques de ton projet à gauche — Finance calcule le prix à vendre, d'après tes objectifs.</div></div>\`;return;}
 
-  const salaireVital=(S.salaire!==''&&S.salaire!=null)?(parseFloat(S.salaire)||0):Math.round(perso.besoin||perso.salaireConseille||0);
+  const salaireVital=(S.salaire!==''&&S.salaire!=null)?(parseFloat(S.salaire)||0):Math.round(perso.besoin||salaireRef().verse||0);
   const epargne=(S.epargne!==''&&S.epargne!=null)?(parseFloat(S.epargne)||0):Math.round(perso.epargneMensuel||0);
   const confort=Math.round(parseFloat(settings.persoConfort)||salaireVital*1.2||0);
   const tjmFor=(sal,ep)=>((sal+ep+chargesEnt)/Math.max(0.01,1-taux)*12)/joursAn;
