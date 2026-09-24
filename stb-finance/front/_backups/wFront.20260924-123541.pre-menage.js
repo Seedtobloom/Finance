@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=131" />
+  <link rel="stylesheet" href="/style.css?v=130" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v131 · Menage code mort : suppression du chemin de rendu CRM mort (renderCrmKpis/Banner/Charts/Table + _drawDonutChart/_drawBarChartCRM) et du bloc de rendu #qonto-* de renderQontoCalc. Bonus : save/delete prospect rafraichissent enfin le CRM visible (crmRenderAll). ~300 lignes mortes retirees, aucun comportement vivant change.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v130 · Fusion opt-in Objectifs d epargne -> Projets de vie : bandeau « Tout rassembler ici » (copie deja-mis/cible/date puis retire les anciens, avec confirmation). L ecran Objectifs garde le pilotage CA. Migration uniquement sur action + confirmation.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2684,7 +2684,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=131"></script>
+<script src="/app.js?v=130"></script>
 </body>
 </html>
 `;
@@ -7637,6 +7637,196 @@ function renderQontoCalc(){
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
 
+  // ── Provisions ────────────────────────────────────────────────────────
+  const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
+  const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
+  const pas=parseFloat(s.pasFixe)||40;
+  const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
+  const provCharges=Math.round((caEncaisse*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
+
+  const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
+  const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  // Provision sur 12 mois (budget annuel à conserver, pas × mois écoulés)
+  const provChargesFixes=Math.round(totalAbosMois*12*100)/100;
+
+  const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
+  const pctVers=(parseFloat(s.pctVersement)||65)/100;
+  const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
+  const pctFormation=(parseFloat(s.pctFormation)||10)/100;
+  const pctEpargne=Math.max(0,1-pctVers-pctTreso-pctFormation);
+  const provVers=Math.round(netApresCharges*pctVers*100)/100;
+  const provTreso=Math.round(netApresCharges*pctTreso*100)/100;
+  const provFormation=Math.round(netApresCharges*pctFormation*100)/100;
+  const provEpargne=Math.round(netApresCharges*pctEpargne*100)/100;
+
+  // ── Dépenses réelles par enveloppe (mapping catégories) ───────────────
+  function depCat(...cats){
+    return toutesDepenses.filter(d=>cats.includes(d.categorie)).reduce((s,d)=>s+(d.montant||0),0);
+  }
+  const depCharges   = depCat('Charges sociales');
+  const depFixes     = depCat('Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre');
+  const depFormation = depCat('Formation');
+  const depVers      = totalVersements;
+  // Trésorerie : tout ce qui reste non catégorisé dans les enveloppes ci-dessus
+  const depTreso     = Math.max(0, totalTout - depCharges - depFixes - depFormation - depVers);
+
+  // ── Calculs disponible net ────────────────────────────────────────────
+  const resteCharges   = Math.max(0, provCharges    - depCharges);
+  const resteChargesFix= Math.max(0, provChargesFixes - depFixes);
+  const resteFormation = Math.max(0, provFormation  - depFormation);
+  const totalASecuriser= resteCharges + resteChargesFix + resteFormation;
+  const disponibleBrut = soldeActuel - totalASecuriser;
+  const versementPossible = Math.max(0, Math.round(disponibleBrut * pctVers * 100)/100 - depVers);
+  const tresoLibre     = Math.max(0, Math.round(disponibleBrut * pctTreso * 100)/100);
+  const vraimentLibre  = Math.max(0, disponibleBrut - Math.round(disponibleBrut*pctVers*100)/100 - tresoLibre - Math.round(disponibleBrut*(parseFloat(s.pctFormation||10)/100)*100)/100);
+
+  // ── Listes dépenses par enveloppe ────────────────────────────────────
+  function depLines(depList){
+    if(!depList||!depList.length)return '<div style="font-size:12px;color:var(--text-2);margin-top:6px;font-style:italic;">Aucune dépense dans cette enveloppe</div>';
+    return '<div style="margin-top:8px;border-top:1px solid #E0DDD8;padding-top:8px;">'+
+      depList.map(d=>'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);padding:2px 0;">'+
+        '<span>'+fmtDate(d.date)+(d.description?' — '+d.description:'')+'</span>'+
+        '<span style="font-weight:600;white-space:nowrap;margin-left:8px;color:var(--navy);">−'+fmt(d.montant||0)+'</span>'+
+      '</div>').join('')+
+    '</div>';
+  }
+
+  const listCharges  = toutesDepenses.filter(d=>d.categorie==='Charges sociales');
+  const listFixes    = toutesDepenses.filter(d=>['Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre'].includes(d.categorie));
+  const listFormation= toutesDepenses.filter(d=>d.categorie==='Formation');
+  const listVers     = versementsEffectues;
+
+  // ── Rendu ──────────────────────────────────────────────────────────────
+  const envEl=q('#qonto-enveloppes');
+  if(!envEl)return;
+
+  function provCard(icon,label,provision,depense,restant,couleur,depList){
+    const pct=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
+    const overshot=restant<0;
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid '+(overshot?'#8d2b21':couleur)+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'+
+        '<div style="display:flex;align-items:center;gap:8px;">'+
+          '<span style="font-size:18px;">'+icon+'</span>'+
+          '<span style="font-size:13px;font-weight:700;color:var(--navy);">'+label+'</span>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:11px;color:var(--text-2);">Provision</div>'+
+          '<div style="font-size:14px;font-weight:600;color:var(--navy);">'+fmt(provision)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:12px;margin-bottom:8px;">'+
+        '<div style="flex:1;background:'+(overshot?'#FEE':'#fff')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">À garder de côté</div>'+
+          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#8d2b21':restant===0?'#456039':couleur)+';">'+(restant===0?'<i class="ti ti-check"></i> Couvert':fmt(restant))+'</div>'+
+        '</div>'+
+        '<div style="flex:1;background:#fff;border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">Déjà réglé</div>'+
+          '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="height:5px;background:#ece3d4;border-radius:3px;margin-bottom:8px;">'+
+        '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#8d2b21':pct>=100?'#456039':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
+      depLines(depList)+
+    '</div>';
+  }
+
+  envEl.innerHTML =
+    // ── Zone 1 : Synthèse ────────────────────────────────────────────────
+    '<div style="grid-column:1/-1;background:var(--navy);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:4px;">'+
+      '<div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px;">Synthèse · depuis '+fmtDate(dateDebut)+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">'+
+        '<div>'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;">Solde Qonto</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;">'+fmt(soldeActuel)+'</div>'+
+          (caAttente>0?'<div style="font-size:12px;opacity:.6;margin-top:4px;">+'+fmt(caAttente)+' en attente</div>':'')+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;"><i class="ti ti-lock"></i> À sécuriser</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:#F8B84E;">'+fmt(totalASecuriser)+'</div>'+
+          '<div style="font-size:12px;opacity:.6;margin-top:4px;">charges + frais restants</div>'+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;"><i class="ti ti-circle-check"></i> Disponible net</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:'+(disponibleBrut<0?'#F87171':'#4ADE80')+';">'+fmt(disponibleBrut)+'</div>'+
+          '<div style="font-size:12px;opacity:.6;margin-top:4px;">après provisions sécurisées</div>'+
+        '</div>'+
+      '</div>'+
+      // Répartition du disponible
+      (disponibleBrut>0?
+      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);">'+
+        '<div style="font-size:12px;opacity:.6;margin-bottom:10px;">Répartition du disponible net</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-cash"></i> Versement perso ('+Math.round(pctVers*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctVers*100)/100)+'</div>'+
+            (depVers>0?'<div style="font-size:11px;opacity:.5;margin-top:2px;">Déjà versé : '+fmt(depVers)+'</div>':'')+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-building-bank"></i> Trésorerie ('+Math.round(pctTreso*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctTreso*100)/100)+'</div>'+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-books"></i> Formation ('+Math.round(pctFormation*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctFormation*100)/100)+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>':'')
+    +'</div>'+
+    // ── Zone 2 : Provisions ──────────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-lock"></i> Provisions à sécuriser</div>'+
+    provCard('<i class="ti ti-alert-circle"></i>','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#8d2b21',listCharges)+
+    provCard('<i class="ti ti-clipboard-list"></i>','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#a5502e',listFixes)+
+    provCard('<i class="ti ti-books"></i>','Formation',provFormation,depFormation,resteFormation,'#7B4DD4',listFormation)+
+    // ── Zone 3 : Versements perso ────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-cash"></i> Versements perso effectués</div>'+
+    '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid #456039;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+        '<span style="font-size:13px;font-weight:700;color:var(--navy);">Total versé depuis '+fmtDate(dateDebut)+'</span>'+
+        '<span style="font-size:20px;font-weight:700;color:#456039;">'+fmt(depVers)+'</span>'+
+      '</div>'+
+      depLines(listVers)+
+    '</div>';
+
+  // ── Pots virtuels (grille en haut de la section) ──────────────────────
+  const potsGrid=q('#qonto-pots-grid');
+  if(potsGrid){
+    function potCard(icon,nom,solde,couleur,sub,pct){
+      const pctClamped=Math.min(100,Math.max(0,pct||0));
+      return '<div class="pot-card">'+
+        '<div class="pot-card-header">'+
+          '<div>'+
+            '<div class="pot-icon">'+icon+'</div>'+
+            '<div class="pot-nom">'+nom+'</div>'+
+          '</div>'+
+          '<span class="badge" style="background:'+couleur+'22;color:'+couleur+';font-size:11px;">virtuel</span>'+
+        '</div>'+
+        '<div class="pot-solde" style="color:'+couleur+';">'+fmt(solde)+'</div>'+
+        '<div class="pot-sub">'+sub+'</div>'+
+        '<div class="pot-bar"><div class="pot-bar-fill" style="width:'+pctClamped+'%;background:'+couleur+';"></div></div>'+
+      '</div>';
+    }
+    const pctUsedCharges  = provCharges>0 ? depCharges/provCharges*100 : 0;
+    const pctUsedFixes    = provChargesFixes>0 ? depFixes/provChargesFixes*100 : 0;
+    const pctUsedFormation= provFormation>0 ? depFormation/provFormation*100 : 0;
+    const versementSolde  = Math.max(0,Math.round(disponibleBrut*pctVers*100)/100 - depVers);
+    potsGrid.innerHTML=
+      potCard('<i class="ti ti-alert-circle"></i>','URSSAF & Charges sociales', Math.max(0,resteCharges), '#8d2b21',
+        depCharges>0?fmt(depCharges)+' deja regle · provision '+fmt(provCharges):'Provision sur CA encaisse',
+        pctUsedCharges)+
+      potCard('<i class="ti ti-clipboard-list"></i>','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#a5502e',
+        'Budget annuel '+fmt(provChargesFixes)+' · '+fmt(depFixes)+' dépensé',
+        pctUsedFixes)+
+      potCard('<i class="ti ti-books"></i>','Formation', Math.max(0,resteFormation), '#7B4DD4',
+        'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
+        pctUsedFormation)+
+      potCard('<i class="ti ti-building-bank"></i>','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#2c4a72',
+        Math.round(pctTreso*100)+'% du disponible net · sécurité',
+        100)+
+      potCard('<i class="ti ti-cash"></i>','Versement perso', versementSolde, '#456039',
+        fmt(depVers)+' versé · reste à te virer',
+        depVers>0?Math.min(100,depVers/(Math.round(disponibleBrut*pctVers*100)/100)*100):0)+
+      (pctEpargne>0.001?potCard('<i class="ti ti-coin"></i>','Épargne', provEpargne, '#7c5cbf','Buffer long terme',0):'');
+  }
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
@@ -8434,6 +8624,134 @@ function crmRelations(){
       \${inactifs.length?inactifs.map(c=>\`<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-size:14px;font-weight:500;">\${escHtml(c.nom)}</div><div style="font-size:12px;color:var(--text-2);">Dernière mission il y a \${moisDepuis(c.last)} mois — pourquoi ne pas reprendre contact ?</div></div>\`).join(''):'<div style="font-size:13px;color:#456039;">Tous tes clients sont actifs <i class="ti ti-thumb-up"></i></div>'}
     </div>
   </div>\`;
+}
+
+function renderCrmKpis(){
+  const p=_prospectsCache;
+  const total=p.length;
+  const repondus=p.filter(x=>['positif','negatif','proposition','converti','sans_suite'].includes(x.statut)).length;
+  const convertis=p.filter(x=>x.statut==='converti').length;
+  const attente=p.filter(x=>['contact','en_attente','proposition'].includes(x.statut)).length;
+  const tauxRep=total>0?Math.round(repondus/total*100):0;
+  const tauxConv=total>0?Math.round(convertis/total*100):0;
+  if(q('#crm-kpi-total'))q('#crm-kpi-total').textContent=total;
+  if(q('#crm-kpi-reponse'))q('#crm-kpi-reponse').textContent=total?tauxRep+'%':'—';
+  if(q('#crm-kpi-conversion'))q('#crm-kpi-conversion').textContent=total?tauxConv+'%':'—';
+  if(q('#crm-kpi-attente'))q('#crm-kpi-attente').textContent=attente;
+}
+
+function renderCrmBanner(){
+  const todayStr=today();
+  const aRelancer=_prospectsCache.filter(p=>{
+    if(['negatif','converti','sans_suite'].includes(p.statut))return false;
+    const r1=p.relance1&&!p.dateRelance1&&p.relance1<=todayStr;
+    const r2=p.relance2&&!p.dateRelance2&&p.relance2<=todayStr;
+    const rf=p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr;
+    return r1||r2||rf;
+  });
+  const banner=q('#crm-relances-banner');
+  const bannerTxt=q('#crm-relances-banner-text');
+  if(!banner||!bannerTxt)return;
+  if(aRelancer.length>0){
+    const noms=aRelancer.slice(0,3).map(p=>p.nom+(p.entreprise?" ("+p.entreprise+")":"")).join(", ");
+    bannerTxt.innerHTML="<strong>"+aRelancer.length+" relance(s) à effectuer</strong> : "+noms+(aRelancer.length>3?" et "+(aRelancer.length-3)+" autres":"");
+    banner.style.display='';
+  }else{
+    banner.style.display='none';
+  }
+}
+
+function renderCrmCharts(){
+  const statutCanvas=q('#crm-chart-statuts');
+  const secteurCanvas=q('#crm-chart-secteurs');
+  if(statutCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{counts[p.statut]=(counts[p.statut]||0)+1;});
+    const labels=Object.keys(counts).map(k=>CRM_STATUTS[k]?.label||k);
+    const vals=Object.values(counts);
+    const colors=Object.keys(counts).map(k=>CRM_STATUTS[k]?.color||'#ccc');
+    _drawDonutChart(statutCanvas,labels,vals,colors);
+  }
+  if(secteurCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{const s=p.secteur||"Non précisé";counts[s]=(counts[s]||0)+1;});
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const labels=sorted.map(x=>x[0]);
+    const vals=sorted.map(x=>x[1]);
+    const colors=PALETTE;
+    _drawBarChartCRM(secteurCanvas,labels,vals,colors);
+  }
+}
+
+function _drawDonutChart(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  const total=vals.reduce((s,v)=>s+v,0);
+  if(total===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  drawDonutChart(canvas,labels,vals,colors);
+}
+
+function _drawBarChartCRM(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  if(vals.length===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  const maxV=Math.max(...vals)||1;
+  const pad={l:10,r:10,t:10,b:50};
+  const bw=Math.max(16,Math.floor((W-pad.l-pad.r)/labels.length*0.6));
+  const gap=Math.floor((W-pad.l-pad.r)/labels.length);
+  const chartH=H-pad.t-pad.b;
+  labels.forEach((label,i)=>{
+    const x=pad.l+i*gap+gap/2-bw/2;
+    const bh=Math.round(vals[i]/maxV*chartH);
+    const y=pad.t+chartH-bh;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
+    ctx.fillStyle='#110704';ctx.font="bold 12px Inter Tight";ctx.textAlign="center";
+    ctx.fillText(vals[i],x+bw/2,y-4);
+    ctx.fillStyle='#6b533b';ctx.font="11px Inter Tight";
+    const short=label.length>10?label.slice(0,9)+"…":label;
+    ctx.fillText(short,x+bw/2,H-pad.b+14);
+  });
+}
+
+function renderCrmTable(){
+  const search=(q('#crm-search')?.value||'').toLowerCase();
+  const filtStatut=q('#crm-filter-statut')?.value||'';
+  const filtSecteur=q('#crm-filter-secteur')?.value||'';
+  const todayStr=today();
+  let list=[..._prospectsCache];
+  if(search)list=list.filter(p=>((p.nom||'')+(p.entreprise||'')+(p.secteur||'')+(p.email||'')+(p.notes||'')).toLowerCase().includes(search));
+  if(filtStatut)list=list.filter(p=>p.statut===filtStatut);
+  if(filtSecteur)list=list.filter(p=>(p.secteur||'')=== filtSecteur);
+  list.sort((a,b)=>(b.dateContact||'').localeCompare(a.dateContact||''));
+  const tbody=q('#crm-tbody');
+  if(!tbody)return;
+  function relanceCell(prevue,faite){
+    if(faite)return"<span style='color:var(--success);font-size:13px;'>"+fmtDate(faite)+"<br><small>faite</small></span>";
+    if(!prevue)return"<span style='color:var(--text-2);'>—</span>";
+    const en_retard=prevue<=todayStr&&!faite;
+    const style=en_retard?"color:var(--danger);font-weight:600;":"";
+    return"<span style='font-size:13px;"+style+"'>"+fmtDate(prevue)+(en_retard?"<br><small>En retard</small>":"")+"</span>";
+  }
+  tbody.innerHTML=list.length?list.map(p=>{
+    const st=CRM_STATUTS[p.statut]||{label:p.statut,cls:'attente'};
+    return\`<tr>
+      <td><strong>\${p.nom}</strong>\${p.email?"<br><small style='color:var(--text-2);'>"+p.email+"</small>":""}</td>
+      <td>\${p.entreprise||"—"}</td>
+      <td><span style="font-size:13px;">\${p.secteur||"—"}</span></td>
+      <td>\${p.dateContact?fmtDate(p.dateContact):"—"}\${p.telephone?"<br><small style='color:var(--text-2);'>"+p.telephone+"</small>":""}</td>
+      <td><span class="badge badge-\${st.cls}">\${st.label}</span></td>
+      <td>\${relanceCell(p.relance1,p.dateRelance1)}</td>
+      <td>\${relanceCell(p.relance2,p.dateRelance2)}</td>
+      <td>\${relanceCell(p.relanceFinale,p.dateRelanceFinale)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-xs" onclick="editProspect('\${p.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteProspect('\${p.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-2);">Aucun prospect — ajoutez votre premier contact.</td></tr>';
 }
 
 function refreshCrmSecteurFilter(){
