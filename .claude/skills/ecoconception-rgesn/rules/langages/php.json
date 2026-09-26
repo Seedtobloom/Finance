@@ -1,0 +1,173 @@
+{
+  "metadata": {
+    "name": "Ecodesign for PHP",
+    "description": "Ecodesign rules for PHP code: sober ORM (Doctrine/Eloquent/PDO), generators, streams, OPcache, reused connections.",
+    "version": "1.0.0",
+    "globs": "**/*.php",
+    "extensions": [
+      "php"
+    ],
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/"
+    ],
+    "count": 7,
+    "type": "code_audit"
+  },
+  "categories": {
+    "donnees": {
+      "name": "PHP — data access",
+      "description": "Doctrine / Eloquent / PDO: load only what is read (RGESN Backend, GR491_Backend_2/3).",
+      "rules": [
+        {
+          "id": "ECO-PHP-01",
+          "title": "Unbounded collection loaded",
+          "description": "->get() or findAll() on an unbounded table hydrates every row into objects: memory and CPU proportional to the volume.",
+          "impact": "High",
+          "patterns": [
+            "->get\\(\\)",
+            "->findAll\\(\\)"
+          ],
+          "recommendation": "Paginate every exposed list; walk large volumes in batches with chunk()/cursor() (Eloquent) or toIterable() (Doctrine).",
+          "example": {
+            "bad": "$rows = Order::all();",
+            "good": "Order::query()->select('id', 'total')->cursorPaginate(50);"
+          },
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "orm",
+            "pagination"
+          ]
+        },
+        {
+          "id": "ECO-PHP-02",
+          "title": "Association walked in a loop (N+1)",
+          "description": "Reading an association inside a foreach fires one query per element.",
+          "impact": "High",
+          "patterns": [
+            "foreach[[:space:]]*\\([[:space:]]*\\$[[:alnum:]_]+->[[:alnum:]_]+[[:space:]]+as[[:space:]]"
+          ],
+          "recommendation": "Eager loading: with() (Eloquent) or a fetch join / DQL join (Doctrine); project the useful columns rather than full entities.",
+          "example": {
+            "bad": "foreach ($orders as $o) { echo $o->customer->name; }",
+            "good": "$orders = Order::with('customer')->get();"
+          },
+          "rgesn_ref": "7.1, 9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "orm",
+            "n+1"
+          ]
+        },
+        {
+          "id": "ECO-PHP-03",
+          "title": "Row-by-row writes",
+          "description": "save() inside a loop produces one database round trip per record.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Multi-row insert(), upsert() or batches; exists() rather than count() > 0.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "orm",
+            "batch"
+          ]
+        }
+      ]
+    },
+    "memoire": {
+      "name": "PHP — memory and streams",
+      "description": "Stream rather than materialise everything (RGESN Algorithms).",
+      "rules": [
+        {
+          "id": "ECO-PHP-04",
+          "title": "File loaded entirely into memory",
+          "description": "file_get_contents or file() on a large file consumes memory proportional to its size.",
+          "impact": "Medium",
+          "patterns": [
+            "file_get_contents\\(",
+            "\\bfile[[:space:]]*\\("
+          ],
+          "recommendation": "Read as a stream (fopen plus block reads), fputcsv and streams for exports; generators (yield) to produce long sequences.",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "streams",
+            "memory"
+          ],
+          "exclude_patterns": [
+            "json_decode\\([[:space:]]*file_get_contents\\(",
+            "file_get_contents\\([[:space:]]*['\"]php://input"
+          ],
+          "detector_note": "A JSON document has to be decoded whole, and php://input is bounded by the request size: both are excluded."
+        },
+        {
+          "id": "ECO-PHP-05",
+          "title": "Linear search in a large array",
+          "description": "in_array and array_search walk the whole array; repeated in a loop, the processing turns quadratic.",
+          "impact": "Medium",
+          "patterns": [
+            "in_array\\(",
+            "array_search\\("
+          ],
+          "recommendation": "Index by key and test with isset($index[$k]) (constant time).",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "algorithms"
+          ],
+          "exclude_patterns": [
+            "(in_array|array_search)\\([^,]+,[[:space:]]*(array[[:space:]]*\\(|\\[)"
+          ],
+          "detector_note": "A search in an array literal written on the same line is short by construction and is not reported."
+        }
+      ]
+    },
+    "infra": {
+      "name": "PHP — execution and infrastructure",
+      "description": "Reuse connections, bound caches, lighten the dependency graph (RGESN Hosting).",
+      "rules": [
+        {
+          "id": "ECO-PHP-06",
+          "title": "One HTTP connection per call",
+          "description": "curl_init() per request repeats DNS resolution and the TLS handshake on every call.",
+          "impact": "Medium",
+          "patterns": [
+            "curl_init\\("
+          ],
+          "recommendation": "A shared, injected HTTP client (Guzzle); persistent PDO connections or a pool, depending on the platform.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "php",
+            "network",
+            "connections"
+          ]
+        },
+        {
+          "id": "ECO-PHP-07",
+          "title": "File cache with no purge",
+          "description": "A cache written to disk with neither expiry nor purge grows indefinitely: storage and backups inflated by dead entries.",
+          "impact": "Medium",
+          "patterns": [
+            "file_put_contents\\([^)]*cache"
+          ],
+          "recommendation": "A bounded, expiring cache (APCu, Redis with a TTL); OPcache enabled in production, optimised autoload (composer dump-autoload -o).",
+          "rgesn_ref": "7.3",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "php",
+            "cache",
+            "storage"
+          ]
+        }
+      ]
+    }
+  }
+}

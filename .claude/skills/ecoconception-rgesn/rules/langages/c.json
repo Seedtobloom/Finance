@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "name": "Ecodesign for C",
+    "description": "Ecodesign rules for C code: memory under control, no hidden quadratic pattern, buffered I/O, no busy waiting.",
+    "version": "1.0.0",
+    "globs": "**/*.{c,h}",
+    "extensions": [
+      "c",
+      "h"
+    ],
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/"
+    ],
+    "count": 6,
+    "type": "code_audit"
+  },
+  "categories": {
+    "memoire": {
+      "name": "C — memory",
+      "description": "Allocate for the real need, free on every path (RGESN Algorithms, GR491_Backend_4).",
+      "rules": [
+        {
+          "id": "ECO-C-01",
+          "title": "Dynamic allocation to check",
+          "description": "Every allocation with no identified release path, error paths included, leaks: memory held until the process ends.",
+          "impact": "Medium",
+          "patterns": [
+            "\\bmalloc\\(",
+            "\\bcalloc\\(",
+            "\\brealloc\\("
+          ],
+          "recommendation": "One identified free for every allocation, error paths included; reuse buffers inside loops instead of reallocating.",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "memory"
+          ]
+        },
+        {
+          "id": "ECO-C-02",
+          "title": "Large memory area copied",
+          "description": "Copying a block when a pointer or an index would do doubles the memory bandwidth consumed.",
+          "impact": "Low",
+          "patterns": [],
+          "recommendation": "Pass a pointer or an index; keep structures compact (types sized to the need, watch padding on massively instantiated structs).",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "memory"
+          ]
+        }
+      ]
+    },
+    "cpu": {
+      "name": "C — CPU and algorithms",
+      "description": "Avoid hidden quadratic patterns (RGESN 9.1).",
+      "rules": [
+        {
+          "id": "ECO-C-03",
+          "title": "strlen() in a loop condition",
+          "description": "strlen re-evaluated on every iteration walks the whole string again: a quadratic loop invisible on reading.",
+          "impact": "High",
+          "patterns": [
+            "for[[:space:]]*\\([^;]*;[^;]*strlen[[:space:]]*\\("
+          ],
+          "recommendation": "Compute the length once before the loop.",
+          "example": {
+            "bad": "for (i = 0; i < strlen(s); i++)",
+            "good": "size_t n = strlen(s);\nfor (i = 0; i < n; i++)"
+          },
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "cpu",
+            "algorithms"
+          ]
+        },
+        {
+          "id": "ECO-C-04",
+          "title": "Repeated strcat()",
+          "description": "Each strcat walks the string from the start to find the terminator: quadratic concatenation.",
+          "impact": "Medium",
+          "patterns": [
+            "\\bstrcat\\("
+          ],
+          "recommendation": "Keep an end pointer or use memcpy with an offset; pick structures suited to the volume (hashing, binary search) rather than repeated linear scans.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "cpu",
+            "strings"
+          ]
+        }
+      ]
+    },
+    "io": {
+      "name": "C — I/O and waiting",
+      "description": "Batch I/O, never busy wait (RGESN Backend/Hosting).",
+      "rules": [
+        {
+          "id": "ECO-C-05",
+          "title": "Byte-by-byte I/O",
+          "description": "One system call per small unit multiplies kernel transitions: CPU spent on transfer rather than on useful work.",
+          "impact": "Medium",
+          "patterns": [
+            "\\bfgetc\\(",
+            "\\bfputc\\(",
+            "\\bgetchar\\(",
+            "\\bputchar\\("
+          ],
+          "recommendation": "Use buffered, block-based I/O (fread/fwrite, writev); always close and release resources.",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "io"
+          ]
+        },
+        {
+          "id": "ECO-C-06",
+          "title": "Busy waiting",
+          "description": "A polling loop or a short sleep keeps the CPU core busy and prevents low-power states.",
+          "impact": "High",
+          "patterns": [
+            "while[[:space:]]*\\([[:space:]]*1[[:space:]]*\\)",
+            "\\busleep\\(",
+            "\\bsleep\\("
+          ],
+          "recommendation": "Block on poll/epoll/select or a condition variable; build production with -O2 and measure before hand-optimising.",
+          "example": {
+            "bad": "while (!ready) { usleep(1000); }",
+            "good": "pthread_cond_wait(&cond, &mutex);"
+          },
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "c",
+            "cpu",
+            "waiting"
+          ]
+        }
+      ]
+    }
+  }
+}

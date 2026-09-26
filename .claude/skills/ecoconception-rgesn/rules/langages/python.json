@@ -1,0 +1,236 @@
+{
+  "metadata": {
+    "name": "Ecodesign for Python",
+    "description": "Ecodesign rules specific to Python code: sober ORM (Django/SQLAlchemy), generators, vectorisation, bounded caches, reused connections.",
+    "version": "1.0.0",
+    "globs": "**/*.py",
+    "extensions": [
+      "py"
+    ],
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/"
+    ],
+    "count": 11,
+    "type": "code_audit"
+  },
+  "categories": {
+    "donnees": {
+      "name": "Python — data access",
+      "description": "Django ORM / SQLAlchemy: transfer and materialise only what is needed (RGESN Backend, GR491_Backend_2/3).",
+      "rules": [
+        {
+          "id": "ECO-PY-01",
+          "title": "N+1 query on a walked queryset",
+          "description": "Iterating a queryset whose associations you read fires one query per row: network and database cost grow linearly with the volume.",
+          "impact": "High",
+          "patterns": [
+            "for[[:space:]]+\\w+[[:space:]]+in[[:space:]]+\\w+\\.objects\\.(all|filter)\\("
+          ],
+          "recommendation": "Load the associations you walk with select_related/prefetch_related (Django) or joinedload/selectinload (SQLAlchemy).",
+          "example": {
+            "bad": "for c in Commande.objects.all():\n    print(c.client.nom)",
+            "good": "for c in Commande.objects.select_related('client'):\n    print(c.client.nom)"
+          },
+          "rgesn_ref": "7.1, 9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "orm",
+            "n+1"
+          ]
+        },
+        {
+          "id": "ECO-PY-02",
+          "title": "Unbounded queryset materialised",
+          "description": "`.all()` or `list(...)` on an unbounded table loads every row into application memory.",
+          "impact": "High",
+          "patterns": [
+            "\\.objects\\.all\\(\\)",
+            "list\\([[:space:]]*\\w+\\.objects\\.",
+            "\\.query\\([^)]*\\)\\.all\\(\\)"
+          ],
+          "recommendation": "Paginate every exposed list; stream large volumes with iterator() (Django) or yield_per() (SQLAlchemy).",
+          "example": {
+            "bad": "rows = list(Article.objects.all())",
+            "good": "for row in Article.objects.iterator(chunk_size=500): ..."
+          },
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "orm",
+            "pagination"
+          ]
+        },
+        {
+          "id": "ECO-PY-03",
+          "title": "Project the fields you need",
+          "description": "Loading whole objects when only two columns are read transfers and deserialises data for nothing.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Use only()/defer()/values()/values_list() (Django) or load_only() (SQLAlchemy) to fetch just the columns you use.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "orm",
+            "projection"
+          ]
+        },
+        {
+          "id": "ECO-PY-04",
+          "title": "Group bulk writes",
+          "description": "One save() per row inside a loop produces one database round trip per record.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "bulk_create/bulk_update (Django), executemany or batched insert() (SQLAlchemy); bound the batch size.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "orm",
+            "batch"
+          ]
+        }
+      ]
+    },
+    "memoire": {
+      "name": "Python — memory and streams",
+      "description": "Do not materialise in memory what can be streamed (RGESN Algorithms, GR491_Backend_4).",
+      "rules": [
+        {
+          "id": "ECO-PY-05",
+          "title": "File read entirely into memory",
+          "description": "read() and readlines() load the whole file; memory grows with the file size, up to swapping or an OOM.",
+          "impact": "Medium",
+          "patterns": [
+            "open\\([^)]*\\)\\.read\\(\\)",
+            "\\.readlines\\(\\)"
+          ],
+          "recommendation": "Iterate the file line by line, or read in blocks (read(size), iter_content) for large volumes.",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "memory",
+            "streams"
+          ]
+        },
+        {
+          "id": "ECO-PY-06",
+          "title": "pandas: row-by-row loop instead of vectorising",
+          "description": "iterrows() and apply(axis=1) run Python per row: one to two orders of magnitude more costly than the equivalent vectorised operation.",
+          "impact": "High",
+          "patterns": [
+            "\\.iterrows\\(\\)",
+            "axis[[:space:]]*=[[:space:]]*1"
+          ],
+          "recommendation": "Vectorise with numpy and pandas operations; cut memory with suitable dtypes (category, short integers).",
+          "example": {
+            "bad": "df.apply(lambda r: r.a * r.b, axis=1)",
+            "good": "df['a'] * df['b']"
+          },
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "pandas",
+            "vectorisation"
+          ]
+        },
+        {
+          "id": "ECO-PY-07",
+          "title": "String concatenation in a loop",
+          "description": "`s += ...` rebuilds the whole string on every iteration (quadratic behaviour on long sequences).",
+          "impact": "Low",
+          "patterns": [
+            "\\+=[[:space:]]*[\"'f]"
+          ],
+          "recommendation": "Accumulate in a list then ''.join(...), or write straight to a stream.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "cpu",
+            "strings"
+          ]
+        },
+        {
+          "id": "ECO-PY-08",
+          "title": "Membership test on a large list",
+          "description": "`x in list` is linear; repeated inside a loop, the processing turns quadratic.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Index into a set or a dict before the loop (constant-time lookup).",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "cpu",
+            "algorithms"
+          ]
+        }
+      ]
+    },
+    "io": {
+      "name": "Python — I/O, network and cache",
+      "description": "Reuse connections, bound caches, do not poll in a loop (RGESN Backend/Hosting).",
+      "rules": [
+        {
+          "id": "ECO-PY-09",
+          "title": "Unbounded cache",
+          "description": "An lru_cache with no maxsize, or a global dict used as a cache, grows without limit: memory held for entries never reused.",
+          "impact": "Medium",
+          "patterns": [
+            "lru_cache\\([[:space:]]*\\)",
+            "@lru_cache[[:space:]]*$",
+            "@cache[[:space:]]*$"
+          ],
+          "recommendation": "Bound and expire every cache: lru_cache(maxsize=N), a TTL on the Redis or Memcached side.",
+          "rgesn_ref": "7.3",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "cache",
+            "memory"
+          ]
+        },
+        {
+          "id": "ECO-PY-10",
+          "title": "HTTP connections not reused",
+          "description": "requests.get() opens a connection, and a TLS handshake, on every call: network and CPU cost repeated for nothing.",
+          "impact": "Medium",
+          "patterns": [
+            "requests\\.(get|post|put|patch|delete)\\("
+          ],
+          "recommendation": "Reuse a requests.Session (or a shared httpx client); go async for concurrent I/O.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "network",
+            "connections"
+          ]
+        },
+        {
+          "id": "ECO-PY-11",
+          "title": "Polling loop",
+          "description": "A sleep-plus-request loop consumes CPU, network and energy continuously, even when nothing changes.",
+          "impact": "Medium",
+          "patterns": [
+            "time\\.sleep\\("
+          ],
+          "recommendation": "Prefer event-driven triggering (webhook, message, notification); failing that, widen the interval substantially.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "python",
+            "polling",
+            "network"
+          ]
+        }
+      ]
+    }
+  }
+}

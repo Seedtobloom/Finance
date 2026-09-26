@@ -1,0 +1,2784 @@
+{
+  "metadata": {
+    "name": "Ecodesign of digital services — RGESN 2024 / GR491 / GSF",
+    "description": "83 ecodesign rules covering the 9 families of the RGESN 2024 (Référentiel Général d'Écoconception de Services Numériques, 78 criteria). Every rule carries an RGESN reference (rgesn_ref field) and a GR491 family (gr491_famille field); that reference points at the exact criterion for families 1 to 4 and at the family alone for the others, see coverage_note.",
+    "version": "3.0.0",
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/",
+      "https://greensoftware.foundation/",
+      "https://github.com/Institut-du-Numerique-Responsable/green-codex"
+    ],
+    "coverage_note": "The RGESN 2024 has 78 criteria across 9 families; the GR491 has 61 recommendations and 516 criteria across 8 families. This file selects 52 actionable rules without reproducing the full referential: every RGESN family is represented, and rgesn_ref points at the official criterion for further reading. An rgesn_ref shaped 'N.x' means the rule belongs to family N without matching a single criterion.",
+    "count": 107,
+    "type": "code_audit",
+    "type_note": "Rules with 'patterns' are found in code by the audit (grep). Rules with 'detector' use a dedicated multi-line detector (scripts/detect-*.awk) where line-by-line grep is not enough. Rules with neither are design or process rules: they serve as a checklist through --list-rules.",
+    "three_u_note": "The three_u field marks which of the three conditions of a sober digital service a rule serves, as framed by the Institut du Numerique Responsable: useful (it answers a real need, and that need calls for something digital), usable (by everyone, on modest hardware and constrained networks), used (someone actually uses it, and what nobody uses gets retired). The three hold together: a useful service nobody can use goes unused, and a used service that is not useful consumes for nothing. It is the design-review lens to apply before any code exists; rgesn_ref stays the pointer to the official criterion.",
+    "attribution_note": "Rules carrying a source_note that names a Green Codex identifier are adapted from that project (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. The wording and the detection patterns here are this project's own.",
+    "objective": "Deliver code that consumes as little as possible: the fewest tokens during the session, the least CPU time and memory at runtime, the fewest bytes over the network, the least storage, and therefore the least energy. Every rule in this file exists to reduce one of those, and a rule that reduces none of them does not belong here. The consumption comes in two waves: what the session itself costs, and what the delivered code costs on every user's machine, on every request, for years. The second is larger, and it is the only one that keeps running after the conversation ends."
+  },
+  "categories": {
+    "strategie": {
+      "name": "1. Strategy",
+      "description": "RGESN family 1: whether the service is warranted at all, and the ecodesign approach, before any code.",
+      "rules": [
+        {
+          "id": "ECO-STRAT-01",
+          "title": "Measure before optimising",
+          "description": "Set reduction targets and hold regular ecodesign reviews: you only reduce well what you measure.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Audit the service (EcoIndex, GreenFrame, Scaphandre), set numeric targets, and keep those measurements as the before/after baseline.",
+          "rgesn_ref": "1.4, 1.5",
+          "gr491_famille": "Stratégie",
+          "tags": [
+            "strategy",
+            "measurement",
+            "targets"
+          ],
+          "three_u": [
+            "used"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-02",
+          "title": "Collect data deliberately",
+          "description": "Every piece of data collected is transmitted, stored, backed up and processed, often for nothing when nobody ever uses it.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Collect only the data you actually use, define retention periods, and purge what has gone stale.",
+          "rgesn_ref": "1.6",
+          "gr491_famille": "Stratégie",
+          "tags": [
+            "data",
+            "retention",
+            "minimisation"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-03",
+          "title": "Standard, open and interoperable technologies",
+          "description": "Proprietary formats require heavy software and create a lock-in that forces hardware and licence renewal.",
+          "impact": "Medium",
+          "patterns": [
+            "\\.docx",
+            "\\.xlsx",
+            "\\.pptx"
+          ],
+          "recommendation": "Prefer open standards: ODF, CSV, JSON, Markdown, HTML, all readable anywhere, including on older hardware.",
+          "rgesn_ref": "1.8, 1.9",
+          "gr491_famille": "Stratégie",
+          "tags": [
+            "formats",
+            "openness",
+            "interoperability"
+          ],
+          "three_u": [
+            "usable"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-04",
+          "title": "Appoint a digital sobriety advocate",
+          "description": "With nobody named to carry the subject, digital sobriety stays a collective intention that nobody actually pushes day to day.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Appoint a person or a small group as advocate, with a mandate to track the sobriety targets and arbitrate the trade-offs.",
+          "rgesn_ref": "1.x",
+          "gr491_famille": "Stratégie",
+          "source_note": "WSG (W3C Web Sustainability Guidelines) — Business Strategy and Product Management > \"Assign a sustainability advocate\".",
+          "tags": [
+            "governance",
+            "organisation",
+            "process"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-05",
+          "title": "Train and raise awareness in the team",
+          "description": "A team that knows neither the stakes nor the levers of digital sobriety cannot apply them, however well the rules are written.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Plan an initial awareness session and regular check-ins; share the measurements and the progress to keep attention on the subject.",
+          "rgesn_ref": "1.x",
+          "gr491_famille": "Stratégie",
+          "source_note": "WSG (W3C Web Sustainability Guidelines) — Business Strategy and Product Management > \"Inform, raise awareness, and train for sustainability\".",
+          "tags": [
+            "training",
+            "awareness",
+            "process"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-06",
+          "title": "Tell users the environmental impact of their choices",
+          "description": "A user who does not know an action has a cost, such as playing a video in high quality or downloading a large file, cannot make an informed choice.",
+          "impact": "Low",
+          "patterns": [],
+          "recommendation": "Show the weight or the quality before a costly action (download size, default video resolution) and leave the choice to the user.",
+          "rgesn_ref": "1.x",
+          "gr491_famille": "Stratégie",
+          "source_note": "WSG (W3C Web Sustainability Guidelines) — Business Strategy and Product Management > \"Communicate the environmental impact of user choices\".",
+          "tags": [
+            "transparency",
+            "ux",
+            "process"
+          ],
+          "three_u": [
+            "used"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-07",
+          "title": "Plan the end of life from the start",
+          "description": "A feature nobody uses still costs: it is deployed, backed up, monitored, patched for security and carried through every migration. With no retirement decision, a service only ever grows, and the share of it that anyone actually uses only ever shrinks.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Give every feature, dataset and environment an owner and a review date. When usage evidence says it is dead, plan the retirement: data export, retention obligations, dependency check, then removal. Get the right authority before deleting production data or shutting a service down.",
+          "rgesn_ref": "2.7",
+          "gr491_famille": "Stratégie",
+          "three_u": [
+            "used"
+          ],
+          "tags": [
+            "lifecycle",
+            "retirement",
+            "governance",
+            "3u"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-08",
+          "title": "State the functional unit and the boundary",
+          "description": "A gain of thirty percent means nothing until someone says thirty percent of what, measured over which part of the system. Compare a page against a page, a completed task against a completed task, and say what the measurement leaves out: the client device, the network, the third parties, the manufacturing share.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Before claiming any improvement, write down the functional unit, the baseline, the boundary of what was measured, and what was excluded for lack of data. Compare equivalent quality and service levels, or say that you could not.",
+          "rgesn_ref": "1.4, 1.5",
+          "gr491_famille": "Stratégie",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule MEASURE-EFF-003 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "measurement",
+            "boundary",
+            "claims"
+          ]
+        },
+        {
+          "id": "ECO-STRAT-09",
+          "title": "Check the rebound before claiming a win",
+          "description": "Cutting the cost of one request is an invitation to make more of them. A cache that makes a page cheap, a model that makes generation cheap, an API that makes a call cheap: each can lower the unit cost while raising the total. The unit figure is the one people quote, and it is the one that hides this.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Report resources per successful task and the total over a stated period, side by side. Watch growth in usage, retries and migration cost, and flag the unknowns rather than treating a lower unit cost as proof of a lower footprint.",
+          "rgesn_ref": "1.4, 1.5",
+          "gr491_famille": "Stratégie",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule MEASURE-EFF-004 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "rebound",
+            "measurement",
+            "totals"
+          ]
+        }
+      ]
+    },
+    "specifications": {
+      "name": "2. Specifications",
+      "description": "RGESN family 2: the framing. For whom, on what hardware, under which environmental requirements.",
+      "rules": [
+        {
+          "id": "ECO-SPEC-01",
+          "title": "Environmental criteria in user stories",
+          "description": "Build impact reduction into design and code reviews rather than treating it as an afterthought.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Add measurable criteria to your stories: maximum page weight, request budget, EcoIndex threshold, and check them in review.",
+          "rgesn_ref": "2.6",
+          "gr491_famille": "Spécifications",
+          "tags": [
+            "governance",
+            "process",
+            "agile"
+          ]
+        },
+        {
+          "id": "ECO-SPEC-02",
+          "title": "Compatible with older devices and browsers",
+          "description": "A service that demands recent hardware pushes people to replace their devices, and manufacturing is the single largest impact of digital technology.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Define the list of supported hardware profiles, and test on devices more than five years old and on older browser versions.",
+          "rgesn_ref": "2.1, 2.2, 2.4",
+          "gr491_famille": "Spécifications",
+          "tags": [
+            "compatibility",
+            "devices",
+            "lifespan"
+          ],
+          "three_u": [
+            "usable"
+          ]
+        },
+        {
+          "id": "ECO-SPEC-03",
+          "title": "Usable on a slow connection",
+          "description": "A service designed for fibre excludes modest connections and wastes bandwidth for everyone else.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Test the service on a throttled connection (3G); aim for an acceptable degraded mode offline where that makes sense.",
+          "rgesn_ref": "2.3",
+          "gr491_famille": "Spécifications",
+          "tags": [
+            "network",
+            "low-bandwidth",
+            "resilience"
+          ],
+          "three_u": [
+            "usable"
+          ]
+        },
+        {
+          "id": "ECO-SPEC-04",
+          "title": "Assess third-party services before integrating them",
+          "description": "Every SDK, widget or third-party script brings its own weight, its own requests and its own tracking, usually far beyond the original need.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Before integrating a third-party service, measure its weight and its requests; prefer a minimal integration or a lighter alternative.",
+          "rgesn_ref": "2.10",
+          "gr491_famille": "Spécifications",
+          "tags": [
+            "third-party",
+            "dependencies",
+            "scoping"
+          ]
+        },
+        {
+          "id": "ECO-SPEC-05",
+          "title": "Keep features to what is needed",
+          "description": "A little-used feature costs in development, in maintenance and at every run, for a benefit nobody has measured. The RGESN asks you to assess the usefulness of the service and the impact of its components before keeping them.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Measure the real usage of each feature before carrying it forward, and remove the ones whose usage does not justify the cost. Set the removal threshold within the project rather than borrowing a ready-made figure.",
+          "rgesn_ref": "1.1, 2.9",
+          "gr491_famille": "Spécifications",
+          "tags": [
+            "mvp",
+            "minimalism",
+            "yagni"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        }
+      ]
+    },
+    "architecture": {
+      "name": "3. Architecture",
+      "description": "RGESN family 3: the structural technical choices. They weigh more than every optimisation that follows.",
+      "rules": [
+        {
+          "id": "ECO-ARCH-01",
+          "title": "Prefer the simplest solution (low-tech)",
+          "description": "A heavy framework for a brochure site means JavaScript downloaded, parsed and executed by every visitor for nothing.",
+          "impact": "High",
+          "patterns": [
+            "from[[:space:]]+['\"](react|react-dom|vue|@angular/[a-z]+|next)['\"]",
+            "require\\([[:space:]]*['\"](react|react-dom|vue|@angular/[a-z]+|next)['\"]",
+            "\"(react|react-dom|vue|@angular/core|next|nuxt)\"[[:space:]]*:[[:space:]]*['\"]?[\\^~0-9]"
+          ],
+          "recommendation": "Before adopting a framework, check whether static HTML/CSS, vanilla JS or HTMX would meet the real need.",
+          "example": {
+            "bad": "import React from 'react'; // site vitrine de 4 pages",
+            "good": "<!-- HTML statique + 20 lignes de CSS, aucun runtime -->"
+          },
+          "note": "The framework name must appear in an import, a require or a declared dependency: searched as a bare word, \"vue\" matches any French text and \"next\" matches any awk or JS loop.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "low-tech",
+            "simplicity",
+            "frameworks"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-02",
+          "title": "Size resources to the real load",
+          "description": "Servers sized for the annual peak run idle the rest of the year.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Set up automatic resource adjustment (scale-to-zero, autoscaling) and shut down what is not in use.",
+          "rgesn_ref": "3.2",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "sizing",
+            "autoscaling",
+            "servers"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-03",
+          "title": "Design to last",
+          "description": "A service that has to be rebuilt every two years multiplies its footprint; monolithic updates force full re-downloads.",
+          "impact": "Medium",
+          "patterns": [
+            "deprecated",
+            "TODO.*remove"
+          ],
+          "recommendation": "Separate fixes from new features, ship incremental updates, and plan for data migration and long-term documentation.",
+          "note": "\"deprecated\" in a comment usually marks a documented deprecation, which is good practice rather than a defect to fix.",
+          "rgesn_ref": "3.4, 3.5, 3.6",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "durability",
+            "maintenance",
+            "updates"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-04",
+          "title": "Sober development and test environments",
+          "description": "Development, CI and staging environments often run around the clock for occasional use.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Shut environments down outside working hours, share them, and limit how long build artifacts are retained.",
+          "rgesn_ref": "3.7",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "ci-cd",
+            "environments",
+            "sharing"
+          ],
+          "three_u": [
+            "used"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-05",
+          "title": "Write quality code: tested, robust, performant, maintainable",
+          "description": "Poorly tested, fragile or badly structured code generates more fixes, redeployments and recomputation after the fact. Every bug fixed once the service is in production costs more resources than getting it right the first time.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Test the code before shipping it, handle errors and edge cases, measure the performance of critical paths, and keep the structure simple enough to stay maintainable without a rewrite.",
+          "rgesn_ref": "GSF",
+          "gr491_famille": "Architecture",
+          "source_note": "Principle proposed by Guillaume G. (Institut du Numérique Responsable), from the Green Software Foundation's general thesis linking code quality and digital sobriety (greensoftware.foundation/articles/green-coding-is-a-matter-of-code-quality): not a numbered RGESN criterion, hence rgesn_ref = \"GSF\" rather than an N.x form.",
+          "tags": [
+            "quality",
+            "tests",
+            "maintainability",
+            "robustness"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-06",
+          "title": "Sober continuous integration",
+          "description": "A pipeline runs on every push, from everyone, forever. A dependency reinstalled because no cache was configured, a job duplicated across two runners for two seconds of useful work, a full test suite triggered by a typo in a README: each one is small, and each one is multiplied by every commit the project will ever receive.",
+          "impact": "Medium",
+          "patterns": [
+            "apt-get[[:space:]]+install",
+            "npm[[:space:]]+install",
+            "pip[[:space:]]+install[[:space:]]+-r"
+          ],
+          "exclude_patterns": [
+            "--prefer-offline",
+            "--no-install-recommends"
+          ],
+          "exclude_file_patterns": [
+            "actions/cache",
+            "cache:",
+            "cache-dependency-path",
+            "setup-node",
+            "setup-python",
+            "setup-java"
+          ],
+          "extensions": [
+            "yml",
+            "yaml"
+          ],
+          "recommendation": "Cache dependencies between runs, and check what the runner image already ships before installing anything. Merge jobs that share a checkout for a couple of seconds of work. Scope the triggers to the paths that matter, and bound artifact retention.",
+          "note": "Scoped to CI configuration files, where an install with no cache anywhere in the file is the usual waste. An install step is legitimate when the tool is genuinely absent from the runner image; the point is to check rather than assume.",
+          "rgesn_ref": "3.7",
+          "gr491_famille": "Architecture",
+          "three_u": [
+            "used"
+          ],
+          "tags": [
+            "ci-cd",
+            "cache",
+            "pipelines"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-07",
+          "title": "The least code that solves the problem",
+          "description": "An assistant produces code faster than anyone can read it, and volume is the easiest thing to mistake for progress. Every line written is compiled, shipped, loaded, executed, tested, reviewed and carried through every future migration. A helper nobody calls, an abstraction with one implementation, a configuration option nobody sets: each costs on every run and on every read, for a need that was never demonstrated.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Write the smallest thing that solves the problem in front of you, and delete what stopped being needed. Prefer one clear function to three indirected ones, an existing platform capability to a new dependency, and a direct implementation to a framework introduced for a single case. When a generalisation is proposed, ask which second caller justifies it; if there is none, write the specific version.",
+          "note": "No pattern: the size of a change is a judgement about the problem, not a property of a line. This is the question to ask before writing, and again in review.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "three_u": [
+            "useful"
+          ],
+          "tags": [
+            "simplicity",
+            "code-volume",
+            "yagni",
+            "maintainability"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-08",
+          "title": "Bound a function before you scale it",
+          "description": "A serverless function with generous memory, a long timeout and unlimited concurrency looks safe until something upstream misbehaves. Then the platform happily runs a thousand copies of a job that should have run once, and bills the energy for all of them.",
+          "impact": "High",
+          "patterns": [
+            "timeout[[:space:]]*[=:][[:space:]]*[0-9]{3,}",
+            "memory_?size[[:space:]]*[=:][[:space:]]*[0-9]{4,}",
+            "reserved_concurrent_executions[[:space:]]*[=:][[:space:]]*-1"
+          ],
+          "extensions": [
+            "yml",
+            "yaml",
+            "tf",
+            "json"
+          ],
+          "recommendation": "Set memory, timeout, concurrency and retry limits from the invocation pattern you actually observe, not from the platform defaults. Measure cold start, warm execution and idle overhead before deciding the function is the cheap option.",
+          "example": {
+            "bad": "timeout = 900\nmemory_size = 10240",
+            "good": "timeout = 30        # mesuré : p99 à 4 s\nmemory_size = 512"
+          },
+          "note": "The patterns catch a timeout in the hundreds of seconds, a memory size in the gigabytes, or concurrency explicitly unlimited. A function with no limits declared at all is invisible here and stays a review question.",
+          "rgesn_ref": "3.2",
+          "gr491_famille": "Architecture",
+          "source_note": "Adapted from the Green Codex rule ARCH-SERVERLESS-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "serverless",
+            "bounds",
+            "concurrency"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-09",
+          "title": "Do not chain functions where one would do",
+          "description": "Each hop in a chain of functions serialises the payload, writes it to a queue or a bucket, wakes another runtime, and deserialises it again. Ten hops move the same data ten times to accomplish what one bounded operation would have done in memory.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Keep a function cohesive and its payload small. Combine steps that always run together, pass references rather than blobs, and avoid a cross-region hop for data that never had to leave.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "three_u": [
+            "useful"
+          ],
+          "source_note": "Adapted from the Green Codex rule ARCH-SERVERLESS-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "serverless",
+            "payloads",
+            "chaining"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-10",
+          "title": "Explicit cache keys, TTLs and purge limits at the edge",
+          "description": "An edge cache with an implicit key caches the wrong thing for the wrong people, and an implicit TTL either serves stale data or revalidates constantly. Both failure modes end the same way: the origin gets the traffic the edge was supposed to absorb.",
+          "impact": "Medium",
+          "patterns": [
+            "s-maxage[[:space:]]*=[[:space:]]*0",
+            "Cache-Control:[^\"']*no-store"
+          ],
+          "exclude_file_patterns": [
+            "s-maxage=[1-9]",
+            "stale-while-revalidate"
+          ],
+          "recommendation": "Set the cache key, the TTL and the purge strategy explicitly, and document the consistency behaviour. Never cache personal data at a shared edge without a privacy and correctness review.",
+          "note": "A no-store or a zero s-maxage on a response that could be cached is the visible end of the problem. It is legitimate for anything personal, so read what the response carries before acting.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "source_note": "Adapted from the Green Codex rule ARCH-EDGE-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "edge",
+            "cache",
+            "ttl"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-11",
+          "title": "Bound fan-out before it becomes a retry storm",
+          "description": "One request that fans out to ten services, each retrying three times, is thirty calls for one user action. When the downstream slows down, every caller retries at once and the retries become the load, which is the failure amplifying itself.",
+          "impact": "High",
+          "patterns": [
+            "max_?retries[[:space:]]*[=:][[:space:]]*([1-9][0-9]|[0-9]{3,})",
+            "retries[[:space:]]*[=:][[:space:]]*([1-9][0-9]|[0-9]{3,})",
+            "Promise\\.all\\("
+          ],
+          "exclude_file_patterns": [
+            "backoff",
+            "jitter",
+            "p-limit",
+            "Semaphore",
+            "concurrency"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "yml",
+            "yaml",
+            "tf",
+            "json"
+          ],
+          "recommendation": "Bound fan-out, retries, queue depth and replica count. Use idempotency keys and back-pressure so a retry is safe and a slow consumer can say so. Add jitter to the backoff, and measure the coordination overhead before adding another replica.",
+          "example": {
+            "bad": "await Promise.all(ids.map(id => fetch(`/api/items/${id}`)))",
+            "good": "await pLimit(5)(ids.map(id => () => fetch(`/api/items/${id}`)))"
+          },
+          "note": "A retry count in double digits, or a Promise.all with no concurrency limit anywhere in the file, is the candidate. Promise.all over three known items is fine; over a list of unknown length it is unbounded fan-out.",
+          "rgesn_ref": "3.2",
+          "gr491_famille": "Architecture",
+          "source_note": "Adapted from the Green Codex rule ARCH-DIST-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "distributed",
+            "fan-out",
+            "retries",
+            "backpressure"
+          ]
+        },
+        {
+          "id": "ECO-ARCH-12",
+          "title": "Write comments a newcomer can follow, not a transcript for yourself",
+          "description": "A comment nobody can parse gets skipped, and code nobody understands gets rewritten rather than fixed. That rewrite repeats work that a clear explanation would have made unnecessary, and it repeats it every time someone new touches the file.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Say why the code does something non-obvious, not what it does when the code already says that. Use plain words over jargon, keep sentences short, and update or remove a comment the moment the code it describes changes. The same holds for commit messages and pull request descriptions: they document intent for the next reader, human or model, and a message nobody can follow costs as much as no message at all.",
+          "rgesn_ref": "GSF",
+          "gr491_famille": "Architecture",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Extends the same Green Software Foundation thesis as ECO-ARCH-05, applied to documentation rather than test coverage: unclear code costs in rework the way untested code does.",
+          "tags": [
+            "comments",
+            "documentation",
+            "readability",
+            "commits"
+          ]
+        }
+      ]
+    },
+    "ux_ui": {
+      "name": "4. UX/UI",
+      "description": "RGESN family 4: journeys and interfaces that do not push people towards overconsumption.",
+      "rules": [
+        {
+          "id": "ECO-UX-01",
+          "title": "No automatic playback",
+          "description": "Autoplay downloads and decodes video, audio or animation the user never asked for: the worst usefulness-to-consumption ratio on the web.",
+          "impact": "High",
+          "patterns": [
+            "<(video|audio|iframe)[^>]*autoplay",
+            "autoplay[[:space:]]*[=:]",
+            "autoPlay"
+          ],
+          "recommendation": "Replace autoplay with a clickable cover image (a facade); load the media only on click.",
+          "example": {
+            "bad": "<video autoplay muted loop src=\"hero.mp4\"></video>",
+            "good": "<video preload=\"none\" poster=\"hero.webp\" controls src=\"hero.mp4\"></video>"
+          },
+          "rgesn_ref": "4.1",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "video",
+            "autoplay",
+            "energy"
+          ],
+          "note": "The word \"autoplay\" alone is not enough: only the HTML attribute and the JS property are searched, otherwise every page that discusses autoplay gets flagged."
+        },
+        {
+          "id": "ECO-UX-02",
+          "title": "No infinite scroll",
+          "description": "Infinite scroll loads content with no end and no explicit request, and holds the user beyond what they came for.",
+          "impact": "Medium",
+          "patterns": [
+            "infinite-?scroll"
+          ],
+          "recommendation": "Prefer explicit pagination or a \"Show more\" button: the user chooses what they load.",
+          "rgesn_ref": "4.2",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "scroll",
+            "pagination",
+            "attention"
+          ]
+        },
+        {
+          "id": "ECO-UX-03",
+          "title": "Native components rather than reimplemented ones",
+          "description": "Menus, accordions, date pickers: the native HTML components exist, they are accessible, and they cost no JavaScript.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Use <details>/<summary>, <dialog>, <input type=\"date\">, :hover, :focus-within and native forms before writing JavaScript.",
+          "rgesn_ref": "4.5",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "html",
+            "css",
+            "native-components"
+          ],
+          "three_u": [
+            "usable"
+          ]
+        },
+        {
+          "id": "ECO-UX-04",
+          "title": "Third-party services on demand",
+          "description": "Maps, players, social widgets and analytics scripts run on every visitor's machine as soon as the page loads, whether they use them or not.",
+          "impact": "High",
+          "patterns": [
+            "googletagmanager",
+            "gtag\\(",
+            "facebook.*pixel"
+          ],
+          "recommendation": "Load third-party services only on user action (a facade); keep analytics to a lightweight solution (Matomo, Plausible).",
+          "example": {
+            "bad": "<script src=\"https://maps.googleapis.com/maps/api/js\"></script>",
+            "good": "<button onclick=\"loadMap()\">Afficher la carte</button>  <!-- façade -->"
+          },
+          "rgesn_ref": "4.4",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "third-party",
+            "tracking",
+            "facade"
+          ]
+        },
+        {
+          "id": "ECO-UX-05",
+          "title": "Limit the number and weight of downloaded fonts",
+          "description": "RGESN 4.8: at most 2 fonts and 4 variants per page in total (or 400 KB of downloaded fonts), with compression checked. Every font is one more download, and it often blocks text from rendering.",
+          "impact": "Low",
+          "patterns": [
+            "@font-face",
+            "fonts\\.googleapis\\.com",
+            "fonts\\.gstatic\\.com",
+            "use\\.typekit\\.net",
+            "new FontFace\\("
+          ],
+          "enrich": "fonts",
+          "enrich_is_verdict": true,
+          "enrich_note": "A pattern can neither count fonts and variants nor sum their real weight. scripts/inspect-fonts.sh does that for self-hosted fonts resolvable on disk (number of families, variants, total weight against 400 KB, WOFF2 versus TTF/OTF/EOT); third-party fonts on a CDN are detected but their real weight cannot be measured without a network request.",
+          "recommendation": "Use the system-ui stack first. If a font is needed: at most 2 families and 4 variants in total (or 400 KB downloaded in total), self-hosted, subsetted, in WOFF2, with font-display: swap.",
+          "rgesn_ref": "4.8",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "fonts",
+            "performance",
+            "system"
+          ]
+        },
+        {
+          "id": "ECO-UX-06",
+          "title": "Choose the lightest medium that carries the information",
+          "description": "A video to say what a paragraph explains means megabytes instead of kilobytes.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Rank them: text > image > audio > video. Keep video for content where it genuinely adds something.",
+          "rgesn_ref": "4.6, 4.7",
+          "gr491_famille": "UX/UI",
+          "tags": [
+            "media",
+            "editorial-sobriety",
+            "video"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-UX-07",
+          "title": "Honour prefers-reduced-motion for animations",
+          "description": "Forcing an animation on a visitor who explicitly asked for less of it (a system setting, often tied to a hardware, comfort or battery constraint) burns CPU and GPU on a rendering nobody wants to see.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "reduced_motion",
+          "detector_note": "scripts/detect-reduced-motion.awk flags a file that has @keyframes or animation: but no prefers-reduced-motion media query anywhere in that same file. A false negative is possible when the media query lives in another CSS file of the project: the audit sees one file at a time.",
+          "recommendation": "Wrap or disable non-essential animations inside @media (prefers-reduced-motion: reduce).",
+          "rgesn_ref": "4.x",
+          "gr491_famille": "UX/UI",
+          "source_note": "WSG (W3C Web Sustainability Guidelines) — UX Design > \"Ensure animation is proportionate and easy to control\" > \"Control animation\".",
+          "tags": [
+            "css",
+            "animation",
+            "accessibility"
+          ],
+          "extensions": [
+            "css",
+            "scss",
+            "sass",
+            "html",
+            "htm",
+            "vue",
+            "svelte"
+          ],
+          "three_u": [
+            "usable"
+          ]
+        },
+        {
+          "id": "ECO-UX-08",
+          "title": "Accessibility is the floor of usability",
+          "description": "A service a screen reader cannot announce, that a keyboard cannot reach, or whose contrast defeats a tired eye on a cheap screen, is unusable for part of its audience. Those users then work around it: they reload, they zoom, they switch device, or they give up and someone handles their request by other means. None of that appears in a page-weight budget, and all of it consumes.",
+          "impact": "High",
+          "patterns": [
+            "<img",
+            "<div[^>]*onclick",
+            "role=[\"']button[\"']",
+            "outline[[:space:]]*:[[:space:]]*(none|0)[;\"' ]"
+          ],
+          "exclude_patterns": [
+            "alt=",
+            "tabindex",
+            ":focus-visible",
+            "outline-offset",
+            "aria-hidden"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte",
+            "css",
+            "scss",
+            "sass",
+            "jsx",
+            "tsx"
+          ],
+          "recommendation": "Reach for the native element before the ARIA workaround (button, a, label, details). Give every informative image an alt, every control a visible focus, and every field a label. Check the journey you changed with a keyboard alone, then with a screen reader.",
+          "example": {
+            "bad": "<div onclick=\"submit()\">Envoyer</div>",
+            "good": "<button type=\"submit\">Envoyer</button>"
+          },
+          "note": "The patterns catch four frequent, mechanical defects: an img with no alt on the same line, a click handler on a div, a role=\"button\" with no tabindex, a suppressed focus outline. They say nothing about the rest of the RGAA, which no static audit can assess. A clean run here is not a conformance claim.",
+          "rgesn_ref": "4.x",
+          "gr491_famille": "UX/UI",
+          "three_u": [
+            "usable"
+          ],
+          "tags": [
+            "accessibility",
+            "rgaa",
+            "html",
+            "3u"
+          ]
+        }
+      ]
+    },
+    "contenus": {
+      "name": "5. Content",
+      "description": "RGESN family 5: images, video, documents. Most of the transferred weight.",
+      "rules": [
+        {
+          "id": "ECO-CONT-01",
+          "title": "Optimise images",
+          "description": "Images often account for 50 to 80 percent of a page's weight.",
+          "impact": "High",
+          "patterns": [
+            "\\.png",
+            "\\.jpe?g"
+          ],
+          "exclude_patterns": [
+            "\\.webp",
+            "\\.avif",
+            "srcset",
+            "loading[[:space:]]*=[[:space:]]*[\"']lazy",
+            "type[[:space:]]*=[[:space:]]*[\"']image/(webp|avif)",
+            "og:image",
+            "twitter:image",
+            "rel[[:space:]]*=[[:space:]]*[\"']icon",
+            "apple-touch-icon",
+            "rel[[:space:]]*=[[:space:]]*[\"']manifest",
+            "\"logo\"[[:space:]]*:",
+            "\"image\"[[:space:]]*:"
+          ],
+          "enrich": "image",
+          "enrich_note": "A pattern cannot tell whether an image is already compressed or correctly sized. scripts/inspect-image.sh resolves the real file when it can (not a remote URL) and adds its actual weight and dimensions to the report, asserting nothing when the file cannot be resolved.",
+          "recommendation": "Convert to WebP/AVIF, serve suitable sizes through srcset, and compress as a matter of course.",
+          "example": {
+            "bad": "<img src=\"photo.jpg\" width=\"1600\">",
+            "good": "<img src=\"photo.webp\" width=\"400\" height=\"300\" alt=\"…\" srcset=\"photo.webp 400w, photo@2x.webp 800w\">"
+          },
+          "rgesn_ref": "5.x",
+          "gr491_famille": "Contenus",
+          "tags": [
+            "images",
+            "webp",
+            "compression"
+          ]
+        },
+        {
+          "id": "ECO-CONT-02",
+          "title": "Size video and audio to the need",
+          "description": "Video is the heaviest thing most services transfer. Serving one high-resolution file to every visitor, whatever their screen and their connection, moves megabytes nobody asked for, and a phone on a slow network spends minutes and battery decoding them.",
+          "impact": "High",
+          "patterns": [
+            "<video",
+            "<audio",
+            "preload=[\"']auto[\"']",
+            "\\.(mp4|mov|avi|mkv|webm)[\"')[:space:]]"
+          ],
+          "exclude_patterns": [
+            "preload=[\"']none[\"']",
+            "preload=[\"']metadata[\"']"
+          ],
+          "recommendation": "Set preload=\"none\" with a poster image, offer several resolutions (adaptive streaming once the volume justifies it), default to the lowest quality that serves the purpose, and encode in a modern codec. Ask first whether text or an image carries the same information.",
+          "example": {
+            "bad": "<video src=\"demo.mp4\"></video>",
+            "good": "<video src=\"demo.mp4\" preload=\"none\" poster=\"demo.webp\" controls></video>"
+          },
+          "note": "A referenced media file is a candidate, not a defect: the pattern cannot see its resolution, its bitrate, or whether the page already offers alternatives. It marks where those questions are worth asking.",
+          "rgesn_ref": "5.x",
+          "gr491_famille": "Contenus",
+          "three_u": [
+            "useful"
+          ],
+          "tags": [
+            "video",
+            "audio",
+            "streaming",
+            "weight"
+          ]
+        },
+        {
+          "id": "ECO-CONT-03",
+          "title": "Icons as SVG rather than bitmaps",
+          "description": "An inline SVG of a few hundred bytes replaces a PNG of several kilobytes, and stays sharp at every size.",
+          "impact": "Low",
+          "patterns": [
+            "icon.*\\.png"
+          ],
+          "recommendation": "Use inline SVG or an SVG sprite; avoid a full icon font for three pictograms.",
+          "rgesn_ref": "5.x",
+          "gr491_famille": "Contenus",
+          "tags": [
+            "icons",
+            "svg",
+            "weight"
+          ]
+        }
+      ]
+    },
+    "frontend": {
+      "name": "6. Frontend",
+      "description": "RGESN family 6: the code that runs on the user's device.",
+      "rules": [
+        {
+          "id": "ECO-FRONT-01",
+          "title": "No heavy library for a minor need",
+          "description": "Importing lodash for three functions, or moment to format a date, makes every visitor pay hundreds of kilobytes.",
+          "impact": "High",
+          "patterns": [
+            "\\blodash\\b",
+            "from ['\"]moment['\"]",
+            "require\\(['\"]moment['\"]\\)",
+            "\\bjquery\\b"
+          ],
+          "recommendation": "Prefer the language's native functions or lighter alternatives (date-fns, Alpine.js).",
+          "example": {
+            "bad": "import _ from 'lodash'; _.uniq(xs)",
+            "good": "[...new Set(xs)]"
+          },
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "javascript",
+            "bundle",
+            "weight"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-02",
+          "title": "Load on demand (lazy loading)",
+          "description": "Loading images, components and routes the user may never see wastes bandwidth and energy up front.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Use loading=\"lazy\" on images and iframes, and code splitting (dynamic import) for routes and components.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "loading",
+            "performance",
+            "on-demand"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-03",
+          "title": "Minify and compress assets",
+          "description": "Unminified JS and CSS ship comments and whitespace to every visitor.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Enable minification in the build (esbuild, Terser, CSSNano): it is free and it applies every time.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "build",
+            "minification",
+            "weight"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-04",
+          "title": "Limit and prune dependencies",
+          "description": "Every dependency adds bundle weight, attack surface and maintenance work.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Audit regularly (npm prune, depcheck, bundle analyzer) and remove unused dependencies.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "dependencies",
+            "minimalism",
+            "maintenance"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-05",
+          "title": "No dead code",
+          "description": "Unreachable code, after an unconditional return or throw, is still downloaded and parsed by every visitor for no benefit at all.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "dead_code",
+          "detector_note": "A line-by-line grep cannot follow blocks: scripts/detect-dead-code.awk tracks brace depth so it only flags code unreachable within the SAME block as a return/throw/break/continue, ignoring case/default boundaries and blocks that close the watched block on the same line (\"} catch {\", \"} else {\").",
+          "recommendation": "Remove the dead code you find; if it is a temporary debugging early return, take it out before shipping.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "dead-code",
+            "javascript",
+            "maintenance"
+          ],
+          "extensions": [
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "go",
+            "rs",
+            "swift",
+            "kt",
+            "scala",
+            "c",
+            "h",
+            "cpp",
+            "cc",
+            "cxx",
+            "hpp",
+            "hh"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-06",
+          "title": "Avoid implicit global variables",
+          "description": "A variable declared, or assigned without a keyword, at the top level of a classic script stays alive for the whole page lifetime and is visible to every other script: held in memory longer than needed, with a risk of collision.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "implicit_globals",
+          "detector_note": "scripts/detect-implicit-globals.awk flags any var/let/const declaration or bare assignment at the root level (brace depth 0) of a file; nothing inside a function or an IIFE. Known limit: a <script type=\"module\"> does not have that top-level global scoping, but the detector only receives the script's content, not its type attribute. A hit stays a candidate to check, not proof (a global imposed by a third-party script such as Matomo is a legitimate candidate, not a mistake).",
+          "recommendation": "Wrap the code in an IIFE or a module, or scope the variable to the function that uses it. When the global is required (a third-party script), assign it explicitly as a property of an existing global object rather than as a bare variable.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "javascript",
+            "scope",
+            "maintenance"
+          ],
+          "extensions": [
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "vue",
+            "svelte",
+            "html",
+            "htm"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-07",
+          "title": "No synchronous XHR request",
+          "description": "A synchronous XMLHttpRequest (third argument of .open() set to false) freezes the main thread until the network responds: nothing else runs, page rendering included.",
+          "impact": "High",
+          "patterns": [
+            "\\.open\\([^,]+,[^,]+,[[:space:]]*false[[:space:]]*\\)"
+          ],
+          "recommendation": "Use fetch() or an asynchronous XHR (true, the default). There is no legitimate frontend use case for it today.",
+          "example": {
+            "bad": "xhr.open('GET', url, false)",
+            "good": "const res = await fetch(url)"
+          },
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "source_note": "Threshold and existence of the rule taken from YellowLabTools (policies.js: synchronousXHR, where any occurrence from the first one is rated \"bad\"). Also overlaps the WSG (Web Development > \"Use sustainable JavaScript and APIs\").",
+          "tags": [
+            "javascript",
+            "network",
+            "blocking"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-08",
+          "title": "Keep the DOM neither too large nor too deep",
+          "description": "A DOM with many elements, or deeply nested, slows down rendering, CSS matching and every later JavaScript manipulation.",
+          "impact": "Medium",
+          "patterns": [],
+          "detector": "dom_size",
+          "detector_note": "scripts/detect-dom-size.awk counts elements and nesting depth (a line-by-line heuristic, with no real HTML parser; void elements such as img and br do not count towards depth). Thresholds taken from YellowLabTools (policies.js, isBadThreshold): more than 3000 elements or more than 25 levels.",
+          "recommendation": "Simplify the HTML structure, paginate long lists, and flatten needless container nesting (divitis).",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "dom",
+            "html",
+            "complexity"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-09",
+          "title": "No duplicate HTML IDs",
+          "description": "An id must be unique in the whole document. A duplicate breaks getElementById and querySelector, which return only the first match, pushing developers towards JavaScript workarounds more costly than needed.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "duplicate_ids",
+          "detector_note": "scripts/detect-duplicate-ids.awk extracts each id=\"...\" line by line and flags any id seen more than once. The rule and the problem are documented by YellowLabTools (policies.js: DOMidDuplicated).",
+          "recommendation": "Rename the duplicates; use a class when several elements must share the same style or behaviour.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "dom",
+            "html",
+            "accessibility"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-10",
+          "title": "No excessive use of !important",
+          "description": "Each extra !important forces the next ones to add even more to win the CSS cascade, inflating the file with no useful end: a symptom of specificity out of control.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "css_importants",
+          "detector_note": "scripts/detect-css-importants.awk counts occurrences of !important in the file. Threshold taken from YellowLabTools (policies.js, isBadThreshold): 200.",
+          "recommendation": "Lower selector specificity rather than forcing it with !important; keep its use for exceptional, documented cases such as overriding a third-party library.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "tags": [
+            "css",
+            "specificity",
+            "maintenance"
+          ],
+          "extensions": [
+            "css",
+            "scss",
+            "sass",
+            "vue",
+            "svelte",
+            "html",
+            "htm"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-11",
+          "title": "No duplicate CSS selectors or properties",
+          "description": "A selector redefined several times, or a property repeated within one block where the last one wins, is CSS weight downloaded and parsed for nothing.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "css_duplicates",
+          "detector_note": "scripts/detect-css-duplicates.awk counts redefined selectors (it works on both expanded and single-line CSS) and properties repeated within one block (expanded style only, a known limit). Thresholds taken from YellowLabTools (policies.js, isBadThreshold): 100 for each.",
+          "recommendation": "Merge identical selectors and remove redundant properties within a single block.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "source_note": "Overlaps the WSG (Web Development > \"Minify and remove unused code\" > \"Remove redundancy\").",
+          "tags": [
+            "css",
+            "dead-code",
+            "maintenance"
+          ],
+          "extensions": [
+            "css",
+            "scss",
+            "sass"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-12",
+          "title": "No legacy CSS hacks for obsolete browsers",
+          "description": "Hacks targeting old Internet Explorer versions (star html, the \\9 escape) add CSS weight for browsers that now account for a minute share of traffic, when they account for any at all.",
+          "impact": "Low",
+          "patterns": [
+            "\\*[[:space:]]+html\\b",
+            "\\\\9[[:space:]]*;"
+          ],
+          "recommendation": "Check your actual audience statistics before keeping these hacks; remove them when IE6/7/8 support is no longer a justified need.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "source_note": "Existence of the rule documented by YellowLabTools (policies.js: cssOldIEFixes).",
+          "tags": [
+            "css",
+            "legacy",
+            "compatibility"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-13",
+          "title": "Defer the loading of non-critical scripts",
+          "description": "A <script src=\"...\"> with neither async nor defer blocks HTML parsing while the script downloads and runs, delaying everything that follows in the document.",
+          "impact": "Medium",
+          "patterns": [],
+          "detector": "blocking_scripts",
+          "detector_note": "scripts/detect-blocking-scripts.awk recognises a <script ...> tag written on a single line, which is almost always the case; a tag spread over several lines is not followed. Scripts with type=\"module\" are excluded, since the HTML specification defers them by default.",
+          "recommendation": "Add async (a script independent of the DOM and of execution order) or defer (a script that must run after parsing, in order), whichever fits.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "source_note": "WSG (W3C Web Sustainability Guidelines) — Web Development > \"Defer the loading of non-critical resources\" > \"Asynchronous code\".",
+          "tags": [
+            "javascript",
+            "loading",
+            "performance"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte"
+          ]
+        },
+        {
+          "id": "ECO-FRONT-14",
+          "title": "Do not defer what the user is waiting for",
+          "description": "Lazy loading everything moves the cost rather than removing it. The hero image the page is judged on arrives after a second round trip, the user stares at a blank block, and the browser ends up doing the same work later and more expensively.",
+          "impact": "Medium",
+          "patterns": [
+            "loading=[\"']lazy[\"']"
+          ],
+          "exclude_file_patterns": [
+            "fetchpriority",
+            "loading=[\"']eager[\"']",
+            "rel=[\"']preload[\"']"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte",
+            "jsx",
+            "tsx"
+          ],
+          "recommendation": "Load the above-the-fold image eagerly and mark it fetchpriority=\"high\". Defer what is below the fold and what an interaction will reveal. Confirm the split against a trace on a slow connection, not against intuition.",
+          "note": "A page that lazy-loads images and never marks one as high priority is the candidate: something has to render first, and nothing here says what. A page that already sets fetchpriority or loads one image eagerly has made the choice, so the rule stays silent.",
+          "rgesn_ref": "6.x",
+          "gr491_famille": "Front-end",
+          "three_u": [
+            "usable"
+          ],
+          "source_note": "Adapted from the Green Codex rule NET-EFF-004 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "lazy-loading",
+            "lcp",
+            "performance"
+          ]
+        }
+      ]
+    },
+    "backend": {
+      "name": "7. Backend",
+      "description": "RGESN family 7: the server code. Queries, processing, data.",
+      "rules": [
+        {
+          "id": "ECO-BACK-01",
+          "title": "Optimise SQL queries",
+          "description": "SELECT *, functions inside WHERE clauses and random ordering make the database work far beyond the need.",
+          "impact": "High",
+          "patterns": [
+            "SELECT[[:space:]]+\\*",
+            "WHERE[[:space:]]+1[[:space:]]*=[[:space:]]*1",
+            "ORDER BY.*RAND(OM)?\\(\\)"
+          ],
+          "recommendation": "Select only the columns you need, index the filtered columns, and avoid functions in WHERE clauses and N+1 queries.",
+          "example": {
+            "bad": "SELECT * FROM users WHERE UPPER(email) = 'A@B.C'",
+            "good": "SELECT id, email FROM users WHERE email = 'a@b.c'   -- index utilisable"
+          },
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Back-end",
+          "detector_note": "The patterns work line by line: a SELECT * spread over several lines (SELECT\\n  *\\nFROM ...) is not detected, only the single-line form is.",
+          "tags": [
+            "sql",
+            "performance",
+            "database"
+          ]
+        },
+        {
+          "id": "ECO-BACK-02",
+          "title": "Use connection pools",
+          "description": "Opening a database connection for every query is costly in CPU and latency, on the application side as much as on the server.",
+          "impact": "High",
+          "patterns": [
+            "new[[:space:]]+[A-Za-z_$][\\w$]*Connection[[:space:]]*\\(",
+            "\\bcreateConnection[[:space:]]*\\(",
+            "\\bpsycopg2\\.connect\\b",
+            "\\bDriverManager\\.getConnection\\b",
+            "\\bmysqli_connect[[:space:]]*\\("
+          ],
+          "recommendation": "Configure a connection pool (pg-pool, HikariCP, mysql2/promise).",
+          "example": {
+            "bad": "conn = psycopg2.connect(DSN)   # à chaque requête",
+            "good": "pool = ConnectionPool(DSN, max_size=10)   # une fois au démarrage"
+          },
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "database",
+            "connections",
+            "pool"
+          ]
+        },
+        {
+          "id": "ECO-BACK-03",
+          "title": "Keep algorithmic complexity under control",
+          "description": "Two nested loops over n elements means n squared iterations: what works on 100 elements collapses on 100,000.",
+          "impact": "High",
+          "patterns": [],
+          "detector": "nested_loops",
+          "detector_note": "Nesting spreads over several lines, so line-by-line grep cannot see it. scripts/detect-nested-loops.awk tracks brace depth and flags candidate inner loops, to be confirmed in context: nesting is not always avoidable O(n squared).",
+          "recommendation": "Use suitable structures (hash maps, sets) to bring the complexity back to O(n).",
+          "example": {
+            "bad": "for a in xs:\n    for b in ys:\n        if a.id == b.id: ...",
+            "good": "index = {b.id: b for b in ys}\nfor a in xs:\n    b = index.get(a.id)"
+          },
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "algorithms",
+            "complexity",
+            "cpu"
+          ],
+          "extensions": [
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "py",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "go",
+            "rs",
+            "kt",
+            "swift",
+            "scala",
+            "c",
+            "h",
+            "cpp",
+            "cc",
+            "cxx",
+            "hpp",
+            "hh"
+          ]
+        },
+        {
+          "id": "ECO-BACK-04",
+          "title": "Paginate and cache heavy results",
+          "description": "Returning 10,000 rows when the screen shows 20, or recomputing a stable result on every call, wastes both server and network.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Paginate lists on the API side, cache results that are costly and stable, and avoid long synchronous processing.",
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "pagination",
+            "cache",
+            "api"
+          ]
+        },
+        {
+          "id": "ECO-BACK-05",
+          "title": "Bound every loop, queue, retry and pool",
+          "description": "An unbounded retry loop keeps a process, a connection and often a remote service busy for as long as the failure lasts, which on a real outage means hours. The same holds for a queue with no ceiling and a pool with no limit: they absorb the problem until memory runs out, then hand you a restart instead of a degraded service.",
+          "impact": "High",
+          "patterns": [
+            "while[[:space:]]*\\([[:space:]]*(true|1)[[:space:]]*\\)",
+            "while[[:space:]]+True[[:space:]]*:",
+            "for[[:space:]]*\\([[:space:]]*;[[:space:]]*;[[:space:]]*\\)"
+          ],
+          "exclude_file_patterns": [
+            "break",
+            "return",
+            "raise",
+            "throw"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp"
+          ],
+          "recommendation": "Give every loop, retry policy, queue, cache and worker pool a documented upper bound or an explicit termination condition. Test the bound with a worst-case input rather than assuming it holds.",
+          "example": {
+            "bad": "while True:\n    r = call()",
+            "good": "for attempt in range(5):\n    r = call()\n    if r.ok: break\n    time.sleep(2 ** attempt)"
+          },
+          "note": "An infinite loop is legitimate in an event loop or a daemon, which is why a file containing a break, a return or a throw stays silent. The pattern marks the place to check that something can end the loop, not a defect on its own.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule CODE-EFF-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "loops",
+            "retries",
+            "queues",
+            "bounds"
+          ]
+        },
+        {
+          "id": "ECO-BACK-06",
+          "title": "Timeout and retry cap on every remote call",
+          "description": "A call with no deadline holds a thread, a connection and the memory they reference for as long as the other end stays silent. Under load those accumulate faster than they clear, and the machine spends its energy waiting rather than working.",
+          "impact": "High",
+          "patterns": [
+            "requests\\.(get|post|put|delete|patch)\\(",
+            "urlopen\\(",
+            "axios\\.(get|post|put|delete)\\(",
+            "fetch\\(",
+            "HttpClient\\(",
+            "URLSession\\.shared\\.data"
+          ],
+          "exclude_file_patterns": [
+            "timeout",
+            "AbortController",
+            "signal:",
+            "deadline",
+            "WithTimeout"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp"
+          ],
+          "recommendation": "Set a timeout on every outbound call, cap the number of retries, and back off between them. Verify with a mocked counter that the cap actually holds.",
+          "example": {
+            "bad": "requests.get(url)",
+            "good": "session.get(url, timeout=5)"
+          },
+          "note": "The rule goes quiet as soon as the file mentions a timeout, a signal or a deadline anywhere. Where a file makes several calls, check that each one carries its own.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule CODE-EFF-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "network",
+            "timeout",
+            "retries"
+          ]
+        },
+        {
+          "id": "ECO-BACK-07",
+          "title": "Release resources on the error paths too",
+          "description": "A file, socket, cursor or connection released only on the happy path leaks every time something goes wrong, which is exactly when the system is already under strain. The leak then outlives the incident and forces the restart that the error handling was meant to avoid.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Close what you open in a construct that runs on every exit: with, try-with-resources, defer, using, RAII, or a finally block. Prove it with a repeated-run or leak test rather than by reading the happy path.",
+          "note": "No pattern here: whether a resource is released on every path cannot be read line by line, and the language files carry the forms that can (defer in Go, with in Python, try-with-resources in Java). This one is a review question.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule CODE-EFF-005 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "resources",
+            "leaks",
+            "error-handling"
+          ]
+        },
+        {
+          "id": "ECO-BACK-08",
+          "title": "Sober production logging",
+          "description": "A debug statement left in production runs on every request, formats a string nobody reads, and writes it to a disk someone backs up. Multiplied by traffic, it becomes CPU, storage and retention cost for information that had value for one afternoon.",
+          "impact": "Medium",
+          "patterns": [
+            "console\\.log\\(",
+            "System\\.out\\.print",
+            "printStackTrace\\(",
+            "var_dump\\(",
+            "print_r\\(",
+            "fmt\\.Println\\("
+          ],
+          "exclude_file_patterns": [
+            "logger",
+            "logging",
+            "log\\.(debug|info|warn|error)",
+            "slog\\."
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp"
+          ],
+          "recommendation": "Log through the project's logger with a level, not through a print. Keep production levels sober, sample what is high-volume, and leave high-cardinality payloads out.",
+          "note": "These are the markers of a statement left behind rather than a deliberate log. A file that also uses a real logger stays silent, since the two often coexist while a migration finishes.",
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule CODE-EFF-010 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "logging",
+            "production",
+            "storage"
+          ]
+        },
+        {
+          "id": "ECO-BACK-09",
+          "title": "Default and maximum page size",
+          "description": "A collection endpoint with no ceiling lets one caller ask for everything. The database reads it, the server serialises it, the network carries it, and the client shows twenty rows of it. The cost is paid in full by everyone except the person who chose the number.",
+          "impact": "High",
+          "patterns": [
+            "limit[[:space:]]*[=:][[:space:]]*[0-9]{4,}",
+            "page_?size[[:space:]]*[=:][[:space:]]*[0-9]{4,}",
+            "LIMIT[[:space:]]+[0-9]{4,}",
+            "\\.take\\([0-9]{4,}\\)"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp",
+            "sql",
+            "yml",
+            "yaml"
+          ],
+          "recommendation": "Give every collection endpoint a default page size and a maximum it will not exceed, use cursor or keyset pagination, and return only the fields the caller needs. Test the maximum.",
+          "example": {
+            "bad": "items = db.query(Item).all()",
+            "good": "items = db.query(Item).filter(Item.id > cursor).limit(min(page_size, 200)).all()"
+          },
+          "note": "The patterns catch a page size in the thousands, which is the visible end of the problem. An endpoint with no limit at all cannot be seen line by line and stays a review question.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule API-EFF-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "api",
+            "pagination",
+            "bounds"
+          ]
+        },
+        {
+          "id": "ECO-BACK-10",
+          "title": "Parameterised queries, reused plans",
+          "description": "A query assembled by concatenating strings forces the database to parse and plan it again on every call, since no two are identical. It is also the classic injection hole, so the sober version and the safe version are the same code.",
+          "impact": "High",
+          "patterns": [
+            "(SELECT|INSERT|UPDATE|DELETE)[^\"']*[\"'][[:space:]]*(\\+|\\.[[:space:]]*[a-zA-Z$])",
+            "f[\"'](SELECT|INSERT|UPDATE|DELETE)",
+            "\\$\\{[a-zA-Z_]+\\}[^\"']*(FROM|WHERE|VALUES)"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp",
+            "sql"
+          ],
+          "recommendation": "Bind the values as parameters instead of interpolating them, and let the driver reuse the prepared plan. Verify both the injection resistance and the query count in an integration test.",
+          "example": {
+            "bad": "cur.execute(\"SELECT id FROM t WHERE u = \" + uid)",
+            "good": "cur.execute(\"SELECT id FROM t WHERE u = %s\", (uid,))"
+          },
+          "note": "String concatenation or interpolation next to a SQL keyword is the signal. A bound parameter written %s or ? inside execute() is the correct form and is not flagged. A query assembled from a constant fragment can still match, so read the line before acting.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule DB-EFF-010 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "sql",
+            "security",
+            "prepared-statements"
+          ]
+        },
+        {
+          "id": "ECO-BACK-11",
+          "title": "Bound scans, indexes and item growth in NoSQL",
+          "description": "A document store makes it easy to scan a whole collection without noticing, because nothing fails: the query returns, slowly, and the cost lands on the bill rather than in an error. Secondary indexes then multiply every write, and items grow until a hot partition serialises the traffic that was meant to be spread.",
+          "impact": "High",
+          "patterns": [
+            "\\.scan\\(",
+            "ScanCommand",
+            "\\.find\\([[:space:]]*\\{[[:space:]]*\\}[[:space:]]*\\)"
+          ],
+          "exclude_file_patterns": [
+            "Limit:",
+            "\\.limit\\(",
+            "ExclusiveStartKey",
+            "TTL",
+            "ttl"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt"
+          ],
+          "recommendation": "Model the access patterns before choosing partition keys and indexes. Bound scans and fan-out reads, set a TTL on what expires, and archive or delete rather than relying on an unbounded table. Test hot partitions and item growth with realistic volumes.",
+          "example": {
+            "bad": "table.scan()",
+            "good": "table.query(KeyConditionExpression=Key('pk').eq(pk), Limit=100)"
+          },
+          "note": "A scan or an empty-filter find is the signal. Both are legitimate in a one-off migration script, so what matters is whether this one sits on a request path.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "source_note": "Adapted from the Green Codex rule ARCH-NOSQL-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "nosql",
+            "partitions",
+            "scans",
+            "ttl"
+          ]
+        },
+        {
+          "id": "ECO-BACK-12",
+          "title": "Make pipelines incremental and restartable",
+          "description": "A pipeline that recomputes everything on every run redoes yesterday's work to produce yesterday's answer. When it fails at the last stage it starts again from the first, and a format conversion inserted between two stages doubles the data movement for no change in meaning.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Process only what changed, checkpoint between stages so a failure resumes rather than restarts, and drop conversions that produce the same information in another shape. Define retention, partitioning and freshness budgets, and watch resources per unit of useful output.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule ARCH-DATA-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "pipelines",
+            "incremental",
+            "data"
+          ]
+        },
+        {
+          "id": "ECO-BACK-13",
+          "title": "Do not store the same derived data twice",
+          "description": "The same value cached in Redis, denormalised into a table and written to a search index is stored three times, backed up three times, and can disagree with itself in two of them. The copies then need reconciliation, which is more computation to fix a problem the copies created.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Keep one source of truth per fact. Where a derived copy genuinely pays for itself, measure that trade-off, document the refresh strategy, and say which copy loses in a disagreement.",
+          "rgesn_ref": "7.x",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule DB-EFF-007 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "storage",
+            "duplication",
+            "consistency"
+          ]
+        }
+      ]
+    },
+    "hebergement": {
+      "name": "8. Hosting",
+      "description": "RGESN family 8: the same code can consume very differently depending on where and how it is served.",
+      "rules": [
+        {
+          "id": "ECO-HEB-01",
+          "title": "Choose sober hosting",
+          "description": "Data centre electricity is a major share of a service's usage footprint.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Favour hosts that are transparent about their PUE and energy mix (ISO 50001/14001 certification, the Green Web Foundation directory), with data centres close to your audience.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "hosting",
+            "energy",
+            "datacentre"
+          ]
+        },
+        {
+          "id": "ECO-HEB-02",
+          "title": "Enable HTTP compression",
+          "description": "GZIP and Brotli commonly divide the weight of text responses (HTML, CSS, JS, JSON) by three to five.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Enable Brotli, or GZIP failing that, on the web server or the reverse proxy.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "server",
+            "compression",
+            "network"
+          ]
+        },
+        {
+          "id": "ECO-HEB-03",
+          "title": "Configure HTTP caching",
+          "description": "A resource served from the browser cache costs neither network nor server.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Set Cache-Control with long durations for versioned assets, plus ETag/Last-Modified for the rest.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "cache",
+            "http",
+            "performance"
+          ]
+        },
+        {
+          "id": "ECO-HEB-04",
+          "title": "Use HTTPS rather than HTTP",
+          "description": "A cleartext request gets neither the compression nor the multiplexing of HTTP/2, which every browser requires TLS for in practice, and it is exposed to interception that can force a re-download.",
+          "impact": "Medium",
+          "patterns": [],
+          "detector": "insecure_links",
+          "detector_note": "scripts/detect-insecure-links.awk excludes what is not a real network request: XML/SVG namespaces (http://www.w3.org/, http://schema.org/) and localhost/127.0.0.1 (local development).",
+          "recommendation": "Use https:// everywhere, including for third-party resources and outbound links.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "https",
+            "tls",
+            "security"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte",
+            "css",
+            "scss",
+            "sass",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "md"
+          ]
+        },
+        {
+          "id": "ECO-HEB-05",
+          "title": "No obsolete TLS/SSL protocol",
+          "description": "SSLv2/v3 and TLS 1.0/1.1 are deprecated for known vulnerabilities and are less efficient than TLS 1.2 and above, which brings faster ciphers and better connection performance.",
+          "impact": "Medium",
+          "patterns": [
+            "TLSv1\\.0",
+            "TLSv1\\.1",
+            "TLSv1_method",
+            "TLSv1_1_method",
+            "SSLv2_method",
+            "SSLv3_method",
+            "SSLv23_method",
+            "TLSv1([^.0-9]|$)"
+          ],
+          "recommendation": "Configure a minimum of TLS 1.2, ideally 1.3, on the server or in outbound connection options.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "source_note": "Overlaps YellowLabTools (policies.js: oldTlsProtocol, not reused as such because YLT measures it at runtime; here it is detected statically on the protocols explicitly configured in the code).",
+          "tags": [
+            "tls",
+            "ssl",
+            "security"
+          ]
+        },
+        {
+          "id": "ECO-HEB-06",
+          "title": "No broken local links or resources",
+          "description": "An href or src pointing at a project file that does not exist becomes a 404 the moment you go live: a network round trip and a degraded render for nothing.",
+          "impact": "Low",
+          "patterns": [],
+          "detector": "broken_links",
+          "detector_note": "scripts/detect-broken-links.awk only checks local and relative paths resolvable on disk. External URLs (http/https) are not checked: a genuinely dead external link can only be found by requesting it, which is out of reach for a static audit with no network (as with YellowLabTools' notFound, measured at runtime).",
+          "recommendation": "Fix the path, or remove the reference when the file is gone.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "links",
+            "404",
+            "maintenance"
+          ],
+          "extensions": [
+            "html",
+            "htm",
+            "vue",
+            "svelte",
+            "css",
+            "scss",
+            "sass"
+          ]
+        },
+        {
+          "id": "ECO-HEB-07",
+          "title": "Container images sized to what runs",
+          "description": "A container image is pulled on every deployment, on every node, by every developer. Shipping a full distribution and a build toolchain to run one compiled binary multiplies the bytes stored in the registry, transferred on each rollout, and scanned by every security tool that touches it.",
+          "impact": "Medium",
+          "patterns": [
+            "^FROM[[:space:]]+[^[:space:]]+:latest",
+            "^FROM[[:space:]]+(ubuntu|debian|centos|fedora)[[:space:]]*$",
+            "^RUN[[:space:]]+apt-get[[:space:]]+install"
+          ],
+          "exclude_patterns": [
+            "as builder",
+            "rm -rf /var/lib/apt"
+          ],
+          "exclude_file_patterns": [
+            "alpine",
+            "distroless",
+            "-slim"
+          ],
+          "extensions": [
+            "dockerfile"
+          ],
+          "recommendation": "Pin the base image to a version rather than latest, start from a slim or distroless base where the runtime allows, use a multi-stage build so the toolchain never reaches the final image, and clean the package cache in the same layer that fills it.",
+          "note": "A full base image is a legitimate choice for a build stage, so a Dockerfile that names a builder stage, or that already uses a slim or distroless base, stays silent. The patterns target the final image, where the weight is paid on every pull.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "three_u": [
+            "used"
+          ],
+          "tags": [
+            "containers",
+            "docker",
+            "images",
+            "deployment"
+          ]
+        },
+        {
+          "id": "ECO-HEB-08",
+          "title": "Shift deferrable work to low-carbon hours",
+          "description": "The same computation does not emit the same amount at every hour. A nightly batch, a re-encoding job, a model training run or a backup can usually wait for the grid to be cleaner, and waiting costs nothing when nobody is watching the clock.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Identify the jobs with a deadline loose enough to move, and schedule them against grid carbon intensity where the data exists for your region. Record the schedule and a safe fallback, and never delay interactive or safety-critical work.",
+          "note": "No pattern: whether a job can wait is a property of the business deadline, not of the code. This is a question to raise when a scheduled job appears, and the answer belongs in the job's documentation.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule INFRA-EFF-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "carbon-aware",
+            "scheduling",
+            "batch"
+          ]
+        },
+        {
+          "id": "ECO-HEB-09",
+          "title": "Choose the region on evidence, cite the source",
+          "description": "Two regions of the same provider can differ by a factor of several in carbon intensity for identical compute. The choice is usually made once, on latency or price, and then never revisited even as the grids change.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Weigh carbon intensity alongside latency, data residency, availability and cost when placing a workload, and cite a current provider or grid source for any renewable claim. Never assume a region runs on clean power because its marketing says so.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule INFRA-EFF-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "region",
+            "carbon",
+            "hosting"
+          ]
+        },
+        {
+          "id": "ECO-HEB-10",
+          "title": "Watch what grows before it grows",
+          "description": "Storage never fails loudly. A table, an object bucket or a backup set grows a little every day, the backups grow with it, the restore window stretches, and nobody notices until the disk is full or the bill arrives.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Monitor table, object and backup growth, set an alert threshold, and decide the archival policy before introducing a high-volume data source rather than after.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule DB-EFF-006 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "storage",
+            "monitoring",
+            "growth"
+          ]
+        },
+        {
+          "id": "ECO-HEB-11",
+          "title": "Compress what is large and repetitive at rest",
+          "description": "Repetitive payloads stored raw cost storage, backup capacity and network on every read, and the CPU that would have compressed them is usually cheaper than all three. The reverse is also true, which is why this is a measurement and not a rule of thumb.",
+          "impact": "Medium",
+          "patterns": [
+            "\\.(json|csv|xml|log)[\"'][[:space:]]*\\)",
+            "putObject\\(",
+            "upload_file\\("
+          ],
+          "exclude_file_patterns": [
+            "gzip",
+            "zstd",
+            "brotli",
+            "snappy",
+            "ContentEncoding",
+            "compress"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt"
+          ],
+          "recommendation": "Compress large or repetitive payloads once you have benchmarked the codec against your own data, weighing CPU and latency against storage and network. Do not assume one codec always wins.",
+          "note": "Writing a text payload with no compression mentioned anywhere in the file is the candidate. On a small file compression costs more than it saves, so the size is what settles it.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "source_note": "Adapted from the Green Codex rule DB-EFF-008 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "compression",
+            "storage",
+            "network"
+          ]
+        },
+        {
+          "id": "ECO-HEB-12",
+          "title": "Set retention on logs and traces by data class",
+          "description": "Observability is written once and stored forever by default. Traces at full sampling, debug logs kept for a year, and metrics at one-second resolution cost more storage than the service they observe, for questions nobody asks after the first week.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Set retention per data class and purpose, delete or archive on schedule, and sample traces rather than keeping all of them. Alert on growth and on a deviation from your own baseline, not on a percentage borrowed from someone else's system.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "three_u": [
+            "used"
+          ],
+          "source_note": "Adapted from the Green Codex rule OPS-EFF-001 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "observability",
+            "logs",
+            "retention"
+          ]
+        }
+      ]
+    },
+    "algorithmie": {
+      "name": "9. Algorithms (including AI)",
+      "description": "RGESN family 9, new in 2024: sobriety of algorithmic processing and generative AI. This is the family at the heart of Green Claude.",
+      "rules": [
+        {
+          "id": "ECO-ALGO-01",
+          "title": "Justify the use of generative AI",
+          "description": "Inference on a large model consumes orders of magnitude more than conventional processing. A regex, a sort or a business rule is often enough.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Before every AI integration, ask whether the need is real and whether conventional deterministic processing could cover it. Document that decision.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "ai",
+            "justification",
+            "sobriety"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-02",
+          "title": "Size the model to the need",
+          "description": "Using the largest available model for a simple task is the most common waste of computation in generative AI.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Pick the smallest model that does the job well for the task at hand, and adjust the reasoning effort level accordingly (for example /effort in Claude Code).",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "ai",
+            "models",
+            "proportionality"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-03",
+          "title": "Measure AI consumption",
+          "description": "Without tracking tokens and calls, you cannot know where the consumption goes, let alone reduce it.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Track tokens consumed, number of calls and cache hit rate per use case; set budgets and alerts.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "ai",
+            "measurement",
+            "tokens"
+          ],
+          "three_u": [
+            "used"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-04",
+          "title": "Test lighter alternatives",
+          "description": "Response caching, targeted RAG, a smaller specialised model, batching at off-peak hours: the first AI solution that comes to hand is rarely the lightest.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Regularly compare the solution in place against less demanding alternatives (cache, smaller model, deferred processing), and be transparent about which models you use.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Back-end",
+          "tags": [
+            "ai",
+            "alternatives",
+            "transparency"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-05",
+          "title": "Count the whole cost of a successful task",
+          "description": "A smaller model that needs three attempts, a retrieval step and a human correction can cost more than a larger one that gets it right first time. Counting tokens per call measures the part that is easy to measure, not the part that is paid.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Compare candidates on resources per successful task on a representative test set, retries, retrieval, tool calls and human rework included. Fewer parameters or fewer tokens alone prove nothing.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "useful"
+          ],
+          "source_note": "Adapted from the Green Codex rule AI-EFF-002 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "ai",
+            "models",
+            "measurement"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-06",
+          "title": "Trim the data before trimming the model",
+          "description": "Duplicated documents, stale records and context pasted in wholesale are processed on every call. Reducing them costs one pass and pays on every request afterwards, which is the opposite of the usual trade.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Deduplicate and prune the dataset, keep the context to what the task needs, and cache stable prompts and outputs where privacy allows. Re-run the quality and privacy checks after any reduction, since removing data can remove signal.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "useful"
+          ],
+          "source_note": "Adapted from the Green Codex rule AI-EFF-003 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "ai",
+            "context",
+            "datasets"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-07",
+          "title": "Enforce the AI budget at runtime",
+          "description": "A budget written in a design document does not stop a runaway loop at three in the morning. A call with no token ceiling will happily consume whatever the prompt hands it, and the bill arrives before the alert does.",
+          "impact": "High",
+          "patterns": [
+            "messages\\.create\\(",
+            "chat\\.completions\\.create\\(",
+            "generateContent\\(",
+            "\\.invoke\\(",
+            "openai\\.(Chat)?Completion"
+          ],
+          "exclude_file_patterns": [
+            "max_tokens",
+            "maxTokens",
+            "max_output_tokens",
+            "maxOutputTokens",
+            "budget"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "jsx",
+            "ts",
+            "tsx",
+            "mjs",
+            "cjs",
+            "java",
+            "cs",
+            "php",
+            "rb",
+            "rs",
+            "go",
+            "kt",
+            "swift",
+            "c",
+            "cpp",
+            "cc",
+            "h",
+            "hpp"
+          ],
+          "recommendation": "Set a token, time or cost ceiling per request or per job, enforce it in the code, and test what happens when it is exceeded. A refusal or a fallback is a behaviour to verify, not a hope.",
+          "example": {
+            "bad": "client.messages.create(model=M, messages=msgs)",
+            "good": "client.messages.create(model=M, messages=msgs, max_tokens=512)"
+          },
+          "note": "A model call with no token ceiling anywhere in the file is the candidate. A file that sets one somewhere stays silent, so where several calls coexist, check that each one is capped.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "useful"
+          ],
+          "source_note": "Adapted from the Green Codex rule AI-EFF-005 (Institut du Numerique Responsable), whose rule content is published under CC BY 4.0. Reworded for this format; the patterns are specific to this audit.",
+          "tags": [
+            "ai",
+            "budget",
+            "limits"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-08",
+          "title": "Challenge the request and the model behind it",
+          "description": "The most expensive decision in an AI feature is made before any code exists: someone asks for a model, and nobody asks whether the task needs one, or whether it needs that one. An assistant that complies silently makes the costly choice permanent, because a shipped model is far harder to remove than to refuse.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "When a request names a model, a model size or an AI approach, check three things before implementing. Does the task need a model at all, or would a rule, a lookup or a regex do it? Is this the smallest model that meets the quality bar, tested against a real sample rather than assumed? Is the requested approach the one that fits, or the one that came to mind first? Say what you would do differently in one or two sentences, give the reason, and then build what the user decides. A user who has heard the argument and still wants the large model is making a decision, not a mistake.",
+          "note": "No pattern: this is about the conversation that precedes the code. It is also the rule that most often conflicts with a direct instruction, so the order matters: raise it once, accept the answer, deliver.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "three_u": [
+            "useful"
+          ],
+          "tags": [
+            "ai",
+            "models",
+            "challenge",
+            "proportionality"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-09",
+          "title": "Link tokens to physical resources",
+          "description": "Tokens are a proxy for computation, but the real impact is in water, electricity, and hardware usage. Without this link, token counts remain abstract.",
+          "impact": "High",
+          "patterns": [],
+          "example": {
+            "bad": "import torch\nmodel = torch.nn.Transformer()",
+            "good": "import torch\n# Link: fewer tokens = less water/electricity consumption\nmodel = torch.nn.Transformer()"
+          },
+          "recommendation": "State the direction and refuse the ratio. Fewer tokens processed means less computation, and less computation means less energy and water. Exact ratios depend on model, hardware, batching, and datacenter location; measure your setup before claiming figures.",
+          "note": "No pattern: whether a team has connected its token counts to physical resources is a property of its documentation and its measurements, not of a line of code. This is a review question.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "tokens",
+            "energy",
+            "water",
+            "measurement"
+          ],
+          "three_u": [
+            "used"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-10",
+          "title": "Require real measurements for AI systems",
+          "description": "Without actual measurements, you cannot know where the consumption goes, let alone reduce it. Token counts alone are insufficient.",
+          "impact": "High",
+          "patterns": [],
+          "example": {
+            "bad": "import torch\n# No measurements",
+            "good": "import torch\n# See IA_MEASUREMENTS.md for token count, CPU/GPU time, electricity and water usage"
+          },
+          "recommendation": "For every AI implementation, measure and document: (1) tokens processed, (2) CPU/GPU time, (3) electricity consumption (via nvidia-smi, intel_gpu_top, or cloud tools), and (4) water usage if datacenter data is available. Store results in IA_MEASUREMENTS.md.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "measurement",
+            "electricity",
+            "water"
+          ],
+          "three_u": [
+            "used"
+          ],
+          "note": "No pattern: the presence of real measurements is established by reading the measurement report, not by grepping the source. ECO-ALGO-11 detects the absence of instrumentation, which is the part a pattern can see."
+        },
+        {
+          "id": "ECO-ALGO-11",
+          "title": "Measure the energy of an AI workload, do not estimate it",
+          "description": "A training or inference script that loads a framework and measures nothing tells you what it produced and never what it cost. Energy, and the water used to cool the machines that supplied it, are the part nobody sees on a dashboard and the part that grows fastest as the workload scales.",
+          "impact": "High",
+          "patterns": [
+            "import[[:space:]]+torch",
+            "import[[:space:]]+tensorflow",
+            "from[[:space:]]+transformers[[:space:]]+import",
+            "import[[:space:]]+keras"
+          ],
+          "example": {
+            "bad": "import torch\n# No budgets defined",
+            "good": "import torch\n# Budgets: < 10L water/day, < 1kWh/day using CodeCarbon"
+          },
+          "recommendation": "Instrument the run with a measurement library (CodeCarbon, Zeus, carbontracker, or pynvml directly), record the hardware, the duration and the region, and set a budget the job refuses to exceed. Estimate only what you cannot measure, and say which is which.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "budget",
+            "water",
+            "electricity"
+          ],
+          "exclude_file_patterns": [
+            "codecarbon",
+            "CodeCarbon",
+            "experiment_impact_tracker",
+            "eco2ai",
+            "carbontracker",
+            "pynvml",
+            "nvidia-smi",
+            "zeus",
+            "perun"
+          ],
+          "note": "The rule fires on a file that loads an ML framework and mentions no measurement tooling anywhere. A library module that neither trains nor infers is a false positive; the file that runs the job is the one that should carry the instrumentation."
+        },
+        {
+          "id": "ECO-ALGO-12",
+          "title": "Quantise a self-hosted model before buying more hardware",
+          "description": "A model served in full precision uses memory and bandwidth that quantisation often halves for a quality difference the task cannot detect. This applies to what you host yourself: a model served through an API is quantised, or not, by whoever runs it.",
+          "impact": "High",
+          "patterns": [
+            "from_pretrained[[:space:]]*\\(",
+            "AutoModelFor",
+            "\\.half[[:space:]]*\\(\\)",
+            "torch_dtype[[:space:]]*=[[:space:]]*torch\\.float32"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "ts",
+            "java",
+            "go",
+            "rs",
+            "rb"
+          ],
+          "recommendation": "Measure quality, latency and memory before and after quantisation on your own test set, then keep the smallest representation that clears the bar. INT8 is not automatically better; it is automatically worth measuring.",
+          "example": {
+            "bad": "model = 'mistral-7b-instruct-v0.1'",
+            "good": "model = 'mistral-7b-instruct-v0.1-int4'"
+          },
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "quantization",
+            "memory",
+            "compute"
+          ],
+          "three_u": [
+            "useful"
+          ],
+          "exclude_file_patterns": [
+            "int8",
+            "int4",
+            "bitsandbytes",
+            "gguf",
+            "GGML",
+            "quantiz",
+            "awq",
+            "gptq",
+            "onnx"
+          ],
+          "note": "Scoped to loading a self-hosted model. The earlier version flagged the strings gpt-4 and claude-3-opus and recommended quantising them, which nobody consuming an API can do."
+        },
+        {
+          "id": "ECO-ALGO-13",
+          "title": "Batch requests to maximize GPU utilization",
+          "description": "Single requests underutilize GPUs. Batching maximizes throughput and reduces overhead.",
+          "impact": "High",
+          "patterns": [
+            "batch_size[[:space:]]*=[[:space:]]*1[[:space:]]*($|[,)}#])",
+            "max_batch_size[[:space:]]*=[[:space:]]*1[[:space:]]*($|[,)}#])"
+          ],
+          "exclude_patterns": [
+            "batch_size[[:space:]]*>[[:space:]]*1",
+            "max_batch_size[[:space:]]*>[[:space:]]*1"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "ts",
+            "java",
+            "go"
+          ],
+          "recommendation": "Group requests into batches (e.g., batch_size=32) to maximize GPU utilization. Avoid single calls in production.",
+          "example": {
+            "bad": "inference(model, prompt, batch_size=1)",
+            "good": "inference(model, prompts, batch_size=32)"
+          },
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "batching",
+            "gpu",
+            "throughput"
+          ],
+          "three_u": [
+            "useful"
+          ],
+          "note": "The pattern is anchored on the value: without the trailing boundary it matched batch_size = 16, 128 and 1024. A batch of one is legitimate for latency-critical inference, so the question is whether throughput or latency governs here."
+        },
+        {
+          "id": "ECO-ALGO-14",
+          "title": "Use streaming for long outputs",
+          "description": "Streaming releases the GPU between tokens, reducing memory pressure.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Enable streaming (stream=True) for long generations to free GPU memory between tokens.",
+          "example": {
+            "bad": "response = client.generate(prompt)",
+            "good": "for chunk in client.generate(prompt, stream=True): process(chunk)"
+          },
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "streaming",
+            "gpu",
+            "memory"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-15",
+          "title": "Cache embeddings for repeated documents",
+          "description": "Recomputing embeddings for the same documents wastes CPU/GPU cycles.",
+          "impact": "High",
+          "patterns": [
+            "embed[[:space:]]*\\("
+          ],
+          "exclude_patterns": [
+            "cache",
+            "Cache",
+            "FAISS",
+            "faiss",
+            "Milvus",
+            "milvus",
+            "vector_store",
+            "get_or_compute"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "ts"
+          ],
+          "recommendation": "Cache embeddings of frequent documents using FAISS or Milvus. Recompute only when the document changes.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "embeddings",
+            "cache",
+            "rag"
+          ],
+          "three_u": [
+            "useful"
+          ],
+          "example": {
+            "bad": "embeddings = model.embed(documents)",
+            "good": "if (cache_key := hash(doc)) not in embed_cache:\n    embed_cache[cache_key] = model.embed(doc)\nembeddings = [embed_cache[hash(d)] for d in documents]"
+          }
+        },
+        {
+          "id": "ECO-ALGO-16",
+          "title": "Avoid redundant prompt processing",
+          "description": "Recomputing the same prompts increases latency and energy consumption.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Enable prompt caching (cache_prompt=True) to avoid recomputing identical prompts.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "cache",
+            "prompt",
+            "efficiency"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-17",
+          "title": "Prefer distilled models",
+          "description": "Distilled models offer 90-95% quality with fewer parameters and less compute.",
+          "impact": "Medium",
+          "patterns": [
+            "bert-base-uncased",
+            "roberta-base",
+            "llama-2-7b",
+            "mistral-7b"
+          ],
+          "exclude_patterns": [
+            "distilbert",
+            "DistilBERT",
+            "TinyLlama",
+            "tiny-llama",
+            "distilled",
+            "Distilled"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "ts"
+          ],
+          "recommendation": "Use distilled versions (e.g., DistilBERT, TinyLlama) when they meet the quality bar.",
+          "example": {
+            "bad": "model = 'bert-base-uncased'",
+            "good": "model = 'distilbert-base-uncased'"
+          },
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "distillation",
+            "models",
+            "efficiency"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-18",
+          "title": "Offload preprocessing to CPU",
+          "description": "Tokenization, decoding, and post-processing can run on CPU, freeing GPU.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Move tokenization, decoding, and post-processing to CPU to free GPU resources.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "cpu",
+            "gpu",
+            "offloading"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-19",
+          "title": "Avoid LLMs for deterministic tasks",
+          "description": "LLMs are overkill for tasks solvable with regex, rules, or lightweight classifiers.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Replace LLMs with: (1) regular expressions, (2) lightweight classifiers (scikit-learn, FastText), (3) rule engines (Drools), (4) exact search (Elasticsearch).",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "deterministic",
+            "alternatives",
+            "regex"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-20",
+          "title": "Use LLMs only for truly ambiguous tasks",
+          "description": "LLMs should be reserved for NLP, creative generation, or multi-step reasoning.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Use an LLM only if the task involves: (1) natural language understanding, (2) creative generation, or (3) multi-step reasoning. Otherwise, use a deterministic alternative.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "ambiguity",
+            "tasks",
+            "classification"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-21",
+          "title": "Benchmark LLM vs non-LLM solutions",
+          "description": "Before integrating an LLM, compare against non-LLM on accuracy, latency, and resources.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Benchmark against non-LLM on: (1) accuracy, (2) latency, (3) CPU/GPU consumption. Document results.",
+          "rgesn_ref": "9.x",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ai",
+            "benchmark",
+            "comparison",
+            "alternatives"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-22",
+          "title": "Limit memory usage",
+          "description": "Unbounded memory leads to swapping, multiplying energy by 10x.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Configure max_memory or max_ram to prevent swapping (e.g., max_memory=8GiB in vLLM).",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "ai",
+            "memory",
+            "swap",
+            "performance"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-23",
+          "title": "Monitor GPU temperature",
+          "description": "High GPU temperatures increase energy consumption and reduce lifespan.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Stop tasks if GPU temperature exceeds 80C. Monitor with nvidia-smi -q -d TEMPERATURE.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "gpu",
+            "temperature",
+            "monitoring",
+            "hardware"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-24",
+          "title": "Avoid swapping at all costs",
+          "description": "Swapping to disk multiplies energy consumption by 10x.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Set swappiness=10 and monitor swap usage with free -h.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "memory",
+            "swap",
+            "performance",
+            "energy"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-25",
+          "title": "Avoid fine-tuning when not necessary",
+          "description": "Fine-tuning consumes orders of magnitude more than inference. Often RAG suffices.",
+          "impact": "High",
+          "patterns": [
+            "fine_tune",
+            "FineTuningJob",
+            "Trainer[[:space:]]*\\(",
+            "\\.fit[[:space:]]*\\(",
+            "peft",
+            "LoraConfig"
+          ],
+          "exclude_patterns": [
+            "# No fine-tuning",
+            "RAG",
+            "retrieval",
+            "pre-trained",
+            "pretrained"
+          ],
+          "extensions": [
+            "py",
+            "js",
+            "ts"
+          ],
+          "recommendation": "Avoid fine-tuning if: (1) a pre-trained model covers the task, (2) base performance is >90% of target. Prefer RAG for knowledge updates.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "ai",
+            "fine-tuning",
+            "training",
+            "rag"
+          ],
+          "three_u": [
+            "useful"
+          ],
+          "example": {
+            "bad": "trainer = Trainer(model=base_model)\ntrainer.fine_tune(dataset)",
+            "good": "# Use RAG instead of fine-tuning for knowledge updates\nvector_store = FAISS.from_documents(documents)\nretriever = vector_store.as_retriever()"
+          },
+          "note": "A bare train() call was matching any function named train, so the patterns now name the fine-tuning APIs. Fine-tuning is the right answer when the task needs a behaviour the base model does not have; it is the wrong one when the task needs knowledge, which retrieval supplies without a training run."
+        },
+        {
+          "id": "ECO-ALGO-26",
+          "title": "Use filtered datasets",
+          "description": "Training on unfiltered datasets wastes compute on irrelevant or duplicate data.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Reduce dataset size by: (1) deduplicating, (2) filtering irrelevant examples, (3) sampling.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "ai",
+            "datasets",
+            "filtering",
+            "efficiency"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        },
+        {
+          "id": "ECO-ALGO-27",
+          "title": "Prefer RAG over fine-tuning for knowledge",
+          "description": "RAG adds knowledge without retraining, saving massive compute.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "For adding knowledge, use RAG (Retrieval-Augmented Generation) instead of fine-tuning. It's cheaper, faster, and dynamically updatable.",
+          "rgesn_ref": "3.1",
+          "gr491_famille": "Architecture",
+          "tags": [
+            "ai",
+            "rag",
+            "retrieval",
+            "fine-tuning"
+          ],
+          "three_u": [
+            "useful"
+          ]
+        }
+      ]
+    },
+    "hebergement_ia": {
+      "name": "Hosting for AI",
+      "description": "Rules for choosing energy-efficient hardware, datacenters, and deployment strategies for AI workloads.",
+      "rules": [
+        {
+          "id": "ECO-HOST-01",
+          "title": "Size the accelerator to the workload",
+          "description": "A training-class accelerator running inference spends most of its power idle between requests, because the memory bandwidth it was built for is not what inference needs. The gap shows up as a utilisation figure nobody looks at and an energy bill everybody pays.",
+          "impact": "High",
+          "patterns": [
+            "A100",
+            "H100",
+            "V100",
+            "MI300",
+            "TPU[[:space:]]*v[45]"
+          ],
+          "extensions": [
+            "py",
+            "sh",
+            "yaml",
+            "yml"
+          ],
+          "recommendation": "Measure utilisation and latency on the actual workload before choosing the class. Inference-oriented parts (L4, L40S, T4, Inferentia) often serve the same traffic for less power; training-class parts earn their cost when the job actually saturates them.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "gpu",
+            "inference",
+            "energy",
+            "hardware"
+          ],
+          "three_u": [
+            "useful"
+          ],
+          "example": {
+            "bad": "gpu_type = \"A100\"  # For inference workload",
+            "good": "gpu_type = \"L40S\"  # Inference-optimized, 40% less power"
+          },
+          "exclude_file_patterns": [
+            "utilization",
+            "utilisation",
+            "nvidia-smi",
+            "dcgm",
+            "profil"
+          ],
+          "note": "Naming a training-class accelerator is the candidate, not the defect: the same part is the right answer for a job that saturates it. A file that already reports utilisation stays silent."
+        },
+        {
+          "id": "ECO-HOST-02",
+          "title": "Justify accelerator capacity with a utilisation measurement",
+          "description": "Capacity is usually chosen once, from what was available or what a benchmark suggested, and then never revisited. A machine at fifteen percent utilisation draws most of its idle power for nothing, and the fix is a smaller instance rather than a better model.",
+          "impact": "High",
+          "patterns": [],
+          "recommendation": "Record utilisation, memory headroom and queue depth over a representative period, then resize. Scale to zero where the traffic allows it, and prefer several small instances to one idle large one when the workload divides.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "gpu",
+            "sizing",
+            "energy",
+            "models"
+          ],
+          "example": {
+            "bad": "gpu_type = \"A100\"  # For 7B parameter model",
+            "good": "gpu_type = \"T4\"  # Sufficient for models < 10B parameters"
+          },
+          "note": "No pattern: a utilisation figure lives in monitoring, not in the source. This is a review question."
+        },
+        {
+          "id": "ECO-HOST-03",
+          "title": "Place an AI workload where the grid is cleanest, with a source",
+          "description": "Carbon intensity varies by a large factor between regions and across the day, and an accelerator draws enough power for that factor to dominate the footprint of a training run. The region is usually picked for latency or price and never revisited.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Compare regions on published grid intensity for the period you will actually run, cite the source and its date, and weigh it against latency, residency and cost. Defer what can wait to a cleaner window. See ECO-HEB-09 for the general case and ECO-HEB-08 for the timing.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "datacenter",
+            "renewable",
+            "PUE",
+            "energy"
+          ],
+          "note": "No pattern: the earlier version flagged us-east-1 and treated a list of European regions as clean. Grid intensity does not divide that way, it changes over time, and the project does not make that kind of claim without a current source."
+        },
+        {
+          "id": "ECO-HOST-04",
+          "title": "Use CPU for small models",
+          "description": "For models < 1B parameters, CPU inference can be more energy-efficient.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "For models < 1B parameters, prefer CPU inference using GGML or ONNX Runtime. CPU reduces power for small workloads.",
+          "rgesn_ref": "8.x",
+          "gr491_famille": "Hébergement",
+          "tags": [
+            "cpu",
+            "gpu",
+            "inference",
+            "energy"
+          ],
+          "note": "No pattern: whether a model fits on CPU depends on its size and the latency you owe, neither of which is visible in a line. Measure both paths on the real model before deciding."
+        }
+      ]
+    }
+  },
+  "attribution_note": "\n\nRules ECO-ALGO-09 to ECO-ALGO-27 and ECO-HOST-07 to ECO-HOST-10 are original contributions to Green Claude, designed to address the physical resource impact of AI systems (water, electricity, CPU, GPU)."
+}

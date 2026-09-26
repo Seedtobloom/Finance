@@ -1,0 +1,27 @@
+Green Claude — license scope
+
+Copyright (c) 2026 Institut du Numérique Responsable
+
+Code (including scripts, hooks, tests and executable website code) is licensed
+under the Apache License, Version 2.0.
+
+Rule catalogs (rules/**/*.json within the skill), SKILL.md, documentation and
+original editorial website content are licensed under Creative Commons
+Attribution 4.0 International (CC BY 4.0). Embedded code examples in these
+materials may also be used under Apache-2.0.
+
+This is a division by content type, not a choice of license for every file.
+Repository metadata describing the combined distribution uses the SPDX
+expression Apache-2.0 AND CC-BY-4.0.
+
+Full license texts are included in LICENSES/Apache-2.0.txt and
+LICENSES/CC-BY-4.0.txt beside this file. See NOTICE for attribution.
+
+Historical third-party contributions retain their MIT terms. The original
+MIT notice is preserved in LICENSES/MIT-legacy.txt; it is not the
+default license for new project work.
+
+Third-party material and explicitly marked source attributions retain their
+applicable terms. These licenses grant no trademark rights in project names
+or logos. Previously published MIT versions remain available under MIT;
+this change does not revoke permissions already granted.

@@ -1,0 +1,228 @@
+{
+  "metadata": {
+    "name": "Ecodesign for JavaScript / TypeScript",
+    "description": "Ecodesign rules for JS/TS, in the browser as much as in Node.js: dependencies, main thread, streams, bounded caches.",
+    "version": "1.0.0",
+    "globs": "**/*.{js,jsx,ts,tsx,mjs,cjs}",
+    "extensions": [
+      "js",
+      "jsx",
+      "ts",
+      "tsx",
+      "mjs",
+      "cjs"
+    ],
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/"
+    ],
+    "count": 9,
+    "type": "code_audit"
+  },
+  "categories": {
+    "dependances": {
+      "name": "JS/TS — dependencies and weight",
+      "description": "Every kilobyte shipped is downloaded, parsed and executed on every device (RGESN Frontend, GR491_Frontend_9/10).",
+      "rules": [
+        {
+          "id": "ECO-JS-01",
+          "title": "Whole-library import",
+          "description": "`import * as x`, or importing a monolithic library such as lodash or moment, defeats tree-shaking: the entire package ends up in the bundle.",
+          "impact": "High",
+          "patterns": [
+            "import[[:space:]]+\\*[[:space:]]+as[[:space:]]+\\w+[[:space:]]+from",
+            "from[[:space:]]+['\"](lodash|moment)['\"]",
+            "require\\(['\"](lodash|moment)['\"]\\)"
+          ],
+          "recommendation": "Targeted imports (import { x } from 'lib/x'); native APIs first (fetch, Intl, URL, structuredClone, Date/Temporal) before adding a dependency.",
+          "example": {
+            "bad": "import * as _ from 'lodash'",
+            "good": "import debounce from 'lodash/debounce'"
+          },
+          "rgesn_ref": "6.1, 6.2",
+          "gr491_famille": "Frontend",
+          "tags": [
+            "javascript",
+            "bundle",
+            "dependencies"
+          ]
+        }
+      ]
+    },
+    "execution": {
+      "name": "JS/TS — execution",
+      "description": "Do not block the main thread or the event loop, and do not burn CPU for nothing (RGESN Frontend/Algorithms).",
+      "rules": [
+        {
+          "id": "ECO-JS-02",
+          "title": "Blocking synchronous API",
+          "description": "A *Sync call on a request path blocks the event loop: every concurrent request waits, and the machine stays powered doing nothing.",
+          "impact": "High",
+          "patterns": [
+            "fs\\.[a-zA-Z]+Sync\\("
+          ],
+          "recommendation": "Use the asynchronous variants; move heavy computation off (worker_threads, Web Worker).",
+          "example": {
+            "bad": "const data = fs.readFileSync(path)",
+            "good": "const data = await fs.promises.readFile(path)"
+          },
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "javascript",
+            "node",
+            "eventloop"
+          ]
+        },
+        {
+          "id": "ECO-JS-03",
+          "title": "Periodic polling",
+          "description": "setInterval plus a request consumes network, CPU and battery continuously, including when nothing changes and the tab is in the background.",
+          "impact": "High",
+          "patterns": [
+            "setInterval\\("
+          ],
+          "exclude_file_patterns": [
+            "visibilitychange",
+            "document\\.hidden"
+          ],
+          "recommendation": "SSE or WebSocket when the refresh is genuinely needed, otherwise refresh on user action; suspend when the document is hidden.",
+          "example": {
+            "bad": "setInterval(() => fetch('/api/stats'), 2000)",
+            "good": "const es = new EventSource('/api/stats/stream')\ndocument.addEventListener('visibilitychange', () => document.hidden && es.close())"
+          },
+          "rgesn_ref": "6.3, 7.2",
+          "gr491_famille": "Frontend",
+          "tags": [
+            "javascript",
+            "polling",
+            "network"
+          ],
+          "note": "The exclusion applies to the whole file: a single visibilitychange or document.hidden silences the rule, even when other timers in the file run unguarded. Check that every timer is suspended, not just the first."
+        },
+        {
+          "id": "ECO-JS-04",
+          "title": "High-frequency event without debouncing",
+          "description": "scroll, resize, mousemove and input fire dozens of times per second: a costly handler there monopolises the device's CPU.",
+          "impact": "Medium",
+          "patterns": [
+            "addEventListener\\([[:space:]]*['\"](scroll|resize|mousemove|input|pointermove)['\"]"
+          ],
+          "exclude_file_patterns": [
+            "requestAnimationFrame\\(",
+            "\\bdebounce\\b",
+            "\\bthrottle\\b",
+            "IntersectionObserver",
+            "ResizeObserver"
+          ],
+          "recommendation": "Debounce or throttle the handler, or use IntersectionObserver / ResizeObserver as appropriate.",
+          "rgesn_ref": "6.3",
+          "gr491_famille": "Frontend",
+          "tags": [
+            "javascript",
+            "frontend",
+            "cpu"
+          ],
+          "note": "The exclusion applies to the whole file: a single requestAnimationFrame, debounce or observer silences the rule, even when other handlers in the file remain unthrottled. Check handler by handler."
+        },
+        {
+          "id": "ECO-JS-05",
+          "title": "Repeated linear search inside a loop",
+          "description": "includes/indexOf/find inside a loop gives quadratic processing on unbounded collections.",
+          "impact": "Medium",
+          "patterns": [
+            "for[[:space:]]*\\(.*\\)[[:space:]]*\\{?.*\\.(includes|indexOf|find)\\("
+          ],
+          "recommendation": "Index into a Map or a Set before the loop.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "javascript",
+            "algorithms"
+          ]
+        }
+      ]
+    },
+    "donnees": {
+      "name": "JS/TS — data, streams and memory",
+      "description": "Stream, paginate, cache with an explicit policy, avoid leaks (RGESN Backend/Hosting).",
+      "rules": [
+        {
+          "id": "ECO-JS-06",
+          "title": "File or payload loaded entirely into memory",
+          "description": "readFileSync/readFile on a large file holds everything in memory instead of streaming it: memory proportional to the volume processed.",
+          "impact": "Medium",
+          "patterns": [
+            "readFileSync\\(",
+            "fs\\.readFile\\("
+          ],
+          "recommendation": "stream/pipeline on Node, ReadableStream in the browser; process in chunks.",
+          "rgesn_ref": "9.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "javascript",
+            "node",
+            "streams"
+          ]
+        },
+        {
+          "id": "ECO-JS-07",
+          "title": "HTTP client instantiated per call",
+          "description": "A client created for every request repeats DNS resolution and the TLS handshake: latency and CPU paid again each time.",
+          "impact": "Medium",
+          "patterns": [
+            "new[[:space:]]+(HttpClient|XMLHttpRequest)\\(",
+            "axios\\.create\\("
+          ],
+          "recommendation": "A shared HTTP client with a keep-alive agent; a reused database connection pool.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "javascript",
+            "network",
+            "connections"
+          ]
+        },
+        {
+          "id": "ECO-JS-08",
+          "title": "Listener never detached",
+          "description": "An addEventListener with no removeEventListener holds the listened object and its closures: a memory leak that grows with every mount and unmount.",
+          "impact": "Medium",
+          "patterns": [
+            "addEventListener\\("
+          ],
+          "exclude_file_patterns": [
+            "removeEventListener",
+            "AbortController",
+            "\\bsignal[[:space:]]*:",
+            "\\bonUnmounted\\b",
+            "\\bngOnDestroy\\b"
+          ],
+          "recommendation": "Detach the listener on unmount (effect cleanup, AbortController through the signal option); WeakMap for associations to objects.",
+          "rgesn_ref": "6.3",
+          "gr491_famille": "Frontend",
+          "tags": [
+            "javascript",
+            "memory",
+            "leak"
+          ],
+          "note": "The exclusion applies to the whole file: a single removeEventListener or AbortController silences the rule, even when other listeners are never detached. Count the attachments against the detachments before concluding."
+        },
+        {
+          "id": "ECO-JS-09",
+          "title": "Cache with no bound and no policy",
+          "description": "An application cache with neither a maximum size nor an expiry holds entries indefinitely that are never read again.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Bound (maximum size) and expire (TTL) every cache; state the invalidation strategy; paginate API responses.",
+          "rgesn_ref": "7.3",
+          "gr491_famille": "Backend",
+          "tags": [
+            "javascript",
+            "cache"
+          ]
+        }
+      ]
+    }
+  }
+}

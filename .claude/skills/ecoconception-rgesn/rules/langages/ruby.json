@@ -1,0 +1,159 @@
+{
+  "metadata": {
+    "name": "Ecodesign for Ruby / Rails",
+    "description": "Ecodesign rules for Ruby and Rails code: sober ActiveRecord, batched traversal, lazy enumerators, expiring caches.",
+    "version": "1.0.0",
+    "globs": "**/*.rb",
+    "extensions": [
+      "rb"
+    ],
+    "sources": [
+      "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+      "https://gr491.isit-europe.org/"
+    ],
+    "count": 7,
+    "type": "code_audit"
+  },
+  "categories": {
+    "donnees": {
+      "name": "Ruby — data access (ActiveRecord)",
+      "description": "Load only the columns and rows actually used (RGESN Backend, GR491_Backend_2/3).",
+      "rules": [
+        {
+          "id": "ECO-RB-01",
+          "title": "Whole table walked in memory",
+          "description": ".all.each and .all.map instantiate one ActiveRecord object per row: memory and CPU proportional to the table size.",
+          "impact": "High",
+          "patterns": [
+            "\\.all\\.(each|map|select)",
+            "\\.all\\b"
+          ],
+          "recommendation": "find_each/in_batches for large volumes; paginate every exposed list (pagy, kaminari).",
+          "example": {
+            "bad": "Order.all.each { |o| process(o) }",
+            "good": "Order.find_each(batch_size: 500) { |o| process(o) }"
+          },
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "activerecord",
+            "pagination"
+          ]
+        },
+        {
+          "id": "ECO-RB-02",
+          "title": "Full objects loaded for a single column",
+          "description": "map(&:col) instantiates every object when only one column is read.",
+          "impact": "Medium",
+          "patterns": [
+            "\\.map\\(&:"
+          ],
+          "recommendation": "pluck(:col) or select(:col1, :col2); includes/preload/eager_load on the associations you walk, to avoid the N+1.",
+          "rgesn_ref": "7.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "activerecord",
+            "projection"
+          ]
+        },
+        {
+          "id": "ECO-RB-03",
+          "title": "Counting where an existence test is enough",
+          "description": "count > 0, or any? on a relation, runs a full count when the database could stop at the first row.",
+          "impact": "Low",
+          "patterns": [
+            "\\.count[[:space:]]*>[[:space:]]*0"
+          ],
+          "recommendation": "exists? for an existence test; update_all/insert_all for bulk writes, never save inside a loop.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "activerecord"
+          ]
+        }
+      ]
+    },
+    "memoire": {
+      "name": "Ruby — memory and CPU",
+      "description": "Avoid intermediate arrays and linear searches (RGESN Algorithms).",
+      "rules": [
+        {
+          "id": "ECO-RB-04",
+          "title": "Linear search on a large array",
+          "description": "include? walks the whole array; repeated in a loop, the processing turns quadratic.",
+          "impact": "Medium",
+          "patterns": [
+            "\\.include\\?"
+          ],
+          "recommendation": "Index into a Set or a Hash before the loop.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "algorithms"
+          ]
+        },
+        {
+          "id": "ECO-RB-05",
+          "title": "String concatenation in a loop",
+          "description": "`s += ...` allocates a new string on every iteration, where mutation reuses the buffer.",
+          "impact": "Low",
+          "patterns": [
+            "\\+=[[:space:]]*['\"]"
+          ],
+          "recommendation": "Build with << (mutation); lazy enumerators (.lazy) and each_slice for long transformation chains.",
+          "rgesn_ref": "9.1",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "memory",
+            "strings"
+          ]
+        }
+      ]
+    },
+    "taches": {
+      "name": "Ruby — cache, jobs and I/O",
+      "description": "Bound caches, do not poll, reuse connections (RGESN Backend/Hosting).",
+      "rules": [
+        {
+          "id": "ECO-RB-06",
+          "title": "Cache entry with no expiry",
+          "description": "A Rails.cache.fetch or write without expires_in holds the entry indefinitely, including once the data is no longer read.",
+          "impact": "Medium",
+          "patterns": [
+            "Rails\\.cache\\.(fetch|write)\\("
+          ],
+          "exclude_patterns": [
+            "expires_in"
+          ],
+          "recommendation": "Always pass expires_in; never a constant or class variable that accumulates without limit.",
+          "rgesn_ref": "7.3",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "cache"
+          ]
+        },
+        {
+          "id": "ECO-RB-07",
+          "title": "High-frequency scheduled job",
+          "description": "A periodic job watching a state consumes CPU and database capacity continuously to catch a rare change.",
+          "impact": "Medium",
+          "patterns": [],
+          "recommendation": "Idempotent, batched jobs; event-driven triggering rather than polling; outbound HTTP connections and the database pool reused.",
+          "rgesn_ref": "7.2",
+          "gr491_famille": "Backend",
+          "tags": [
+            "ruby",
+            "jobs",
+            "polling"
+          ]
+        }
+      ]
+    }
+  }
+}
