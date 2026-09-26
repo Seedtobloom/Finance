@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=137" />
+  <link rel="stylesheet" href="/style.css?v=136" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v137 · CRM : le bloc « Clients fideles » (top 3) devient « Mes clients · N » et liste TOUS tes clients (issus des projets/factures + prospects non perdus), tries par CA, avec compteur et defilement. Fini le top 3 qui masquait le reste.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v136 · Tous les prospects comptent comme clients (sauf perdus : negatif/sans-suite/perdu) via prospectEstClient() — plus seulement les « Gagne ». Applique au compteur, a l ecran Clients et aux fideles. Prend en compte tes anciens clients CRM.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2684,7 +2684,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=137"></script>
+<script src="/app.js?v=136"></script>
 </body>
 </html>
 `;
@@ -8460,14 +8460,14 @@ function crmRelations(){
   _prospectsCache.filter(prospectEstClient).forEach(p=>{const nom=(p.entreprise||p.nom||'').trim();if(!nom)return;const o=ensure(nom);if(o.ca===0)o.ca=parseFloat(p.valeur)||0;});
   const arr=Object.keys(byClient).map(nom=>({nom,...byClient[nom]}));
   if(!arr.length){el.innerHTML='';return;}
-  const clientsTri=arr.slice().sort((a,b)=>b.ca-a.ca);
+  const fideles=arr.slice().sort((a,b)=>b.ca-a.ca).slice(0,3);
   const todayStr=today();
   const moisDepuis=ds=>ds?Math.round((new Date(todayStr)-new Date(ds))/(86400000*30.44)):null;
   const inactifs=arr.filter(c=>c.last&&moisDepuis(c.last)>=5).sort((a,b)=>(a.last||'').localeCompare(b.last||'')).slice(0,3);
   el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
     <div class="card" style="padding:22px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:10px;flex-wrap:wrap;"><span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-users"></i> Mes clients</span><span style="font-size:13px;color:var(--text-2);">\${clientsTri.length} client\${clientsTri.length>1?'s':''}</span></div>
-      <div style="max-height:420px;overflow-y:auto;">\${clientsTri.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions>0?c.missions+' mission'+(c.missions>1?'s':''):'client'}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}</div>
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-heart"></i> Clients fidèles</div>
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Clients à réactiver</div>

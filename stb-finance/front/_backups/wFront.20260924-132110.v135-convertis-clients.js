@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=137" />
+  <link rel="stylesheet" href="/style.css?v=135" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v137 · CRM : le bloc « Clients fideles » (top 3) devient « Mes clients · N » et liste TOUS tes clients (issus des projets/factures + prospects non perdus), tries par CA, avec compteur et defilement. Fini le top 3 qui masquait le reste.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v135 · Prospects convertis (« Gagne ») = clients automatiquement : ils apparaissent dans « Clients fideles » (CRM, valeur du deal en CA si pas encore de facture) ET dans l ecran Clients (avec factures/projets). loadTiers charge les prospects et compte les convertis. Plus besoin de re-saisir un client deja gagne.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2684,7 +2684,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=137"></script>
+<script src="/app.js?v=135"></script>
 </body>
 </html>
 `;
@@ -8229,7 +8229,7 @@ async function loadTiers(){
   tiersData.filter(t=>t.type==='client').forEach(t=>{if(t.nom)noms.add(t.nom.trim());});
   factures.forEach(f=>{if(f.client)noms.add(f.client.trim());});
   projets.forEach(p=>{if(p.client)noms.add(p.client.trim());});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n)noms.add(n);});
+  _prospectsCache.filter(p=>p.statut==='converti').forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n)noms.add(n);});
   const caTotal=payees.reduce((s,f)=>s+(f.montant||0),0);
   let top=null,topCa=-1; Object.keys(caParNom).forEach(n=>{if(caParNom[n]>topCa){topCa=caParNom[n];top=n;}});
   if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=noms.size;
@@ -8254,7 +8254,7 @@ function renderTiers(){
   const derivedMap=new Map();
   factures.forEach(f=>{const n=(f.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
   projets.forEach(p=>{const n=(p.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
+  _prospectsCache.filter(p=>p.statut==='converti').forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
   const derived=[...derivedMap.values()].map(n=>({nom:n,type:'client',derived:true}));
   let list=[...tiersData, ...derived];
   if(search)list=list.filter(t=>((t.nom||'')+(t.email||'')+(t.notes||'')).toLowerCase().includes(search));
@@ -8331,8 +8331,6 @@ const CRM_STATUTS={
 
 const CRM_PROBA={contact:15,en_attente:25,positif:55,proposition:65,converti:100,negatif:0,sans_suite:0};
 const CRM_OPEN=['contact','en_attente','positif','proposition'];
-// Un prospect compte comme CLIENT sauf s'il est clairement perdu.
-function prospectEstClient(p){return !!p&&!['negatif','sans_suite','perdu'].includes(p.statut);}
 const CRM_COLS=[{id:'contact',lab:'À contacter'},{id:'en_attente',lab:'Relancé / en attente'},{id:'positif',lab:'Intéressé'},{id:'proposition',lab:'Devis envoyé'},{id:'converti',lab:'Gagné'},{id:'perdu',lab:'Perdu'}];
 function openProspectById(id){const p=_prospectsCache.find(x=>x.id===id);if(p)openProspectModal(p);}
 
@@ -8457,17 +8455,17 @@ function crmRelations(){
   projets.forEach(p=>{if(p.client)ensure(p.client).missions++;});
   factures.forEach(f=>{if(!f.client)return;const o=ensure(f.client);if(f.statut==='payee')o.ca+=(f.montant||0);const dt=f.datePaiement||f.date||'';if(dt>o.last)o.last=dt;});
   // Prospects convertis (« Gagné ») = clients : ils doivent apparaitre meme sans facture encore.
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const nom=(p.entreprise||p.nom||'').trim();if(!nom)return;const o=ensure(nom);if(o.ca===0)o.ca=parseFloat(p.valeur)||0;});
+  _prospectsCache.filter(p=>p.statut==='converti').forEach(p=>{const nom=(p.entreprise||p.nom||'').trim();if(!nom)return;const o=ensure(nom);if(o.ca===0)o.ca=parseFloat(p.valeur)||0;});
   const arr=Object.keys(byClient).map(nom=>({nom,...byClient[nom]}));
   if(!arr.length){el.innerHTML='';return;}
-  const clientsTri=arr.slice().sort((a,b)=>b.ca-a.ca);
+  const fideles=arr.slice().sort((a,b)=>b.ca-a.ca).slice(0,3);
   const todayStr=today();
   const moisDepuis=ds=>ds?Math.round((new Date(todayStr)-new Date(ds))/(86400000*30.44)):null;
   const inactifs=arr.filter(c=>c.last&&moisDepuis(c.last)>=5).sort((a,b)=>(a.last||'').localeCompare(b.last||'')).slice(0,3);
   el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
     <div class="card" style="padding:22px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:10px;flex-wrap:wrap;"><span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-users"></i> Mes clients</span><span style="font-size:13px;color:var(--text-2);">\${clientsTri.length} client\${clientsTri.length>1?'s':''}</span></div>
-      <div style="max-height:420px;overflow-y:auto;">\${clientsTri.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions>0?c.missions+' mission'+(c.missions>1?'s':''):'client'}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}</div>
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-heart"></i> Clients fidèles</div>
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Clients à réactiver</div>

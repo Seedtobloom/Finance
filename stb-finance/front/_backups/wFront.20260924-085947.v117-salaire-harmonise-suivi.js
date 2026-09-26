@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=137" />
+  <link rel="stylesheet" href="/style.css?v=117" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v137 · CRM : le bloc « Clients fideles » (top 3) devient « Mes clients · N » et liste TOUS tes clients (issus des projets/factures + prospects non perdus), tries par CA, avec compteur et defilement. Fini le top 3 qui masquait le reste.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v117 · Salaire harmonise : un seul « versement conseille » = soutenable (#2) partout (mini-bloc perso rebase, reste-a-vivre suit). Nouveau suivi « ce que je me verse » (reel mois par mois vs conseille) sur Combien me verser. computePerso/computeMoney non reecrits, rebase a l'affichage.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -51,31 +51,56 @@ const HTML = `<!DOCTYPE html>
       <!-- PERSONNEL -->
       <div class="nav-group">
         <span class="nav-group-label"><i class="ti ti-home"></i> Personnel</span>
-        <a class="nav-item" data-section="budget-perso"><i class="ti ti-home-heart"></i> Moi</a>
+        <a class="nav-item" data-section="budget-perso"><i class="ti ti-home-heart"></i> Mon budget perso</a>
+        <a class="nav-item" data-section="versement"><i class="ti ti-wallet"></i> Combien me verser ?</a>
+        <a class="nav-item" data-section="patrimoine"><i class="ti ti-building-bank"></i> Mon patrimoine</a>
+        <a class="nav-item" data-section="projets-vie"><i class="ti ti-map-pin-heart"></i> Projets de vie</a>
       </div>
 
       <!-- ENTREPRISE · ARGENT -->
       <div class="nav-group">
-        <span class="nav-group-label"><i class="ti ti-building"></i> Trésorerie</span>
-        <a class="nav-item" data-section="enveloppes"><i class="ti ti-building"></i> Ma trésorerie</a>
+        <span class="nav-group-label"><i class="ti ti-building"></i> Argent</span>
+        <a class="nav-item" data-section="enveloppes"><i class="ti ti-chart-pie"></i> Répartition trésorerie</a>
+        <a class="nav-item" data-section="comptes"><i class="ti ti-building-bank"></i> Comptes</a>
+        <a class="nav-item" data-section="transactions"><i class="ti ti-arrows-exchange"></i> Transactions</a>
+        <a class="nav-item" data-section="depenses"><i class="ti ti-receipt"></i> Dépenses</a>
+        <a class="nav-item" data-section="abonnements"><i class="ti ti-repeat"></i> Charges fixes</a>
+        <a class="nav-item" data-section="charges-urssaf"><i class="ti ti-calendar-due"></i> URSSAF</a>
+        <a class="nav-item" data-section="reserve"><i class="ti ti-shield-half"></i> Réserve sécurité</a>
+        <a class="nav-item" data-section="objectifs-epargne"><i class="ti ti-target"></i> Objectifs</a>
       </div>
 
-      <!-- ACTIVITÉ & CLIENTS -->
+      <!-- ACTIVITÉ -->
       <div class="nav-group">
-        <span class="nav-group-label"><i class="ti ti-briefcase"></i> Activité &amp; clients</span>
-        <a class="nav-item" data-section="factures"><i class="ti ti-briefcase"></i> Activité &amp; clients</a>
+        <span class="nav-group-label">Activité</span>
+        <a class="nav-item" data-section="factures"><i class="ti ti-file-invoice"></i> CA &amp; Factures</a>
+        <a class="nav-item" data-section="devis"><i class="ti ti-file-description"></i> Devis</a>
+        <a class="nav-item" data-section="projets"><i class="ti ti-folders"></i> Projets</a>
+      </div>
+
+      <!-- CLIENTS -->
+      <div class="nav-group">
+        <span class="nav-group-label">Clients</span>
+        <a class="nav-item" data-section="tiers"><i class="ti ti-users"></i> Clients</a>
+        <a class="nav-item" data-section="crm"><i class="ti ti-address-book"></i> Développement</a>
       </div>
 
       <!-- RAPPORTS -->
       <div class="nav-group">
-        <span class="nav-group-label"><i class="ti ti-chart-line"></i> Pilotage</span>
-        <a class="nav-item" data-section="rapport-prevision"><i class="ti ti-chart-line"></i> Pilotage</a>
+        <span class="nav-group-label">Rapports</span>
+        <a class="nav-item" data-section="rapport-prevision"><i class="ti ti-chart-line"></i> Prévisions</a>
+        <a class="nav-item" data-section="rapport-mensuel"><i class="ti ti-report"></i> Mensuel</a>
+        <a class="nav-item" data-section="rapport-trimestriel"><i class="ti ti-calendar-stats"></i> Trimestriel</a>
+        <a class="nav-item" data-section="rapport-annuel"><i class="ti ti-report-analytics"></i> Annuel</a>
+        <a class="nav-item" data-section="rapport-fiscal"><i class="ti ti-report-money"></i> Fiscal BNC</a>
       </div>
 
       <!-- PARAMÈTRES -->
       <div class="nav-group">
-        <span class="nav-group-label"><i class="ti ti-settings"></i> Réglages</span>
-        <a class="nav-item" data-section="options"><i class="ti ti-settings"></i> Réglages</a>
+        <span class="nav-group-label">Paramètres</span>
+        <a class="nav-item" data-section="simulateur"><i class="ti ti-calculator"></i> Simulateur</a>
+        <a class="nav-item" data-section="import-export"><i class="ti ti-database-import"></i> Import / Export</a>
+        <a class="nav-item" data-section="options"><i class="ti ti-settings"></i> Options</a>
       </div>
 
     </nav><!-- /nav -->
@@ -2684,7 +2709,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=137"></script>
+<script src="/app.js?v=117"></script>
 </body>
 </html>
 `;
@@ -2990,7 +3015,7 @@ html, body {
 /* Sections */
 .section {
   display: none;
-  padding: 44px 54px;
+  padding: 40px 48px;
   max-width: 1600px;
   width: 100%;
   animation: none;
@@ -3010,7 +3035,7 @@ html, body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 34px;
+  margin-bottom: 28px;
 }
 .page-header-left h1 {
   font-family: 'Cormorant Garamond', serif;
@@ -3039,7 +3064,7 @@ html, body {
   background: var(--surface);
   border: none;
   border-radius: var(--r-panel);
-  padding: 28px;
+  padding: 24px;
   box-shadow: var(--shadow-card);
 }
 .card-cream {
@@ -3107,7 +3132,7 @@ html, body {
      jamais de palette multicolore. Mois en cours partiel = teinte pâle ;
      variation / sparkline seulement sur historique réel, jamais inventé.
    ===================================================================== */
-.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 26px; align-items: start; }
+.grid12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; align-items: start; }
 .grid12 > .col-4  { grid-column: span 4; }
 .grid12 > .col-5  { grid-column: span 5; }
 .grid12 > .col-6  { grid-column: span 6; }
@@ -3136,11 +3161,6 @@ html, body {
 .panel-split.split-a { grid-template-columns: minmax(300px, 360px) 1fr; }
 .panel-split.split-b { grid-template-columns: 1fr minmax(320px, 400px); }
 .panel-split.split-even { grid-template-columns: 1fr 1fr; }
-/* Onglets de pole : rassemble les ecrans d'un meme sujet en un seul endroit */
-.pole-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
-.pole-tab { display: inline-flex; align-items: center; gap: 7px; padding: 10px 15px; font-size: 13.5px; font-weight: 600; color: var(--text-2); cursor: pointer; border-radius: 10px 10px 0 0; border-bottom: 2px solid transparent; white-space: nowrap; margin-bottom: -1px; }
-.pole-tab:hover { color: var(--navy); background: var(--surface-2); }
-.pole-tab--active { color: var(--navy); border-bottom-color: var(--navy); }
 .panel-split > * { min-width: 0; }
 .panel-split > *:nth-child(2) { border-left: 1px solid var(--line); padding-left: 28px; margin-left: 28px; }
 /* Projet replie : une ligne cliquable, detail au clic */
@@ -3194,8 +3214,8 @@ html, body {
    =========================== */
 .kpi-grid {
   display: grid;
-  gap: 22px;
-  margin-bottom: 30px;
+  gap: 18px;
+  margin-bottom: 22px;
 }
 .kpi-grid-4 { grid-template-columns: repeat(4, 1fr); }
 .kpi-grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -4716,61 +4736,12 @@ async function dbSet(col, val){
 
 /* ─── 6. ROUTER ──────────────────────────────────────────────────────── */
 let currentSection='dashboard';
-// Poles : plusieurs ecrans d'un meme sujet, regroupes en onglets (un seul endroit par sujet).
-const POLE_TABS={
-  moi:{tabs:[
-    {s:'budget-perso',l:'Budget perso',i:'ti-home-heart'},
-    {s:'versement',l:'Combien me verser',i:'ti-wallet'},
-    {s:'patrimoine',l:'Patrimoine',i:'ti-building-bank'},
-    {s:'projets-vie',l:'Projets de vie',i:'ti-map-pin-heart'},
-  ]},
-  activite:{tabs:[
-    {s:'factures',l:'CA & Factures',i:'ti-file-invoice'},
-    {s:'devis',l:'Devis',i:'ti-file-description'},
-    {s:'projets',l:'Projets',i:'ti-folders'},
-    {s:'tiers',l:'Clients',i:'ti-users'},
-    {s:'crm',l:'Développement',i:'ti-address-book'},
-  ]},
-  tresorerie:{tabs:[
-    {s:'enveloppes',l:'Répartition',i:'ti-chart-pie'},
-    {s:'comptes',l:'Comptes',i:'ti-building-bank'},
-    {s:'transactions',l:'Transactions',i:'ti-arrows-exchange'},
-    {s:'depenses',l:'Dépenses',i:'ti-receipt'},
-    {s:'abonnements',l:'Charges fixes',i:'ti-repeat'},
-    {s:'charges-urssaf',l:'URSSAF',i:'ti-calendar-due'},
-    {s:'reserve',l:'Réserve',i:'ti-shield-half'},
-  ]},
-  pilotage:{tabs:[
-    {s:'rapport-prevision',l:'Prévisions',i:'ti-chart-line'},
-    {s:'rapport-mensuel',l:'Mensuel',i:'ti-report'},
-    {s:'rapport-trimestriel',l:'Trimestriel',i:'ti-calendar-stats'},
-    {s:'rapport-annuel',l:'Annuel',i:'ti-report-analytics'},
-    {s:'rapport-fiscal',l:'Fiscal BNC',i:'ti-report-money'},
-  ]},
-  reglages:{tabs:[
-    {s:'options',l:'Options',i:'ti-settings'},
-    {s:'objectifs-epargne',l:'Objectifs',i:'ti-target'},
-    {s:'simulateur',l:'Simulateur',i:'ti-calculator'},
-    {s:'import-export',l:'Import / Export',i:'ti-database-import'},
-  ]},
-};
-function renderPoleTabs(section){
-  const sec=q(\`#section-\${section}\`); if(!sec)return;
-  const first=sec.firstElementChild;
-  if(first&&first.classList&&first.classList.contains('pole-tabs'))first.remove();
-  let pole=null; for(const k in POLE_TABS){ if(POLE_TABS[k].tabs.some(t=>t.s===section)){pole=POLE_TABS[k];break;} }
-  if(!pole)return;
-  const bar=document.createElement('div'); bar.className='pole-tabs';
-  bar.innerHTML=pole.tabs.map(t=>\`<a class="pole-tab\${t.s===section?' pole-tab--active':''}" onclick="navigate('\${t.s}')"><i class="ti \${t.i}"></i> \${t.l}</a>\`).join('');
-  sec.insertBefore(bar,sec.firstChild);
-}
 function navigate(section){
   qa('.section').forEach(s=>s.classList.remove('active'));
   qa('.nav-item').forEach(n=>n.classList.remove('active'));
   const sec=q(\`#section-\${section}\`);
   if(!sec)return;
   sec.classList.add('active');
-  renderPoleTabs(section);
   const nav=q(\`.nav-item[data-section="\${section}"]\`);
   if(nav)nav.classList.add('active');
   currentSection=section;
@@ -5311,7 +5282,7 @@ function renderCockpit(){
   const R=(function(){try{return computeResteAVivre();}catch(e){return null;}})();
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
-  const breakdown=R?\`\${R.verseReel!=null?'Versé ce mois '+fmt(R.baseVersement):'Rémunération '+fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
+  const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   // Bloc sombre COMPACT (sous-bloc du panneau 1) : chiffre dominant conservé (.fig-hero 84px), mais surface
   // réduite — nombre à gauche, verdict + /jour à droite sur la même hauteur, décomposition en pied.
   const darkBlock=\`<div class="screen-hero" style="padding:22px 24px;border-radius:18px;">
@@ -5833,7 +5804,6 @@ function renderEnveloppes(){
       <div class="dash-hero-eyebrow"><i class="ti ti-wallet"></i> Répartition de ta trésorerie</div>
       <div class="fig-hero" style="font-size:80px;color:\${disponible<0?'#F0A9A0':'var(--glycine)'};">\${fmt(disponible)}</div>
       <div style="font-size:14px;opacity:.72;">Disponible à te verser — \${disponible<0?'tes réserves dépassent ton solde réel':'ce qui reste vraiment libre après provisions'}</div>
-      \${disponible>0?\`<div style="margin-top:10px;"><a onclick="navigate('versement')" style="display:inline-flex;align-items:center;gap:7px;font-size:13.5px;color:var(--glycine);cursor:pointer;border:1px solid rgba(242,229,194,.3);border-radius:9px;padding:8px 13px;"><i class="ti ti-arrows-split-2"></i> Répartir ce disponible (versement, épargne…) <i class="ti ti-arrow-right"></i></a></div>\`:''}
       <div class="stat-strip stat-strip--dark" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);">
         \${strip('Solde réel Qonto',soldeReel,'Synchronisé depuis ta banque')}
         \${strip('Total réservé',totalReserve,'Somme des enveloppes à sécuriser')}
@@ -6219,21 +6189,14 @@ function computeResteAVivre(ym){
   var env=Array.isArray(s.enveloppes)?s.enveloppes:[];
   var envAlloue=env.reduce(function(sum,e){return sum+(parseFloat(e.alloue)||0);},0);
   var envConsomme=env.reduce(function(sum,e){return sum+(parseFloat(e.consomme)||0);},0);
-  // Le reste-a-vivre se base sur ce qui a ete REELLEMENT verse ce mois (saisie manuelle prioritaire,
-  // sinon operations Qonto « Versement perso »), sinon la remuneration decidee.
-  var vm=(s.versementMois&&typeof s.versementMois==='object')?s.versementMois:{};
-  var verseReel=null;
-  if(vm[ym]!=null){verseReel=Math.round((parseFloat(vm[ym])||0)*100)/100;}
-  else{var _deps=dbGet('depenses')||[];var _sq=_deps.filter(function(d){return d.categorie==='Versement perso'&&(d.date||'').slice(0,7)===ym;}).reduce(function(a,d){return a+(d.montant||0);},0);if(_sq>0)verseReel=Math.round(_sq*100)/100;}
-  var baseVersement=(verseReel!=null)?verseReel:remu;
-  var revenusMois=Math.round((baseVersement+revenusActifs)*100)/100;
+  var revenusMois=Math.round((remu+revenusActifs)*100)/100;
   var resteMois=Math.round((revenusMois-chargesFixes-envAlloue)*100)/100;
   var jv=parseInt(s.jourVersement)||5;
   var now=new Date();var todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   var dv=new Date(now.getFullYear(),now.getMonth(),jv); if(dv<todayMid)dv=new Date(now.getFullYear(),now.getMonth()+1,jv);
   var joursRestants=Math.max(1,Math.round((dv-todayMid)/86400000));
   var resteJour=Math.round(resteMois/joursRestants);
-  return {remu:remu,verseReel:verseReel,baseVersement:baseVersement,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
+  return {remu:remu,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
     envAlloue:Math.round(envAlloue*100)/100,envConsomme:Math.round(envConsomme*100)/100,
     revenusMois:revenusMois,resteMois:resteMois,joursRestants:joursRestants,resteJour:resteJour,jourVersement:jv};
 }
@@ -6392,143 +6355,54 @@ function loadVersement(){
   const dmax=Math.max(confort,plafond,remu,salaireMin,1)*1.08;
   const px=v=>Math.max(0,Math.min(100,(v/dmax)*100));
   const tick=v=>\`<div style="position:absolute;left:\${px(v)}%;top:-3px;bottom:-3px;width:1.5px;background:var(--terre-400);opacity:.55;transform:translateX(-.75px);"></div>\`;
-  const posBar=\`<div style="margin:6px 0 18px;">
-    <div style="position:relative;height:12px;border-radius:6px;background:var(--surface-2);margin-top:28px;">
+  const posBar=\`<div style="margin:2px 0 16px;">
+    <div style="position:relative;height:12px;border-radius:6px;background:var(--surface-2);">
       <div style="position:absolute;left:\${px(salaireMin)}%;width:\${Math.max(0,px(plafond)-px(salaireMin))}%;top:0;bottom:0;background:var(--bleu-bg);border-radius:6px;"></div>
       \${tick(salaireMin)}\${tick(plafond)}\${tick(confort)}
       <div style="position:absolute;left:\${px(remu)}%;top:-5px;bottom:-5px;width:3px;background:var(--bleu);transform:translateX(-1.5px);border-radius:2px;"></div>
-      <div style="position:absolute;left:\${px(remu)}%;top:-25px;transform:translateX(-50%);font-size:11px;color:var(--bleu);font-weight:700;white-space:nowrap;">toi · \${fmt(remu)}</div>
     </div>
-    <div style="font-size:13px;color:var(--text-2);margin-top:14px;line-height:1.6;">Le trait bleu = ce que tu te verses. La <strong>zone claire</strong> est ta marge : de ton minimum vital jusqu'au plafond que ton activité soutient.</div>
+    <div style="font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.5;">Le trait bleu, c'est ta rémunération fixe (<strong style="color:var(--navy);">\${fmt(remu)}</strong>). La zone claire va du plancher (\${fmt(salaireMin)}) au plafond soutenable (\${fmt(plafond)}).</div>
   </div>\`;
   const rep=(icon,ttl,sub,val)=>\`<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 16px;border-radius:12px;background:var(--surface-2);">
     <div style="display:flex;align-items:center;gap:11px;"><span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none;background:var(--card);color:var(--terre-600);"><i class="ti \${icon}" style="font-size:17px;"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--navy);">\${ttl}<small style="display:block;font-weight:500;color:var(--text-2);font-size:12.5px;">\${sub}</small></div></div>
     <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:var(--navy);">\${fmt(val)}</div></div>\`;
-  // ── Suivi : ce que je me verse, mois par mois (Qonto OU saisie manuelle), vs le conseille (#2) ──
+  // ── Suivi : ce que je me verse reellement, mois par mois, vs le versement conseille (#2 = plafond) ──
   const _dep=dbGet('depenses')||[];
   const _byMonth={};
   _dep.forEach(d=>{if(d.categorie!=='Versement perso'||!d.date)return;const k=(d.date||'').slice(0,7);if(k)_byMonth[k]=(_byMonth[k]||0)+(d.montant||0);});
-  const _sV=dbGetObj('settings');
-  const vmanual=(_sV.versementMois&&typeof _sV.versementMois==='object')?_sV.versementMois:{};
-  const verseMois=key=>vmanual[key]!=null?(Math.round((parseFloat(vmanual[key])||0)*100)/100):Math.round((_byMonth[key]||0)*100)/100; // saisie manuelle prioritaire, sinon Qonto
   const _now=new Date();
-  const curYm=_now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0');
   const smonths=[];
-  for(let k=5;k>=0;k--){const dt=new Date(_now.getFullYear(),_now.getMonth()-k,1);const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');smonths.push({key,label:MOIS_COURT[dt.getMonth()],verse:verseMois(key),manual:vmanual[key]!=null});}
-  const anyVerse=smonths.some(m=>m.verse>0)||Object.keys(vmanual).length>0;
+  for(let k=5;k>=0;k--){const dt=new Date(_now.getFullYear(),_now.getMonth()-k,1);const key=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0');smonths.push({key,label:MOIS_COURT[dt.getMonth()],verse:Math.round((_byMonth[key]||0)*100)/100});}
+  const anyVerse=Object.keys(_byMonth).length>0;
   const conseille=plafond;                         // #2 : le versement conseille unique
   const H=120, maxBar=Math.max(conseille,...smonths.map(m=>m.verse),1);
   const barH=v=>Math.max(2,Math.round(v/maxBar*H));
   const refTop=H-Math.round(conseille/maxBar*H);
   const curM=smonths[smonths.length-1];
   const ecart=Math.round((curM.verse-conseille)*100)/100;
-  // ── Disponible : reduit a l'essentiel actionnable (combien encore me verser, le reste = tresorerie) ──
-  let dispo=0; try{const _E=computeEnveloppes();dispo=Math.round((_E.disponible||0)*100)/100;}catch(e){}
-  // Ce que tu peux ENCORE te verser ce mois = ton conseille moins ce que tu t'es deja verse, borne par le disponible.
-  const resteVirer=Math.max(0,Math.round(Math.min(conseille-curM.verse,dispo)*100)/100);
-  const resteTreso=Math.max(0,Math.round((dispo-resteVirer)*100)/100);
-  const suiviChart=anyVerse
-    ? \`<div style="position:relative;height:\${H+10}px;margin-top:8px;">
-        <div style="position:absolute;left:0;right:0;top:\${refTop}px;border-top:2px dashed var(--bleu);opacity:.5;"></div>
-        <div style="display:flex;align-items:flex-end;gap:16px;height:\${H}px;">
+  const suiviInner=anyVerse
+    ? \`<div style="position:relative;height:\${H+8}px;margin-top:6px;">
+        <div style="position:absolute;left:0;right:0;top:\${refTop}px;border-top:2px dashed var(--bleu);opacity:.55;"></div>
+        <div style="display:flex;align-items:flex-end;gap:10px;height:\${H}px;">
           \${smonths.map(m=>{const col=m.verse===0?'var(--surface-2)':(m.verse>=conseille?'#456039':'var(--bleu)');return \`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
-            <div style="font-size:11.5px;color:var(--navy);font-family:'Cormorant Garamond',serif;margin-bottom:4px;">\${m.verse>0?fmt(m.verse):'—'}</div>
-            <div style="width:64%;min-width:20px;height:\${barH(m.verse)}px;background:\${col};border-radius:6px 6px 0 0;"></div>
+            <div style="font-size:11px;color:var(--navy);font-family:'Cormorant Garamond',serif;margin-bottom:3px;">\${m.verse>0?fmt(m.verse):'—'}</div>
+            <div style="width:58%;min-width:18px;height:\${barH(m.verse)}px;background:\${col};border-radius:5px 5px 0 0;"></div>
           </div>\`;}).join('')}
         </div>
-        <div style="display:flex;gap:16px;margin-top:8px;">\${smonths.map(m=>\`<div style="flex:1;text-align:center;font-size:12px;color:var(--text-2);">\${m.label}</div>\`).join('')}</div>
-      </div>\`
-    : '<div style="font-size:13.5px;color:var(--text-2);padding:10px 0;line-height:1.6;">Pas encore d\\'historique. Saisis ton versement du mois ci-dessus, ou il sera détecté automatiquement via tes opérations Qonto « Versement perso ».</div>';
-  const ecartBadge=ecart>=0
-    ? \`<span style="display:inline-flex;align-items:center;background:var(--vert-bg);color:#456039;font-weight:700;border-radius:999px;padding:4px 12px;font-size:13px;">+\${fmt(ecart)}</span>\`
-    : \`<span style="display:inline-flex;align-items:center;background:rgba(165,80,46,.12);color:#a5502e;font-weight:700;border-radius:999px;padding:4px 12px;font-size:13px;">\${fmt(ecart)}</span>\`;
-  const suiviHtml=\`<div class="col-12"><div class="card" style="padding:32px 34px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:22px;">
-      <span style="font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-history"></i> Ce que je me verse</span>
+        <div style="display:flex;gap:10px;margin-top:5px;">\${smonths.map(m=>\`<div style="flex:1;text-align:center;font-size:11.5px;color:var(--text-2);">\${m.label}</div>\`).join('')}</div>
+      </div>
+      <div style="margin-top:12px;font-size:13.5px;color:var(--text-2);line-height:1.5;">Ce mois : <strong style="color:var(--navy);">\${fmt(curM.verse)}</strong> versé sur <strong>\${fmt(conseille)}</strong> conseillé — \${ecart>=0?\`<span style="color:#456039;font-weight:600;">+\${fmt(ecart)}</span> (tu te verses au moins ton conseillé)\`:\`<span style="color:#a5502e;font-weight:600;">\${fmt(ecart)}</span> sous ton conseillé\`}.</div>\`
+    : '<div style="font-size:13.5px;color:var(--text-2);padding:8px 0;">Aucun versement « Versement perso » enregistré pour l\\'instant. Dès que tu te verses (opérations Qonto classées « Versement perso »), le suivi apparaîtra ici.</div>';
+  const suiviHtml=\`<div class="col-12"><div class="card" style="padding:24px 26px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+      <span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-history"></i> Ce que je me verse · suivi</span>
       <span style="font-size:13px;color:var(--text-2);">Versement conseillé actuel <strong style="color:var(--bleu);">\${fmt(conseille)} / mois</strong></span>
     </div>
-
-    <div style="background:var(--surface-2);border-radius:14px;padding:22px 24px;margin-bottom:28px;">
-      <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:18px;">
-        <span style="font-size:14.5px;color:var(--navy);font-weight:600;">Ce mois (\${MOIS_LONG[_now.getMonth()]}), je me suis versé</span>
-        <input id="vm-input" type="number" min="0" step="10" value="\${curM.verse||''}" placeholder="0" style="width:120px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-size:17px;font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--navy);">
-        <span style="font-size:14px;color:var(--text-2);">€</span>
-        <button class="btn btn-outline btn-sm" onclick="saveVersementMois()"><i class="ti ti-check"></i> Enregistrer</button>
-        \${curM.manual?'<span style="font-size:12px;color:#456039;"><i class="ti ti-pencil"></i> saisi</span>':(curM.verse>0?'<span style="font-size:12px;color:var(--text-2);">détecté via Qonto</span>':'')}
-      </div>
-      <div style="display:flex;align-items:baseline;gap:10px 14px;flex-wrap:wrap;font-size:14px;color:var(--text-2);border-top:1px solid var(--border);padding-top:16px;">
-        <span><strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);">\${fmt(curM.verse)}</strong> versé</span>
-        <span style="opacity:.45;">sur</span>
-        <span><strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);">\${fmt(conseille)}</strong> conseillé</span>
-        \${ecartBadge}
-        <span style="font-size:13px;">\${ecart>=0?'tu te verses au moins ton conseillé':'sous ton conseillé'}</span>
-      </div>
-    </div>
-
-    <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;"><i class="ti ti-chart-bar" style="color:var(--terre-400);"></i> Historique · 6 derniers mois</div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:6px;line-height:1.55;">Barres = ce que tu t'es versé (Qonto ou saisie). Ligne pointillée = ton conseillé actuel (repère, pas un historique mois par mois).</div>
-    \${suiviChart}
+    <div style="font-size:12px;color:var(--text-2);margin-bottom:2px;">Barres = versements réels. Ligne pointillée = ton versement conseillé actuel (repère, pas un historique mois par mois).</div>
+    \${suiviInner}
   </div></div>\`;
-  // ── Repartition du disponible (adaptee au verse du mois) ──
-  const repInner=dispo>0
-    ? \`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;">
-        <div style="background:var(--glycine);border-radius:14px;padding:24px 26px;">
-          <div style="font-size:12.5px;color:var(--bleu);font-weight:600;margin-bottom:8px;"><i class="ti ti-cash"></i> Tu peux encore te verser</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:36px;color:var(--navy);line-height:1.05;">\${fmt(resteVirer)}</div>
-          <div style="font-size:12.5px;color:var(--bleu);margin-top:8px;line-height:1.55;">ce mois, pour atteindre ton conseillé de <strong>\${fmt(conseille)}</strong>\${curM.verse>0?' (déjà versé '+fmt(curM.verse)+')':''}.</div>
-        </div>
-        <div style="background:var(--surface-2);border-radius:14px;padding:24px 26px;">
-          <div style="font-size:12.5px;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-building-bank"></i> Le reste demeure ta trésorerie</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:36px;color:var(--navy);line-height:1.05;">\${fmt(resteTreso)}</div>
-          <div style="font-size:12.5px;color:var(--text-2);margin-top:8px;line-height:1.55;">ton argent d'entreprise — pour tes provisions à venir et ton buffer de sécurité.</div>
-        </div>
-      </div>\`
-    : '<div style="font-size:13.5px;color:var(--text-2);padding:10px 0;line-height:1.6;">Aucun disponible pour le moment (tes réserves couvrent ton solde). Dès qu\\'il y a du disponible, il apparaîtra ici.</div>';
-  const repartHtml=\`<div class="col-12"><div class="card" style="padding:32px 34px;border:1.5px solid var(--glycine);">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:8px;">
-      <span style="font-size:16px;font-weight:700;color:var(--navy);"><i class="ti ti-cash" style="color:var(--bleu);"></i> Où va mon argent disponible</span>
-      <span style="font-size:13px;color:var(--text-2);">Disponible <strong style="color:var(--navy);">\${fmt(dispo)}</strong></span>
-    </div>
-    <div style="font-size:13px;color:var(--text-2);margin-bottom:22px;line-height:1.6;max-width:640px;">Ton disponible = solde réel − provisions sécurisées (URSSAF, charges…). Voici ce que tu peux <strong>encore te verser ce mois</strong> (jusqu'à ton conseillé) et ce qui <strong>reste dans l'entreprise</strong>.</div>
-    \${repInner}
-  </div></div>\`;
-  // ── Mettre de cote : objectifs unifies (projets de vie actifs + objectifs d'epargne) en une seule liste ──
-  const _pv=Array.isArray(_sV.projetsVie)?_sV.projetsVie.filter(p=>p.statut!=='termine'):[];
-  const _oe=dbGet('objectifs_epargne')||[];
-  const objU=[
-    ..._pv.map(p=>({nom:p.nom||'Projet',cible:parseFloat(p.cible)||0,deja:parseFloat(p.epargne)||0,mens:parseFloat(p.mensualite)||0,date:'',src:'projet'})),
-    ..._oe.map(o=>({nom:o.nom||'Objectif',cible:parseFloat(o.cible)||0,deja:parseFloat(o.actuel)||0,mens:0,date:o.dateCible||'',src:'objectif'})),
-  ].filter(o=>o.cible>0||o.deja>0);
-  const epMens=Math.round((Number(M.epargnePrevue)||0)*100)/100;
-  const affecteObj=Math.round(objU.reduce((s,o)=>s+o.mens,0)*100)/100;
-  const dispoEp=Math.round((epMens-affecteObj)*100)/100;
-  const overEp=affecteObj>epMens+0.005;
-  const objRows=objU.map(o=>{
-    const reste=Math.max(0,Math.round((o.cible-o.deja)*100)/100);
-    const pct=o.cible>0?Math.min(100,Math.round(o.deja/o.cible*100)):0;
-    return \`<div style="padding:15px 0;border-top:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:7px;flex-wrap:wrap;">
-        <span style="font-size:14.5px;font-weight:600;color:var(--navy);"><i class="ti \${o.src==='projet'?'ti-map-pin-heart':'ti-target'}" style="color:var(--terre-400);"></i> \${escHtml(o.nom)}</span>
-        <span style="font-size:13px;color:var(--text-2);white-space:nowrap;">\${o.mens>0?'<strong style="color:var(--navy);">'+fmt(o.mens)+'</strong> /mois · ':''}reste \${fmt(reste)}</span>
-      </div>
-      <div style="height:8px;background:var(--surface-2);border-radius:5px;overflow:hidden;"><div style="height:100%;width:\${pct}%;background:var(--violet-ink);border-radius:5px;"></div></div>
-      <div style="font-size:11.5px;color:var(--text-2);margin-top:6px;">\${fmt(o.deja)} / \${fmt(o.cible)} · \${pct}%\${o.date?' · cible '+fmtDate(o.date):''}</div>
-    </div>\`;
-  }).join('');
-  const objHtml=objU.length?\`<div class="col-12"><div class="card" style="padding:32px 34px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:10px;">
-      <span style="font-size:16px;font-weight:700;color:var(--navy);"><i class="ti ti-coin" style="color:var(--bleu);"></i> Mettre de côté · mes objectifs</span>
-      <span style="font-size:13px;color:var(--text-2);">Épargne réelle <strong style="color:var(--navy);">\${fmt(epMens)} / mois</strong></span>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13px;margin-bottom:10px;align-items:baseline;">
-      <span style="color:var(--text-2);">Affecté à tes objectifs <strong style="color:var(--navy);">\${fmt(affecteObj)} /mois</strong></span>
-      <span style="font-weight:600;color:\${overEp?'#a5502e':'#456039'};">\${overEp?'<i class="ti ti-alert-triangle"></i> Dépassement de '+fmt(affecteObj-epMens)+'/mois — tes objectifs réclament plus que ton épargne':'Disponible à affecter '+fmt(dispoEp)+'/mois'}</span>
-    </div>
-    <div style="font-size:12.5px;color:var(--text-2);margin-bottom:8px;line-height:1.6;max-width:660px;">Ce que tu peux mettre de côté chaque mois, réparti sur tes objectifs en cours. Ajuste les mensualités dans <a onclick="navigate('projets-vie')" style="color:var(--bleu);cursor:pointer;">Projets de vie</a> ou <a onclick="navigate('objectifs-epargne')" style="color:var(--bleu);cursor:pointer;">Objectifs</a>.</div>
-    \${objRows}
-  </div></div>\`:'';
-  el.innerHTML=\`<div class="grid12" style="row-gap:26px;">
-  <div class="col-12"><div class="card" style="padding:34px 36px;background:var(--glycine);border:none;">
+  el.innerHTML=\`<div class="grid12">
+  <div class="col-12"><div class="card" style="padding:30px 32px;background:var(--glycine);border:none;">
     <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--bleu);"><i class="ti ti-wallet"></i> Ma rémunération fixe · décision prise</div>
     <div class="fig-hero" style="font-size:56px;font-weight:700;color:var(--navy);margin:6px 0 2px;">\${fmt(remu)}<span style="font-size:18px;color:var(--bleu);font-style:normal;"> / mois</span></div>
     <div style="font-size:14.5px;color:var(--bleu);">C'est ce que je me verse chaque mois. Modifiable dans <a onclick="navigate('options')" style="color:var(--bleu);text-decoration:underline;cursor:pointer;">Options</a>.</div>
@@ -6537,49 +6411,27 @@ function loadVersement(){
       <span>\${sousPlafond?\`Sous le plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — ton activité soutient ta rémunération fixe sans puiser dans tes réserves.\`:\`Au-dessus du plafond soutenable du mois (<strong>\${fmt(plafond)}</strong>) — la différence est absorbée par ta réserve de lissage (voir l'accueil).\`}</span>
     </div>
   </div></div>
-  <div class="col-12"><div class="card" style="padding:38px 42px;">
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:4px;">Tes repères de contrôle</div>
-    <p style="font-size:13.5px;color:var(--text-2);margin:0 0 24px;line-height:1.55;max-width:640px;">Trois bornes pour <strong>situer</strong> ta rémunération fixe — pas des montants à te verser.</p>
+  <div class="col-12"><div class="card" style="padding:28px 30px;"><div class="panel-split split-even">
+    <div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:6px;">Tes repères de contrôle</div>
+    <p style="font-size:13px;color:var(--text-2);margin:0 0 14px;">Des bornes pour situer ta rémunération fixe — pas des montants à te verser.</p>
     \${posBar}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px;">
-      \${rep('ti-arrow-bar-to-down','Minimum vital','tes charges une fois tes aides déduites',salaireMin)}
-      \${rep('ti-arrow-bar-to-up','Plafond soutenable','ce que ton activité soutient sans puiser',plafond)}
-      \${rep('ti-target','Niveau de vie confortable','l\\'objectif que tu as fixé',confort)}
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      \${rep('ti-arrow-bar-to-down','Salaire minimum (charges − aides)','le plancher : tes charges perso une fois tes aides déduites',salaireMin)}
+      \${rep('ti-arrow-bar-to-up','Plafond soutenable','ce que l\\'activité soutient sans puiser — à ne pas dépasser durablement',plafond)}
+      \${rep('ti-target','Niveau de vie confortable','objectif que tu as fixé toi-même',confort)}
     </div>
-    \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:20px;line-height:1.5;">Ta rémunération = <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif confort. Tu l'ajusteras quand ton activité le permettra.</div>\`:''}
-    <div style="border-top:1px solid var(--border);margin-top:34px;padding-top:30px;">
-      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:25px;color:var(--navy);margin-bottom:18px;">Sur quel horizon ?</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
-        <div style="background:var(--surface-2);border-radius:12px;padding:22px 24px;">
-          <div style="font-size:13px;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--navy);line-height:1;">\${fmt(maxP)}</div>
-          <div style="font-size:12.5px;color:var(--text-2);margin-top:8px;line-height:1.5;">une capacité exceptionnelle, sans toucher à tes réserves</div>
-        </div>
-        <div style="background:var(--surface-2);border-radius:12px;padding:22px 24px;">
-          <div style="font-size:13px;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable · 12 mois</div>
-          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;color:var(--navy);line-height:1;">\${fmt(plafond)}</div>
-          <div style="font-size:12.5px;color:var(--text-2);margin-top:8px;line-height:1.5;">ce qui tient sur la durée — le plafond de ta rémunération</div>
-        </div>
-      </div>
+    \${(pctConfort!=null)?\`<div style="font-size:13.5px;color:var(--text-2);margin-top:14px;line-height:1.5;">Ta rémunération fixe représente <strong style="color:var(--navy);">\${pctConfort}%</strong> de ton objectif de niveau de vie confortable. Tu l'ajusteras à la hausse quand ton activité le permettra.</div>\`:''}
     </div>
-  </div></div>
+    <div>
+    <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:23px;color:var(--navy);margin-bottom:14px;">Sur quel horizon ?</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-bolt"></i> Maximum ponctuel, une fois <small style="color:var(--text-2);">(sans toucher aux réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(maxP)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:11px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:8px;"><i class="ti ti-calendar-repeat"></i> Rythme soutenable (12 mois)</span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;">\${fmt(plafond)}</span></div>
+    <p style="font-size:13.5px;color:var(--text-2);margin-top:10px;">Le maximum ponctuel est une <strong>capacité exceptionnelle</strong>, pas un salaire mensuel. Le rythme soutenable, lui, tient sur la durée — et c'est le plafond de ta rémunération fixe.</p>
+    </div>
+  </div></div></div>
   \${suiviHtml}
-  \${repartHtml}
-  \${objHtml}
   </div>\`;
-}
-async function saveVersementMois(){
-  const raw=q('#vm-input')?.value;
-  const v=parseFloat(raw);
-  try{
-    const settings=dbGetObj('settings');
-    settings.versementMois=(settings.versementMois&&typeof settings.versementMois==='object')?settings.versementMois:{};
-    const ym=new Date().getFullYear()+'-'+String(new Date().getMonth()+1).padStart(2,'0');
-    if(raw===''||isNaN(v)||v<0){delete settings.versementMois[ym];toast('Saisie du mois effacée (retour au détecté Qonto)','success');}
-    else{settings.versementMois[ym]=Math.round(v*100)/100;toast('Versement du mois enregistré','success');}
-    _cache.settings=await api('PUT','/api/settings',settings);
-    loadVersement();
-  }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
 function loadReserve(){
@@ -6683,9 +6535,9 @@ function renderPersoResteAVivre(){
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:7px;">
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Entrées \${fmt(R.revenusMois)}</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.baseVersement)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
+        <div style="width:\${pw(R.remu)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,R.verseReel!=null?'Versé ce mois':'Rémunération',R.baseVersement)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,'Rémunération',R.remu)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
         <div style="width:\${pw(R.chargesFixes)}%;background:\${crM};"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:\${crL};"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:\${ACC};"></div>
@@ -7368,36 +7220,11 @@ async function savePersoPaliers(){
 }
 
 function loadProjetsVie(){renderProjetsVie();}
-// Fusion opt-in des objectifs d'epargne dans les projets de vie (une seule liste).
-// Non destructif tant que non confirme ; copie d'abord dans settings, puis retire les anciens.
-async function mergeObjectifsDansProjets(){
-  const oe=dbGet('objectifs_epargne')||[];
-  if(!oe.length){toast('Rien à rassembler','info');return;}
-  if(!confirm('Rassembler tes '+oe.length+' objectif(s) d\\'épargne dans Projets de vie ?\\n\\nIls y seront copiés (montant déjà mis, cible, date), puis retirés de l\\'ancien écran « Objectifs ». Tu pourras leur ajouter une mensualité ensuite.'))return;
-  try{
-    const settings=dbGetObj('settings');
-    const pv=Array.isArray(settings.projetsVie)?settings.projetsVie.slice():[];
-    oe.forEach(o=>{
-      pv.push({id:'pv_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),nom:o.nom||'Objectif',cat:'autre',priorite:2,cible:parseFloat(o.cible)||0,epargne:parseFloat(o.actuel)||0,mensualite:0,support:'',dateCible:o.dateCible||'',lastVersement:_ymNow()});
-    });
-    settings.projetsVie=pv;
-    _cache.settings=await api('PUT','/api/settings',settings);
-    for(const o of oe){ try{await dbDelete('objectifs_epargne',o.id);}catch(e){} }
-    toast(oe.length+' objectif(s) rassemblé(s) dans Projets de vie','success');
-    renderProjetsVie();
-  }catch(e){toast('Erreur : '+e.message,'error');}
-}
 function renderProjetsVie(){
   const el=q('#projets-vie-grid'); if(!el)return;
   const s=dbGetObj('settings');
   const projetsAll=Array.isArray(s.projetsVie)?s.projetsVie.slice():[];
-  // Fusion opt-in : anciens objectifs d'epargne a rassembler ici
-  const _oe2=dbGet('objectifs_epargne')||[];
-  const mergeBanner=_oe2.length?\`<div class="card" style="padding:20px 24px;margin-bottom:18px;border:1.5px solid var(--glycine);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
-    <div style="font-size:14px;color:var(--navy);line-height:1.55;"><i class="ti ti-git-merge" style="color:var(--bleu);"></i> Tu as <strong>\${_oe2.length}</strong> objectif\${_oe2.length>1?'s':''} d'épargne dans l'ancien écran « Objectifs ». Rassemble-les ici pour tout gérer au même endroit.</div>
-    <button class="btn btn-primary btn-sm" onclick="mergeObjectifsDansProjets()"><i class="ti ti-arrow-merge"></i> Tout rassembler ici</button>
-  </div>\`:'';
-  if(!projetsAll.length){el.innerHTML=mergeBanner+\`<div class="card" style="padding:32px;text-align:center;border:1.5px dashed var(--border);background:none;">
+  if(!projetsAll.length){el.innerHTML=\`<div class="card" style="padding:32px;text-align:center;border:1.5px dashed var(--border);background:none;">
     <div style="font-size:34px;"><i class="ti ti-target"></i></div>
     <div style="font-size:17px;font-weight:600;color:var(--navy);margin:10px 0 6px;">Donne une mission à ton épargne</div>
     <div style="font-size:14.5px;color:var(--text-2);max-width:440px;margin:0 auto 18px;line-height:1.55;">Vacances, nouvelle voiture, apport immo… crée un projet et on te dit quand il deviendra réalité.</div>
@@ -7524,7 +7351,7 @@ function renderProjetsVie(){
       </div>\`;
     }).join('')}
   </div>\`:'';
-  el.innerHTML=mergeBanner+overview+list+finisHtml;
+  el.innerHTML=overview+list+finisHtml;
 }
 
 function openProjetVieModal(id){
@@ -7651,6 +7478,196 @@ function renderQontoCalc(){
   // Répercuter le solde calculé dans la carte compte manuelle
   renderComptes();
 
+  // ── Provisions ────────────────────────────────────────────────────────
+  const tauxU=(parseFloat(s.tauxUrssaf)||25.6)/100;
+  const tauxC=(parseFloat(s.tauxCfp)||0.2)/100;
+  const pas=parseFloat(s.pasFixe)||40;
+  const cfe=parseFloat(s.cfeAnnuelle||s.cfe)||0;
+  const provCharges=Math.round((caEncaisse*(tauxU+tauxC)+pas*nbMois+cfe*(nbMois/12))*100)/100;
+
+  const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut);
+  const totalAbosMois=abos.reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
+  // Provision sur 12 mois (budget annuel à conserver, pas × mois écoulés)
+  const provChargesFixes=Math.round(totalAbosMois*12*100)/100;
+
+  const netApresCharges=Math.max(0,caEncaisse-provCharges-provChargesFixes);
+  const pctVers=(parseFloat(s.pctVersement)||65)/100;
+  const pctTreso=(parseFloat(s.pctTresorerie)||20)/100;
+  const pctFormation=(parseFloat(s.pctFormation)||10)/100;
+  const pctEpargne=Math.max(0,1-pctVers-pctTreso-pctFormation);
+  const provVers=Math.round(netApresCharges*pctVers*100)/100;
+  const provTreso=Math.round(netApresCharges*pctTreso*100)/100;
+  const provFormation=Math.round(netApresCharges*pctFormation*100)/100;
+  const provEpargne=Math.round(netApresCharges*pctEpargne*100)/100;
+
+  // ── Dépenses réelles par enveloppe (mapping catégories) ───────────────
+  function depCat(...cats){
+    return toutesDepenses.filter(d=>cats.includes(d.categorie)).reduce((s,d)=>s+(d.montant||0),0);
+  }
+  const depCharges   = depCat('Charges sociales');
+  const depFixes     = depCat('Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre');
+  const depFormation = depCat('Formation');
+  const depVers      = totalVersements;
+  // Trésorerie : tout ce qui reste non catégorisé dans les enveloppes ci-dessus
+  const depTreso     = Math.max(0, totalTout - depCharges - depFixes - depFormation - depVers);
+
+  // ── Calculs disponible net ────────────────────────────────────────────
+  const resteCharges   = Math.max(0, provCharges    - depCharges);
+  const resteChargesFix= Math.max(0, provChargesFixes - depFixes);
+  const resteFormation = Math.max(0, provFormation  - depFormation);
+  const totalASecuriser= resteCharges + resteChargesFix + resteFormation;
+  const disponibleBrut = soldeActuel - totalASecuriser;
+  const versementPossible = Math.max(0, Math.round(disponibleBrut * pctVers * 100)/100 - depVers);
+  const tresoLibre     = Math.max(0, Math.round(disponibleBrut * pctTreso * 100)/100);
+  const vraimentLibre  = Math.max(0, disponibleBrut - Math.round(disponibleBrut*pctVers*100)/100 - tresoLibre - Math.round(disponibleBrut*(parseFloat(s.pctFormation||10)/100)*100)/100);
+
+  // ── Listes dépenses par enveloppe ────────────────────────────────────
+  function depLines(depList){
+    if(!depList||!depList.length)return '<div style="font-size:12px;color:var(--text-2);margin-top:6px;font-style:italic;">Aucune dépense dans cette enveloppe</div>';
+    return '<div style="margin-top:8px;border-top:1px solid #E0DDD8;padding-top:8px;">'+
+      depList.map(d=>'<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-2);padding:2px 0;">'+
+        '<span>'+fmtDate(d.date)+(d.description?' — '+d.description:'')+'</span>'+
+        '<span style="font-weight:600;white-space:nowrap;margin-left:8px;color:var(--navy);">−'+fmt(d.montant||0)+'</span>'+
+      '</div>').join('')+
+    '</div>';
+  }
+
+  const listCharges  = toutesDepenses.filter(d=>d.categorie==='Charges sociales');
+  const listFixes    = toutesDepenses.filter(d=>['Logiciels & abonnements','Matériel','Communication','Comptabilité','Déplacement','Autre'].includes(d.categorie));
+  const listFormation= toutesDepenses.filter(d=>d.categorie==='Formation');
+  const listVers     = versementsEffectues;
+
+  // ── Rendu ──────────────────────────────────────────────────────────────
+  const envEl=q('#qonto-enveloppes');
+  if(!envEl)return;
+
+  function provCard(icon,label,provision,depense,restant,couleur,depList){
+    const pct=provision>0?Math.min(100,Math.round(depense/provision*100)):0;
+    const overshot=restant<0;
+    return '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid '+(overshot?'#8d2b21':couleur)+';">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'+
+        '<div style="display:flex;align-items:center;gap:8px;">'+
+          '<span style="font-size:18px;">'+icon+'</span>'+
+          '<span style="font-size:13px;font-weight:700;color:var(--navy);">'+label+'</span>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<div style="font-size:11px;color:var(--text-2);">Provision</div>'+
+          '<div style="font-size:14px;font-weight:600;color:var(--navy);">'+fmt(provision)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="display:flex;gap:12px;margin-bottom:8px;">'+
+        '<div style="flex:1;background:'+(overshot?'#FEE':'#fff')+';border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">À garder de côté</div>'+
+          '<div style="font-size:17px;font-weight:700;color:'+(overshot?'#8d2b21':restant===0?'#456039':couleur)+';">'+(restant===0?'<i class="ti ti-check"></i> Couvert':fmt(restant))+'</div>'+
+        '</div>'+
+        '<div style="flex:1;background:#fff;border-radius:8px;padding:8px 10px;text-align:center;">'+
+          '<div style="font-size:11px;color:var(--text-2);margin-bottom:2px;">Déjà réglé</div>'+
+          '<div style="font-size:17px;font-weight:700;color:var(--navy);">'+fmt(depense)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="height:5px;background:#ece3d4;border-radius:3px;margin-bottom:8px;">'+
+        '<div style="height:100%;width:'+pct+'%;background:'+(overshot?'#8d2b21':pct>=100?'#456039':couleur)+';border-radius:3px;transition:width .5s;"></div></div>'+
+      depLines(depList)+
+    '</div>';
+  }
+
+  envEl.innerHTML =
+    // ── Zone 1 : Synthèse ────────────────────────────────────────────────
+    '<div style="grid-column:1/-1;background:var(--navy);border-radius:14px;padding:20px 24px;color:#fff;margin-bottom:4px;">'+
+      '<div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:14px;">Synthèse · depuis '+fmtDate(dateDebut)+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">'+
+        '<div>'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;">Solde Qonto</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;">'+fmt(soldeActuel)+'</div>'+
+          (caAttente>0?'<div style="font-size:12px;opacity:.6;margin-top:4px;">+'+fmt(caAttente)+' en attente</div>':'')+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;"><i class="ti ti-lock"></i> À sécuriser</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:#F8B84E;">'+fmt(totalASecuriser)+'</div>'+
+          '<div style="font-size:12px;opacity:.6;margin-top:4px;">charges + frais restants</div>'+
+        '</div>'+
+        '<div style="border-left:1px solid rgba(255,255,255,.2);padding-left:16px;">'+
+          '<div style="font-size:12px;opacity:.6;margin-bottom:4px;"><i class="ti ti-circle-check"></i> Disponible net</div>'+
+          '<div style="font-size:28px;font-weight:700;letter-spacing:-.5px;color:'+(disponibleBrut<0?'#F87171':'#4ADE80')+';">'+fmt(disponibleBrut)+'</div>'+
+          '<div style="font-size:12px;opacity:.6;margin-top:4px;">après provisions sécurisées</div>'+
+        '</div>'+
+      '</div>'+
+      // Répartition du disponible
+      (disponibleBrut>0?
+      '<div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);">'+
+        '<div style="font-size:12px;opacity:.6;margin-bottom:10px;">Répartition du disponible net</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-cash"></i> Versement perso ('+Math.round(pctVers*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctVers*100)/100)+'</div>'+
+            (depVers>0?'<div style="font-size:11px;opacity:.5;margin-top:2px;">Déjà versé : '+fmt(depVers)+'</div>':'')+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-building-bank"></i> Trésorerie ('+Math.round(pctTreso*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctTreso*100)/100)+'</div>'+
+          '</div>'+
+          '<div style="background:rgba(255,255,255,.1);border-radius:8px;padding:10px 12px;">'+
+            '<div style="font-size:11px;opacity:.6;margin-bottom:3px;"><i class="ti ti-books"></i> Formation ('+Math.round(pctFormation*100)+'%)</div>'+
+            '<div style="font-size:18px;font-weight:700;">'+fmt(Math.round(disponibleBrut*pctFormation*100)/100)+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>':'')
+    +'</div>'+
+    // ── Zone 2 : Provisions ──────────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-lock"></i> Provisions à sécuriser</div>'+
+    provCard('<i class="ti ti-alert-circle"></i>','Charges sociales (URSSAF · CFE)',provCharges,depCharges,resteCharges,'#8d2b21',listCharges)+
+    provCard('<i class="ti ti-clipboard-list"></i>','Charges fixes (abonnements · frais pro)',provChargesFixes,depFixes,resteChargesFix,'#a5502e',listFixes)+
+    provCard('<i class="ti ti-books"></i>','Formation',provFormation,depFormation,resteFormation,'#7B4DD4',listFormation)+
+    // ── Zone 3 : Versements perso ────────────────────────────────────────
+    '<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin:8px 0 4px;"><i class="ti ti-cash"></i> Versements perso effectués</div>'+
+    '<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;border-left:4px solid #456039;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'+
+        '<span style="font-size:13px;font-weight:700;color:var(--navy);">Total versé depuis '+fmtDate(dateDebut)+'</span>'+
+        '<span style="font-size:20px;font-weight:700;color:#456039;">'+fmt(depVers)+'</span>'+
+      '</div>'+
+      depLines(listVers)+
+    '</div>';
+
+  // ── Pots virtuels (grille en haut de la section) ──────────────────────
+  const potsGrid=q('#qonto-pots-grid');
+  if(potsGrid){
+    function potCard(icon,nom,solde,couleur,sub,pct){
+      const pctClamped=Math.min(100,Math.max(0,pct||0));
+      return '<div class="pot-card">'+
+        '<div class="pot-card-header">'+
+          '<div>'+
+            '<div class="pot-icon">'+icon+'</div>'+
+            '<div class="pot-nom">'+nom+'</div>'+
+          '</div>'+
+          '<span class="badge" style="background:'+couleur+'22;color:'+couleur+';font-size:11px;">virtuel</span>'+
+        '</div>'+
+        '<div class="pot-solde" style="color:'+couleur+';">'+fmt(solde)+'</div>'+
+        '<div class="pot-sub">'+sub+'</div>'+
+        '<div class="pot-bar"><div class="pot-bar-fill" style="width:'+pctClamped+'%;background:'+couleur+';"></div></div>'+
+      '</div>';
+    }
+    const pctUsedCharges  = provCharges>0 ? depCharges/provCharges*100 : 0;
+    const pctUsedFixes    = provChargesFixes>0 ? depFixes/provChargesFixes*100 : 0;
+    const pctUsedFormation= provFormation>0 ? depFormation/provFormation*100 : 0;
+    const versementSolde  = Math.max(0,Math.round(disponibleBrut*pctVers*100)/100 - depVers);
+    potsGrid.innerHTML=
+      potCard('<i class="ti ti-alert-circle"></i>','URSSAF & Charges sociales', Math.max(0,resteCharges), '#8d2b21',
+        depCharges>0?fmt(depCharges)+' deja regle · provision '+fmt(provCharges):'Provision sur CA encaisse',
+        pctUsedCharges)+
+      potCard('<i class="ti ti-clipboard-list"></i>','Charges fixes & abonnements', Math.max(0,resteChargesFix), '#a5502e',
+        'Budget annuel '+fmt(provChargesFixes)+' · '+fmt(depFixes)+' dépensé',
+        pctUsedFixes)+
+      potCard('<i class="ti ti-books"></i>','Formation', Math.max(0,resteFormation), '#7B4DD4',
+        'Provision '+fmt(provFormation)+' · '+fmt(depFormation)+' utilisé',
+        pctUsedFormation)+
+      potCard('<i class="ti ti-building-bank"></i>','Trésorerie buffer', Math.round(disponibleBrut*pctTreso*100)/100, '#2c4a72',
+        Math.round(pctTreso*100)+'% du disponible net · sécurité',
+        100)+
+      potCard('<i class="ti ti-cash"></i>','Versement perso', versementSolde, '#456039',
+        fmt(depVers)+' versé · reste à te virer',
+        depVers>0?Math.min(100,depVers/(Math.round(disponibleBrut*pctVers*100)/100)*100):0)+
+      (pctEpargne>0.001?potCard('<i class="ti ti-coin"></i>','Épargne', provEpargne, '#7c5cbf','Buffer long terme',0):'');
+  }
 }
 function renderDepensesPrevues(){
   const list=dbGet('depenses_prevues');
@@ -8216,47 +8233,26 @@ async function saveFacture(){
 
 /* --- Tiers ------------------------------------------------------------ */
 let tiersData=[];
-async function loadTiers(){
+function loadTiers(){
   tiersData=dbGet('tiers');
-  try{const res=await api('GET','/api/prospects');_prospectsCache=Array.isArray(res)?res:[];}catch(e){}
-  const factures=dbGet('factures')||[];
-  const projets=dbGet('projets')||[];
+  const clients=tiersData.filter(t=>t.type==='client');
+  const factures=dbGet('factures');
   const payees=factures.filter(f=>f.statut==='payee');
   const caParNom={};
-  payees.forEach(f=>{if(f.client)caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
-  // Compteur sur TOUS les clients : tiers manuels + factures/projets + prospects convertis
-  const noms=new Set();
-  tiersData.filter(t=>t.type==='client').forEach(t=>{if(t.nom)noms.add(t.nom.trim());});
-  factures.forEach(f=>{if(f.client)noms.add(f.client.trim());});
-  projets.forEach(p=>{if(p.client)noms.add(p.client.trim());});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n)noms.add(n);});
-  const caTotal=payees.reduce((s,f)=>s+(f.montant||0),0);
-  let top=null,topCa=-1; Object.keys(caParNom).forEach(n=>{if(caParNom[n]>topCa){topCa=caParNom[n];top=n;}});
-  if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=noms.size;
+  payees.forEach(f=>{caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
+  const caTotal=clients.reduce((s,t)=>s+(caParNom[t.nom]||0),0);
+  const top=clients.reduce((best,t)=>(caParNom[t.nom]||0)>(caParNom[best?.nom]||0)?t:best,null);
+  if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=clients.length;
   if(q('#tiers-kpi-ca'))q('#tiers-kpi-ca').textContent=fmt(caTotal);
-  if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top||'—';
+  if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top?.nom||'—';
   renderTiers();
-}
-// Ajoute un client "derive" (present sur factures/projets) a la vraie liste Tiers.
-async function addDerivedTiers(nomEnc){
-  const nom=decodeURIComponent(nomEnc||'');
-  try{ await dbCreate('tiers',{nom:nom,type:'client'}); tiersData=dbGet('tiers'); toast('« '+nom+' » ajouté à tes clients','success'); loadTiers(); }
-  catch(e){toast('Erreur : '+e.message,'error');}
 }
 function renderTiers(){
   const search=q('#tiers-search')?.value.toLowerCase()||'';
   const type=q('#tiers-filter-type')?.value||'';
   const factures=dbGet('factures');
   const payees=factures.filter(f=>f.statut==='payee');
-  // Clients "derives" : noms sur factures/projets absents de la liste Tiers -> on les affiche aussi
-  const projets=dbGet('projets')||[];
-  const known=new Set(tiersData.map(t=>(t.nom||'').trim().toLowerCase()));
-  const derivedMap=new Map();
-  factures.forEach(f=>{const n=(f.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  projets.forEach(p=>{const n=(p.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  const derived=[...derivedMap.values()].map(n=>({nom:n,type:'client',derived:true}));
-  let list=[...tiersData, ...derived];
+  let list=[...tiersData];
   if(search)list=list.filter(t=>((t.nom||'')+(t.email||'')+(t.notes||'')).toLowerCase().includes(search));
   if(type)list=list.filter(t=>t.type===type);
   // Trier par CA décroissant pour les clients
@@ -8270,20 +8266,19 @@ function renderTiers(){
     const facs=factures.filter(f=>f.client===t.nom);
     const ca=payees.filter(f=>f.client===t.nom).reduce((s,f)=>s+(f.montant||0),0);
     const derniere=facs.sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
-    return\`<tr\${t.derived?' style="opacity:.86;"':''}>
-      <td><strong>\${escHtml(t.nom||'')}</strong>\${t.derived?' <span style="font-size:11px;color:var(--terre-400);white-space:nowrap;">· via factures</span>':''}</td>
+    return\`<tr>
+      <td><strong>\${t.nom}</strong></td>
       <td><span class="badge badge-\${typeBadge[t.type]||'attente'}">\${typeLabel[t.type]||t.type}</span></td>
       <td class="td-muted">\${t.email||'—'}</td>
       <td class="td-amount">\${ca>0?fmt(ca):'—'}</td>
       <td style="text-align:center;">\${facs.length||'—'}</td>
       <td>\${derniere?fmtDate(derniere.date):'—'}</td>
       <td style="white-space:nowrap;">
-        \${t.derived
-          ? '<button class="btn btn-ghost btn-xs" title="Créer la fiche client" onclick="addDerivedTiers(\\''+encodeURIComponent(t.nom||'')+'\\')"><i class="ti ti-user-plus"></i></button>'
-          : '<button class="btn btn-ghost btn-xs" onclick="editTiers(\\''+t.id+'\\')"><i class="ti ti-edit"></i></button><button class="btn btn-ghost btn-xs" onclick="deleteTiers(\\''+t.id+'\\')"><i class="ti ti-trash"></i></button>'}
+        <button class="btn btn-ghost btn-xs" onclick="editTiers('\${t.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteTiers('\${t.id}')"><i class="ti ti-trash"></i></button>
       </td>
     </tr>\`;
-  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun client — tes factures et projets alimenteront cette liste, ou ajoute un tiers.</td></tr>';
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun tiers enregistré</td></tr>';
 }
 function openModalTiers(data={}){
   q('#modal-tiers-title').textContent=data.id?'Modifier le tiers':'Nouveau tiers';
@@ -8331,21 +8326,9 @@ const CRM_STATUTS={
 
 const CRM_PROBA={contact:15,en_attente:25,positif:55,proposition:65,converti:100,negatif:0,sans_suite:0};
 const CRM_OPEN=['contact','en_attente','positif','proposition'];
-// Un prospect compte comme CLIENT sauf s'il est clairement perdu.
-function prospectEstClient(p){return !!p&&!['negatif','sans_suite','perdu'].includes(p.statut);}
 const CRM_COLS=[{id:'contact',lab:'À contacter'},{id:'en_attente',lab:'Relancé / en attente'},{id:'positif',lab:'Intéressé'},{id:'proposition',lab:'Devis envoyé'},{id:'converti',lab:'Gagné'},{id:'perdu',lab:'Perdu'}];
 function openProspectById(id){const p=_prospectsCache.find(x=>x.id===id);if(p)openProspectModal(p);}
 
-// Rendu complet du CRM avec les fonctions VIVANTES (pipeline, kpis, kanban, relations…).
-function crmRenderAll(){
-  try{crmPipeline();}catch(e){}
-  try{crmKpis();}catch(e){}
-  try{crmToday();}catch(e){}
-  try{crmObjectif();}catch(e){}
-  try{crmKanban();}catch(e){}
-  try{crmRelations();}catch(e){}
-  try{refreshCrmSecteurFilter();}catch(e){}
-}
 async function loadCrm(){
   try{const res=await api('GET','/api/prospects');_prospectsCache=Array.isArray(res)?res:[];}catch(e){_prospectsCache=[];}
   try{crmPipeline();}catch(e){}
@@ -8369,7 +8352,7 @@ function crmPipeline(){
   const relances=ps.filter(p=>!['negatif','converti','sans_suite'].includes(p.statut)&&((p.relance1&&!p.dateRelance1&&p.relance1<=todayStr)||(p.relance2&&!p.dateRelance2&&p.relance2<=todayStr)||(p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr))).length;
   const devis=ps.filter(p=>p.statut==='proposition').length;
   const cell=(lab,val)=>\`<div><div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.68);">\${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:34px;font-weight:700;margin-top:2px;">\${val}</div></div>\`;
-  el.innerHTML=\`<div class="screen-hero" style="display:flex;gap:40px;flex-wrap:wrap;align-items:center;">
+  el.innerHTML=\`<div style="background:var(--navy);border-radius:18px;padding:28px 32px;color:#fff;display:flex;gap:40px;flex-wrap:wrap;align-items:center;">
     <div style="min-width:160px;"><div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.65;display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Mon pipeline</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:42px;font-weight:700;margin-top:3px;line-height:1.05;">\${open.length} prospect\${open.length>1?'s':''} actif\${open.length>1?'s':''}</div></div>
     <div class="stat-strip stat-strip--dark" style="flex:1 1 auto;">\${cell('CA potentiel',fmt(caPot))}\${cell('Relances à faire',relances)}\${cell('Devis en cours',devis)}</div>
   </div>\`;
@@ -8401,7 +8384,7 @@ function crmToday(){
     else if(p.relance2&&!p.dateRelance2&&p.relance2<=todayStr)items.push({txt:'<i class="ti ti-phone"></i> Recontacter '+nom,sub:'2e relance',id:p.id});
     else if(p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr)items.push({txt:'<i class="ti ti-file"></i> Dernière relance '+nom,sub:'relance finale',id:p.id});
   });
-  el.innerHTML=\`<div class="card" style="padding:22px;">
+  el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
     <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-clipboard-list"></i> À faire aujourd'hui</div>
     \${items.length?\`<div style="display:flex;flex-direction:column;gap:2px;">\${items.slice(0,6).map(it=>\`<div onclick="openProspectById('\${it.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid var(--border);cursor:pointer;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'"><span style="font-size:14.5px;">\${it.txt}<div style="font-size:12px;color:var(--text-2);">\${it.sub}</div></span><span style="color:var(--navy);">→</span></div>\`).join('')}</div>\`:\`<div style="font-size:14px;color:#456039;padding:6px 0;"><i class="ti ti-confetti"></i> Aucune relance urgente aujourd'hui.</div>\`}
   </div>\`;
@@ -8412,12 +8395,12 @@ function crmObjectif(){
   let d={}; try{d=computeIntel();}catch(e){}
   const settings=dbGetObj('settings');
   const objCA=parseFloat(settings.objectifCA)||0;
-  if(objCA<=0){el.innerHTML=\`<div class="card" style="padding:22px;"><div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-target"></i> Objectif CA</div><div style="font-size:14px;color:var(--text-2);">Définis un objectif de CA (dans Objectifs) pour que Finance te dise combien signer.</div></div>\`;return;}
+  if(objCA<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-target"></i> Objectif CA</div><div style="font-size:14px;color:var(--text-2);">Définis un objectif de CA (dans Objectifs) pour que Finance te dise combien signer.</div></div>\`;return;}
   const now=new Date(); const rem=Math.max(0,12-(now.getMonth()+1));
   const manque=Math.max(0,objCA-(d.caYTD||0)-(d.recMensuel||0)*rem);
-  if(manque<=0){el.innerHTML=\`<div class="card" style="padding:22px;"><div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-target"></i> Objectif CA</div><div style="font-size:15px;color:#456039;font-weight:600;margin-top:6px;"><i class="ti ti-confetti"></i> Ton objectif annuel est déjà sécurisé.</div></div>\`;return;}
+  if(manque<=0){el.innerHTML=\`<div class="card" style="padding:22px;height:100%;"><div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-target"></i> Objectif CA</div><div style="font-size:15px;color:#456039;font-weight:600;margin-top:6px;"><i class="ti ti-confetti"></i> Ton objectif annuel est déjà sécurisé.</div></div>\`;return;}
   const opt=n=>\`<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
-  el.innerHTML=\`<div class="card" style="padding:22px;">
+  el.innerHTML=\`<div class="card" style="padding:22px;height:100%;">
     <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-target"></i> Objectif CA</div>
     <div style="font-size:14px;color:var(--text-2);">Il te manque</div>
     <div style="font-family:'Cormorant Garamond',serif;font-size:37px;font-weight:700;color:var(--navy);">\${fmt(manque)}</div>
@@ -8456,24 +8439,150 @@ function crmRelations(){
   const ensure=c=>{byClient[c]=byClient[c]||{missions:0,ca:0,last:''};return byClient[c];};
   projets.forEach(p=>{if(p.client)ensure(p.client).missions++;});
   factures.forEach(f=>{if(!f.client)return;const o=ensure(f.client);if(f.statut==='payee')o.ca+=(f.montant||0);const dt=f.datePaiement||f.date||'';if(dt>o.last)o.last=dt;});
-  // Prospects convertis (« Gagné ») = clients : ils doivent apparaitre meme sans facture encore.
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const nom=(p.entreprise||p.nom||'').trim();if(!nom)return;const o=ensure(nom);if(o.ca===0)o.ca=parseFloat(p.valeur)||0;});
   const arr=Object.keys(byClient).map(nom=>({nom,...byClient[nom]}));
   if(!arr.length){el.innerHTML='';return;}
-  const clientsTri=arr.slice().sort((a,b)=>b.ca-a.ca);
+  const fideles=arr.slice().sort((a,b)=>b.ca-a.ca).slice(0,3);
   const todayStr=today();
   const moisDepuis=ds=>ds?Math.round((new Date(todayStr)-new Date(ds))/(86400000*30.44)):null;
   const inactifs=arr.filter(c=>c.last&&moisDepuis(c.last)>=5).sort((a,b)=>(a.last||'').localeCompare(b.last||'')).slice(0,3);
   el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
     <div class="card" style="padding:22px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:10px;flex-wrap:wrap;"><span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-users"></i> Mes clients</span><span style="font-size:13px;color:var(--text-2);">\${clientsTri.length} client\${clientsTri.length>1?'s':''}</span></div>
-      <div style="max-height:420px;overflow-y:auto;">\${clientsTri.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions>0?c.missions+' mission'+(c.missions>1?'s':''):'client'}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}</div>
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-heart"></i> Clients fidèles</div>
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Clients à réactiver</div>
       \${inactifs.length?inactifs.map(c=>\`<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div style="font-size:14px;font-weight:500;">\${escHtml(c.nom)}</div><div style="font-size:12px;color:var(--text-2);">Dernière mission il y a \${moisDepuis(c.last)} mois — pourquoi ne pas reprendre contact ?</div></div>\`).join(''):'<div style="font-size:13px;color:#456039;">Tous tes clients sont actifs <i class="ti ti-thumb-up"></i></div>'}
     </div>
   </div>\`;
+}
+
+function renderCrmKpis(){
+  const p=_prospectsCache;
+  const total=p.length;
+  const repondus=p.filter(x=>['positif','negatif','proposition','converti','sans_suite'].includes(x.statut)).length;
+  const convertis=p.filter(x=>x.statut==='converti').length;
+  const attente=p.filter(x=>['contact','en_attente','proposition'].includes(x.statut)).length;
+  const tauxRep=total>0?Math.round(repondus/total*100):0;
+  const tauxConv=total>0?Math.round(convertis/total*100):0;
+  if(q('#crm-kpi-total'))q('#crm-kpi-total').textContent=total;
+  if(q('#crm-kpi-reponse'))q('#crm-kpi-reponse').textContent=total?tauxRep+'%':'—';
+  if(q('#crm-kpi-conversion'))q('#crm-kpi-conversion').textContent=total?tauxConv+'%':'—';
+  if(q('#crm-kpi-attente'))q('#crm-kpi-attente').textContent=attente;
+}
+
+function renderCrmBanner(){
+  const todayStr=today();
+  const aRelancer=_prospectsCache.filter(p=>{
+    if(['negatif','converti','sans_suite'].includes(p.statut))return false;
+    const r1=p.relance1&&!p.dateRelance1&&p.relance1<=todayStr;
+    const r2=p.relance2&&!p.dateRelance2&&p.relance2<=todayStr;
+    const rf=p.relanceFinale&&!p.dateRelanceFinale&&p.relanceFinale<=todayStr;
+    return r1||r2||rf;
+  });
+  const banner=q('#crm-relances-banner');
+  const bannerTxt=q('#crm-relances-banner-text');
+  if(!banner||!bannerTxt)return;
+  if(aRelancer.length>0){
+    const noms=aRelancer.slice(0,3).map(p=>p.nom+(p.entreprise?" ("+p.entreprise+")":"")).join(", ");
+    bannerTxt.innerHTML="<strong>"+aRelancer.length+" relance(s) à effectuer</strong> : "+noms+(aRelancer.length>3?" et "+(aRelancer.length-3)+" autres":"");
+    banner.style.display='';
+  }else{
+    banner.style.display='none';
+  }
+}
+
+function renderCrmCharts(){
+  const statutCanvas=q('#crm-chart-statuts');
+  const secteurCanvas=q('#crm-chart-secteurs');
+  if(statutCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{counts[p.statut]=(counts[p.statut]||0)+1;});
+    const labels=Object.keys(counts).map(k=>CRM_STATUTS[k]?.label||k);
+    const vals=Object.values(counts);
+    const colors=Object.keys(counts).map(k=>CRM_STATUTS[k]?.color||'#ccc');
+    _drawDonutChart(statutCanvas,labels,vals,colors);
+  }
+  if(secteurCanvas){
+    const counts={};
+    _prospectsCache.forEach(p=>{const s=p.secteur||"Non précisé";counts[s]=(counts[s]||0)+1;});
+    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const labels=sorted.map(x=>x[0]);
+    const vals=sorted.map(x=>x[1]);
+    const colors=PALETTE;
+    _drawBarChartCRM(secteurCanvas,labels,vals,colors);
+  }
+}
+
+function _drawDonutChart(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  const total=vals.reduce((s,v)=>s+v,0);
+  if(total===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  drawDonutChart(canvas,labels,vals,colors);
+}
+
+function _drawBarChartCRM(canvas,labels,vals,colors){
+  const {ctx,W,H}=setupCanvas(canvas);
+  if(!ctx)return;
+  ctx.clearRect(0,0,W,H);
+  if(vals.length===0){ctx.fillStyle='#c8b29a';ctx.font="14px Inter Tight";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
+  const maxV=Math.max(...vals)||1;
+  const pad={l:10,r:10,t:10,b:50};
+  const bw=Math.max(16,Math.floor((W-pad.l-pad.r)/labels.length*0.6));
+  const gap=Math.floor((W-pad.l-pad.r)/labels.length);
+  const chartH=H-pad.t-pad.b;
+  labels.forEach((label,i)=>{
+    const x=pad.l+i*gap+gap/2-bw/2;
+    const bh=Math.round(vals[i]/maxV*chartH);
+    const y=pad.t+chartH-bh;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
+    ctx.fillStyle='#110704';ctx.font="bold 12px Inter Tight";ctx.textAlign="center";
+    ctx.fillText(vals[i],x+bw/2,y-4);
+    ctx.fillStyle='#6b533b';ctx.font="11px Inter Tight";
+    const short=label.length>10?label.slice(0,9)+"…":label;
+    ctx.fillText(short,x+bw/2,H-pad.b+14);
+  });
+}
+
+function renderCrmTable(){
+  const search=(q('#crm-search')?.value||'').toLowerCase();
+  const filtStatut=q('#crm-filter-statut')?.value||'';
+  const filtSecteur=q('#crm-filter-secteur')?.value||'';
+  const todayStr=today();
+  let list=[..._prospectsCache];
+  if(search)list=list.filter(p=>((p.nom||'')+(p.entreprise||'')+(p.secteur||'')+(p.email||'')+(p.notes||'')).toLowerCase().includes(search));
+  if(filtStatut)list=list.filter(p=>p.statut===filtStatut);
+  if(filtSecteur)list=list.filter(p=>(p.secteur||'')=== filtSecteur);
+  list.sort((a,b)=>(b.dateContact||'').localeCompare(a.dateContact||''));
+  const tbody=q('#crm-tbody');
+  if(!tbody)return;
+  function relanceCell(prevue,faite){
+    if(faite)return"<span style='color:var(--success);font-size:13px;'>"+fmtDate(faite)+"<br><small>faite</small></span>";
+    if(!prevue)return"<span style='color:var(--text-2);'>—</span>";
+    const en_retard=prevue<=todayStr&&!faite;
+    const style=en_retard?"color:var(--danger);font-weight:600;":"";
+    return"<span style='font-size:13px;"+style+"'>"+fmtDate(prevue)+(en_retard?"<br><small>En retard</small>":"")+"</span>";
+  }
+  tbody.innerHTML=list.length?list.map(p=>{
+    const st=CRM_STATUTS[p.statut]||{label:p.statut,cls:'attente'};
+    return\`<tr>
+      <td><strong>\${p.nom}</strong>\${p.email?"<br><small style='color:var(--text-2);'>"+p.email+"</small>":""}</td>
+      <td>\${p.entreprise||"—"}</td>
+      <td><span style="font-size:13px;">\${p.secteur||"—"}</span></td>
+      <td>\${p.dateContact?fmtDate(p.dateContact):"—"}\${p.telephone?"<br><small style='color:var(--text-2);'>"+p.telephone+"</small>":""}</td>
+      <td><span class="badge badge-\${st.cls}">\${st.label}</span></td>
+      <td>\${relanceCell(p.relance1,p.dateRelance1)}</td>
+      <td>\${relanceCell(p.relance2,p.dateRelance2)}</td>
+      <td>\${relanceCell(p.relanceFinale,p.dateRelanceFinale)}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-xs" onclick="editProspect('\${p.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteProspect('\${p.id}')"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>\`;
+  }).join(''):'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-2);">Aucun prospect — ajoutez votre premier contact.</td></tr>';
 }
 
 function refreshCrmSecteurFilter(){
@@ -8555,7 +8664,7 @@ async function saveProspectModal(){
     }
     closeModal('modal-prospect');
     toast('Prospect enregistré','success');
-    crmRenderAll();
+    renderCrmKpis();renderCrmBanner();renderCrmCharts();renderCrmTable();refreshCrmSecteurFilter();
   }catch(e){toast(e.message||'Erreur','error');}
 }
 
@@ -8567,7 +8676,7 @@ function deleteProspect(id){
       await api('DELETE',\`/api/prospects/\${id}\`);
       _prospectsCache=_prospectsCache.filter(p=>p.id!==id);
       toast('Prospect supprimé','success');
-      crmRenderAll();
+      renderCrmKpis();renderCrmBanner();renderCrmCharts();renderCrmTable();refreshCrmSecteurFilter();
     }catch(e){toast(e.message||'Erreur','error');}
   });
 }
@@ -9730,7 +9839,7 @@ function loadObjectifsEpargne(){
 function renderEpargneGoals(){
   const g=q('#epargne-goals-grid');
   if(!g)return;
-  if(!epargneGoals.length){g.innerHTML='<div style="font-size:13.5px;color:var(--text-2);line-height:1.6;padding:6px 0;">Tes objectifs d\\'épargne (vacances, apport, projets…) sont désormais réunis avec tes <a onclick="navigate(\\'projets-vie\\')" style="color:var(--bleu);cursor:pointer;">Projets de vie</a>, pour tout gérer au même endroit. Cet écran garde le pilotage de tes objectifs de CA.</div>';return;}
+  if(!epargneGoals.length){g.innerHTML='<p style="color:var(--text-2);">Aucun objectif. Cliquez sur + pour en créer.</p>';return;}
   g.innerHTML=epargneGoals.map(obj=>{
     const cible=obj.cible||0,actuel=obj.actuel||0;
     const pct=cible>0?Math.min(100,Math.round(actuel/cible*100)):0;
@@ -10102,92 +10211,124 @@ function renderRapportPrevision(){
   const big=(emoji,lab,val,hint,color)=>\`<div style="flex:1;min-width:160px;"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;color:\${color?'var(--terre-400)':'rgba(255,255,255,.68)'};">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;font-weight:700;margin-top:3px;line-height:1.05;\${color?'color:'+color+';':''}">\${val}</div>\${hint?\`<div style="font-size:13px;margin-top:2px;color:\${color?'var(--text-2)':'rgba(255,255,255,.55)'};">\${hint}</div>\`:''}</div>\`;
   const missions=n=>\`<div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid var(--border);"><span>\${n} mission\${n>1?'s':''}</span><span style="font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(manque/n))} chacune</span></div>\`;
 
-  let MM={}; try{MM=computeMoney();}catch(e){}
-  const flowLine=(lab,val,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;"><span style="font-size:14px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};">\${fmt(val)}</span></div>\`;
-  const fd='<div style="text-align:center;color:var(--text-2);opacity:.4;font-size:13px;line-height:.7;">+</div>';
-  const scenBox=(emoji,lab,val,desc)=>\`<div style="flex:1;min-width:170px;background:var(--surface-2);border-radius:12px;padding:16px 18px;"><div style="font-size:12.5px;font-weight:600;color:var(--terre-400);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:6px;">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;font-weight:700;color:var(--navy);margin:2px 0 3px;">\${fmt(val)}</div><div style="font-size:12.5px;color:var(--text-2);line-height:1.4;">\${desc}</div></div>\`;
-  const secTitle=(icon,txt)=>\`<div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;"><i class="ti \${icon}"></i> \${txt}</div>\`;
-  const prudent=Math.max(0,P.caProjete-P.enAttente);
-  const realiste=P.caProjete;
-  const optimiste=(P.objectifCA>realiste)?P.objectifCA:Math.round(realiste*1.15);
-
   let html='';
 
-  // ── PANNEAU 1 · Où j'en serai fin d'année (projection, un seul jeu de chiffres) ──
-  html+=\`<div class="screen-hero" style="margin-bottom:18px;">
-    <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;"><i class="ti ti-chart-line"></i> Fin \${annee}, si rien ne change</div>
-    <div class="stat-strip stat-strip--dark">
-      \${big('<i class="ti ti-coin"></i>','CA estimé',fmt(P.caProjete),P.pctObj!=null?P.pctObj+'% de ton objectif':'')}
-      \${big('<i class="ti ti-receipt"></i>','Revenu net',fmt(P.netProjete),'après charges & cotisations')}
-      \${big('<i class="ti ti-home"></i>','Versement moyen possible',fmt(salaireMois)+' /mois','projection lissée si tout se réalise')}
-      \${(patriSolde>0||patriMensuel>0)?big('<i class="ti ti-briefcase"></i>',"Patrimoine fin d'année",fmt(patriFin),misAnnee>0?'+ '+fmt(misAnnee)+' cette année':''):''}
-      \${liberte!=null?big('<i class="ti ti-flame"></i>','Liberté',liberte.toFixed(1).replace('.',',')+' mois','charges − aides · si tes aides continuent'):''}
-    </div>
-  </div>\`;
+  // <i class="ti ti-target"></i> Que dois-je signer ?
+  if(P.objectifCA>0&&manque>0){
+    html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+      <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;"><i class="ti ti-target"></i> Que dois-je signer d'ici décembre ?</div>
+      <div style="font-size:15.5px;opacity:.85;margin:8px 0 4px;">Pour atteindre ton objectif, il te faudrait encore sécuriser</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:56px;font-weight:700;line-height:1;">\${fmt(manque)}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px;">
+        <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;"><div style="font-size:27px;font-family:'Cormorant Garamond',serif;font-style:italic;">\${Math.max(1,Math.round(manque/4500))} mission(s)</div><div style="font-size:13px;opacity:.62;margin-top:2px;">à ~4 500 €</div></div>
+        <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;"><div style="font-size:27px;font-family:'Cormorant Garamond',serif;font-style:italic;">\${Math.max(1,Math.round(manque/2300))} mission(s)</div><div style="font-size:13px;opacity:.62;margin-top:2px;">à ~2 300 €</div></div>
+        <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;"><div style="font-size:27px;font-family:'Cormorant Garamond',serif;font-style:italic;">\${Math.max(1,Math.round(manque/500))} client(s)</div><div style="font-size:13px;opacity:.62;margin-top:2px;">récurrents à 500 €/mois</div></div>
+      </div>
+    </div>\`;
+  }
 
-  // ── PANNEAU 2 · D'où vient l'estimation & ce qui peut bouger ──
+  // <i class="ti ti-sparkles"></i> Si rien ne change
   html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
-    \${secTitle('ti-chart-bar',"D'où vient l'estimation & ce qui peut bouger")}
+    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:14px;"><i class="ti ti-sparkles"></i> Si rien ne change · fin \${annee}</div>
+    <div class="stat-strip">
+      \${big('<i class="ti ti-coin"></i>','CA estimé',fmt(P.caProjete),P.pctObj!=null?P.pctObj+'% de ton objectif':'objectif non défini','var(--navy)')}
+      \${big('<i class="ti ti-receipt"></i>','Disponible après charges & cotisations',fmt(P.netProjete),'ce que l\\'activité dégage — avant versement','var(--navy)')}
+      \${big('<i class="ti ti-home"></i>','Versement moyen',fmt(salaireMois)+' /mois',"jusqu'à décembre",'var(--navy)')}
+    </div>
+    \${manque>0?\`<div style="background:rgba(138,100,20,.12);border-radius:10px;padding:12px 14px;font-size:15px;color:#a5502e;margin-top:14px;">Il te manquerait environ <strong>\${fmt(manque)}</strong> pour atteindre ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`:(P.objectifCA>0?\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:15px;color:#456039;margin-top:14px;"><i class="ti ti-confetti"></i> À ce rythme, tu atteins ton objectif annuel.</div>\`:'')}
+  </div>\`;
+  // Puis-je continuer à me verser ?
+  try{ var MM=computeMoney();
+  html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
+    <div class="dash-sec-title"><i class="ti ti-wallet"></i> Puis-je continuer à me verser ?</div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Versement mensuel soutenable</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.versement)}</span></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:8px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-heart"></i> Niveau de vie confortable visé</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.confortable)}</span></div>
+    \${MM.versement>=MM.confortable
+      ? \`<div style="background:var(--success-10);color:#456039;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-circle-check" style="margin-top:1px;"></i><span>À ce rythme, ton activité soutient ton niveau de vie confortable. Tu peux te verser \${fmt(MM.versement)} sans fragiliser l'entreprise.</span></div>\`
+      : \`<div style="background:var(--warning-10);color:#a5502e;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;"></i><span>Ton versement soutenable (\${fmt(MM.versement)}) reste sous ton niveau confortable. Il manque ~<strong>\${fmt(MM.confortable-MM.versement)}/mois</strong> — vise environ <strong>+\${fmt(Math.round((MM.confortable-MM.versement)/0.72))}/mois</strong> de CA récurrent pour tenir ce niveau sur 12 mois.</span></div>\`}
+  </div>\`;
+  }catch(e){}
+
+  // ② Pourquoi cette prévision (flux)
+  const flowLine=(lab,val,strong)=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;"><span style="font-size:14px;\${strong?'font-weight:600;color:var(--navy);':'color:var(--text-2);'}">\${lab}</span><span style="font-family:'Cormorant Garamond',serif;font-size:\${strong?'18px':'15px'};">\${fmt(val)}</span></div>\`;
+  const fd='<div style="text-align:center;color:var(--text-2);opacity:.4;font-size:13px;line-height:.7;">+</div>';
+  html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
+    <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:8px;"><i class="ti ti-chart-bar"></i> D'où vient cette estimation</div>
     \${flowLine('CA déjà encaissé',P.encaisse)}\${fd}\${flowLine('Factures en attente',P.enAttente)}\${fd}\${flowLine('Projets & récurrents à venir',P.resteAFacturer)}
-    <div style="border-top:1px solid var(--border);margin:2px 0 14px;">\${flowLine("CA estimé fin d'année",P.caProjete,true)}</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      \${scenBox('<i class="ti ti-shield"></i>','Prudent',prudent,'si les factures en attente ne rentrent pas')}
-      \${scenBox('<i class="ti ti-target"></i>','Réaliste',realiste,'tout ce qui est signé se réalise')}
-      \${scenBox('<i class="ti ti-rocket"></i>','Optimiste',optimiste,P.objectifCA>realiste?'tu atteins ton objectif':'+15% de signatures')}
-    </div>
-    \${P.enAttente>0?\`<div style="background:rgba(138,100,20,.1);border-radius:10px;padding:12px 14px;font-size:14px;color:#a5502e;margin-top:14px;line-height:1.55;"><i class="ti ti-alert-triangle"></i> <strong>\${fmt(P.enAttente)}</strong> de factures sont émises mais pas encore payées : si elles ne rentraient pas, ton CA tomberait à <strong style="color:var(--navy);">\${fmt(P.caProjete-P.enAttente)}</strong>. Priorité : les relancer.</div>\`:''}
+    <div style="border-top:1px solid var(--border);margin-top:6px;">\${flowLine('CA estimé fin d\\'année',P.caProjete,true)}</div>
   </div>\`;
 
-  // ── PANNEAU 3 · Les prochains mois (graphe refait : barres + moyenne + socle) ──
+  // <i class="ti ti-calendar"></i> Les prochains mois (frise sécurisée)
   html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
       <span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-calendar"></i> Revenus déjà sécurisés · prochains mois</span>
       <span style="font-size:13px;color:var(--text-2);">Total sécurisé : <strong style="color:#456039;">\${fmt(totalSecure)}</strong></span>
     </div>
-    <div style="font-size:12px;color:var(--text-2);margin-bottom:10px;">Barres = revenus déjà sécurisés (projets mensuels + récurrents). Pointillé = ta moyenne.\${P.recMensuel>0?' Barre grise = ton socle récurrent.':''} Un mois creux = le bon moment pour prospecter.</div>
-    <div class="chart-wrap"><canvas id="chart-prev-secure" height="180"></canvas></div>
+    <div style="display:grid;grid-template-columns:repeat(\${months.length},1fr);gap:8px;align-items:end;">
+      \${months.map(mo=>\`<div style="text-align:center;"><div style="font-size:12px;color:var(--navy);font-family:'Cormorant Garamond',serif;">\${fmt(Math.round(mo.secure))}</div><div style="height:\${Math.round(mo.secure/maxSec*80)+3}px;background:\${mo.secure<maxSec*0.35?'#a5502e':'#456039'};border-radius:5px 5px 0 0;margin:6px auto 5px;width:58%;"></div><div style="font-size:11.5px;color:var(--text-2);">\${mo.label}</div></div>\`).join('')}
+    </div>
     \${trou?\`<div style="font-size:13px;color:#a5502e;margin-top:12px;"><i class="ti ti-alert-triangle"></i> \${MOIS_LONG[trou.m-1]} est creux (\${fmt(Math.round(trou.secure))} sécurisés) — un bon moment pour prospecter dès maintenant.</div>\`:''}
   </div>\`;
 
-  // ── PANNEAU 4 · Que faire d'ici décembre (signer + me verser + plan) ──
-  let p4='';
-  if(P.objectifCA>0&&manque>0){
-    p4+=\`<div style="margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:6px;"><i class="ti ti-target"></i> Ce qu'il te reste à signer</div>
-      <div style="font-size:14.5px;color:var(--text-1);line-height:1.5;">Pour ton objectif de \${fmt(P.objectifCA)}, il te faudrait encore sécuriser <strong style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:20px;color:var(--navy);">\${fmt(manque)}</strong> — soit :</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
-        <div style="flex:1;min-width:130px;background:var(--surface-2);border-radius:10px;padding:12px 14px;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${Math.max(1,Math.round(manque/4500))} mission(s)</div><div style="font-size:12.5px;color:var(--text-2);">à ~4 500 €</div></div>
-        <div style="flex:1;min-width:130px;background:var(--surface-2);border-radius:10px;padding:12px 14px;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${Math.max(1,Math.round(manque/2300))} mission(s)</div><div style="font-size:12.5px;color:var(--text-2);">à ~2 300 €</div></div>
-        <div style="flex:1;min-width:130px;background:var(--surface-2);border-radius:10px;padding:12px 14px;"><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${Math.max(1,Math.round(manque/500))} client(s)</div><div style="font-size:12.5px;color:var(--text-2);">récurrents à 500 €/mois</div></div>
+  // <i class="ti ti-briefcase"></i> Fin d'année tu auras probablement
+  html+=\`<div class="screen-hero" style="margin-bottom:18px;">
+    <div style="font-size:13px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:12px;"><i class="ti ti-target"></i> Fin \${annee}, tu auras probablement</div>
+    <div class="stat-strip stat-strip--dark">
+      \${big('<i class="ti ti-coin"></i>','Revenu net',fmt(P.netProjete))}
+      \${big('<i class="ti ti-home"></i>','Salaire',fmt(salaireMois)+' /mois')}
+      \${(patriSolde>0||patriMensuel>0)?big('<i class="ti ti-briefcase"></i>','Patrimoine',fmt(patriFin),misAnnee>0?'+ '+fmt(misAnnee)+' cette année':''):''}
+      \${liberte!=null?big('<i class="ti ti-flame"></i>','Liberté',liberte.toFixed(1).replace('.',',')+' mois','charges − aides, hors épargne · si tes aides continuent'):''}
+    </div>
+  </div>\`;
+
+  // <i class="ti ti-home"></i> Salaire vs confort
+  if(perso.besoin>0){
+    const ecart=confort-salaireMois;
+    html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;"><i class="ti ti-home"></i> Ton salaire vs ton niveau de vie</div>
+      <div class="stat-strip">
+        \${big('<i class="ti ti-cash"></i>','Salaire possible',fmt(salaireMois)+' /mois','','var(--navy)')}
+        \${confort>0?big('<i class="ti ti-target"></i>','Niveau confortable',fmt(confort)+' /mois','','var(--navy)'):''}
       </div>
-    </div>\`;
-  } else if(P.objectifCA>0){
-    p4+=\`<div style="background:rgba(62,158,116,.1);border-radius:10px;padding:12px 14px;font-size:14.5px;color:#456039;margin-bottom:16px;"><i class="ti ti-confetti"></i> À ce rythme, tu atteins ton objectif annuel de \${fmt(P.objectifCA)}.</div>\`;
-  }
-  if(MM.versement!=null){
-    p4+=\`<div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:8px;"><i class="ti ti-wallet"></i> Puis-je me verser mon niveau de vie ?</div>
-      <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-target"></i> Versement soutenable aujourd'hui <small style="color:var(--text-2);">(sans puiser dans tes réserves)</small></span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.versement)}</span></div>
-      <div style="display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:7px 0;"><span style="color:var(--text-2);display:flex;align-items:center;gap:7px;"><i class="ti ti-heart"></i> Niveau de vie confortable visé</span><span style="font-family:'Cormorant Garamond',serif;font-size:19px;">\${fmt(MM.confortable)}</span></div>
-      \${MM.versement>=MM.confortable
-        ? \`<div style="background:var(--success-10);color:#456039;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-circle-check" style="margin-top:1px;"></i><span>Ton activité soutient ton niveau de vie confortable. Tu peux te verser \${fmt(MM.versement)} sans fragiliser l'entreprise.</span></div>\`
-        : \`<div style="background:var(--warning-10);color:#a5502e;border-radius:10px;padding:12px 14px;font-size:14px;margin-top:10px;display:flex;gap:8px;align-items:flex-start;"><i class="ti ti-alert-triangle" style="margin-top:1px;"></i><span>Ton versement soutenable (\${fmt(MM.versement)}) reste sous ton niveau confortable. Il manque ~<strong>\${fmt(MM.confortable-MM.versement)}/mois</strong> — vise environ <strong>+\${fmt(Math.round((MM.confortable-MM.versement)/0.72))}/mois</strong> de CA récurrent pour tenir ce niveau sur 12 mois.</span></div>\`}
+      \${(confort>0&&ecart>0)?\`<div style="font-size:15px;color:#a5502e;margin-top:12px;">Il te manquerait environ <strong>\${fmt(ecart)} / mois</strong> pour vivre confortablement — d'où l'intérêt de signer davantage.</div>\`:(confort>0?\`<div style="font-size:15px;color:#456039;margin-top:12px;"><i class="ti ti-confetti"></i> Tu peux te verser de quoi vivre confortablement.</div>\`:'')}
     </div>\`;
   }
+
+  // <i class="ti ti-alert-triangle"></i> Les risques
+  if(P.enAttente>0){
+    html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:10px;"><i class="ti ti-alert-triangle"></i> À surveiller</div>
+      <div style="font-size:15px;line-height:1.6;"><strong>\${fmt(P.enAttente)}</strong> de factures sont émises mais <strong>pas encore payées</strong>. Si elles n'étaient jamais réglées, ton CA estimé tomberait à <strong style="color:var(--navy);">\${fmt(P.caProjete-P.enAttente)}</strong>.</div>
+      <div style="font-size:13.5px;color:var(--text-2);margin-top:8px;"><i class="ti ti-arrow-right"></i> Priorité : relancer ces factures.</div>
+    </div>\`;
+  }
+
+  // <i class="ti ti-rocket"></i> Scénarios
+  const prudent=Math.max(0,P.caProjete-P.enAttente);
+  const realiste=P.caProjete;
+  const optimiste=(P.objectifCA>realiste)?P.objectifCA:Math.round(realiste*1.15);
+  const scen=(emoji,lab,val,desc)=>\`<div class="card" style="padding:22px 24px;flex:1;min-width:190px;"><div style="font-size:13px;font-weight:600;color:var(--terre-400);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:7px;">\${emoji} \${lab}</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;font-weight:700;color:var(--navy);margin:2px 0 3px;">\${fmt(val)}</div><div style="font-size:13px;color:var(--text-2);line-height:1.45;">\${desc}</div></div>\`;
+  html+=\`<div style="font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--text-2);font-weight:700;margin:6px 2px 8px;"><i class="ti ti-rocket"></i> Scénarios de fin d'année</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+    \${scen('<i class="ti ti-shield"></i>','Prudent',prudent,'si les factures en attente ne sont pas payées')}
+    \${scen('<i class="ti ti-target"></i>','Réaliste',realiste,'tout ce qui est signé se réalise')}
+    \${scen('<i class="ti ti-rocket"></i>','Optimiste',optimiste,P.objectifCA>realiste?'tu atteins ton objectif':'+15% de signatures')}
+  </div>\`;
+
+  // <i class="ti ti-compass"></i> Ton plan jusqu'à décembre
   const actions=[];
   if(manque>0)actions.push('Sécuriser <strong>'+fmt(manque)+'</strong> de chiffre d\\'affaires supplémentaire.');
   if(P.enAttente>0)actions.push('Relancer <strong>'+fmt(P.enAttente)+'</strong> de factures en attente.');
   if(trou)actions.push('Prospecter dès <strong>'+MOIS_LONG[trou.m-1]+'</strong>, où seulement '+fmt(Math.round(trou.secure))+' sont sécurisés.');
-  if(MM.versement!=null)actions.push('En l\\'état, tu peux te verser environ <strong>'+fmt(MM.versement)+' / mois</strong> de façon soutenable.');
-  p4+=\`<div style="border-top:1px solid var(--border);padding-top:14px;">
+  actions.push('En l\\'état, tu pourras te verser environ <strong>'+fmt(salaireMois)+' / mois</strong> jusqu\\'à la fin de l\\'année.');
+  html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;background:var(--surface-2);">
     <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px;"><i class="ti ti-compass"></i> Ton plan jusqu'à décembre</div>
     <div style="display:flex;flex-direction:column;gap:10px;">
       \${actions.map(a=>\`<div style="display:flex;gap:9px;align-items:flex-start;font-size:15px;line-height:1.5;"><span style="color:#456039;flex:none;"><i class="ti ti-check"></i></span><span>\${a}</span></div>\`).join('')}
     </div>
   </div>\`;
-  html+=\`<div class="card" style="padding:26px 28px;margin-bottom:18px;">\${p4}</div>\`;
 
-  // ── Pied · Revenus récurrents déclarés (gestion) ──
+  // Revenus récurrents (gestion compacte)
   const rec=(settings.revenusRecurrents||[]);
   html+=\`<div class="card" style="padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
@@ -10198,14 +10339,6 @@ function renderRapportPrevision(){
   </div>\`;
 
   el.innerHTML=html;
-  // Graphe refait avec le helper maison (barres + moyenne + socle recurrent)
-  const cSec=q('#chart-prev-secure');
-  if(cSec){
-    const svals=months.map(mo=>Math.round(mo.secure));
-    const savg=svals.length?Math.round(svals.reduce((a,b)=>a+b,0)/svals.length):0;
-    const socle=Math.round(P.recMensuel||0);
-    drawBarChart(cSec,months.map(mo=>mo.label),[{data:svals,color:COLORS.blue}],{ghost:socle>0?months.map(()=>socle):null,avgLine:savg>0?savg:0});
-  }
 }
 
 async function addRevenuRecurrent(){

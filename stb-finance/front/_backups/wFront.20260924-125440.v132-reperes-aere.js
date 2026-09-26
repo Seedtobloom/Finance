@@ -26,7 +26,7 @@ const HTML = `<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter+Tight:wght@300;400;500;600;700&family=Alegreya:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-  <link rel="stylesheet" href="/style.css?v=137" />
+  <link rel="stylesheet" href="/style.css?v=132" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@ const HTML = `<!DOCTYPE html>
     <div class="sidebar-logo">
       <span class="logo-name">Seed to Bloom</span>
       <span class="logo-sub">finance</span>
-      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v137 · CRM : le bloc « Clients fideles » (top 3) devient « Mes clients · N » et liste TOUS tes clients (issus des projets/factures + prospects non perdus), tries par CA, avec compteur et defilement. Fini le top 3 qui masquait le reste.</span>
+      <span style="display:block;font-size:10px;letter-spacing:.04em;color:var(--text-2);opacity:.7;margin-top:2px;">build v132 · Bloc « Tes reperes de controle » aere : reperes et horizons empiles en pleine largeur (au lieu de serres cote a cote), barre plus grande, cartes horizon spacieuses, texte fortement raccourci.</span>
     </div>
 
     <nav id="sidebar-nav">
@@ -2684,7 +2684,7 @@ const HTML = `<!DOCTYPE html>
 <!-- Toast -->
 <div id="toast"></div>
 
-<script src="/app.js?v=137"></script>
+<script src="/app.js?v=132"></script>
 </body>
 </html>
 `;
@@ -5311,7 +5311,7 @@ function renderCockpit(){
   const R=(function(){try{return computeResteAVivre();}catch(e){return null;}})();
   const L=(function(){try{return reserveLissage();}catch(e){return null;}})();
   // Décomposition du reste à vivre — affichée dans le bloc sombre, sous le chiffre principal qu'elle explique.
-  const breakdown=R?\`\${R.verseReel!=null?'Versé ce mois '+fmt(R.baseVersement):'Rémunération '+fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
+  const breakdown=R?\`Rémunération \${fmt(R.remu)} + aides \${fmt(R.revenusActifs)} − charges fixes \${fmt(R.chargesFixes)}\${R.envAlloue>0?' − enveloppes '+fmt(R.envAlloue):''}\`:'';
   // Bloc sombre COMPACT (sous-bloc du panneau 1) : chiffre dominant conservé (.fig-hero 84px), mais surface
   // réduite — nombre à gauche, verdict + /jour à droite sur la même hauteur, décomposition en pied.
   const darkBlock=\`<div class="screen-hero" style="padding:22px 24px;border-radius:18px;">
@@ -6219,21 +6219,14 @@ function computeResteAVivre(ym){
   var env=Array.isArray(s.enveloppes)?s.enveloppes:[];
   var envAlloue=env.reduce(function(sum,e){return sum+(parseFloat(e.alloue)||0);},0);
   var envConsomme=env.reduce(function(sum,e){return sum+(parseFloat(e.consomme)||0);},0);
-  // Le reste-a-vivre se base sur ce qui a ete REELLEMENT verse ce mois (saisie manuelle prioritaire,
-  // sinon operations Qonto « Versement perso »), sinon la remuneration decidee.
-  var vm=(s.versementMois&&typeof s.versementMois==='object')?s.versementMois:{};
-  var verseReel=null;
-  if(vm[ym]!=null){verseReel=Math.round((parseFloat(vm[ym])||0)*100)/100;}
-  else{var _deps=dbGet('depenses')||[];var _sq=_deps.filter(function(d){return d.categorie==='Versement perso'&&(d.date||'').slice(0,7)===ym;}).reduce(function(a,d){return a+(d.montant||0);},0);if(_sq>0)verseReel=Math.round(_sq*100)/100;}
-  var baseVersement=(verseReel!=null)?verseReel:remu;
-  var revenusMois=Math.round((baseVersement+revenusActifs)*100)/100;
+  var revenusMois=Math.round((remu+revenusActifs)*100)/100;
   var resteMois=Math.round((revenusMois-chargesFixes-envAlloue)*100)/100;
   var jv=parseInt(s.jourVersement)||5;
   var now=new Date();var todayMid=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   var dv=new Date(now.getFullYear(),now.getMonth(),jv); if(dv<todayMid)dv=new Date(now.getFullYear(),now.getMonth()+1,jv);
   var joursRestants=Math.max(1,Math.round((dv-todayMid)/86400000));
   var resteJour=Math.round(resteMois/joursRestants);
-  return {remu:remu,verseReel:verseReel,baseVersement:baseVersement,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
+  return {remu:remu,revenusActifs:Math.round(revenusActifs*100)/100,chargesFixes:Math.round(chargesFixes*100)/100,
     envAlloue:Math.round(envAlloue*100)/100,envConsomme:Math.round(envConsomme*100)/100,
     revenusMois:revenusMois,resteMois:resteMois,joursRestants:joursRestants,resteJour:resteJour,jourVersement:jv};
 }
@@ -6683,9 +6676,9 @@ function renderPersoResteAVivre(){
     <div style="margin-top:18px;display:flex;flex-direction:column;gap:7px;">
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Entrées \${fmt(R.revenusMois)}</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
-        <div style="width:\${pw(R.baseVersement)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
+        <div style="width:\${pw(R.remu)}%;background:\${crS};"></div><div style="width:\${pw(R.revenusActifs)}%;background:\${crL};"></div>
       </div>
-      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,R.verseReel!=null?'Versé ce mois':'Rémunération',R.baseVersement)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;margin:3px 0 8px;">\${leg(crS,'Rémunération',R.remu)}\${R.revenusActifs>0?leg(crL,'Aides',R.revenusActifs):''}</div>
       <div style="font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#cabf95;">Où va l'argent</div>
       <div style="display:flex;height:15px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.1);">
         <div style="width:\${pw(R.chargesFixes)}%;background:\${crM};"></div>\${R.envAlloue>0?\`<div style="width:\${pw(R.envAlloue)}%;background:\${crL};"></div>\`:''}<div style="width:\${pw(resteBar)}%;background:\${ACC};"></div>
@@ -8216,47 +8209,26 @@ async function saveFacture(){
 
 /* --- Tiers ------------------------------------------------------------ */
 let tiersData=[];
-async function loadTiers(){
+function loadTiers(){
   tiersData=dbGet('tiers');
-  try{const res=await api('GET','/api/prospects');_prospectsCache=Array.isArray(res)?res:[];}catch(e){}
-  const factures=dbGet('factures')||[];
-  const projets=dbGet('projets')||[];
+  const clients=tiersData.filter(t=>t.type==='client');
+  const factures=dbGet('factures');
   const payees=factures.filter(f=>f.statut==='payee');
   const caParNom={};
-  payees.forEach(f=>{if(f.client)caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
-  // Compteur sur TOUS les clients : tiers manuels + factures/projets + prospects convertis
-  const noms=new Set();
-  tiersData.filter(t=>t.type==='client').forEach(t=>{if(t.nom)noms.add(t.nom.trim());});
-  factures.forEach(f=>{if(f.client)noms.add(f.client.trim());});
-  projets.forEach(p=>{if(p.client)noms.add(p.client.trim());});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n)noms.add(n);});
-  const caTotal=payees.reduce((s,f)=>s+(f.montant||0),0);
-  let top=null,topCa=-1; Object.keys(caParNom).forEach(n=>{if(caParNom[n]>topCa){topCa=caParNom[n];top=n;}});
-  if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=noms.size;
+  payees.forEach(f=>{caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
+  const caTotal=clients.reduce((s,t)=>s+(caParNom[t.nom]||0),0);
+  const top=clients.reduce((best,t)=>(caParNom[t.nom]||0)>(caParNom[best?.nom]||0)?t:best,null);
+  if(q('#tiers-kpi-clients'))q('#tiers-kpi-clients').textContent=clients.length;
   if(q('#tiers-kpi-ca'))q('#tiers-kpi-ca').textContent=fmt(caTotal);
-  if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top||'—';
+  if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top?.nom||'—';
   renderTiers();
-}
-// Ajoute un client "derive" (present sur factures/projets) a la vraie liste Tiers.
-async function addDerivedTiers(nomEnc){
-  const nom=decodeURIComponent(nomEnc||'');
-  try{ await dbCreate('tiers',{nom:nom,type:'client'}); tiersData=dbGet('tiers'); toast('« '+nom+' » ajouté à tes clients','success'); loadTiers(); }
-  catch(e){toast('Erreur : '+e.message,'error');}
 }
 function renderTiers(){
   const search=q('#tiers-search')?.value.toLowerCase()||'';
   const type=q('#tiers-filter-type')?.value||'';
   const factures=dbGet('factures');
   const payees=factures.filter(f=>f.statut==='payee');
-  // Clients "derives" : noms sur factures/projets absents de la liste Tiers -> on les affiche aussi
-  const projets=dbGet('projets')||[];
-  const known=new Set(tiersData.map(t=>(t.nom||'').trim().toLowerCase()));
-  const derivedMap=new Map();
-  factures.forEach(f=>{const n=(f.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  projets.forEach(p=>{const n=(p.client||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const n=(p.entreprise||p.nom||'').trim();if(n&&!known.has(n.toLowerCase()))derivedMap.set(n.toLowerCase(),n);});
-  const derived=[...derivedMap.values()].map(n=>({nom:n,type:'client',derived:true}));
-  let list=[...tiersData, ...derived];
+  let list=[...tiersData];
   if(search)list=list.filter(t=>((t.nom||'')+(t.email||'')+(t.notes||'')).toLowerCase().includes(search));
   if(type)list=list.filter(t=>t.type===type);
   // Trier par CA décroissant pour les clients
@@ -8270,20 +8242,19 @@ function renderTiers(){
     const facs=factures.filter(f=>f.client===t.nom);
     const ca=payees.filter(f=>f.client===t.nom).reduce((s,f)=>s+(f.montant||0),0);
     const derniere=facs.sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
-    return\`<tr\${t.derived?' style="opacity:.86;"':''}>
-      <td><strong>\${escHtml(t.nom||'')}</strong>\${t.derived?' <span style="font-size:11px;color:var(--terre-400);white-space:nowrap;">· via factures</span>':''}</td>
+    return\`<tr>
+      <td><strong>\${t.nom}</strong></td>
       <td><span class="badge badge-\${typeBadge[t.type]||'attente'}">\${typeLabel[t.type]||t.type}</span></td>
       <td class="td-muted">\${t.email||'—'}</td>
       <td class="td-amount">\${ca>0?fmt(ca):'—'}</td>
       <td style="text-align:center;">\${facs.length||'—'}</td>
       <td>\${derniere?fmtDate(derniere.date):'—'}</td>
       <td style="white-space:nowrap;">
-        \${t.derived
-          ? '<button class="btn btn-ghost btn-xs" title="Créer la fiche client" onclick="addDerivedTiers(\\''+encodeURIComponent(t.nom||'')+'\\')"><i class="ti ti-user-plus"></i></button>'
-          : '<button class="btn btn-ghost btn-xs" onclick="editTiers(\\''+t.id+'\\')"><i class="ti ti-edit"></i></button><button class="btn btn-ghost btn-xs" onclick="deleteTiers(\\''+t.id+'\\')"><i class="ti ti-trash"></i></button>'}
+        <button class="btn btn-ghost btn-xs" onclick="editTiers('\${t.id}')"><i class="ti ti-edit"></i></button>
+        <button class="btn btn-ghost btn-xs" onclick="deleteTiers('\${t.id}')"><i class="ti ti-trash"></i></button>
       </td>
     </tr>\`;
-  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun client — tes factures et projets alimenteront cette liste, ou ajoute un tiers.</td></tr>';
+  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun tiers enregistré</td></tr>';
 }
 function openModalTiers(data={}){
   q('#modal-tiers-title').textContent=data.id?'Modifier le tiers':'Nouveau tiers';
@@ -8331,8 +8302,6 @@ const CRM_STATUTS={
 
 const CRM_PROBA={contact:15,en_attente:25,positif:55,proposition:65,converti:100,negatif:0,sans_suite:0};
 const CRM_OPEN=['contact','en_attente','positif','proposition'];
-// Un prospect compte comme CLIENT sauf s'il est clairement perdu.
-function prospectEstClient(p){return !!p&&!['negatif','sans_suite','perdu'].includes(p.statut);}
 const CRM_COLS=[{id:'contact',lab:'À contacter'},{id:'en_attente',lab:'Relancé / en attente'},{id:'positif',lab:'Intéressé'},{id:'proposition',lab:'Devis envoyé'},{id:'converti',lab:'Gagné'},{id:'perdu',lab:'Perdu'}];
 function openProspectById(id){const p=_prospectsCache.find(x=>x.id===id);if(p)openProspectModal(p);}
 
@@ -8456,18 +8425,16 @@ function crmRelations(){
   const ensure=c=>{byClient[c]=byClient[c]||{missions:0,ca:0,last:''};return byClient[c];};
   projets.forEach(p=>{if(p.client)ensure(p.client).missions++;});
   factures.forEach(f=>{if(!f.client)return;const o=ensure(f.client);if(f.statut==='payee')o.ca+=(f.montant||0);const dt=f.datePaiement||f.date||'';if(dt>o.last)o.last=dt;});
-  // Prospects convertis (« Gagné ») = clients : ils doivent apparaitre meme sans facture encore.
-  _prospectsCache.filter(prospectEstClient).forEach(p=>{const nom=(p.entreprise||p.nom||'').trim();if(!nom)return;const o=ensure(nom);if(o.ca===0)o.ca=parseFloat(p.valeur)||0;});
   const arr=Object.keys(byClient).map(nom=>({nom,...byClient[nom]}));
   if(!arr.length){el.innerHTML='';return;}
-  const clientsTri=arr.slice().sort((a,b)=>b.ca-a.ca);
+  const fideles=arr.slice().sort((a,b)=>b.ca-a.ca).slice(0,3);
   const todayStr=today();
   const moisDepuis=ds=>ds?Math.round((new Date(todayStr)-new Date(ds))/(86400000*30.44)):null;
   const inactifs=arr.filter(c=>c.last&&moisDepuis(c.last)>=5).sort((a,b)=>(a.last||'').localeCompare(b.last||'')).slice(0,3);
   el.innerHTML=\`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;">
     <div class="card" style="padding:22px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:10px;flex-wrap:wrap;"><span style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;"><i class="ti ti-users"></i> Mes clients</span><span style="font-size:13px;color:var(--text-2);">\${clientsTri.length} client\${clientsTri.length>1?'s':''}</span></div>
-      <div style="max-height:420px;overflow-y:auto;">\${clientsTri.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions>0?c.missions+' mission'+(c.missions>1?'s':''):'client'}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}</div>
+      <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-heart"></i> Clients fidèles</div>
+      \${fideles.map(c=>\`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);"><span style="font-size:14.5px;font-weight:600;color:var(--navy);">\${escHtml(c.nom)}<div style="font-size:12.5px;color:var(--text-2);font-weight:400;">\${c.missions} mission\${c.missions>1?'s':''}</div></span><span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:var(--navy);">\${fmt(c.ca)}</span></div>\`).join('')||'<div style="font-size:13px;color:var(--text-2);">—</div>'}
     </div>
     <div class="card" style="padding:22px;">
       <div style="font-size:13.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--terre-400);font-weight:600;margin-bottom:12px;"><i class="ti ti-alert-triangle"></i> Clients à réactiver</div>
