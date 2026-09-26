@@ -164,106 +164,71 @@ const HTML = `<!DOCTYPE html>
     <section id="section-dashboard" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Tableau de bord</h1>
+          <h1 id="dash-title">Tableau de bord</h1>
           <div class="page-subtitle" id="dash-period"></div>
         </div>
         <div class="page-header-right">
           <button class="btn btn-secondary btn-sm" id="dash-refresh-btn">
             <i class="ti ti-refresh"></i> Actualiser
           </button>
+          <button class="btn btn-primary btn-sm" id="dash-new-facture-btn">
+            <i class="ti ti-plus"></i> Facture
+          </button>
         </div>
       </div>
 
-      <!-- Ligne 1 KPIs -->
-      <div class="kpi-grid kpi-grid-4 mb-16">
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
-          <span class="kpi-label">CA encaissé ce mois</span>
-          <span class="kpi-value" id="kpi-ca-mois">—</span>
-          <span class="kpi-sub" id="kpi-ca-mois-sub"></span>
+      <div class="dash-grid hero-row">
+        <div class="card">
+          <div class="dash-hero-label" id="dash-hero-label">Tu peux te verser ce mois</div>
+          <div class="dash-hero-value" id="dash-hero-value">—</div>
+          <div class="dash-hero-ctx" id="dash-hero-ctx"></div>
+          <div class="flow">
+            <div class="flow-bar" id="dash-flow-bar" role="img"></div>
+            <div class="flow-legend num" id="dash-flow-legend"></div>
+          </div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon red"><i class="ti ti-receipt"></i></div>
-          <span class="kpi-label">Charges totales ce mois</span>
-          <span class="kpi-value danger" id="kpi-charges-mois">—</span>
-          <span class="kpi-sub" id="kpi-charges-mois-sub"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-wallet"></i></div>
-          <span class="kpi-label">Résultat net ce mois</span>
-          <span class="kpi-value green" id="kpi-net-mois">—</span>
-          <span class="kpi-sub" id="kpi-net-mois-sub"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-arrow-right"></i></div>
-          <span class="kpi-label">Versement estimé (65%)</span>
-          <span class="kpi-value violet" id="kpi-versement">—</span>
-          <span class="kpi-sub">du résultat net</span>
+        <div class="card pace">
+          <div class="card-h"><h3 id="dash-annee-title">Année</h3><span class="meta" id="dash-annee-meta"></span></div>
+          <div class="pace-row">
+            <div class="pace-top"><span>Objectif de CA</span><b class="num" id="dash-obj-val">—</b></div>
+            <div class="track"><div class="track-fill" id="dash-obj-fill" style="width:0%"></div><div class="track-mark" id="dash-obj-mark" style="left:0%"></div></div>
+            <div class="pace-hint num" id="dash-obj-hint"></div>
+          </div>
+          <div class="pace-row">
+            <div class="pace-top"><span>Plafond micro-BNC</span><b class="num" id="dash-plafond-val">—</b></div>
+            <div class="track"><div class="track-fill" id="dash-plafond-fill" style="width:0%;background:var(--ciel)"></div></div>
+            <div class="pace-hint" id="dash-plafond-hint"></div>
+          </div>
         </div>
       </div>
 
-      <!-- Ligne 2 KPIs -->
-      <div class="kpi-grid kpi-grid-4 mb-24">
-        <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-chart-bar"></i></div>
-          <span class="kpi-label">CA YTD</span>
-          <span class="kpi-value" id="kpi-ca-ytd">—</span>
-          <span class="kpi-sub">depuis le 1er janvier</span>
+      <div class="dash-grid main-row">
+        <div class="card">
+          <div class="card-h"><h3 id="dash-chart-title">CA encaissé par mois</h3><span class="meta num" id="dash-chart-meta"></span></div>
+          <div class="svg-chart" id="dash-chart"></div>
+          <div class="flow-legend" style="margin-top:10px;">
+            <span><i style="background:var(--ebene)"></i>objectif atteint</span>
+            <span><i style="background:var(--terre-clair)"></i>sous l'objectif</span>
+            <span><i style="background:var(--terracotta)"></i>mois en cours</span>
+          </div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-target"></i></div>
-          <span class="kpi-label">Progression objectif annuel</span>
-          <span class="kpi-value" id="kpi-objectif-pct">—</span>
-          <div class="kpi-progress"><div class="kpi-progress-fill" id="kpi-objectif-bar" style="width:0%"></div></div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon cream"><i class="ti ti-building-bank"></i></div>
-          <span class="kpi-label">Trésorerie Qonto</span>
-          <span class="kpi-value" id="kpi-treso-qonto">—</span>
-          <span class="kpi-sub" id="kpi-treso-upd"></span>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-calendar-due"></i></div>
-          <span class="kpi-label">Prochain URSSAF</span>
-          <span class="kpi-value warning" id="kpi-urssaf-next">—</span>
-          <span class="kpi-sub" id="kpi-urssaf-sub"></span>
+        <div class="card">
+          <div class="card-h"><h3>À traiter</h3><span class="meta" id="dash-todo-meta"></span></div>
+          <div class="todo" id="dash-todo"></div>
         </div>
       </div>
 
-      <!-- 2 colonnes -->
-      <div class="grid-65-35">
-        <!-- Gauche : graphiques -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div class="card">
-            <div class="card-title"><i class="ti ti-chart-bar"></i> CA mensuel (12 mois)</div>
-            <div class="chart-wrap"><canvas id="chart-dash-bar" height="200"></canvas></div>
-            <div class="chart-legend" id="chart-dash-bar-legend"></div>
-            <div id="dash-analyse-ca"></div>
-          </div>
-          <div class="card">
-            <div class="card-title"><i class="ti ti-chart-line"></i> Résultat net (12 mois)</div>
-            <div class="chart-wrap"><canvas id="chart-dash-line" height="140"></canvas></div>
-          </div>
+      <div class="dash-grid foot-row">
+        <div class="card">
+          <div class="card-h"><h3>Trésorerie</h3><button class="btn btn-ghost btn-xs" data-section="enveloppes" onclick="navigate('enveloppes')">Enveloppes</button></div>
+          <div id="dash-treso"></div>
         </div>
-        <!-- Droite : widgets -->
-        <div style="display:flex;flex-direction:column;gap:16px;">
-          <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-              <span><i class="ti ti-arrows-exchange"></i> Dernières transactions</span>
-              <button class="btn btn-ghost btn-xs" data-section="transactions">Voir tout</button>
-            </div>
-            <div id="dash-transactions-list"></div>
-          </div>
-          <div class="card">
-            <div class="card-title" style="justify-content:space-between;">
-              <span><i class="ti ti-repeat"></i> Prochains abonnements</span>
-              <button class="btn btn-ghost btn-xs" data-section="abonnements">Voir tout</button>
-            </div>
-            <div id="dash-abonnements-list"></div>
-          </div>
-          <div id="dash-urssaf-alert"></div>
+        <div class="card">
+          <div class="card-h"><h3>Prochains prélèvements</h3><span class="meta num" id="dash-abo-meta"></span></div>
+          <div id="dash-abonnements-list"></div>
         </div>
       </div>
+      <div class="chart-tip" id="dash-chart-tip" role="status"></div>
     </section><!-- /dashboard -->
 
 
@@ -616,7 +581,7 @@ const HTML = `<!DOCTYPE html>
     <section id="section-crm" class="section">
       <div class="page-header">
         <div class="page-header-left">
-          <h1>Prospection CRM</h1>
+          <h1>Prospection</h1>
           <p style="margin:4px 0 0;font-size:13px;color:var(--text-2);">Suivi de la prospection commerciale — contacts, relances et conversion.</p>
         </div>
         <div class="page-header-right">
@@ -670,21 +635,8 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div class="card">
-          <div class="card-title">Répartition par statut</div>
-          <div style="position:relative;height:200px;">
-            <canvas id="crm-chart-statuts" height="200"></canvas>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-title">Contacts par secteur</div>
-          <div style="position:relative;height:200px;">
-            <canvas id="crm-chart-secteurs" height="200"></canvas>
-          </div>
-        </div>
-      </div>
+      <!-- Pipeline -->
+      <div class="pipe" id="crm-pipeline"></div>
 
       <!-- Table -->
       <div class="card">
@@ -2312,28 +2264,53 @@ const CSS  = `/* =============================================
    VARIABLES
    =========================== */
 :root {
-  --bg:         #F8F8F6;
-  --surface:    #FFFFFF;
-  --surface-2:  #F2F2EF;
-  --cream:      #EFE1B0;
-  --navy:       #051833;
-  --blue:       #BAD1FD;
-  --violet:     #E4D1FE;
-  --brown:      #412F21;
-  --success:    #4CAF82;
-  --warning:    #E8A838;
-  --danger:     #E85454;
-  --text:       #1A1A1A;
-  --text-2:     #6B6B6B;
-  --border:     #E8E8E4;
+  /* Palette Seed to Bloom */
+  --ebene:          #110704;
+  --ciel:           #C5DEFF;
+  --paille:         #E6E5B2;
+  --terracotta:     #CD8F6E;
+  --terre:          #5A2A11;
+  --ivoire:         #F8F6F2;
+  --ciel-pale:      #EAF2FF;
+  --terracotta-clair:#EBD7CA;
+  --terre-clair:    #DCD1C9;
+  --paille-pale:    #F4F3DE;
 
-  --blue-10:    rgba(186,209,253,0.15);
-  --violet-10:  rgba(228,209,254,0.15);
-  --success-10: rgba(76,175,130,0.12);
-  --warning-10: rgba(232,168,56,0.12);
-  --danger-10:  rgba(232,84,84,0.10);
-  --navy-10:    rgba(5,24,51,0.08);
-  --cream-10:   rgba(239,225,176,0.25);
+  /* Rôles */
+  --bg:         var(--ivoire);
+  --surface:    #FFFFFF;
+  --surface-2:  #F2EFEA;
+  --inset:      rgba(17,7,4,0.035);
+  --text:       rgba(17,7,4,0.78);
+  --text-strong:#110704;
+  --text-2:     rgba(17,7,4,0.68);
+  --text-3:     rgba(17,7,4,0.55);
+  --text-on-dark: rgba(230,229,178,0.72);
+  --border:     rgba(17,7,4,0.10);
+  --border-2:   rgba(17,7,4,0.18);
+  --shadow:     0 0 0 1px rgba(17,7,4,0.06), 0 1px 2px -1px rgba(17,7,4,0.06), 0 2px 6px rgba(17,7,4,0.04);
+
+  /* États (dérivés de Terre / Terracotta) */
+  --success:    #4F6B35;
+  --warning:    #8A4B1F;
+  --danger:     #A3321E;
+  --success-10: rgba(79,107,53,0.12);
+  --warning-10: var(--terracotta-clair);
+  --danger-10:  rgba(163,50,30,0.10);
+
+  /* Anciens noms conservés pour le code existant */
+  --navy:       var(--ebene);
+  --blue:       var(--ciel);
+  --violet:     var(--terre-clair);
+  --cream:      var(--paille);
+  --brown:      var(--terre);
+  --blue-10:    var(--ciel-pale);
+  --violet-10:  rgba(220,209,201,0.35);
+  --navy-10:    rgba(17,7,4,0.06);
+  --cream-10:   var(--paille-pale);
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-num:     'DM Sans', system-ui, sans-serif;
 }
 
 /* ===========================
@@ -2385,7 +2362,7 @@ html, body {
   margin-bottom: 36px;
 }
 .login-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 28px;
   font-weight: 600;
   color: var(--navy);
@@ -2439,7 +2416,7 @@ html, body {
   border-bottom: 1px solid var(--border);
 }
 .sidebar-logo .logo-name {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 18px;
   font-weight: 600;
   color: var(--navy);
@@ -2526,7 +2503,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 14px;
   font-weight: 600;
   flex-shrink: 0;
@@ -2597,7 +2574,7 @@ html, body {
   margin-bottom: 28px;
 }
 .page-header-left h1 {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 30px;
   font-weight: 500;
   color: var(--navy);
@@ -2693,7 +2670,7 @@ html, body {
   display: block;
 }
 .kpi-value {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 32px;
   font-weight: 500;
   color: var(--navy);
@@ -2790,7 +2767,7 @@ tbody tr:hover td { background: var(--surface-2); }
   font-variant-numeric: tabular-nums;
 }
 .td-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
@@ -2991,7 +2968,7 @@ tbody tr:hover td { background: var(--surface-2); }
   margin-bottom: 22px;
 }
 .modal-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3088,7 +3065,7 @@ canvas { display: block; width: 100%; }
   flex-shrink: 0;
 }
 .progress-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 15px;
   font-weight: 500;
   color: var(--navy);
@@ -3176,7 +3153,7 @@ canvas { display: block; width: 100%; }
   margin-top: 2px;
 }
 .urssaf-montant {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 26px;
   font-weight: 500;
   color: var(--navy);
@@ -3237,7 +3214,7 @@ canvas { display: block; width: 100%; }
   margin-bottom: 8px;
 }
 .goal-current {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3310,7 +3287,7 @@ canvas { display: block; width: 100%; }
 .sim-line-label { color: var(--text-2); }
 .sim-line-label.strong { color: var(--text); font-weight: 500; }
 .sim-line-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 16px;
   font-weight: 500;
   color: var(--navy);
@@ -3334,7 +3311,7 @@ canvas { display: block; width: 100%; }
 .slider-wrap { display: flex; flex-direction: column; gap: 8px; }
 .slider-header { display: flex; justify-content: space-between; align-items: center; }
 .slider-label { font-size: 13px; color: var(--text-2); }
-.slider-value { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; color: var(--navy); }
+.slider-value { font-family: var(--font-num); font-size: 22px; font-weight: 500; color: var(--navy); }
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -3378,7 +3355,7 @@ input[type="range"]::-moz-range-thumb {
 .scenario-card.realiste  { border-color: rgba(5,24,51,0.2);   background: var(--blue-10); }
 .scenario-card.pessimiste{ border-color: rgba(232,168,56,0.3); background: var(--warning-10); }
 .scenario-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
-.scenario-ca    { font-family: 'Cormorant Garamond', serif; font-size: 24px; color: var(--navy); }
+.scenario-ca    { font-family: var(--font-num); font-size: 24px; color: var(--navy); }
 .scenario-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
 
 /* ===========================
@@ -3410,7 +3387,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 4px;
 }
 .rep-recommande span {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 16px;
   color: var(--navy);
   font-weight: 500;
@@ -3559,7 +3536,7 @@ input[type="range"]::-moz-range-thumb {
 .pot-nom { font-size: 13px; font-weight: 600; color: var(--navy); }
 .pot-icon { font-size: 22px; margin-bottom: 6px; }
 .pot-solde {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 30px;
   font-weight: 500;
   margin: 2px 0 4px;
@@ -3581,7 +3558,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .compte-nom { font-size: 14px; font-weight: 600; color: var(--navy); }
 .compte-solde {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 34px;
   font-weight: 500;
   color: var(--navy);
@@ -3727,7 +3704,7 @@ input[type="range"]::-moz-range-thumb {
 .fiscal-plafond-fill.warning { background: var(--warning); }
 .fiscal-plafond-fill.danger  { background: var(--danger); }
 .fiscal-plafond-pct {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 20px;
   font-weight: 500;
   color: var(--navy);
@@ -3753,7 +3730,7 @@ input[type="range"]::-moz-range-thumb {
 .charges-recap-line:last-child { border-bottom: none; }
 .charges-recap-label { color: var(--text-2); }
 .charges-recap-amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 16px;
   color: var(--navy);
 }
@@ -3768,7 +3745,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .charges-recap-total .label { font-weight: 600; color: var(--navy); }
 .charges-recap-total .amount {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 22px;
   font-weight: 500;
   color: var(--navy);
@@ -3795,7 +3772,7 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 6px;
 }
 .result-card-value {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-num);
   font-size: 26px;
   font-weight: 500;
 }
@@ -3817,6 +3794,243 @@ input[type="range"]::-moz-range-thumb {
   .goals-grid { grid-template-columns: 1fr; }
   .comptes-grid { grid-template-columns: 1fr; }
   .scenarios-grid { grid-template-columns: 1fr; }
+}
+
+/* =============================================
+   REFONTE 2026 — hiérarchie, chiffres, palette
+   ============================================= */
+html, body { color: var(--text); }
+h1, h2, h3, h4, .modal-title { text-wrap: balance; }
+.num, .kpi-value, .td-amount, .strip-v, table { font-variant-numeric: tabular-nums lining-nums; }
+
+/* Titres en Cormorant, chiffres en DM Sans */
+.page-header-left h1 { font-family: var(--font-display); font-weight: 600; font-size: 32px; color: var(--text-strong); letter-spacing: -0.01em; }
+.sidebar-logo .logo-name, .login-logo .logo-name, .modal-title { font-family: var(--font-display); color: var(--text-strong); }
+.sidebar-logo .logo-sub, .nav-group-label, .card-title, .kpi-label { color: var(--terre); }
+
+/* Sidebar */
+#sidebar { background: var(--bg); }
+.nav-item { color: var(--text-2); transition: background-color .12s ease, color .12s ease; }
+.nav-item:hover { background: var(--inset); color: var(--text-strong); }
+.nav-item.active { background: var(--ciel-pale); color: var(--text-strong); border-left-color: var(--ebene); font-weight: 600; }
+.nav-item.active .ti { color: var(--text-strong); }
+.nav-count { margin-left: auto; min-width: 18px; padding: 0 6px; border-radius: 9px; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; background: var(--danger-10); color: var(--danger); }
+.nav-count[hidden] { display: none; }
+
+/* En-têtes : les filtres reviennent à la ligne au lieu de déborder */
+.page-header { flex-wrap: wrap; gap: 14px 20px; align-items: flex-end; }
+.page-header-left { flex: 1 1 260px; min-width: 0; }
+.page-header-right { flex-wrap: wrap; flex-shrink: 1; justify-content: flex-end; min-width: 0; }
+.page-header-right .form-input, .page-header-right .form-select { max-width: 100%; }
+
+/* Cartes : ombre légère plutôt que bordure */
+.card, .kpi-card, .compte-card, .goal-card, .urssaf-card, .rep-card { border: 0; box-shadow: var(--shadow); }
+.card { padding: 20px 22px; }
+.card-cream { background: var(--paille-pale); box-shadow: none; }
+.card-title { font-size: 11px; letter-spacing: .09em; }
+
+/* Rangées de KPI → une bande de stats unique */
+.kpi-grid { gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.kpi-grid .kpi-card { border-radius: 0; box-shadow: none; padding: 16px 20px; }
+.kpi-icon { display: none; }
+.kpi-label { padding-right: 0; font-size: 11px; letter-spacing: .08em; margin-bottom: 6px; }
+.kpi-value { font-family: var(--font-num); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-strong); }
+.kpi-value.blue, .kpi-value.green, .kpi-value.violet, .kpi-value.warning, .kpi-value.danger { color: var(--text-strong); }
+.kpi-value.is-crit { color: var(--danger); }
+.kpi-sub { color: var(--text-3); }
+.kpi-progress { background: var(--inset); height: 4px; }
+.kpi-progress-fill { background: var(--ebene); }
+
+/* Montants */
+.td-amount { font-family: var(--font-num); font-size: 13.5px; font-weight: 600; color: var(--text-strong); }
+.urssaf-montant, .goal-current, .compte-solde, .pot-solde, .sim-line-amount, .charges-recap-amount,
+.charges-recap-total .amount, .result-card-value, .rep-recommande span, .fiscal-plafond-pct,
+.slider-value, .scenario-ca { font-family: var(--font-num); font-weight: 600; letter-spacing: -0.01em; color: var(--text-strong); }
+
+/* Tableaux */
+thead { background: transparent; }
+thead th { color: var(--text-3); border-bottom-color: var(--border); padding: 11px 16px; }
+tbody td { padding: 11px 16px; color: var(--text); }
+tbody tr:hover td { background: var(--inset); }
+.td-mono { color: var(--text-3); }
+
+/* Pastilles de statut */
+.badge { font-weight: 600; border: 0; }
+.badge-payee, .badge-actif, .badge-paye, .badge-success { background: var(--success-10); color: var(--success); }
+.badge-attente, .badge-en-attente, .badge-pause, .badge-a-payer, .badge-warning { background: var(--terracotta-clair); color: var(--terre); }
+.badge-retard, .badge-en-retard, .badge-danger { background: var(--danger-10); color: var(--danger); }
+.badge-annule, .badge-neutral { background: var(--surface-2); color: var(--text-2); border: 0; }
+.badge-a-venir, .badge-blue { background: var(--ciel-pale); color: var(--text-strong); }
+.badge-violet { background: var(--terre-clair); color: var(--terre); }
+
+/* Boutons et champs */
+.btn { transition: background-color .12s ease, transform .12s cubic-bezier(.23,1,.32,1); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn-primary { background: var(--ebene); color: var(--paille); }
+.btn-primary:hover { background: #2a1a14; }
+.btn-secondary { background: var(--surface); border: 1px solid var(--border-2); color: var(--text-strong); }
+.btn-secondary:hover { background: var(--inset); }
+.btn:focus-visible, .nav-item:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; }
+.form-input, .form-select, .form-textarea { background: var(--surface); border-color: var(--border-2); color: var(--text-strong); }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--terracotta); box-shadow: 0 0 0 3px rgba(205,143,110,0.22); }
+
+/* Barres de progression */
+.progress-bar-wrap, .progress-bar, .goal-bar-wrap, .fiscal-plafond-bar, .pot-bar { background: var(--inset); }
+.progress-bar-fill, .progress-bar .fill, .goal-bar, .fiscal-plafond-fill { background: var(--ebene); }
+.progress-bar-fill.green, .progress-bar .fill.green { background: var(--success); }
+.progress-bar-fill.orange, .progress-bar .fill.orange, .fiscal-plafond-fill.warning { background: var(--terracotta); }
+.progress-bar-fill.red, .progress-bar .fill.red, .fiscal-plafond-fill.danger { background: var(--danger); }
+.progress-bar-fill.violet { background: var(--terre-clair); }
+
+/* URSSAF : le rouge seulement pour le vrai retard, le payé passe en retrait */
+.urssaf-card { background: var(--surface); }
+.urssaf-card.alerte-rouge { background: var(--surface); box-shadow: 0 0 0 2px var(--danger); }
+.urssaf-card.alerte-orange { background: var(--surface); box-shadow: 0 0 0 2px var(--terracotta); }
+.urssaf-card.paye { background: var(--surface-2); box-shadow: none; }
+.urssaf-card.paye .urssaf-montant { color: var(--text-3); }
+.urssaf-countdown.rouge { color: var(--danger); }
+.urssaf-countdown.orange { color: var(--warning); }
+
+/* Alertes */
+.alert.danger  { background: var(--danger-10); color: var(--danger); border-color: transparent; }
+.alert.warning { background: var(--terracotta-clair); color: var(--terre); border-color: transparent; }
+.alert.success { background: var(--success-10); color: var(--success); border-color: transparent; }
+.alert.info    { background: var(--ciel-pale); color: var(--text-strong); border-color: transparent; }
+
+/* Simulateur / scénarios */
+.scenario-card { box-shadow: var(--shadow); border: 0; }
+.scenario-card.optimiste { background: var(--paille-pale); }
+.scenario-card.realiste  { background: var(--ciel-pale); }
+.scenario-card.pessimiste{ background: var(--terracotta-clair); }
+.sim-total { background: var(--paille-pale); }
+.sim-tab.active { color: var(--text-strong); border-bottom-color: var(--ebene); }
+
+/* ── Tableau de bord ── */
+.dash-grid { display: grid; gap: 16px; margin-bottom: 16px; }
+.dash-grid.hero-row, .dash-grid.main-row, .dash-grid.foot-row { grid-template-columns: minmax(0,1.6fr) minmax(0,1fr); }
+.dash-hero-label { font-size: 13px; color: var(--text-2); }
+.dash-hero-value { font-family: var(--font-num); font-size: 56px; line-height: 1; font-weight: 600; letter-spacing: -0.035em; color: var(--text-strong); margin: 8px 0 6px; font-variant-numeric: tabular-nums lining-nums; }
+.dash-hero-value small { font-size: 28px; font-weight: 500; color: var(--terracotta); margin-left: 6px; letter-spacing: 0; }
+.dash-hero-ctx { font-size: 13px; color: var(--text-3); }
+.flow { display: grid; gap: 8px; margin-top: 20px; }
+.flow-bar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: var(--inset); }
+.flow-bar i { display: block; height: 100%; min-width: 2px; }
+.flow-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--text-2); }
+.flow-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.flow-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.flow-legend b { color: var(--text-strong); font-weight: 600; }
+.pace { display: grid; gap: 16px; }
+.pace-row { display: grid; gap: 7px; }
+.pace-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; }
+.pace-top b { font-size: 18px; font-weight: 600; color: var(--text-strong); letter-spacing: -0.01em; }
+.pace-top b small { font-size: 12px; font-weight: 400; color: var(--text-3); }
+.track { position: relative; height: 8px; border-radius: 4px; background: var(--inset); }
+.track-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: var(--ebene); }
+.track-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--terracotta); }
+.pace-hint { font-size: 12px; color: var(--text-3); }
+.pace-hint b { color: var(--terre); font-weight: 600; }
+.todo { display: grid; }
+.todo-it { display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.todo-it:first-child { border-top: 0; padding-top: 2px; }
+.todo-it:hover .todo-t { text-decoration: underline; text-underline-offset: 3px; }
+.todo-sev { align-self: stretch; border-radius: 2px; }
+.todo-t { font-weight: 500; color: var(--text-strong); }
+.todo-d { font-size: 12px; color: var(--text-3); }
+.todo-amt { text-align: right; font-weight: 600; color: var(--text-strong); white-space: nowrap; }
+.todo-amt small { display: block; font-size: 12px; font-weight: 400; color: var(--text-3); }
+.todo-empty { font-size: 13px; color: var(--text-3); padding: 8px 0; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.card-h h3 { font-size: 14px; font-weight: 600; color: var(--text-strong); }
+.card-h .meta { font-size: 12px; color: var(--text-3); }
+.kv-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }
+.kv-row:first-child { border-top: 0; padding-top: 0; }
+.kv-row span { color: var(--text-2); }
+.kv-row b { font-weight: 600; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.svg-chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.svg-chart text { font: 11px var(--font-num); fill: var(--text-3); }
+.svg-chart .lbl-strong { fill: var(--text-strong); font-weight: 600; }
+.chart-tip { position: fixed; pointer-events: none; z-index: 300; background: var(--ebene); color: var(--paille); font-size: 12px; padding: 6px 9px; border-radius: 6px; opacity: 0; transition: opacity .12s ease; white-space: nowrap; }
+.chart-tip.on { opacity: 1; }
+
+/* ── Enveloppes façon sachets ── */
+.sachet { background: var(--sachet-corps, var(--surface)); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.sachet-rabat { background: var(--sachet-rabat, var(--ebene)); color: var(--sachet-encre, var(--ebene)); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; gap: 8px; clip-path: polygon(0 0,100% 0,100% 78%,50% 100%,0 78%); padding-bottom: 20px; }
+.sachet-nom { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+.sachet-actions { display: flex; gap: 6px; }
+.sachet-actions button { background: rgba(255,255,255,0.55); border: 0; border-radius: 6px; padding: 4px 8px; cursor: pointer; font: 500 11px var(--font-num); color: var(--text-strong); }
+.sachet-actions button:hover { background: #fff; }
+.sachet-corps { padding: 6px 18px 18px; display: grid; gap: 10px; }
+.sachet-solde { font-family: var(--font-num); font-size: 28px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.sachet-solde.neg { color: var(--danger); }
+.sachet-obj { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); }
+.sachet-suggest { font-size: 12px; color: var(--text-2); background: rgba(255,255,255,0.6); border-radius: 8px; padding: 7px 10px; }
+.sachet-suggest b { color: var(--text-strong); }
+.sachet-tx { border-top: 1px solid var(--border); padding-top: 6px; }
+.sachet-tx-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--border); }
+.sachet-tx-row:last-child { border-bottom: 0; }
+.sachet-tx-row .m { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.equation { background: var(--ebene); color: var(--paille); border-radius: 12px; padding: 18px 24px; display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
+.equation .t { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-on-dark); margin-bottom: 3px; }
+.equation .v { font-family: var(--font-num); font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--paille); }
+.equation .op { font-size: 20px; color: var(--text-on-dark); }
+.equation .res .v { color: var(--ciel); }
+.equation .res.neg .v { color: var(--terracotta); }
+.equation .aside { margin-left: auto; max-width: 300px; font-size: 12.5px; color: var(--text-on-dark); }
+
+/* ── Prospection : colonnes par étape ── */
+.pipe { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 12px; margin-bottom: 16px; }
+.pipe-col { background: var(--surface-2); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 90px; }
+.pipe-h { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: var(--text-2); padding: 2px 4px; }
+.pipe-h .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+.lead { background: var(--surface); border-radius: 9px; padding: 9px 11px; box-shadow: var(--shadow); display: grid; gap: 2px; cursor: pointer; text-align: left; border: 0; font: inherit; color: inherit; }
+.lead:hover { box-shadow: 0 0 0 1px var(--border-2), 0 2px 6px rgba(17,7,4,0.06); }
+.lead-n { font-weight: 600; font-size: 13px; color: var(--text-strong); }
+.lead-c { font-size: 12px; color: var(--text-3); }
+.lead-due { font-size: 11.5px; font-weight: 600; }
+.lead-due.late { color: var(--danger); }
+.lead-due.soon { color: var(--warning); }
+.lead-due.ok { color: var(--text-3); font-weight: 500; }
+.pipe-more { font-size: 12px; color: var(--text-3); padding: 2px 4px; }
+.funnel { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; font-size: 13px; color: var(--text-2); margin-bottom: 14px; }
+.funnel b { font-size: 20px; font-weight: 600; color: var(--text-strong); margin-right: 4px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 1100px) {
+  .dash-grid.hero-row, .dash-grid.main-row, .dash-grid.foot-row { grid-template-columns: 1fr; }
+  .pipe { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .section { padding: 24px 16px; }
+  .dash-hero-value { font-size: 44px; }
+  .pipe { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-65-35, .grid-60-40 { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .section.active { animation: none; }
+  .btn, .nav-item, .chart-tip { transition: none; }
+}
+
+/* Barre de filtres sous l'en-tête (créée au démarrage à partir des champs de l'en-tête) */
+.filters-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: -12px 0 20px; }
+.filters-bar .form-input, .filters-bar .form-select { width: auto !important; min-width: 0; max-width: 100%; height: 34px; padding-top: 0; padding-bottom: 0; font-size: 13px; background: var(--surface); }
+.filters-bar .form-input[type="text"], .filters-bar .form-input[type="search"] { flex: 1 1 200px; max-width: 280px; background: var(--inset); }
+tbody td { white-space: nowrap; }
+tbody td.td-muted, tbody td.td-wrap { white-space: normal; }
+
+/* Mobile : la barre latérale devient une barre de navigation horizontale */
+@media (max-width: 760px) {
+  #app { flex-direction: column; }
+  #sidebar { width: 100%; min-width: 0; flex-direction: row; align-items: center; border-right: 0; border-bottom: 1px solid var(--border); overflow: visible; }
+  .sidebar-logo { border-bottom: 0; padding: 10px 12px 10px 16px; flex-shrink: 0; }
+  .sidebar-logo .logo-sub { display: none; }
+  #sidebar-nav { display: flex; overflow-x: auto; gap: 2px; padding: 6px 8px; min-width: 0; scrollbar-width: none; }
+  #sidebar-nav::-webkit-scrollbar { display: none; }
+  .nav-group { display: flex; padding: 0; gap: 2px; }
+  .nav-group-label, .sidebar-footer { display: none; }
+  .nav-item { border-left: 0; border-radius: 8px; padding: 7px 10px; }
+  .nav-item.active { border-left: 0; }
+  #main { flex: 1; min-height: 0; }
+  .page-header-right { justify-content: flex-start; }
 }
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
@@ -3946,11 +4160,12 @@ const PAS_FIXE    = 40;
 const MOIS_COURT  = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
 const MOIS_LONG   = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const COLORS = {
-  navy:'#051833', blue:'#BAD1FD', violet:'#E4D1FE',
-  success:'#4CAF82', warning:'#E8A838', danger:'#E85454',
-  muted:'#E8E8E4', text2:'#6B6B6B'
+  navy:'#110704', blue:'#C5DEFF', violet:'#DCD1C9',
+  success:'#4F6B35', warning:'#CD8F6E', danger:'#A3321E',
+  muted:'rgba(17,7,4,0.10)', text2:'rgba(17,7,4,0.60)'
 };
-const PALETTE = ['#BAD1FD','#E4D1FE','#4CAF82','#E8A838','#E85454','#051833','#EFE1B0','#412F21'];
+// Palette Seed to Bloom, dans un ordre fixe : Ébène, Terracotta, Ciel, Terre, Paille, Terre clair
+const PALETTE = ['#110704','#CD8F6E','#C5DEFF','#5A2A11','#E6E5B2','#DCD1C9','#EBD7CA','#EAF2FF'];
 
 /* ─── 2. UTILS ───────────────────────────────────────────────────────── */
 const fmt     = v => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(Math.round((v||0)*100)/100);
@@ -4138,7 +4353,7 @@ function drawBarChart(canvas,labels,datasets,opts={}){
       let color=ds.color||COLORS.navy;
       if(di===0&&opts.targetLine){
         const ratio=v/opts.targetLine;
-        color=ratio>=1?'#4CAF82':ratio>=0.8?'#E8A838':'#E05252';
+        color=ratio>=1?COLORS.navy:'#DCD1C9';
       }
       ctx.fillStyle=color;
       ctx.beginPath();
@@ -4208,7 +4423,7 @@ function drawDonutChart(canvas,labels,data,colors){
   const total=data.reduce((a,b)=>a+b,0);
   if(!total)return;
   const legendW=130;
-  const cx=(W-legendW)/2,cy=H/2,r=Math.min(cx-10,cy-10),ir=r*0.58;
+  const cx=(W-legendW)/2,cy=H/2,r=Math.max(4,Math.min(cx-10,cy-10)),ir=r*0.58;
   let angle=-Math.PI/2;
   data.forEach((v,i)=>{
     const s=(v/total)*Math.PI*2;
@@ -4260,149 +4475,258 @@ function drawStackedBarChart(canvas,labels,datasets){
 /* ─── 9. MODULES ─────────────────────────────────────────────────────── */
 
 /* --- Dashboard -------------------------------------------------------- */
+function _dashEsc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function _fmt0(v){return new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(Math.round(v||0))+' €';}
+function _joursEntre(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);}
+
+// Échéances URSSAF trimestrielles (mêmes dates que la vue Charges & URSSAF)
+const DASH_URSSAF_ECH={T1:'2026-04-30',T2:'2026-07-31',T3:'2026-11-02',T4:'2027-02-01'};
+const DASH_URSSAF_MOIS={T1:[1,2,3],T2:[4,5,6],T3:[7,8,9],T4:[10,11,12]};
+const DASH_URSSAF_LBL={T1:'T1 (jan–mar)',T2:'T2 (avr–jun)',T3:'T3 (jul–sep)',T4:'T4 (oct–déc)'};
+
+// Factures non payées dont l'échéance est dépassée (statut « retard » ou « attente » échue)
+function facturesEnRetard(){
+  const t=today();
+  return dbGet('factures').filter(f=>f.statut==='retard'||(f.statut!=='payee'&&f.dateEcheance&&f.dateEcheance<t));
+}
+// Relances de prospection prévues et pas encore faites, à date d'aujourd'hui
+function prochaineRelance(p){
+  if(['negatif','converti','sans_suite'].includes(p.statut))return null;
+  if(p.relance1&&!p.dateRelance1)return p.relance1;
+  if(p.relance2&&!p.dateRelance2)return p.relance2;
+  if(p.relanceFinale&&!p.dateRelanceFinale)return p.relanceFinale;
+  return null;
+}
+function updateNavCounts(){
+  const setCount=(section,n,title)=>{
+    const nav=q(\`.nav-item[data-section="\${section}"]\`);if(!nav)return;
+    let b=nav.querySelector('.nav-count');
+    if(!b){b=el('span','nav-count');nav.appendChild(b);}
+    b.textContent=n;b.hidden=!n;b.title=title||'';
+  };
+  setCount('factures',facturesEnRetard().length,'Factures en retard');
+  if(typeof _prospectsCache!=='undefined'){
+    const t=today();
+    setCount('crm',_prospectsCache.filter(p=>{const r=prochaineRelance(p);return r&&r<=t;}).length,'Relances à faire');
+  }
+}
+
 function loadDashboard(){
   const now=new Date();
   const y=now.getFullYear(),m=now.getMonth()+1;
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
-  if(q('#dash-period'))q('#dash-period').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
+  const todayStr=today();
+  const dernierJour=new Date(y,m,0).getDate();
+  const joursRestants=dernierJour-now.getDate();
 
   const factures    = dbGet('factures');
   const depenses    = dbGet('depenses');
   const abonnements = dbGet('abonnements');
-  const transactions= dbGet('transactions');
   const settings    = dbGetObj('settings');
   const urssafObj   = dbGetObj('urssaf');
 
   const tauxU=(settings.tauxUrssaf||25.6)/100;
   const tauxC=(settings.tauxCfp||0.2)/100;
   const pas  =settings.pasFixe||40;
-
-  // CA mois courant — base encaissements (datePaiement en priorité)
-  const caMois=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
-  // CA YTD
-  const caYTD=factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
+  const pctV =settings.pctVersement||65;
   const objectif=settings.objectifCA||60000;
-  const progressionCA=objectif>0?Math.round(caYTD/objectif*100):0;
+  const encaisse=f=>f.statut==='payee';
+  const datePaie=f=>f.datePaiement||f.date||'';
 
-  // Charges mois courant
-  const urssafM=Math.round(caMois*tauxU*100)/100;
-  const cfpM   =Math.round(caMois*tauxC*100)/100;
-  const depM   =depenses.filter(d=>(d.date||'').startsWith(mKey)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
-  const aboM   =abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
-  const chargesTotal=urssafM+cfpM+pas+depM+aboM;
-  const netMois=Math.max(0,caMois-chargesTotal);
-  const versementEstime=Math.round(netMois*(settings.pctVersement||65)/100);
+  // ── Mois en cours : du CA encaissé au versement
+  const caMois=factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
+  const urssafCfp=caMois*(tauxU+tauxC);
+  const aboM=abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
+  const fixes=aboM+pas;
+  const depM=depenses.filter(d=>(d.date||'').startsWith(mKey)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
+  const net=Math.max(0,caMois-urssafCfp-fixes-depM);
+  const versement=Math.round(net*pctV/100);
+  const reserve=Math.max(0,net-versement);
 
-  // Trésorerie Qonto — solde calculé (sinon solde manuel)
-  const tresoQonto=_qontoSoldeCalc!==null?_qontoSoldeCalc:dbGet('comptes').filter(c=>c.type==='courant'||c.type==='professionnel').reduce((s,c)=>s+(c.solde||0),0);
-
-  // Prochaine échéance URSSAF
-  const echeances={
-    'T1':'2026-04-30','T2':'2026-07-31',
-    'T3':'2026-11-02','T4':'2027-02-01'
-  };
-  const labels={'T1':'T1 (jan–mar)','T2':'T2 (avr–jun)','T3':'T3 (jul–sep)','T4':'T4 (oct–déc)'};
-  let prochaineEcheance=null;
-  ['T1','T2','T3','T4'].forEach(t=>{
-    const cle=\`\${t}-\${y}\`;
-    const d=urssafObj[cle]||{};
-    if(d.statut==='paye')return;
-    const ech=echeances[t];
-    const jours=Math.ceil((new Date(ech)-now)/86400000);
-    if(!prochaineEcheance||jours<prochaineEcheance.joursRestants){
-      prochaineEcheance={label:labels[t],echeance:ech,joursRestants:jours,cle};
-    }
-  });
-
-  // KPIs ligne 1
-  if(q('#kpi-ca-mois'))q('#kpi-ca-mois').textContent=fmt(caMois);
-  if(q('#kpi-charges-mois'))q('#kpi-charges-mois').textContent=fmt(chargesTotal);
-  if(q('#kpi-charges-mois-sub'))q('#kpi-charges-mois-sub').textContent='URSSAF + dép. + PAS';
-  if(q('#kpi-net-mois'))q('#kpi-net-mois').textContent=fmt(netMois);
-  if(q('#kpi-versement'))q('#kpi-versement').textContent=fmt(versementEstime);
-
-  // KPIs ligne 2
-  if(q('#kpi-ca-ytd'))q('#kpi-ca-ytd').textContent=fmt(caYTD);
-  if(q('#kpi-objectif-pct'))q('#kpi-objectif-pct').textContent=\`\${progressionCA}%\`;
-  if(q('#kpi-objectif-bar'))q('#kpi-objectif-bar').style.width=\`\${Math.min(progressionCA,100)}%\`;
-  if(q('#kpi-treso-qonto'))q('#kpi-treso-qonto').textContent=fmt(tresoQonto);
-  if(prochaineEcheance){
-    if(q('#kpi-urssaf-next'))q('#kpi-urssaf-next').textContent=prochaineEcheance.joursRestants>0?\`\${prochaineEcheance.joursRestants} j\`:'Aujourd\\'hui';
-    if(q('#kpi-urssaf-sub'))q('#kpi-urssaf-sub').textContent=\`\${prochaineEcheance.label} · \${fmtDate(prochaineEcheance.echeance)}\`;
+  if(q('#dash-title'))q('#dash-title').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
+  const jourLong=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric'});
+  if(q('#dash-period'))q('#dash-period').textContent=\`\${jourLong.charAt(0).toUpperCase()+jourLong.slice(1)} · \${joursRestants===0?'dernier jour du mois':joursRestants===1?'encore 1 jour dans le mois':\`encore \${joursRestants} jours dans le mois\`}\`;
+  if(q('#dash-hero-value'))q('#dash-hero-value').innerHTML=\`\${fmtN(versement)}<small>€</small>\`;
+  if(q('#dash-hero-ctx'))q('#dash-hero-ctx').textContent=caMois>0
+    ?\`\${pctV} % du résultat net de \${MOIS_LONG[m-1].toLowerCase()} · \${_fmt0(net)} restent après charges\`
+    :\`Aucun encaissement ce mois-ci pour l'instant\`;
+  if(caMois>0&&net===0&&q('#dash-hero-ctx'))q('#dash-hero-ctx').textContent=\`Les charges du mois (\${_fmt0(urssafCfp+fixes+depM)}) dépassent le CA encaissé (\${_fmt0(caMois)})\`;
+  const flow=[
+    {k:'URSSAF + CFP',v:urssafCfp,c:'var(--terre-clair)'},
+    {k:'Charges fixes',v:fixes,c:'var(--terre-clair)',o:.65},
+    {k:'Dépenses',v:depM,c:'var(--terre-clair)',o:.4},
+    {k:'Versement',v:versement,c:'var(--ebene)'},
+    {k:'Réserve',v:reserve,c:'var(--ciel)'},
+  ];
+  const fb=q('#dash-flow-bar');
+  if(fb){
+    const tot=flow.reduce((s,x)=>s+x.v,0);
+    fb.innerHTML=tot>0?flow.filter(x=>x.v>0).map(x=>\`<i style="flex:\${x.v};background:\${x.c};\${x.o?'opacity:'+x.o:''}" title="\${x.k} : \${_fmt0(x.v)}"></i>\`).join(''):'';
+    fb.setAttribute('aria-label','Répartition du mois : '+flow.map(x=>\`\${x.k} \${_fmt0(x.v)}\`).join(', '));
   }
+  if(q('#dash-flow-legend'))q('#dash-flow-legend').innerHTML=
+    \`<span>CA encaissé <b>\${_fmt0(caMois)}</b></span>\`+
+    flow.map(x=>\`<span><i style="background:\${x.c};\${x.o?'opacity:'+x.o:''}"></i>\${x.k} <b>\${_fmt0(x.v)}</b></span>\`).join('');
 
-  // Graphique CA 12 mois
+  // ── Année : objectif au rythme attendu + plafond
+  const caYTD=factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
+  const debut=new Date(y,0,1),fin=new Date(y+1,0,1);
+  const partAnnee=(now-debut)/(fin-debut);
+  const attendu=objectif*partAnnee;
+  const pctObj=objectif>0?caYTD/objectif*100:0;
+  const moisRestants=12-m+(joursRestants>0?1:0);
+  if(q('#dash-annee-title'))q('#dash-annee-title').textContent=\`Année \${y}\`;
+  if(q('#dash-annee-meta'))q('#dash-annee-meta').textContent=\`au \${now.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}\`;
+  if(q('#dash-obj-val'))q('#dash-obj-val').innerHTML=\`\${_fmt0(caYTD)} <small>/ \${_fmt0(objectif)}</small>\`;
+  if(q('#dash-obj-fill'))q('#dash-obj-fill').style.width=\`\${Math.min(100,pctObj)}%\`;
+  if(q('#dash-obj-mark'))q('#dash-obj-mark').style.left=\`\${Math.min(100,partAnnee*100)}%\`;
+  const ecart=caYTD-attendu;
+  if(q('#dash-obj-hint'))q('#dash-obj-hint').innerHTML=caYTD>=objectif
+    ?\`Objectif atteint (\${Math.round(pctObj)} %).\`
+    :ecart>=0
+      ?\`\${Math.round(pctObj)} % atteint · <b>\${_fmt0(ecart)} d'avance</b> sur le rythme de l'objectif.\`
+      :\`\${Math.round(pctObj)} % atteint · au rythme de l'objectif tu serais à \${_fmt0(attendu)} : <b>\${_fmt0(-ecart)} de retard</b>\${moisRestants>0?\`, soit \${_fmt0((objectif-caYTD)/moisRestants)}/mois d'ici décembre\`:''}.\`;
+  const pctPlaf=caYTD/PLAFOND_BNC*100;
+  if(q('#dash-plafond-val'))q('#dash-plafond-val').innerHTML=\`\${Math.round(pctPlaf)} % <small>de \${_fmt0(PLAFOND_BNC)}</small>\`;
+  if(q('#dash-plafond-fill')){q('#dash-plafond-fill').style.width=\`\${Math.min(100,pctPlaf)}%\`;q('#dash-plafond-fill').style.background=pctPlaf>=90?'var(--danger)':pctPlaf>=75?'var(--terracotta)':'var(--ciel)';}
+  if(q('#dash-plafond-hint'))q('#dash-plafond-hint').textContent=pctPlaf>=90?'Attention : tu approches du plafond micro-BNC.':pctPlaf>=75?\`Reste \${_fmt0(PLAFOND_BNC-caYTD)} avant le plafond.\`:'Large marge, rien à surveiller.';
+
+  // ── Graphique CA mensuel de l'année
   const caParMois=MOIS_COURT.map((_,mi)=>{
     const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;
-    return factures.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
+    return factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
   });
-  const netParMois=caParMois.map((ca,i)=>Math.max(0,ca));
+  const objMensuel=objectif/12;
+  const moisOk=caParMois.slice(0,m).filter(v=>v>=objMensuel).length;
+  if(q('#dash-chart-title'))q('#dash-chart-title').textContent=\`CA encaissé en \${y}\`;
+  if(q('#dash-chart-meta'))q('#dash-chart-meta').textContent=\`Objectif \${_fmt0(objMensuel)}/mois · atteint \${moisOk} mois sur \${m}\`;
+  renderDashChart(caParMois,objMensuel,m-1);
 
-  // Seuil de rentabilité : CA minimum pour couvrir charges fixes sans versement
-  const abosMois=abonnements.filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montant||a.montantMensuel||0),0);
-  const seuilMensuel=Math.round((abosMois+pas)/Math.max(0.01,1-tauxU-tauxC));
-  const objectifMensuel=Math.round((settings.objectifCA||60000)/12);
-
-  const c1=q('#chart-dash-bar');
-  if(c1)drawBarChart(c1,MOIS_COURT,[{data:caParMois,color:COLORS.blue}],{targetLine:objectifMensuel,seuilLine:seuilMensuel});
-  const leg=q('#chart-dash-bar-legend');
-  if(leg)leg.innerHTML=
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#4CAF82"></div>CA objectif atteint</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E8A838"></div>CA proche</div>\`+
-    \`<div class="chart-legend-item"><div class="chart-legend-dot" style="background:#E05252"></div>CA insuffisant</div>\`+
-    \`<div class="chart-legend-item"><div style="border-top:2px dashed #1A2E5A;width:16px;margin-top:4px;"></div>Objectif</div>\`+
-    \`<div class="chart-legend-item"><div style="border-top:2px dashed #9e9e9e;width:16px;margin-top:4px;"></div>Seuil</div>\`;
-
-  // Encart analyse
-  const moisOk=caParMois.filter((v,i)=>v>0&&v>=objectifMensuel).length;
-  const moisKo=caParMois.filter((v,i)=>v>0&&v<seuilMensuel).length;
-  const moisVide=caParMois.filter(v=>v===0).length;
-  const alertEl=q('#dash-analyse-ca');
-  if(alertEl){
-    alertEl.innerHTML=
-      \`<div style="background:#F5F3EF;border-radius:10px;padding:14px 16px;margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">\`+
-      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Objectif mensuel</div><div style="font-size:16px;font-weight:700;color:var(--navy);">\${fmt(objectifMensuel)}</div><div style="font-size:11px;color:var(--text-2);">pour \${settings.objectifCA||60000} €/an</div></div>\`+
-      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Seuil minimum</div><div style="font-size:16px;font-weight:700;color:#E8A838;">\${fmt(seuilMensuel)}</div><div style="font-size:11px;color:var(--text-2);">juste pour couvrir les charges</div></div>\`+
-      \`<div><div style="font-size:10px;text-transform:uppercase;color:var(--text-2);margin-bottom:3px;">Mois en vert</div><div style="font-size:16px;font-weight:700;color:#4CAF82;">\${moisOk} / \${12-moisVide}</div><div style="font-size:11px;color:var(--text-2);">\${moisKo>0?moisKo+' mois sous le seuil':'Tous les mois couverts'}</div></div>\`+
-      \`</div>\`;
+  // ── À traiter
+  const todo=[];
+  facturesEnRetard().forEach(f=>{
+    const j=f.dateEcheance?_joursEntre(f.dateEcheance,todayStr):null;
+    todo.push({sev:3,tri:-(j||0),t:\`Facture \${f.numero||''} en retard\`,d:\`\${f.client||''}\${j!=null?\` · échue depuis \${j} j\`:''}\`,amt:_fmt0(f.montant),a:'Relancer',go:'factures'});
+  });
+  factures.filter(f=>f.statut!=='payee'&&f.statut!=='retard'&&f.dateEcheance&&f.dateEcheance>=todayStr&&_joursEntre(todayStr,f.dateEcheance)<=7).forEach(f=>{
+    const j=_joursEntre(todayStr,f.dateEcheance);
+    todo.push({sev:1,tri:j,t:\`Facture \${f.numero||''} à encaisser\`,d:\`\${f.client||''} · échéance \${j===0?"aujourd'hui":\`dans \${j} j\`}\`,amt:_fmt0(f.montant),a:'En attente',go:'factures'});
+  });
+  ['T1','T2','T3','T4'].forEach(t=>{
+    const cle=\`\${t}-\${y}\`;const d=urssafObj[cle]||{};
+    if(d.statut==='paye')return;
+    const ech=DASH_URSSAF_ECH[t];
+    const j=_joursEntre(todayStr,ech);
+    if(j>60)return; // on ne montre que les échéances des deux prochains mois
+    const caT=DASH_URSSAF_MOIS[t].reduce((s,mi)=>{const k=\`\${y}-\${String(mi).padStart(2,'0')}\`;return s+factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(k)).reduce((ss,f)=>ss+(f.montant||0),0);},0);
+    const du=caT*(tauxU+tauxC);
+    if(j<0)todo.push({sev:3,tri:j,t:\`URSSAF \${DASH_URSSAF_LBL[t]} non marquée payée\`,d:\`échéance du \${fmtDate(ech)} dépassée de \${-j} j\`,amt:_fmt0(du),a:'À vérifier',go:'charges-urssaf'});
+    else todo.push({sev:j<=15?2:1,tri:j,t:\`Déclarer l'URSSAF \${DASH_URSSAF_LBL[t]}\`,d:\`avant le \${fmtDate(ech)} · dans \${j} j\`,amt:_fmt0(du),a:'Estimation',go:'charges-urssaf'});
+  });
+  dbGet('devis').filter(d=>d.statut==='envoye'&&d.dateExpiration&&d.dateExpiration>=todayStr&&_joursEntre(todayStr,d.dateExpiration)<=14).forEach(d=>{
+    const j=_joursEntre(todayStr,d.dateExpiration);
+    todo.push({sev:1,tri:j,t:\`Devis \${d.numero||''} sans réponse\`,d:\`\${d.client||''} · expire \${j===0?"aujourd'hui":\`dans \${j} j\`}\`,amt:_fmt0(d.montant),a:'Envoyé',go:'devis'});
+  });
+  const pushRelances=()=>{
+    if(typeof _prospectsCache==='undefined')return;
+    const aRelancer=_prospectsCache.filter(p=>{const r=prochaineRelance(p);return r&&r<=todayStr;});
+    if(aRelancer.length)todo.push({sev:2,tri:0,t:aRelancer.length>1?\`\${aRelancer.length} relances de prospection\`:'1 relance de prospection',d:aRelancer.slice(0,3).map(p=>p.entreprise||p.nom).join(', '),amt:'',a:"Aujourd'hui",go:'crm'});
+  };
+  const sevColor={3:'var(--danger)',2:'var(--terracotta)',1:'var(--ciel)'};
+  const renderTodo=()=>{
+    const box=q('#dash-todo');if(!box)return;
+    const list=[...todo].sort((a,b)=>b.sev-a.sev||a.tri-b.tri).slice(0,6);
+    if(q('#dash-todo-meta'))q('#dash-todo-meta').textContent=list.length?\`\${todo.length} point\${todo.length>1?'s':''}\`:'';
+    box.innerHTML=list.length?list.map(it=>\`
+      <div class="todo-it" role="button" tabindex="0" data-go="\${it.go}">
+        <i class="todo-sev" style="background:\${sevColor[it.sev]}"></i>
+        <div><div class="todo-t">\${_dashEsc(it.t)}</div><div class="todo-d">\${_dashEsc(it.d)}</div></div>
+        <div class="todo-amt num">\${it.amt}<small>\${_dashEsc(it.a)}</small></div>
+      </div>\`).join(''):'<div class="todo-empty">Rien en retard, rien d\\'urgent. Bonne journée.</div>';
+    qa('.todo-it',box).forEach(n=>{
+      const go=()=>navigate(n.dataset.go);
+      n.onclick=go;n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
+    });
+  };
+  if(typeof _prospectsCache!=='undefined'&&_prospectsCache.length){pushRelances();renderTodo();updateNavCounts();}
+  else{
+    renderTodo();
+    api('GET','/api/prospects').then(res=>{
+      if(typeof _prospectsCache!=='undefined')_prospectsCache=Array.isArray(res)?res:[];
+      pushRelances();renderTodo();updateNavCounts();
+    }).catch(()=>updateNavCounts());
   }
 
-  const c2=q('#chart-dash-line');
-  if(c2)drawLineChart(c2,MOIS_COURT,netParMois,COLORS.success);
-
-  // Dernières transactions
-  const tEl=q('#dash-transactions-list');
+  // ── Trésorerie
+  const tresoQonto=_qontoSoldeCalc!==null?_qontoSoldeCalc:dbGet('comptes').filter(c=>c.type==='courant'||c.type==='professionnel').reduce((s,c)=>s+(c.solde||0),0);
+  const tEl=q('#dash-treso');
   if(tEl){
-    const tx=[...transactions].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
-    tEl.innerHTML=tx.length?tx.map(t=>\`
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <div><div style="font-weight:500;">\${t.libelle||'—'}</div><div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)}</div></div>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:\${t.type==='credit'?'var(--success)':'var(--danger)'};">\${t.type==='credit'?'+':'−'}\${fmt(t.montant||0)}</span>
-      </div>\`).join(''):'<p style="font-size:13px;color:var(--text-2);padding:12px 0;">Aucune transaction</p>';
+    const alloue=(typeof _enveloppes!=='undefined'&&_enveloppes.length)?_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0):null;
+    const epargne=dbGet('comptes').filter(c=>c.type!=='courant'&&c.type!=='professionnel').reduce((s,c)=>s+(c.solde||0),0);
+    tEl.innerHTML=
+      \`<div class="kv-row"><span>Solde Qonto</span><b>\${fmt(tresoQonto)}</b></div>\`+
+      (alloue!==null?\`<div class="kv-row"><span>Déjà réparti dans les enveloppes</span><b>\${fmt(alloue)}</b></div>\`+
+        \`<div class="kv-row"><span>Reste à répartir</span><b style="color:\${tresoQonto-alloue<0?'var(--danger)':'var(--success)'}">\${fmt(tresoQonto-alloue)}</b></div>\`:'')+
+      (epargne?\`<div class="kv-row"><span>Épargne et placements</span><b>\${fmt(epargne)}</b></div>\`:'');
   }
 
-  // Prochains abonnements
+  // ── Prochains prélèvements
   const aEl=q('#dash-abonnements-list');
   if(aEl){
     const todayD=now.getDate();
     const actifs=abonnements.filter(a=>a.statut==='actif').map(a=>{
-      let j=(a.jour||1)-todayD;if(j<0)j+=31;
+      let j=(a.jour||1)-todayD;if(j<0)j+=dernierJour;
       return{...a,joursAvant:j};
-    }).sort((a,b)=>a.joursAvant-b.joursAvant).slice(0,5);
+    }).sort((a,b)=>a.joursAvant-b.joursAvant).slice(0,4);
+    if(q('#dash-abo-meta'))q('#dash-abo-meta').textContent=aboM?\`\${_fmt0(aboM)}/mois\`:'';
     aEl.innerHTML=actifs.length?actifs.map(a=>\`
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
-        <div><div style="font-weight:500;">\${a.nom}</div><div style="font-size:11px;color:var(--text-2);">Jour \${a.jour||'—'} · dans \${a.joursAvant} j</div></div>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--navy);">\${fmt(a.montant||0)}</span>
-      </div>\`).join(''):'<p style="font-size:13px;color:var(--text-2);padding:12px 0;">Aucun abonnement actif</p>';
+      <div class="kv-row"><span>\${_dashEsc(a.nom)} · \${a.joursAvant===0?"aujourd'hui":a.joursAvant===1?'demain':\`dans \${a.joursAvant} j\`}</span><b>\${fmt(a.montant||0)}</b></div>\`).join('')
+      :'<div class="todo-empty">Aucun abonnement actif</div>';
   }
+}
 
-  // Alerte URSSAF si ≤ 30 jours
-  const alEl=q('#dash-urssaf-alert');
-  if(alEl){
-    if(prochaineEcheance&&prochaineEcheance.joursRestants<=30){
-      alEl.innerHTML=\`<div class="alert danger"><i class="ti ti-alert-triangle"></i> URSSAF \${prochaineEcheance.label} à payer dans \${prochaineEcheance.joursRestants} jours (échéance \${fmtDate(prochaineEcheance.echeance)})</div>\`;
-    }else alEl.innerHTML='';
+function renderDashChart(vals,target,current){
+  const box=q('#dash-chart');if(!box)return;
+  const W=640,H=230,pl=44,pr=10,pt=18,pb=26,cw=W-pl-pr,ch=H-pt-pb,n=vals.length,bw=cw/n;
+  const maxV=Math.max(...vals,target,1);
+  const step=niceStep(maxV);
+  const max=Math.ceil(maxV/step)*step;
+  const yy=v=>pt+ch-(v/max)*ch;
+  const kfmt=v=>v>=1000?(Math.round(v/100)/10).toString().replace('.',',')+' k':String(v);
+  let s=\`<svg viewBox="0 0 \${W} \${H}" role="img" aria-label="CA encaissé par mois">\`;
+  for(let v=0;v<=max;v+=step){
+    s+=\`<line x1="\${pl}" x2="\${W-pr}" y1="\${yy(v)}" y2="\${yy(v)}" stroke="var(--border)"/>\`;
+    s+=\`<text x="\${pl-8}" y="\${yy(v)+4}" text-anchor="end">\${kfmt(v)}</text>\`;
   }
+  vals.forEach((v,i)=>{
+    const x=pl+i*bw+bw*0.2,w=bw*0.6,h=ch*(v/max);
+    const fill=i===current?'var(--terracotta)':(v>=target?'var(--ebene)':'var(--terre-clair)');
+    if(v>0){
+      const r=Math.min(4,h,w/2);
+      s+=\`<path d="M\${x},\${yy(0)} V\${yy(0)-h+r} Q\${x},\${yy(0)-h} \${x+r},\${yy(0)-h} H\${x+w-r} Q\${x+w},\${yy(0)-h} \${x+w},\${yy(0)-h+r} V\${yy(0)} Z" fill="\${fill}"\${i>current?' opacity=".4"':''}/>\`;
+    }
+    s+=\`<rect x="\${pl+i*bw}" y="\${pt}" width="\${bw}" height="\${ch}" fill="transparent" data-i="\${i}"/>\`;
+    s+=\`<text x="\${x+w/2}" y="\${H-8}" text-anchor="middle"\${i===current?' class="lbl-strong"':''}>\${MOIS_COURT[i]}</text>\`;
+  });
+  if(target>0){
+    s+=\`<line x1="\${pl}" x2="\${W-pr}" y1="\${yy(target)}" y2="\${yy(target)}" stroke="var(--terre)" stroke-width="1.5" stroke-dasharray="4 4"/>\`;
+    s+=\`<text x="\${W-pr}" y="\${yy(target)-6}" text-anchor="end" class="lbl-strong" style="fill:var(--terre)">objectif \${_fmt0(target)}</text>\`;
+  }
+  if(vals[current]>0){
+    const cx=pl+current*bw+bw/2;
+    s+=\`<text x="\${cx}" y="\${yy(vals[current])-8}" text-anchor="middle" class="lbl-strong">\${_fmt0(vals[current])}</text>\`;
+  }
+  s+='</svg>';
+  box.innerHTML=s;
+  const tip=q('#dash-chart-tip');
+  box.onmousemove=e=>{
+    const t=e.target.closest('[data-i]');
+    if(!t||!tip){tip&&tip.classList.remove('on');return;}
+    const i=+t.dataset.i,v=vals[i];
+    tip.textContent=\`\${MOIS_LONG[i]} · \${_fmt0(v)}\${i<=current?(v>=target?' · objectif atteint':\` · \${_fmt0(target-v)} sous l'objectif\`):''}\`;
+    tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-34)+'px';tip.classList.add('on');
+  };
+  box.onmouseleave=()=>tip&&tip.classList.remove('on');
 }
 
 /* --- Qonto Sync ------------------------------------------------------- */
@@ -4458,97 +4782,73 @@ async function loadEnveloppes(){
   }catch(e){toast('Erreur chargement enveloppes','error');}
 }
 
+// Sachets : rabat en couleur pleine, corps en teinte claire (palette Seed to Bloom)
+const ENVELOPPES_SACHETS={
+  qonto:     {rabat:'var(--ebene)',     corps:'var(--surface)',          encre:'var(--paille)', btn:'var(--paille)'},
+  charges:   {rabat:'var(--terracotta)',corps:'var(--terracotta-clair)', encre:'var(--ebene)',  btn:'rgba(255,255,255,.6)'},
+  formations:{rabat:'var(--ciel)',      corps:'var(--ciel-pale)',        encre:'var(--ebene)',  btn:'rgba(255,255,255,.7)'},
+  tresorerie:{rabat:'var(--paille)',    corps:'var(--paille-pale)',      encre:'var(--ebene)',  btn:'rgba(255,255,255,.7)'},
+  salaire:   {rabat:'var(--terre)',     corps:'var(--terre-clair)',      encre:'var(--paille)', btn:'var(--paille)'},
+};
+
 function renderEnveloppes(){
   const g=q('#enveloppes-grid');
   if(!g)return;
+  const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
 
-  // Bandeau récap
+  // Bandeau : solde réel − déjà réparti = à répartir
   const qonto=_enveloppes.find(e=>e.id==='qonto');
   const banner=q('#enveloppes-banner');
   if(banner&&qonto){
     const soldeReel=qonto.soldeQontoReel??0;
-    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
     const restant=soldeReel-totalAlloue;
-    const surplusColor=restant<0?'#E05252':restant===0?'#E8A838':'#4CAF82';
-    banner.innerHTML=\`<div style="background:var(--navy);border-radius:12px;padding:16px 24px;display:flex;gap:32px;flex-wrap:wrap;align-items:center;">
-      <div style="color:#fff;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Solde reel Qonto</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(soldeReel)}</div>
-      </div>
-      <div style="color:#fff;opacity:.4;font-size:20px;">−</div>
-      <div style="color:#fff;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.6;margin-bottom:3px;">Total alloue</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500;">\${fmt(totalAlloue)}</div>
-      </div>
-      <div style="color:#fff;opacity:.4;font-size:20px;">=</div>
-      <div>
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);margin-bottom:3px;">\${restant<0?'Deficit':'Disponible a repartir'}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:\${surplusColor};">\${fmt(Math.abs(restant))}\${restant<0?' ⚠':''}</div>
-      </div>
+    const sal=_enveloppes.find(e=>e.id==='salaire'),tre=_enveloppes.find(e=>e.id==='tresorerie');
+    const pistes=[sal&&sal.virer&&sal.pct<100?\`\${fmt(Math.min(sal.virer,restant))} vers « \${sal.nom} »\`:'',tre&&tre.virer&&tre.pct<100?\`\${fmt(tre.virer)} vers « \${tre.nom} »\`:''].filter(Boolean);
+    banner.innerHTML=\`<div class="equation">
+      <div><div class="t">Solde réel Qonto</div><div class="v">\${fmt(soldeReel)}</div></div>
+      <div class="op">−</div>
+      <div><div class="t">Déjà réparti</div><div class="v">\${fmt(totalAlloue)}</div></div>
+      <div class="op">=</div>
+      <div class="res\${restant<0?' neg':''}"><div class="t">\${restant<0?'Déficit':'À répartir'}</div><div class="v">\${fmt(Math.abs(restant))}</div></div>
+      <div class="aside">\${restant<0
+        ?'Tu as réparti plus que ton solde réel. Annule un virement ou attends un encaissement.'
+        :restant>0&&pistes.length?'Piste : '+pistes.join(', ')+'.':'Tout ton solde est réparti.'}</div>
     </div>\`;
   }
 
   g.innerHTML=_enveloppes.map(env=>{
-    const couleur=ENVELOPPES_COULEURS[env.id]||'#888';
+    const sc=ENVELOPPES_SACHETS[env.id]||{rabat:'var(--terre-clair)',corps:'var(--surface)',encre:'var(--ebene)',btn:'rgba(255,255,255,.7)'};
     const icone=ENVELOPPES_ICONES[env.id]||'ti-wallet';
-    const txRecentes=env.transactions.slice(0,5);
-    const totalAlloue=_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0);
-    const syncInfo=env.id==='qonto'&&env.soldeQontoReel!==null?\`
-      <div style="font-size:11px;color:var(--text-2);margin-top:2px;">
-        Solde reel Qonto : <strong>\${fmt(env.soldeQontoReel)}</strong>
-        &nbsp;·&nbsp; Deja alloue : <strong>\${fmt(totalAlloue)}</strong>
-      </div>
-      \${env.solde<0?\`<div style="margin-top:6px;background:#FEE2E2;border-radius:6px;padding:6px 10px;font-size:12px;color:#B91C1C;font-weight:600;">
-        <i class="ti ti-alert-triangle"></i> Tu as alloue \${fmt(Math.abs(env.solde))} de plus que ton solde reel. Retire des virements ou attends un encaissement.
-      </div>\`:''}
-    \`:'';
+    const txRecentes=env.transactions.slice(0,3);
+    const btnStyle=\`style="background:\${sc.btn}"\`;
+    const deficit=env.id==='qonto'&&env.solde<0
+      ?\`<div class="alert danger" style="margin:0;font-size:12px;"><i class="ti ti-alert-triangle"></i> \${fmt(Math.abs(env.solde))} réparti en trop par rapport au solde réel.</div>\`:'';
     const txHtml=txRecentes.length
       ? txRecentes.map(t=>\`
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
-            <div>
-              <div style="font-weight:500;color:var(--text-1);">\${t.motif||'Virement'}</div>
-              <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.contrepartie}</div>
-            </div>
-            <span style="font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:600;color:\${t.type==='credit'?'#4CAF82':'#E05252'};">
-              \${t.type==='credit'?'+':'−'}\${fmt(t.montant)}
-            </span>
+          <div class="sachet-tx-row">
+            <div><div style="font-weight:500;color:var(--text-strong);">\${t.motif||'Virement'}</div>
+              <div style="font-size:11px;color:var(--text-3);">\${fmtDate(t.date)} · \${t.contrepartie}</div></div>
+            <span class="m" style="color:\${t.type==='credit'?'var(--success)':'var(--text-strong)'};">\${t.type==='credit'?'+':'−'}\${fmt(t.montant)}</span>
           </div>\`).join('')
-      : \`<div style="font-size:12px;color:var(--text-2);padding:10px 0;">Aucune transaction</div>\`;
-
-    return \`<div class="card" style="border-top:3px solid \${couleur};padding:20px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <i class="ti \${icone}" style="color:\${couleur};font-size:18px;"></i>
-            <span style="font-size:13px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;">\${env.nom}</span>
-          </div>
-          \${syncInfo}
-        </div>
-        <div style="display:flex;gap:6px;">
-          \${env.objectif!=null?\`<button onclick="openObjectifModal('\${env.id}',\${env.objectif})" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);"><i class="ti ti-target"></i> Objectif</button>\`:''}
-          <button onclick="openVirementModal('\${env.id}')" style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--text-2);">
-            <i class="ti ti-arrows-transfer-up"></i> Virer
-          </button>
-        </div>
+      : \`<div style="font-size:12px;color:var(--text-3);padding:6px 0;">Aucun mouvement</div>\`;
+    const atteint=env.pct>=100;
+    return \`<div class="sachet" style="--sachet-rabat:\${sc.rabat};--sachet-corps:\${sc.corps};--sachet-encre:\${sc.encre};">
+      <div class="sachet-rabat">
+        <span class="sachet-nom"><i class="ti \${icone}"></i>\${env.nom}</span>
+        <span class="sachet-actions">
+          \${env.objectif!=null?\`<button \${btnStyle} onclick="openObjectifModal('\${env.id}',\${env.objectif})"><i class="ti ti-target"></i> Objectif</button>\`:''}
+          <button \${btnStyle} onclick="openVirementModal('\${env.id}')"><i class="ti ti-arrows-transfer-up"></i> Virer</button>
+        </span>
       </div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;color:\${env.solde<0?'#E05252':couleur};margin-bottom:8px;">
-        \${fmt(env.solde)}
-      </div>
-      \${env.objectif!=null?\`
-      <div style="margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:5px;">
-          <span>Objectif : <strong>\${fmt(env.objectif)}</strong></span>
-          <span style="font-weight:600;color:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};">\${env.pct} %</span>
-        </div>
-        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-          <div style="height:100%;width:\${env.pct}%;background:\${env.pct>=100?'#4CAF82':env.pct>=60?'#E8A838':'#E05252'};border-radius:3px;transition:width .5s;"></div>
-        </div>
-        \${env.virer!=null&&env.pct<100?\`<div style="margin-top:6px;font-size:11px;color:var(--text-2);">
-          <i class="ti ti-arrow-up-circle" style="color:#4CAF82;"></i> Vire environ <strong>\${fmt(env.virer)}/mois</strong> pour atteindre l'objectif
-        </div>\`:''}
-      </div>\`:'<div style="margin-bottom:14px;"></div>'}
-      <div style="border-top:1px solid var(--border);padding-top:10px;">
-        \${txHtml}
+      <div class="sachet-corps">
+        <div class="sachet-solde\${env.solde<0?' neg':''}">\${fmt(env.solde)}</div>
+        \${deficit}
+        \${env.objectif!=null?\`
+          <div class="track"><div class="track-fill" style="width:\${Math.max(0,Math.min(100,env.pct||0))}%;background:\${atteint?'var(--success)':'var(--ebene)'};"></div></div>
+          <div class="sachet-obj"><span>Objectif \${fmt(env.objectif)}</span><span style="font-weight:600;color:\${atteint?'var(--success)':'var(--text-2)'};">\${atteint?'atteint':(env.pct||0)+' %'}</span></div>
+          \${env.virer!=null&&!atteint?\`<div class="sachet-suggest">Virer environ <b>\${fmt(env.virer)}/mois</b> pour atteindre l'objectif</div>\`:''}
+        \`:''}
+        <div class="sachet-tx">\${txHtml}</div>
       </div>
     </div>\`;
   }).join('');
@@ -4567,7 +4867,7 @@ function renderVirements(){
         <div style="font-size:11px;color:var(--text-2);">\${fmtDate(t.date)} · \${t.deNom} <i class="ti ti-arrow-right" style="font-size:10px;"></i> \${t.contrepartie}</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-family:'Cormorant Garamond',serif;font-size:16px;">\${fmt(t.montant)}</span>
+        <span style="font-family:var(--font-num);font-size:16px;">\${fmt(t.montant)}</span>
         <button onclick="deleteVirement('\${t.id}')" style="background:none;border:none;color:#E05252;cursor:pointer;"><i class="ti ti-trash" style="font-size:14px;"></i></button>
       </div>
     </div>\`).join(''):'<p style="color:var(--text-2);font-size:13px;padding:16px 0;">Aucun virement pour le moment</p>';
@@ -5475,26 +5775,45 @@ function renderCrmBanner(){
   }
 }
 
+// Colonnes du pipeline de prospection (remplace le donut et l'histogramme par secteur)
+const CRM_ETAPES=[
+  {k:'contact',     label:'Premier contact', statuts:['contact'],             dot:'var(--ciel)'},
+  {k:'attente',     label:'En attente',      statuts:['en_attente'],          dot:'var(--terracotta)'},
+  {k:'proposition', label:'Proposition',     statuts:['proposition','positif'],dot:'var(--paille)'},
+  {k:'client',      label:'Client',          statuts:['converti'],            dot:'var(--success)'},
+  {k:'clos',        label:'Sans suite',      statuts:['negatif','sans_suite'],dot:'var(--terre-clair)'},
+];
 function renderCrmCharts(){
-  const statutCanvas=q('#crm-chart-statuts');
-  const secteurCanvas=q('#crm-chart-secteurs');
-  if(statutCanvas){
-    const counts={};
-    _prospectsCache.forEach(p=>{counts[p.statut]=(counts[p.statut]||0)+1;});
-    const labels=Object.keys(counts).map(k=>CRM_STATUTS[k]?.label||k);
-    const vals=Object.values(counts);
-    const colors=Object.keys(counts).map(k=>CRM_STATUTS[k]?.color||'#ccc');
-    _drawDonutChart(statutCanvas,labels,vals,colors);
-  }
-  if(secteurCanvas){
-    const counts={};
-    _prospectsCache.forEach(p=>{const s=p.secteur||"Non précisé";counts[s]=(counts[s]||0)+1;});
-    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
-    const labels=sorted.map(x=>x[0]);
-    const vals=sorted.map(x=>x[1]);
-    const colors=PALETTE;
-    _drawBarChartCRM(secteurCanvas,labels,vals,colors);
-  }
+  const box=q('#crm-pipeline');
+  if(!box)return;
+  const t=today();
+  box.innerHTML=CRM_ETAPES.map(et=>{
+    const items=_prospectsCache.filter(p=>et.statuts.includes(p.statut))
+      .map(p=>({p,r:prochaineRelance(p)}))
+      .sort((a,b)=>(a.r||'9999').localeCompare(b.r||'9999'));
+    const cards=items.slice(0,6).map(({p,r})=>{
+      let due='';
+      if(r){
+        const j=Math.round((new Date(r+'T12:00:00')-new Date(t+'T12:00:00'))/86400000);
+        due=j<0?\`<span class="lead-due late">Relance prévue le \${fmtDate(r)} · en retard</span>\`
+          :j===0?\`<span class="lead-due late">Relance aujourd'hui</span>\`
+          :j<=7?\`<span class="lead-due soon">Relance le \${fmtDate(r)}</span>\`
+          :\`<span class="lead-due ok">Relance le \${fmtDate(r)}</span>\`;
+      }else if(p.dateContact&&et.k!=='clos'){
+        due=\`<span class="lead-due ok">Contacté le \${fmtDate(p.dateContact)}</span>\`;
+      }
+      return \`<button class="lead" type="button" onclick="editProspect('\${p.id}')"\${et.k==='clos'?' style="opacity:.7"':''}>
+        <span class="lead-n">\${escHtml(p.entreprise||p.nom||'—')}</span>
+        <span class="lead-c">\${escHtml([p.entreprise?p.nom:'',p.secteur].filter(Boolean).join(' · '))}</span>
+        \${due}
+      </button>\`;
+    }).join('');
+    return \`<div class="pipe-col">
+      <div class="pipe-h"><span><i class="dot" style="background:\${et.dot}"></i>\${et.label}</span><span>\${items.length}</span></div>
+      \${cards}\${items.length>6?\`<div class="pipe-more">+ \${items.length-6} autres dans le tableau</div>\`:''}
+    </div>\`;
+  }).join('');
+  if(typeof updateNavCounts==='function')updateNavCounts();
 }
 
 function _drawDonutChart(canvas,labels,vals,colors){
@@ -6973,6 +7292,19 @@ async function saveOptions(){
 }
 
 /* ─── 10. INIT ───────────────────────────────────────────────────────── */
+// Sort les champs de filtre de l'en-tête vers une barre dédiée, pour que l'en-tête garde titre + action
+function moveHeaderFilters(){
+  qa('.page-header').forEach(h=>{
+    const right=h.querySelector('.page-header-right');if(!right)return;
+    const ctrls=[...right.children].filter(c=>c.matches('input,select,.month-selector'));
+    if(ctrls.length<2)return;
+    const bar=el('div','filters-bar');
+    ctrls.sort((a,b)=>(b.matches('input[type="text"],input[type="search"]')?1:0)-(a.matches('input[type="text"],input[type="search"]')?1:0));
+    ctrls.forEach(c=>bar.appendChild(c));
+    h.after(bar);
+  });
+}
+
 async function startApp(){
   try { await loadAll(); } catch(e) { if(e.message==='401')return; toast('Erreur chargement données','error'); }
   navigate('dashboard');
@@ -6981,6 +7313,7 @@ async function startApp(){
 async function init(){
   injectLoginOverlay();
   initModals();
+  moveHeaderFilters();
 
   // Navigation sidebar
   document.addEventListener('click',e=>{
@@ -6990,6 +7323,7 @@ async function init(){
 
   // Dashboard
   q('#dash-refresh-btn')?.addEventListener('click',()=>loadDashboard());
+  q('#dash-new-facture-btn')?.addEventListener('click',()=>{navigate('factures');openFactureModal();});
 
   // Factures
   q('#btn-new-facture')?.addEventListener('click',()=>openFactureModal());
