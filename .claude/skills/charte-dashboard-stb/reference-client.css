@@ -1,0 +1,56 @@
+:root {
+  /* ═══ PALETTE OFFICIELLE Seed to Bloom — UNIQUEMENT ces 6 couleurs (+ opacités) ═══
+     Ébène #110704 · Azur #C5DEFF · Mimosa #E6E5B2 · Mandarine #CD8F6E · Cuivre #5A2A11 · Neige #F8F6F2
+     Page BLANCHE, blocs BEIGES (Neige). Texte foncé (Ébène/Cuivre) sur fonds clairs ;
+     texte clair (Neige) uniquement sur fonds foncés. Marron/beige/bleu majoritaires ;
+     Mandarine & Mimosa = accents ponctuels. */
+  --terre-900:#110704; --terre-800:#110704; --terre:#110704;
+  --terre-600:#5A2A11; --terre-400:rgba(17,7,4,.64); --terre-200:rgba(17,7,4,.2);
+  --nuit-900:#110704; --nuit:#110704; --nuit-700:#1c130a;
+  --nuit-500:#5A2A11; --nuit-300:rgba(17,7,4,.5);
+  --glycine-50:rgba(205,143,110,.12); --glycine-200:rgba(205,143,110,.22); --glycine:#CD8F6E;
+  --glycine-700:#CD8F6E; --glycine-900:#5A2A11;
+  --brume-50:rgba(197,222,255,.4); --brume-200:rgba(197,222,255,.6); --brume:#C5DEFF;
+  --brume-700:#5A2A11; --brume-900:#5A2A11;
+  --paille-200:rgba(230,229,178,.5); --paille:#E6E5B2; --paille-700:#5A2A11;
+  --bone:#ffffff; --bone-d:rgba(17,7,4,.1); --card:#F8F6F2;
+  /* legacy aliases for compat */
+  --brown: #110704;
+  --navy: #110704;
+  --sidebar-bg: #110704;
+  --lavender: #C5DEFF;
+  --blue-light: #C5DEFF;
+  --cream: #E6E5B2;
+  --bg: #ffffff;
+  --white: #FFFFFF;
+  --text: #110704;
+  --muted: rgba(17,7,4,.64);
+  --border: rgba(17,7,4,.1);
+  --surface: #F8F6F2;
+  --sage: #5A2A11;
+  --sky: #C5DEFF;
+  --sidebar-text: #F8F6F2;
+  --orange: #CD8F6E;
+  --red: #5A2A11;
+  --radius: 10px;
+  --shadow: none;
+  --sw: 256px;
+  /* status */
+  --st-todo:rgba(17,7,4,.3); --st-progress:#CD8F6E; --st-review:#C5DEFF; --st-done:#5A2A11;
+  /* fonts */
+  --font-display:'Cormorant Garamond','EB Garamond',Georgia,serif;
+  --font-body:'Alegreya',Georgia,'Times New Roman',serif;
+  --font-micro:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
+  /* type scale */
+  --fs-micro:11.5px; --fs-small:15px; --fs-body:18px; --fs-lead:21px;
+  --fs-h5:22px; --fs-h4:28px; --fs-h3:36px;
+  /* shape */
+  --radius-1:2px; --radius-2:6px; --radius-3:10px; --radius-pill:999px;
+  --shadow-1:none;
+  --shadow-2:0 8px 20px -12px rgba(17,7,4,.12);
+  --shadow-3:0 16px 40px -14px rgba(17,7,4,.22);
+  --ease:cubic-bezier(0.16,1,0.3,1); --dur:240ms;
+  /* button tokens */
+  --btn-primary-bg:var(--glycine); --btn-primary-fg:var(--terre);
+  --btn-secondary-bg:transparent; --btn-secondary-fg:var(--terre);
+}

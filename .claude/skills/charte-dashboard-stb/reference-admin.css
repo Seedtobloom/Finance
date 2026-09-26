@@ -1,0 +1,117 @@
+:root{
+  --terre:#110704; --terre-600:#5A2A11; --terre-400:#8a5c3f; --terre-200:#d8b9a2;
+  --nuit:#110704; --nuit-700:#3a291b;
+  /* accent bleu clair (remplace l'ancien violet glycine) — noms conservés pour compat */
+  --glycine:#C5DEFF; --glycine-50:#E8F1FF; --glycine-700:#7fa8d0; --glycine-900:#2c4a72;
+  --brume:#E4F0FF; --paille:#F0E9D6; --paille-200:#efe7cf;
+  --bone:#ffffff; --bone-d:#e0d6c4; --card:#F7F3EC; --surface:#EDE5D7; --surface-2:#E4D9C5;
+  --page:#ffffff;
+  --text:#241609; --muted:#7a5540; --border:#e6ddcd;
+  --red:#8d2b21; --orange:#c9952f; --green:#456039;
+  --font-display:'Cormorant Garamond','EB Garamond',Georgia,serif;
+  --font-body:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
+  --font-micro:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
+  --radius:18px; --sw:248px;
+  --shadow-1:none;
+  --shadow-2:none;
+  /* alias maquette (priorites-admin) — noms courts utilisés par les composants portés */
+  --beige:#E4D9C5; --bone-d:#e0d6c4;
+  --gold-chip:#CD8F6E; --gold-ink:#3d1c0b; --gold-soft:#E6E5B2;
+  --gly:#C5DEFF; --gly-50:#E8F1FF; --gly-ink:#2c4a72;
+  --paille-700:#cabf95;
+  --fd:'Cormorant Garamond','EB Garamond',Georgia,serif;
+  --fb:'Inter Tight',ui-sans-serif,system-ui,sans-serif;
+}
+
+.ck{
+  --ebene:#110704; --cuivre:#5A2A11; --cuivre-800:#2c1408;
+  --ciel:#C5DEFF; --ciel-bg:#EAF2FF; --terracotta:#CD8F6E;
+  /* surfaces : blanc pour les cartes, ivoire pour respirer, ciel pâle pour
+     ce qui demande une décision */
+  --bone:#ffffff; --card:#F8F6F2; --surface:#F8F6F2; --surface-2:#EAF2FF;
+  --border:#e9e5dc; --bone-d:#e9e5dc;
+  --paille:#E6E5B2; --paille-200:#f4f3d9;
+  --text:#110704; --muted:rgba(17,7,4,0.58);
+  --glycine:#C5DEFF; --glycine-50:#f2f7ff; --glycine-700:#7fa4d4; --glycine-900:#3f5f8c;
+  --terre-600:#7a3d1e; --terre-400:#a56b48; --terre-200:#d3b19a;
+  --gold-chip:#CD8F6E; --gold-soft:#E6E5B2;
+  --font-display:'Alegreya',Georgia,serif;
+  --font-body:'Alegreya',Georgia,serif;
+  font-family:var(--font-body);
+  font-size:16.5px;
+}
+.ck .btn,.ck .ck-meta,.ck .ck-segb,.ck .ckl-n,.ck .ckl-h,.ck .ck-puce,.ck .ckj-h,
+.ck .ckl-capn,.ck .ckl-navl,.ck .ckl-fl,.ck .ck-fl,.ck .ckj-c .ck-doux,
+.ck .ckl-troul,.ck .ckl-sale,.ck .ckj-etn,.ck .ck-ch{font-family:var(--font-micro)}
+/* Les grands arrondis d'avant faisaient « bulle » : la charte va de 8 à 28. */
+.ck .ck-tbl,.ck .ckl-gr,.ck .ckj,.ck .ckj-etp,.ck .ckl-proj,.ck .ck-sem{border-radius:20px}
+.ck .ckl-capb,.ck .ckl-regc,.ck .ckl-sp,.ck .ck-att>*{border-radius:16px}
+.ck .ck-pan{border-radius:16px}
+.ck h1,.ck .ck-h1{letter-spacing:-0.025em}
+.ck .ck-chapo,.ck .ck-chapo2,.ck .ck-semp,.ck .ckl-aide,.ck .ckl-capx,.ck .ckl-note{font-size:15.5px}
+
+/* ── Le bandeau d'en-tête sombre : ce que la journée permet ─────────────
+   Un seul composant, posé en haut des quatre écrans. Le chiffre est en
+   Paille, jamais en aplat : c'est du texte sur Ébène. */
+.ck-hero{background:var(--ebene);color:var(--paille);border-radius:24px;padding:26px 30px;margin-bottom:22px;
+  display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:26px;align-items:center}
+.ck-hero__e{font-family:var(--font-micro);font-size:13px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(230,229,178,.62)}
+.ck-hero__v{font-family:var(--font-display);font-size:clamp(28px,3.4vw,40px);line-height:1.04;letter-spacing:-0.025em;color:var(--paille);margin-top:7px}
+.ck-hero__v em{font-style:italic;color:var(--ciel)}
+.ck-hero__s{font-size:15px;color:rgba(230,229,178,.72);margin-top:9px;line-height:1.45}
+.ck-hero__d{display:flex;flex-direction:column;gap:9px}
+.ck-hero__lg{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:rgba(230,229,178,.82);line-height:1.4}
+.ck-hero__p{width:8px;height:8px;border-radius:50%;flex:none;margin-top:6px}
+.ck-hero a{color:var(--ciel)}
+@media(max-width:900px){.ck-hero{grid-template-columns:1fr;padding:20px 20px}}
+
+/* ── Le bandeau Cuivre : la règle, dite une fois ────────────────────────
+   Petite surface, jamais un grand aplat : il n'accueille qu'une phrase. */
+.ck-regle{background:var(--cuivre);color:var(--paille);border-radius:18px;padding:17px 22px;margin-bottom:20px}
+.ck-regle__e{font-family:var(--font-micro);font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(230,229,178,.66);margin-bottom:6px}
+.ck-regle p{font-size:15px;line-height:1.5;color:var(--paille)}
+
+/* ── Les pastilles de sens ──────────────────────────────────────────────
+   Quatre teintes, quatre significations, jamais plus : ciel = ça avance ou
+   ça attend la cliente, terracotta = ça réclame, ébène = c'est à moi,
+   neutre = c'est posé. */
+.ck-ch{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;
+  font-family:var(--font-micro);font-size:13px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;white-space:nowrap}
+.ck-ch--ciel{background:var(--ciel);color:var(--glycine-900)}
+.ck-ch--terra{background:var(--terracotta);color:#3d1c0b}
+.ck-ch--dark{background:var(--ebene);color:var(--paille)}
+.ck-ch--neutre{background:var(--surface);color:var(--muted);box-shadow:inset 0 0 0 1px var(--border)}
+
+/* ── L'eyebrow cliente · prestation, au-dessus du titre ────────────────── */
+.ck-eb{font-family:var(--font-micro);font-size:13px;font-weight:600;letter-spacing:0.13em;text-transform:uppercase;color:var(--terre-600);margin-bottom:4px}
+
+/* ── Le panneau d'une tâche, en Ébène ───────────────────────────────────
+   Il s'ouvre SOUS la ligne : le fond sombre dit qu'on a changé de plan,
+   sans avoir besoin d'un tiroir ni d'une fenêtre. */
+.ck .ck-pan{background:var(--ebene);color:var(--paille)}
+.ck .ck-pan .ck-meta{color:rgba(230,229,178,.6)}
+.ck .ck-pan .ck-pl{color:rgba(230,229,178,.82)}
+.ck .ck-pan .ck-pl b,.ck .ck-pan .ck-pcr b{color:var(--paille)}
+.ck .ck-pan .ck-pl--t{border-top-color:rgba(230,229,178,.2)}
+.ck .ck-pan .ck-pe,.ck .ck-pan .ck-pn,.ck .ck-pan .ck-ppq{color:rgba(230,229,178,.6)}
+.ck .ck-pan .ck-inc{color:var(--terracotta)}
+.ck .ck-pan .ck-ap{color:var(--ciel)}
+.ck .ck-pan .ck-pcr{background:rgba(230,229,178,.08);color:rgba(230,229,178,.88)}
+.ck .ck-pan .ck-pcr--v{background:transparent;color:rgba(230,229,178,.5)}
+.ck .ck-pan .ck-pp{border-top-color:rgba(230,229,178,.2)}
+.ck .ck-pan .inp{background:rgba(230,229,178,.1);color:var(--paille);border:1px solid rgba(230,229,178,.22)}
+.ck .ck-pan .inp::placeholder{color:rgba(230,229,178,.4)}
+.ck .ck-pan .ck-fl{color:rgba(230,229,178,.6)}
+.ck .ck-pan .btn--outline{background:rgba(230,229,178,.1);color:var(--paille)}
+.ck .ck-pan .btn--outline:hover{background:rgba(230,229,178,.18)}
+.ck .ck-pan .btn--dark{background:var(--paille);color:var(--ebene)}
+.ck .ck-ple{margin:6px 0 4px}
+
+/* ── Ses projets : une liste, segmentée, sur la fiche cliente ─────────────
+   Pas de barre sur le côté : c'est le titre de segment qui sépare. */
+.cpj-card{max-width:1100px}
+.cpj-seg{margin-top:18px}
+.cpj-seg:first-of-type{margin-top:10px}
+.cpj-seg__t{display:flex;align-items:center;gap:9px;font-family:var(--font-micro);font-size:13px;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+.cpj-seg__n{min-width:19px;height:19px;padding:0 6px;border-radius:999px;background:var(--surface-2);color:var(--terre-600);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:600}
+.cpj-vide{font-size:15px;color:var(--muted);padding:12px 2px}
