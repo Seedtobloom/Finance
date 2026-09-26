@@ -4478,13 +4478,33 @@ async function loadDashboard(){
   const cur=aTeVerser(y,m), prev=aTeVerser(m===1?y-1:y,m===1?12:m-1);
   const moisPrec=MOIS_LONG[(m+10)%12].toLowerCase();
   const ecart=cur.montant-prev.montant;
+  // Déjà versé ce mois-ci : virements vers l'enveloppe Mon salaire et dépenses « Versement perso »
+  const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
+  const sal=_enveloppes.find(e=>e.id==='salaire');
+  const dejaVerse=(sal?sal.transactions.filter(t=>t.type==='credit'&&(t.date||'').startsWith(mKey)).reduce((t,v)=>t+(v.montant||0),0):0)
+    +dbGet('depenses').filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(mKey)).reduce((t,d)=>t+(d.montant||0),0);
+  const reste=Math.max(0,cur.montant-dejaVerse);
   const cV=q('#today-verser');
-  if(cV)cV.innerHTML=\`
-    <p class="c-label">ce mois-ci, à te verser</p>
-    <p class="c-big">\${_fmt0(cur.montant)}</p>
-    <p class="c-sub">\${cur.enc===0?'Rien d’encaissé ce mois-ci pour l’instant.'
-      :\`\${ecart===0?\`Autant qu’en \${moisPrec}.\`:\`\${_fmt0(Math.abs(ecart))} de \${ecart>0?'plus':'moins'} qu’en \${moisPrec}.\`} URSSAF, charges et part trésorerie déjà déduites.\`}</p>
-    \${cur.montant>0?\`<button type="button" class="btn-pill" onclick="virerVers('salaire',\${Math.round(cur.montant)})">Faire le virement</button>\`:''}\`;
+  if(cV){
+    if(dejaVerse>0){
+      cV.className=reste>0?'card-action':'card-white';
+      cV.innerHTML=\`
+        <p class="c-label">ce mois-ci, déjà versé</p>
+        <p class="c-big">\${_fmt0(dejaVerse)}</p>
+        <p class="c-sub">\${reste>0?\`Le calcul du mois prévoit \${_fmt0(cur.montant)} : il te reste \${_fmt0(reste)} à te verser.\`
+          :dejaVerse>cur.montant?\`Le calcul du mois prévoyait \${_fmt0(cur.montant)} : \${_fmt0(dejaVerse-cur.montant)} de plus, pris sur ta trésorerie.\`
+          :'C’est exactement ce que prévoyait le calcul du mois.'}</p>
+        \${reste>0?\`<button type="button" class="btn-pill" onclick="virerVers('salaire',\${Math.round(reste)})">Verser le reste</button>\`:''}\`;
+    }else{
+      cV.className='card-action';
+      cV.innerHTML=\`
+        <p class="c-label">ce mois-ci, à te verser</p>
+        <p class="c-big">\${_fmt0(cur.montant)}</p>
+        <p class="c-sub">\${cur.enc===0?'Rien d’encaissé ce mois-ci pour l’instant.'
+          :\`\${ecart===0?\`Autant qu’en \${moisPrec}.\`:\`\${_fmt0(Math.abs(ecart))} de \${ecart>0?'plus':'moins'} qu’en \${moisPrec}.\`} URSSAF, charges et part trésorerie déjà déduites.\`}</p>
+        \${cur.montant>0?\`<button type="button" class="btn-pill" onclick="virerVers('salaire',\${Math.round(cur.montant)})">Faire le virement</button>\`:''}\`;
+    }
+  }
 
   // Carte 2 : à relancer
   const retards=facturesEnRetard().map(f=>({f,j:f.dateEcheance?_joursEntre(f.dateEcheance,todayStr):0})).sort((a,b)=>b.j-a.j);
