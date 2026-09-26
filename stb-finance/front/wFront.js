@@ -23,7 +23,7 @@ const HTML = `<!DOCTYPE html>
   <title>Seed to Bloom — Finance</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
   <link rel="stylesheet" href="/style.css" />
 </head>
@@ -35,123 +35,20 @@ const HTML = `<!DOCTYPE html>
   <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sidebar-logo">
-      <span class="logo-name">Seed to Bloom</span>
-      <span class="logo-sub">finance</span>
+      <span class="logo-name">Seed to bloom</span>
+      <span class="logo-sub">Les finances de Cindy</span>
     </div>
-
-    <nav id="sidebar-nav">
-
-      <!-- TABLEAU DE BORD -->
-      <div class="nav-group">
-        <a class="nav-item" data-section="dashboard">
-          <i class="ti ti-layout-dashboard"></i> Tableau de bord
-        </a>
-      </div>
-
-      <!-- MES FINANCES -->
-      <div class="nav-group">
-        <span class="nav-group-label">Mes finances</span>
-        <a class="nav-item" data-section="comptes">
-          <i class="ti ti-building-bank"></i> Comptes
-        </a>
-        <a class="nav-item" data-section="enveloppes">
-          <i class="ti ti-wallet"></i> Enveloppes
-        </a>
-        <a class="nav-item" data-section="transactions">
-          <i class="ti ti-arrows-exchange"></i> Transactions
-        </a>
-      </div>
-
-      <!-- REVENUS -->
-      <div class="nav-group">
-        <span class="nav-group-label">Revenus</span>
-        <a class="nav-item" data-section="factures">
-          <i class="ti ti-file-invoice"></i> CA &amp; Factures
-        </a>
-        <a class="nav-item" data-section="devis">
-          <i class="ti ti-file-description"></i> Devis
-        </a>
-        <a class="nav-item" data-section="projets">
-          <i class="ti ti-folders"></i> Projets
-        </a>
-        <a class="nav-item" data-section="tiers">
-          <i class="ti ti-users"></i> Clients &amp; tiers
-        </a>
-      </div>
-
-      <!-- PROSPECTION -->
-      <div class="nav-group">
-        <span class="nav-group-label">Développement</span>
-        <a class="nav-item" data-section="crm">
-          <i class="ti ti-address-book"></i> Prospection CRM
-        </a>
-      </div>
-
-      <!-- DÉPENSES -->
-      <div class="nav-group">
-        <span class="nav-group-label">Dépenses</span>
-        <a class="nav-item" data-section="depenses">
-          <i class="ti ti-receipt"></i> Dépenses pro
-        </a>
-        <a class="nav-item" data-section="abonnements">
-          <i class="ti ti-repeat"></i> Charges fixes
-        </a>
-        <a class="nav-item" data-section="charges-urssaf">
-          <i class="ti ti-calendar-due"></i> Charges &amp; URSSAF
-        </a>
-      </div>
-
-      <!-- ÉPARGNE & INVESTISSEMENT -->
-      <div class="nav-group">
-        <span class="nav-group-label">Épargne &amp; Investissement</span>
-        <a class="nav-item" data-section="objectifs-epargne">
-          <i class="ti ti-piggy-bank"></i> Objectifs
-        </a>
-      </div>
-
-      <!-- RAPPORTS -->
-      <div class="nav-group">
-        <span class="nav-group-label">Rapports</span>
-        <a class="nav-item" data-section="rapport-mensuel">
-          <i class="ti ti-report"></i> Mensuel
-        </a>
-        <a class="nav-item" data-section="rapport-annuel">
-          <i class="ti ti-report-analytics"></i> Annuel
-        </a>
-        <a class="nav-item" data-section="rapport-fiscal">
-          <i class="ti ti-report-money"></i> Fiscal BNC
-        </a>
-      </div>
-
-      <!-- OUTILS -->
-      <div class="nav-group">
-        <span class="nav-group-label">Outils</span>
-        <a class="nav-item" data-section="simulateur">
-          <i class="ti ti-calculator"></i> Simulateur de versement
-        </a>
-        <a class="nav-item" data-section="import-export">
-          <i class="ti ti-database-import"></i> Import / Export
-        </a>
-      </div>
-
-      <!-- OPTIONS -->
-      <div class="nav-group">
-        <a class="nav-item" data-section="options">
-          <i class="ti ti-settings"></i> Options
-        </a>
-      </div>
-
-    </nav><!-- /nav -->
-
-    <!-- BAS SIDEBAR -->
+    <nav id="sidebar-nav" aria-label="Menu principal">
+      <span class="nav-group-label">Mon argent</span>
+      <a class="nav-item" href="#" data-section="dashboard">Aujourd’hui</a>
+      <a class="nav-item" href="#" data-section="enveloppes">Trésorerie</a>
+      <a class="nav-item" href="#" data-section="factures">Factures et devis</a>
+      <a class="nav-item" href="#" data-section="charges-urssaf">Charges et URSSAF</a>
+      <a class="nav-item" href="#" data-section="rapport-mensuel">Bilans</a>
+    </nav>
     <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="user-avatar">C</div>
-        <div class="user-info">
-          <div class="user-name">Cindy</div>
-          <div class="user-company">Seed to Bloom</div>
-        </div>
-      </div>
+      <a class="nav-item" href="#" data-section="options">Réglages</a>
+      <p class="sync-info" id="sync-info"></p>
     </div>
   </aside>
 
@@ -162,73 +59,24 @@ const HTML = `<!DOCTYPE html>
          TABLEAU DE BORD
          ═══════════════════════════ -->
     <section id="section-dashboard" class="section">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 id="dash-title">Tableau de bord</h1>
-          <div class="page-subtitle" id="dash-period"></div>
-        </div>
-        <div class="page-header-right">
-          <button class="btn btn-secondary btn-sm" id="dash-refresh-btn">
-            <i class="ti ti-refresh"></i> Actualiser
-          </button>
-          <button class="btn btn-primary btn-sm" id="dash-new-facture-btn">
-            <i class="ti ti-plus"></i> Facture
-          </button>
-        </div>
+      <header class="today-head">
+        <h1 id="today-hello">Bonjour</h1>
+        <p id="today-sub"></p>
+      </header>
+
+      <div class="today-cards">
+        <article class="card-action" id="today-verser"></article>
+        <article class="card-action" id="today-relance"></article>
+        <article class="card-white" id="today-coussin"></article>
       </div>
 
-      <div class="dash-grid hero-row">
-        <div class="card">
-          <div class="dash-hero-label" id="dash-hero-label">Tu peux te verser ce mois</div>
-          <div class="dash-hero-value" id="dash-hero-value">—</div>
-          <div class="dash-hero-ctx" id="dash-hero-ctx"></div>
-          <div class="flow">
-            <div class="flow-bar" id="dash-flow-bar" role="img"></div>
-            <div class="flow-legend num" id="dash-flow-legend"></div>
-          </div>
-        </div>
-        <div class="card pace">
-          <div class="card-h"><h3 id="dash-annee-title">Année</h3><span class="meta" id="dash-annee-meta"></span></div>
-          <div class="pace-row">
-            <div class="pace-top"><span>Objectif de CA</span><b class="num" id="dash-obj-val">—</b></div>
-            <div class="track"><div class="track-fill" id="dash-obj-fill" style="width:0%"></div><div class="track-mark" id="dash-obj-mark" style="left:0%"></div></div>
-            <div class="pace-hint num" id="dash-obj-hint"></div>
-          </div>
-          <div class="pace-row">
-            <div class="pace-top"><span>Plafond micro-BNC</span><b class="num" id="dash-plafond-val">—</b></div>
-            <div class="track"><div class="track-fill" id="dash-plafond-fill" style="width:0%;background:var(--ciel)"></div></div>
-            <div class="pace-hint" id="dash-plafond-hint"></div>
-          </div>
-        </div>
-      </div>
+      <article class="card-white today-seuils" id="today-seuils"></article>
 
-      <div class="dash-grid main-row">
-        <div class="card">
-          <div class="card-h"><h3 id="dash-chart-title">CA encaissé par mois</h3><span class="meta num" id="dash-chart-meta"></span></div>
-          <div class="svg-chart" id="dash-chart"></div>
-          <div class="flow-legend" style="margin-top:10px;">
-            <span><i style="background:var(--ebene)"></i>objectif atteint</span>
-            <span><i style="background:var(--terre-clair)"></i>sous l'objectif</span>
-            <span><i style="background:var(--terracotta)"></i>mois en cours</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>À traiter</h3><span class="meta" id="dash-todo-meta"></span></div>
-          <div class="todo" id="dash-todo"></div>
-        </div>
+      <div class="pill-tabs" role="tablist" aria-label="Liste">
+        <button type="button" role="tab" class="pill-tab" data-liste="faire" aria-selected="true" id="today-tab-faire">À faire</button>
+        <button type="button" role="tab" class="pill-tab" data-liste="cours" aria-selected="false" id="today-tab-cours">En cours</button>
       </div>
-
-      <div class="dash-grid foot-row">
-        <div class="card">
-          <div class="card-h"><h3>Trésorerie</h3><button class="btn btn-ghost btn-xs" data-section="enveloppes" onclick="navigate('enveloppes')">Enveloppes</button></div>
-          <div id="dash-treso"></div>
-        </div>
-        <div class="card">
-          <div class="card-h"><h3>Prochains prélèvements</h3><span class="meta num" id="dash-abo-meta"></span></div>
-          <div id="dash-abonnements-list"></div>
-        </div>
-      </div>
-      <div class="chart-tip" id="dash-chart-tip" role="status"></div>
+      <article class="card-white today-list" id="today-list" role="tabpanel"></article>
     </section><!-- /dashboard -->
 
 
@@ -4000,6 +3848,146 @@ a { text-underline-offset: 3px; }
   .equation .op { display: none; }
   .equation .aside { margin-left: 0; }
 }
+
+/* =============================================
+   DA ESPACE CLIENT — brief de refonte, étape 1
+   Jetons : .claude/skills/charte-dashboard-stb/reference-client.css
+   ============================================= */
+:root {
+  --ebene: #110704; --ciel: #C5DEFF; --paille: #E6E5B2; --terracotta: #CD8F6E; --cuivre: #5A2A11;
+  --lin: #F8F6F2; --creme: #F0E9D6; --ciel-pale: #EAF2FF;
+  --bg: var(--lin); --surface: #FFFFFF; --surface-2: #F3EFE6; --inset: rgba(17,7,4,0.04);
+  --text: #110704; --text-strong: #110704; --text-2: rgba(17,7,4,0.64); --text-3: rgba(17,7,4,0.64);
+  --border: rgba(17,7,4,0.10); --border-2: rgba(17,7,4,0.18);
+  --shadow: 0 0 0 1px rgba(17,7,4,.07), 0 2px 6px rgba(17,7,4,.08);
+  /* Ni vert ni rouge : ce qui pose problème est Mandarine ou Cuivre, ce qui va bien reste neutre */
+  --success: #110704; --success-10: #F3EFE6;
+  --warning: #5A2A11; --warning-10: rgba(205,143,110,0.22);
+  --danger: #5A2A11;  --danger-10: rgba(205,143,110,0.22);
+  --navy: #110704; --blue: #C5DEFF; --violet: #F0E9D6; --cream: #E6E5B2; --brown: #5A2A11;
+  --font-display: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  --font-num: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+}
+html, body { font-family: var(--font-num); color: var(--text); background: var(--bg); }
+#main { background: var(--bg); }
+
+/* Pas de majuscules ni de lettres espacées */
+.kpi-label, .card-title, thead th, .nav-group-label, .badge, .sim-section-label, .scenario-label, .form-label, .logo-sub {
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+
+/* Menu Ébène */
+#sidebar { width: 248px; min-width: 248px; background: var(--ebene); border-right: 0; padding: 26px 14px 22px; display: flex; flex-direction: column; }
+.sidebar-logo { border-bottom: 0; padding: 0 12px 26px; }
+.sidebar-logo .logo-name { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 34px; line-height: 1.05; color: var(--lin); }
+.sidebar-logo .logo-sub { font-size: 14px; color: rgba(248,246,242,.64); margin-top: 6px; }
+#sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+#sidebar .nav-group-label { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 23px; color: var(--paille); padding: 0 12px 8px; }
+#sidebar .nav-item { font-family: var(--font-num); font-size: 15px; color: rgba(248,246,242,.82); padding: 9px 12px; border-left: 0; border-radius: 10px; gap: 10px; }
+#sidebar .nav-item:hover { background: rgba(248,246,242,.06); color: var(--lin); }
+#sidebar .nav-item.active { background: rgba(248,246,242,.12); color: var(--lin); font-weight: 600; }
+#sidebar .nav-item:focus-visible { outline: 1px solid var(--paille); outline-offset: 1px; }
+.nav-count { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--terracotta); color: var(--ebene); font-size: 12px; font-weight: 600; line-height: 20px; text-align: center; }
+.sidebar-footer { margin-top: auto; border-top: 0; padding: 0; display: grid; gap: 10px; }
+.sync-info { margin: 0; padding: 0 12px; font-size: 13px; line-height: 1.45; color: rgba(248,246,242,.58); }
+
+/* Titres de page */
+.section { padding: 44px 52px 60px; max-width: 1480px; margin: 0 auto; }
+.section.active { animation: none; }
+.page-header-left h1, .today-head h1 { font-family: var(--font-display); font-weight: 400; font-size: 58px; line-height: 1.02; letter-spacing: -0.01em; color: var(--text); }
+.page-header-left .page-subtitle, .today-head p { font-size: 17px; color: var(--text); margin-top: 8px; }
+
+/* Cartes : blanches à ombre légère ; crème pour ce qui demande une action */
+.card, .kpi-grid, .tbl-wrap, .card-white { background: var(--surface); border: 0; border-radius: 18px; box-shadow: var(--shadow); }
+.card-action { background: var(--creme); border-radius: 18px; padding: 24px 26px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.card-white { padding: 24px 26px; display: flex; flex-direction: column; gap: 6px; }
+.c-label { margin: 0; font-size: 15px; color: var(--cuivre); }
+.card-white .c-label { color: var(--cuivre); }
+.c-big { margin: 0; font-family: var(--font-display); font-size: 52px; line-height: 1.05; font-weight: 400; font-variant-numeric: lining-nums; }
+.c-big small { font-size: 24px; color: var(--cuivre); margin-left: 6px; }
+.c-mid { margin: 0; font-family: var(--font-display); font-size: 34px; line-height: 1.1; font-weight: 400; }
+.c-sub { margin: 0; font-size: 15px; line-height: 1.45; color: var(--text); }
+.c-sub.alerte { color: var(--cuivre); font-weight: 600; }
+.card-action .btn-pill { margin-top: auto; }
+
+/* Boutons */
+.btn-pill, .btn-primary { background: var(--ebene); color: var(--lin); border: 0; border-radius: 999px; padding: 11px 22px; font: 600 15px var(--font-num); cursor: pointer; min-height: 44px; }
+.btn-pill:hover, .btn-primary:hover { background: #2b1b14; }
+.btn-contour, .btn-secondary { background: var(--surface); color: var(--ebene); border: 1px solid var(--ebene); border-radius: 999px; padding: 9px 20px; font: 600 14px var(--font-num); cursor: pointer; white-space: nowrap; }
+.btn-contour:hover, .btn-secondary:hover { background: var(--lin); }
+.btn-pill:focus-visible, .btn-contour:focus-visible, .pill-tab:focus-visible, .lien:focus-visible { outline: 1px solid var(--ebene); outline-offset: 2px; }
+.lien { color: var(--text); font-size: 15px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Onglets en pilules : l'actif noir, les autres blancs */
+.pill-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.pill-tab { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 9px 20px; font: 500 16px var(--font-num); cursor: pointer; }
+.pill-tab[aria-selected="true"] { background: var(--ebene); color: var(--lin); border-color: var(--ebene); font-weight: 600; }
+.section-tabs { margin-top: -8px; margin-bottom: 26px; }
+
+/* Jauges en tirets */
+.tirets { display: flex; gap: 6px; margin: 10px 0 6px; }
+.tirets i { flex: 1; height: 6px; border-radius: 999px; background: rgba(17,7,4,.10); }
+.tirets i.on { background: var(--ebene); }
+.tirets.alerte i.on { background: var(--terracotta); }
+
+/* Pastilles de sens */
+.pastille { display: inline-flex; align-items: center; justify-content: center; padding: 4px 12px; border-radius: 999px; font: 600 14px var(--font-num); white-space: nowrap; justify-self: start; }
+.pastille.terra { background: var(--terracotta); color: var(--ebene); }
+.pastille.dark { background: var(--ebene); color: var(--paille); }
+.pastille.ciel { background: var(--ciel); color: var(--ebene); }
+.pastille.neutre { background: var(--surface); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--border); }
+.badge-payee, .badge-actif, .badge-paye, .badge-success, .badge-annule, .badge-neutral { background: var(--surface-2); color: var(--text-2); }
+.badge-attente, .badge-en-attente, .badge-a-venir, .badge-blue { background: var(--ciel); color: var(--ebene); }
+.badge-retard, .badge-en-retard, .badge-danger, .badge-a-payer, .badge-warning, .badge-pause { background: var(--terracotta); color: var(--ebene); }
+.badge::before { display: none; }
+
+/* Aujourd'hui */
+.today-head { margin-bottom: 30px; }
+.today-head h1 { margin: 0; }
+.today-cards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 22px; margin-bottom: 24px; }
+.today-seuils { margin-bottom: 30px; }
+.card-h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.card-h2 h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 36px; line-height: 1.1; }
+.seuil { padding: 16px 0; border-bottom: 1px solid var(--border); display: grid; gap: 9px; }
+.seuil:last-child { border-bottom: 0; padding-bottom: 0; }
+.seuil-top { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 17px; }
+.seuil-top .num { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.seuil-top .num b { color: var(--text); font-weight: 500; }
+.seuil p { margin: 0; font-size: 15px; color: var(--text-2); }
+.seuil.alerte p { color: var(--cuivre); font-weight: 600; }
+.barre { height: 8px; border-radius: 999px; background: rgba(17,7,4,.08); overflow: hidden; }
+.barre i { display: block; height: 100%; border-radius: 999px; background: var(--ebene); }
+.seuil.alerte .barre i { background: var(--terracotta); }
+.today-list { padding: 8px 36px; gap: 0; }
+.ligne { display: grid; grid-template-columns: minmax(0,1fr) 150px 110px 120px; gap: 18px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); }
+.ligne:last-child { border-bottom: 0; }
+.ligne .t { margin: 0; font-family: var(--font-display); font-size: 28px; line-height: 1.15; }
+.ligne .d { margin: 2px 0 0; font-size: 15px; color: var(--text-2); }
+.ligne-a { text-align: right; font-size: 17px; font-variant-numeric: tabular-nums; }
+.ligne .btn-contour { justify-self: end; }
+.vide { margin: 0; padding: 22px 0; color: var(--text-2); }
+
+@media (max-width: 1180px) {
+  .today-cards { grid-template-columns: 1fr 1fr; }
+  .ligne { grid-template-columns: minmax(0,1fr) auto auto; }
+  .ligne .pastille { display: none; }
+}
+@media (max-width: 760px) {
+  #sidebar { width: 100%; min-width: 0; padding: 12px 8px; flex-direction: row; align-items: center; overflow-x: auto; overflow-y: hidden; }
+  #sidebar > * { flex: none; }
+  .sidebar-logo { padding: 0 8px; }
+  .sidebar-logo .logo-name { font-size: 24px; }
+  #sidebar .nav-group-label, .sync-info { display: none; }
+  #sidebar-nav { flex-direction: row; }
+  .sidebar-footer { margin-top: 0; }
+  .section { padding: 26px 16px 40px; }
+  .page-header-left h1, .today-head h1 { font-size: 44px; }
+  .today-cards { grid-template-columns: 1fr; }
+  .today-list { padding: 4px 20px; }
+  .ligne { grid-template-columns: minmax(0,1fr) auto; }
+  .ligne .ligne-a { display: none; }
+  .btn-pill { width: 100%; }
+}
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4247,8 +4235,10 @@ function navigate(section){
   const sec=q(\`#section-\${section}\`);
   if(!sec)return;
   sec.classList.add('active');
-  const nav=q(\`.nav-item[data-section="\${section}"]\`);
+  const g=groupeDe(section);
+  const nav=q(\`.nav-item[data-section="\${g?g.entree:section}"]\`);
   if(nav)nav.classList.add('active');
+  renderOngletsSection(section);
   currentSection=section;
   loadSection(section);
 }
@@ -4380,20 +4370,44 @@ function drawDonutChart(canvas,labels,data,colors){
 
 /* --- Dashboard -------------------------------------------------------- */
 function _dashEsc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function _fmt0(v){return new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(Math.round(v||0))+' €';}
+// Espace insécable classique : l'espace fine d'Intl ne s'affiche pas dans toutes les polices
+function _fmt0(v){return new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(Math.round(v||0)).replace(/ /g,' ')+' €';}
 function _joursEntre(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000);}
 
-// Échéances URSSAF trimestrielles (mêmes dates que la vue Charges & URSSAF)
+// Échéances URSSAF trimestrielles (mêmes dates que la vue Charges et URSSAF)
 const DASH_URSSAF_ECH={T1:'2026-04-30',T2:'2026-07-31',T3:'2026-11-02',T4:'2027-02-01'};
 const DASH_URSSAF_MOIS={T1:[1,2,3],T2:[4,5,6],T3:[7,8,9],T4:[10,11,12]};
-const DASH_URSSAF_LBL={T1:'T1 (jan–mar)',T2:'T2 (avr–jun)',T3:'T3 (jul–sep)',T4:'T4 (oct–déc)'};
+const DASH_URSSAF_LBL={T1:'1er trimestre',T2:'2e trimestre',T3:'3e trimestre',T4:'4e trimestre'};
 
-// Factures non payées dont l'échéance est dépassée (statut « retard » ou « attente » échue)
+// Menu : 5 entrées, chacune regroupe des écrans existants présentés en onglets
+const NAV_GROUPES=[
+  {entree:'dashboard',onglets:[['dashboard','Aujourd’hui']]},
+  {entree:'enveloppes',onglets:[['enveloppes','Enveloppes'],['comptes','Comptes'],['transactions','Mouvements'],['objectifs-epargne','Objectifs d’épargne']]},
+  {entree:'factures',onglets:[['factures','Factures'],['devis','Devis'],['projets','Projets'],['tiers','Clients']]},
+  {entree:'charges-urssaf',onglets:[['charges-urssaf','Déclarations'],['abonnements','Charges fixes'],['depenses','Dépenses']]},
+  {entree:'rapport-mensuel',onglets:[['rapport-mensuel','Mois'],['rapport-annuel','Année'],['rapport-fiscal','Fiscal'],['simulateur','Simulateur']]},
+  {entree:'options',onglets:[['options','Réglages'],['import-export','Import et export']]},
+];
+function groupeDe(section){return NAV_GROUPES.find(g=>g.onglets.some(([s])=>s===section));}
+function renderOngletsSection(section){
+  const g=groupeDe(section),sec=q(\`#section-\${section}\`);
+  if(!g||!sec||g.onglets.length<2)return;
+  let bar=sec.querySelector(':scope > .pill-tabs.section-tabs');
+  if(!bar){
+    bar=el('div','pill-tabs section-tabs');bar.setAttribute('role','tablist');
+    const h=sec.querySelector(':scope > .page-header');
+    h?h.after(bar):sec.prepend(bar);
+    bar.onclick=e=>{const b=e.target.closest('[data-onglet]');if(b)navigate(b.dataset.onglet);};
+  }
+  bar.innerHTML=g.onglets.map(([s,l])=>\`<button type="button" role="tab" class="pill-tab" data-onglet="\${s}" aria-selected="\${s===section}">\${l}</button>\`).join('');
+}
+
+// Factures non payées dont l'échéance est dépassée
 function facturesEnRetard(){
   const t=today();
   return dbGet('factures').filter(f=>f.statut==='retard'||(f.statut!=='payee'&&f.dateEcheance&&f.dateEcheance<t));
 }
-// Relances de prospection prévues et pas encore faites, à date d'aujourd'hui
+// Relance de prospection prévue et pas encore faite
 function prochaineRelance(p){
   if(['negatif','converti','sans_suite'].includes(p.statut))return null;
   if(p.relance1&&!p.dateRelance1)return p.relance1;
@@ -4402,235 +4416,183 @@ function prochaineRelance(p){
   return null;
 }
 function updateNavCounts(){
-  const setCount=(section,n,title)=>{
-    const nav=q(\`.nav-item[data-section="\${section}"]\`);if(!nav)return;
-    let b=nav.querySelector('.nav-count');
-    if(!b){b=el('span','nav-count');nav.appendChild(b);}
-    b.textContent=n;b.hidden=!n;b.title=title||'';
-  };
-  setCount('factures',facturesEnRetard().length,'Factures en retard');
-  if(typeof _prospectsCache!=='undefined'){
-    const t=today();
-    setCount('crm',_prospectsCache.filter(p=>{const r=prochaineRelance(p);return r&&r<=t;}).length,'Relances à faire');
-  }
+  const nav=q('.nav-item[data-section="factures"]');if(!nav)return;
+  let b=nav.querySelector('.nav-count');
+  if(!b){b=el('span','nav-count');nav.appendChild(b);}
+  const n=facturesEnRetard().length;
+  b.textContent=n;b.hidden=!n;b.title=n?\`\${n} facture\${n>1?'s':''} en retard\`:'';
+}
+function updateSyncInfo(){
+  const e=q('#sync-info');if(!e)return;
+  if(!_lastQontoSync){e.textContent='';return;}
+  const d=new Date(_lastQontoSync),auj=new Date().toDateString()===d.toDateString();
+  e.textContent=\`Qonto synchronisé \${auj?'aujourd’hui':'le '+d.toLocaleDateString('fr-FR')} à \${d.getHours()} h \${String(d.getMinutes()).padStart(2,'0')}\`;
 }
 
-function loadDashboard(){
-  const now=new Date();
-  const y=now.getFullYear(),m=now.getMonth()+1;
-  const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
-  const todayStr=today();
-  const dernierJour=new Date(y,m,0).getDate();
-  const joursRestants=dernierJour-now.getDate();
-
-  const factures    = dbGet('factures');
-  const depenses    = dbGet('depenses');
-  const abonnements = dbGet('abonnements');
-  const settings    = dbGetObj('settings');
-  const urssafObj   = dbGetObj('urssaf');
-
-  const tauxU=(settings.tauxUrssaf||25.6)/100;
-  const tauxC=(settings.tauxCfp||0.2)/100;
-  const pas  =settings.pasFixe||40;
-  const pctV =settings.pctVersement||65;
-  const objectif=settings.objectifCA||60000;
-  const encaisse=f=>f.statut==='payee';
-  const datePaie=f=>f.datePaiement||f.date||'';
-
-  // ── Mois en cours : du CA encaissé au versement
-  const caMois=factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
-  const urssafCfp=caMois*(tauxU+tauxC);
-  const aboM=abonnements.filter(a=>a.statut==='actif').reduce((s,a)=>s+(a.montant||0),0);
-  const fixes=aboM+pas;
-  const depM=depenses.filter(d=>(d.date||'').startsWith(mKey)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
-  const net=Math.max(0,caMois-urssafCfp-fixes-depM);
-  const versement=Math.round(net*pctV/100);
-  const reserve=Math.max(0,net-versement);
-
-  if(q('#dash-title'))q('#dash-title').textContent=\`\${MOIS_LONG[m-1]} \${y}\`;
-  const jourLong=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric'});
-  if(q('#dash-period'))q('#dash-period').textContent=\`\${jourLong.charAt(0).toUpperCase()+jourLong.slice(1)} · \${joursRestants===0?'dernier jour du mois':joursRestants===1?'encore 1 jour dans le mois':\`encore \${joursRestants} jours dans le mois\`}\`;
-  if(q('#dash-hero-value'))q('#dash-hero-value').innerHTML=\`\${fmtN(versement)}<small>€</small>\`;
-  if(q('#dash-hero-ctx'))q('#dash-hero-ctx').textContent=caMois>0
-    ?\`\${pctV} % du résultat net de \${MOIS_LONG[m-1].toLowerCase()} · \${_fmt0(net)} restent après charges\`
-    :\`Aucun encaissement ce mois-ci pour l'instant\`;
-  if(caMois>0&&net===0&&q('#dash-hero-ctx'))q('#dash-hero-ctx').textContent=\`Les charges du mois (\${_fmt0(urssafCfp+fixes+depM)}) dépassent le CA encaissé (\${_fmt0(caMois)})\`;
-  const flow=[
-    {k:'URSSAF + CFP',v:urssafCfp,c:'var(--terre-clair)'},
-    {k:'Charges fixes',v:fixes,c:'var(--terre-clair)',o:.65},
-    {k:'Dépenses',v:depM,c:'var(--terre-clair)',o:.4},
-    {k:'Versement',v:versement,c:'var(--ebene)'},
-    {k:'Réserve',v:reserve,c:'var(--ciel)'},
-  ];
-  const fb=q('#dash-flow-bar');
-  if(fb){
-    const tot=flow.reduce((s,x)=>s+x.v,0);
-    fb.innerHTML=tot>0?flow.filter(x=>x.v>0).map(x=>\`<i style="flex:\${x.v};background:\${x.c};\${x.o?'opacity:'+x.o:''}" title="\${x.k} : \${_fmt0(x.v)}"></i>\`).join(''):'';
-    fb.setAttribute('aria-label','Répartition du mois : '+flow.map(x=>\`\${x.k} \${_fmt0(x.v)}\`).join(', '));
-  }
-  if(q('#dash-flow-legend'))q('#dash-flow-legend').innerHTML=
-    \`<span>CA encaissé <b>\${_fmt0(caMois)}</b></span>\`+
-    flow.map(x=>\`<span><i style="background:\${x.c};\${x.o?'opacity:'+x.o:''}"></i>\${x.k} <b>\${_fmt0(x.v)}</b></span>\`).join('');
-
-  // ── Année : objectif au rythme attendu + plafond
-  const caYTD=factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(String(y))).reduce((s,f)=>s+(f.montant||0),0);
-  const debut=new Date(y,0,1),fin=new Date(y+1,0,1);
-  const partAnnee=(now-debut)/(fin-debut);
-  const attendu=objectif*partAnnee;
-  const pctObj=objectif>0?caYTD/objectif*100:0;
-  const moisRestants=12-m+(joursRestants>0?1:0);
-  if(q('#dash-annee-title'))q('#dash-annee-title').textContent=\`Année \${y}\`;
-  if(q('#dash-annee-meta'))q('#dash-annee-meta').textContent=\`au \${now.toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}\`;
-  if(q('#dash-obj-val'))q('#dash-obj-val').innerHTML=\`\${_fmt0(caYTD)} <small>/ \${_fmt0(objectif)}</small>\`;
-  if(q('#dash-obj-fill'))q('#dash-obj-fill').style.width=\`\${Math.min(100,pctObj)}%\`;
-  if(q('#dash-obj-mark'))q('#dash-obj-mark').style.left=\`\${Math.min(100,partAnnee*100)}%\`;
-  const ecart=caYTD-attendu;
-  if(q('#dash-obj-hint'))q('#dash-obj-hint').innerHTML=caYTD>=objectif
-    ?\`Objectif atteint (\${Math.round(pctObj)} %).\`
-    :ecart>=0
-      ?\`\${Math.round(pctObj)} % atteint · <b>\${_fmt0(ecart)} d'avance</b> sur le rythme de l'objectif.\`
-      :\`\${Math.round(pctObj)} % atteint · au rythme de l'objectif tu serais à \${_fmt0(attendu)} : <b>\${_fmt0(-ecart)} de retard</b>\${moisRestants>0?\`, soit \${_fmt0((objectif-caYTD)/moisRestants)}/mois d'ici décembre\`:''}.\`;
-  const pctPlaf=caYTD/PLAFOND_BNC*100;
-  if(q('#dash-plafond-val'))q('#dash-plafond-val').innerHTML=\`\${Math.round(pctPlaf)} % <small>de \${_fmt0(PLAFOND_BNC)}</small>\`;
-  if(q('#dash-plafond-fill')){q('#dash-plafond-fill').style.width=\`\${Math.min(100,pctPlaf)}%\`;q('#dash-plafond-fill').style.background=pctPlaf>=90?'var(--danger)':pctPlaf>=75?'var(--terracotta)':'var(--ciel)';}
-  if(q('#dash-plafond-hint'))q('#dash-plafond-hint').textContent=pctPlaf>=90?'Attention : tu approches du plafond micro-BNC.':pctPlaf>=75?\`Reste \${_fmt0(PLAFOND_BNC-caYTD)} avant le plafond.\`:'Large marge, rien à surveiller.';
-
-  // ── Graphique CA mensuel de l'année
-  const caParMois=MOIS_COURT.map((_,mi)=>{
-    const k=\`\${y}-\${String(mi+1).padStart(2,'0')}\`;
-    return factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
-  });
-  const objMensuel=objectif/12;
-  const moisOk=caParMois.slice(0,m).filter(v=>v>=objMensuel).length;
-  if(q('#dash-chart-title'))q('#dash-chart-title').textContent=\`CA encaissé en \${y}\`;
-  if(q('#dash-chart-meta'))q('#dash-chart-meta').textContent=\`Objectif \${_fmt0(objMensuel)}/mois · atteint \${moisOk} mois sur \${m}\`;
-  renderDashChart(caParMois,objMensuel,m-1);
-
-  // ── À traiter
-  const todo=[];
-  facturesEnRetard().forEach(f=>{
-    const j=f.dateEcheance?_joursEntre(f.dateEcheance,todayStr):null;
-    todo.push({sev:3,tri:-(j||0),t:\`Facture \${f.numero||''} en retard\`,d:\`\${f.client||''}\${j!=null?\` · échue depuis \${j} j\`:''}\`,amt:_fmt0(f.montant),a:'Relancer',go:'factures'});
-  });
-  factures.filter(f=>f.statut!=='payee'&&f.statut!=='retard'&&f.dateEcheance&&f.dateEcheance>=todayStr&&_joursEntre(todayStr,f.dateEcheance)<=7).forEach(f=>{
-    const j=_joursEntre(todayStr,f.dateEcheance);
-    todo.push({sev:1,tri:j,t:\`Facture \${f.numero||''} à encaisser\`,d:\`\${f.client||''} · échéance \${j===0?"aujourd'hui":\`dans \${j} j\`}\`,amt:_fmt0(f.montant),a:'En attente',go:'factures'});
-  });
-  ['T1','T2','T3','T4'].forEach(t=>{
-    const cle=\`\${t}-\${y}\`;const d=urssafObj[cle]||{};
-    if(d.statut==='paye')return;
-    const ech=DASH_URSSAF_ECH[t];
-    const j=_joursEntre(todayStr,ech);
-    if(j>60)return; // on ne montre que les échéances des deux prochains mois
-    const caT=DASH_URSSAF_MOIS[t].reduce((s,mi)=>{const k=\`\${y}-\${String(mi).padStart(2,'0')}\`;return s+factures.filter(f=>encaisse(f)&&datePaie(f).startsWith(k)).reduce((ss,f)=>ss+(f.montant||0),0);},0);
-    const du=caT*(tauxU+tauxC);
-    if(j<0)todo.push({sev:3,tri:j,t:\`URSSAF \${DASH_URSSAF_LBL[t]} non marquée payée\`,d:\`échéance du \${fmtDate(ech)} dépassée de \${-j} j\`,amt:_fmt0(du),a:'À vérifier',go:'charges-urssaf'});
-    else todo.push({sev:j<=15?2:1,tri:j,t:\`Déclarer l'URSSAF \${DASH_URSSAF_LBL[t]}\`,d:\`avant le \${fmtDate(ech)} · dans \${j} j\`,amt:_fmt0(du),a:'Estimation',go:'charges-urssaf'});
-  });
-  dbGet('devis').filter(d=>d.statut==='envoye'&&d.dateExpiration&&d.dateExpiration>=todayStr&&_joursEntre(todayStr,d.dateExpiration)<=14).forEach(d=>{
-    const j=_joursEntre(todayStr,d.dateExpiration);
-    todo.push({sev:1,tri:j,t:\`Devis \${d.numero||''} sans réponse\`,d:\`\${d.client||''} · expire \${j===0?"aujourd'hui":\`dans \${j} j\`}\`,amt:_fmt0(d.montant),a:'Envoyé',go:'devis'});
-  });
-  const pushRelances=()=>{
-    if(typeof _prospectsCache==='undefined')return;
-    const aRelancer=_prospectsCache.filter(p=>{const r=prochaineRelance(p);return r&&r<=todayStr;});
-    if(aRelancer.length)todo.push({sev:2,tri:0,t:aRelancer.length>1?\`\${aRelancer.length} relances de prospection\`:'1 relance de prospection',d:aRelancer.slice(0,3).map(p=>p.entreprise||p.nom).join(', '),amt:'',a:"Aujourd'hui",go:'crm'});
-  };
-  const sevColor={3:'var(--danger)',2:'var(--terracotta)',1:'var(--ciel)'};
-  const renderTodo=()=>{
-    const box=q('#dash-todo');if(!box)return;
-    const list=[...todo].sort((a,b)=>b.sev-a.sev||a.tri-b.tri).slice(0,6);
-    if(q('#dash-todo-meta'))q('#dash-todo-meta').textContent=list.length?\`\${todo.length} point\${todo.length>1?'s':''}\`:'';
-    box.innerHTML=list.length?list.map(it=>\`
-      <div class="todo-it" role="button" tabindex="0" data-go="\${it.go}">
-        <i class="todo-sev" style="background:\${sevColor[it.sev]}"></i>
-        <div><div class="todo-t">\${_dashEsc(it.t)}</div><div class="todo-d">\${_dashEsc(it.d)}</div></div>
-        <div class="todo-amt num">\${it.amt}<small>\${_dashEsc(it.a)}</small></div>
-      </div>\`).join(''):'<div class="todo-empty">Rien en retard, rien d\\'urgent. Bonne journée.</div>';
-    qa('.todo-it',box).forEach(n=>{
-      const go=()=>navigate(n.dataset.go);
-      n.onclick=go;n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}};
-    });
-  };
-  if(typeof _prospectsCache!=='undefined'&&_prospectsCache.length){pushRelances();renderTodo();updateNavCounts();}
-  else{
-    renderTodo();
-    api('GET','/api/prospects').then(res=>{
-      if(typeof _prospectsCache!=='undefined')_prospectsCache=Array.isArray(res)?res:[];
-      pushRelances();renderTodo();updateNavCounts();
-    }).catch(()=>updateNavCounts());
-  }
-
-  // ── Trésorerie
-  const tresoQonto=_qontoSoldeCalc!==null?_qontoSoldeCalc:dbGet('comptes').filter(c=>c.type==='courant'||c.type==='professionnel').reduce((s,c)=>s+(c.solde||0),0);
-  const tEl=q('#dash-treso');
-  if(tEl){
-    const alloue=(typeof _enveloppes!=='undefined'&&_enveloppes.length)?_enveloppes.filter(e=>e.id!=='qonto').reduce((s,e)=>s+Math.max(0,e.solde),0):null;
-    const epargne=dbGet('comptes').filter(c=>c.type!=='courant'&&c.type!=='professionnel').reduce((s,c)=>s+(c.solde||0),0);
-    tEl.innerHTML=
-      \`<div class="kv-row"><span>Solde Qonto</span><b>\${fmt(tresoQonto)}</b></div>\`+
-      (alloue!==null?\`<div class="kv-row"><span>Déjà réparti dans les enveloppes</span><b>\${fmt(alloue)}</b></div>\`+
-        \`<div class="kv-row"><span>Reste à répartir</span><b style="color:\${tresoQonto-alloue<0?'var(--danger)':'var(--success)'}">\${fmt(tresoQonto-alloue)}</b></div>\`:'')+
-      (epargne?\`<div class="kv-row"><span>Épargne et placements</span><b>\${fmt(epargne)}</b></div>\`:'');
-  }
-
-  // ── Prochains prélèvements
-  const aEl=q('#dash-abonnements-list');
-  if(aEl){
-    const todayD=now.getDate();
-    const actifs=abonnements.filter(a=>a.statut==='actif').map(a=>{
-      let j=(a.jour||1)-todayD;if(j<0)j+=dernierJour;
-      return{...a,joursAvant:j};
-    }).sort((a,b)=>a.joursAvant-b.joursAvant).slice(0,4);
-    if(q('#dash-abo-meta'))q('#dash-abo-meta').textContent=aboM?\`\${_fmt0(aboM)}/mois\`:'';
-    aEl.innerHTML=actifs.length?actifs.map(a=>\`
-      <div class="kv-row"><span>\${_dashEsc(a.nom)} · \${a.joursAvant===0?"aujourd'hui":a.joursAvant===1?'demain':\`dans \${a.joursAvant} j\`}</span><b>\${fmt(a.montant||0)}</b></div>\`).join('')
-      :'<div class="todo-empty">Aucun abonnement actif</div>';
-  }
+// Relancer : ouvre un e-mail au client si son adresse est connue
+function relancerFacture(id){
+  const f=dbGet('factures').find(x=>x.id===id);if(!f)return;
+  const t=dbGet('tiers').find(x=>(x.nom||'').trim().toLowerCase()===(f.client||'').trim().toLowerCase());
+  if(!t||!t.email){toast(\`Pas d’adresse e-mail pour \${f.client} : ajoute-la dans Clients.\`,'error');navigate('tiers');return;}
+  const sujet=\`Facture \${f.numero||''}\`;
+  const corps=\`Bonjour,\\n\\nSauf erreur de ma part, la facture \${f.numero||''} de \${fmt(f.montant)}\${f.dateEcheance?\`, arrivée à échéance le \${fmtDate(f.dateEcheance)},\`:''} n’est pas encore réglée. Peux-tu me dire où en est le paiement ?\\n\\nMerci,\\nCindy\`;
+  location.href=\`mailto:\${encodeURIComponent(t.email)}?subject=\${encodeURIComponent(sujet)}&body=\${encodeURIComponent(corps)}\`;
+}
+function relancerProspect(id){
+  const p=(typeof _prospectsCache!=='undefined'?_prospectsCache:[]).find(x=>x.id===id);if(!p)return;
+  if(!p.email){toast(\`Pas d’adresse e-mail pour \${p.entreprise||p.nom}.\`,'error');return;}
+  location.href=\`mailto:\${encodeURIComponent(p.email)}?subject=\${encodeURIComponent('Suite à notre échange')}\`;
+}
+// Virement pré-rempli depuis le compte Qonto vers une enveloppe
+async function virerVers(vers,montant){
+  if(!_enveloppes.length){try{_enveloppes=(await api('GET','/api/enveloppes')).enveloppes||[];}catch(e){}}
+  openVirementModal('qonto');
+  if(q('#virement-vers'))q('#virement-vers').value=vers;
+  if(q('#virement-montant'))q('#virement-montant').value=Math.round(montant)||'';
 }
 
-function renderDashChart(vals,target,current){
-  const box=q('#dash-chart');if(!box)return;
-  const W=640,H=230,pl=44,pr=10,pt=18,pb=26,cw=W-pl-pr,ch=H-pt-pb,n=vals.length,bw=cw/n;
-  const maxV=Math.max(...vals,target,1);
-  const step=niceStep(maxV);
-  const max=Math.ceil(maxV/step)*step;
-  const yy=v=>pt+ch-(v/max)*ch;
-  const kfmt=v=>v>=1000?(Math.round(v/100)/10).toString().replace('.',',')+' k':String(v);
-  let s=\`<svg viewBox="0 0 \${W} \${H}" role="img" aria-label="CA encaissé par mois : \${vals.map((v,i)=>MOIS_LONG[i]+' '+_fmt0(v)).join(', ')}">\`;
-  for(let v=0;v<=max;v+=step){
-    s+=\`<line x1="\${pl}" x2="\${W-pr}" y1="\${yy(v)}" y2="\${yy(v)}" stroke="var(--border)"/>\`;
-    s+=\`<text x="\${pl-8}" y="\${yy(v)+4}" text-anchor="end">\${kfmt(v)}</text>\`;
-  }
-  vals.forEach((v,i)=>{
-    const x=pl+i*bw+bw*0.2,w=bw*0.6,h=ch*(v/max);
-    const fill=i===current?'var(--terracotta)':(v>=target?'var(--ebene)':'var(--terre-clair)');
-    if(v>0){
-      const r=Math.min(4,h,w/2);
-      s+=\`<path d="M\${x},\${yy(0)} V\${yy(0)-h+r} Q\${x},\${yy(0)-h} \${x+r},\${yy(0)-h} H\${x+w-r} Q\${x+w},\${yy(0)-h} \${x+w},\${yy(0)-h+r} V\${yy(0)} Z" fill="\${fill}"\${i>current?' opacity=".4"':''}/>\`;
+// ── Calculs (règles du brief, taux et seuils lus dans les Réglages)
+function encaisseDuMois(y,m){
+  const k=\`\${y}-\${String(m).padStart(2,'0')}\`;
+  return dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
+}
+function aTeVerser(y,m){
+  const s=dbGetObj('settings');
+  const enc=encaisseDuMois(y,m);
+  const k=\`\${y}-\${String(m).padStart(2,'0')}\`;
+  const urssaf=enc*(s.tauxUrssaf||0)/100, cfp=enc*(s.tauxCfp||0)/100, pas=s.pasFixe||0;
+  const fixes=dbGet('abonnements').filter(a=>a.statut==='actif').reduce((t,a)=>t+(a.montant||0),0);
+  const dep=dbGet('depenses').filter(d=>(d.date||'').startsWith(k)&&d.categorie!=='Versement perso').reduce((t,d)=>t+(d.montant||0),0);
+  const part=enc*(s.pctTresorerie||0)/100;
+  return {enc,urssaf,cfp,pas,fixes,dep,part,montant:Math.max(0,enc-urssaf-cfp-pas-fixes-dep-part)};
+}
+
+let _todayListe='faire';
+async function loadDashboard(){
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,todayStr=today();
+  const s=dbGetObj('settings');
+  if(!_enveloppes.length){try{_enveloppes=(await api('GET','/api/enveloppes')).enveloppes||[];}catch(e){}}
+  if(typeof _prospectsCache!=='undefined'&&!_prospectsCache.length){try{const r=await api('GET','/api/prospects');_prospectsCache=Array.isArray(r)?r:[];}catch(e){}}
+
+  // Carte 1 : à te verser
+  const cur=aTeVerser(y,m), prev=aTeVerser(m===1?y-1:y,m===1?12:m-1);
+  const moisPrec=MOIS_LONG[(m+10)%12].toLowerCase();
+  const ecart=cur.montant-prev.montant;
+  const cV=q('#today-verser');
+  if(cV)cV.innerHTML=\`
+    <p class="c-label">ce mois-ci, à te verser</p>
+    <p class="c-big">\${_fmt0(cur.montant)}</p>
+    <p class="c-sub">\${cur.enc===0?'Rien d’encaissé ce mois-ci pour l’instant.'
+      :\`\${ecart===0?\`Autant qu’en \${moisPrec}.\`:\`\${_fmt0(Math.abs(ecart))} de \${ecart>0?'plus':'moins'} qu’en \${moisPrec}.\`} URSSAF, charges et part trésorerie déjà déduites.\`}</p>
+    \${cur.montant>0?\`<button type="button" class="btn-pill" onclick="virerVers('salaire',\${Math.round(cur.montant)})">Faire le virement</button>\`:''}\`;
+
+  // Carte 2 : à relancer
+  const retards=facturesEnRetard().map(f=>({f,j:f.dateEcheance?_joursEntre(f.dateEcheance,todayStr):0})).sort((a,b)=>b.j-a.j);
+  const devisAttente=dbGet('devis').filter(d=>d.statut==='envoye');
+  const cR=q('#today-relance');
+  if(cR){
+    if(retards.length){
+      const {f,j}=retards[0];
+      const suite=[retards.length>1?\`\${retards.length-1} autre\${retards.length>2?'s':''} facture\${retards.length>2?'s':''} en retard\`:'',devisAttente.length?\`\${devisAttente.length===1?'un devis':devisAttente.length+' devis'} sans réponse\`:''].filter(Boolean);
+      cR.className='card-action';
+      cR.innerHTML=\`<p class="c-label">à relancer</p>
+        <p class="c-mid">\${_dashEsc(f.client)}, \${_fmt0(f.montant)}</p>
+        <p class="c-sub">\${j} jour\${j>1?'s':''} de retard\${suite.length?', et '+suite.join(', '):''}</p>
+        <button type="button" class="btn-pill" onclick="relancerFacture('\${f.id}')">Relancer</button>\`;
+    }else{
+      cR.className='card-white';
+      cR.innerHTML=\`<p class="c-label">à relancer</p><p class="c-mid">Personne</p><p class="c-sub">Toutes les factures échues sont payées\${devisAttente.length?\`. \${devisAttente.length===1?'Un devis attend':devisAttente.length+' devis attendent'} une réponse.\`:'.'}</p>\`;
     }
-    s+=\`<rect x="\${pl+i*bw}" y="\${pt}" width="\${bw}" height="\${ch}" fill="transparent" data-i="\${i}"/>\`;
-    s+=\`<text x="\${x+w/2}" y="\${H-8}" text-anchor="middle"\${i===current?' class="lbl-strong"':''}>\${MOIS_COURT[i]}</text>\`;
-  });
-  if(target>0){
-    s+=\`<line x1="\${pl}" x2="\${W-pr}" y1="\${yy(target)}" y2="\${yy(target)}" stroke="var(--terre)" stroke-width="1.5" stroke-dasharray="4 4"/>\`;
-    s+=\`<text x="\${W-pr}" y="\${yy(target)-6}" text-anchor="end" class="lbl-strong" style="fill:var(--terre)">objectif \${_fmt0(target)}</text>\`;
   }
-  if(vals[current]>0){
-    const cx=pl+current*bw+bw/2;
-    s+=\`<text x="\${cx}" y="\${yy(vals[current])-8}" text-anchor="middle" class="lbl-strong">\${_fmt0(vals[current])}</text>\`;
+
+  // Carte 3 : le coussin, en mois de charges fixes
+  const tre=_enveloppes.find(e=>e.id==='tresorerie');
+  const chargesMois=dbGet('abonnements').filter(a=>a.statut==='actif').reduce((t,a)=>t+(a.montant||0),0);
+  const seuilC=s.coussinMois||3;
+  const cC=q('#today-coussin');
+  if(cC){
+    if(tre&&chargesMois>0){
+      const r=Math.max(0,tre.solde)/chargesMois, bas=r<seuilC, n=Math.max(6,Math.ceil(seuilC)+2);
+      cC.innerHTML=\`<p class="c-label">Ton coussin</p>
+        <p class="c-big">\${r.toLocaleString('fr-FR',{maximumFractionDigits:1})} <small>mois de charges</small></p>
+        <div class="tirets\${bas?' alerte':''}" role="img" aria-label="\${r.toFixed(1)} mois sur \${n}">\${Array.from({length:n},(_,i)=>\`<i\${i<Math.floor(r)?' class="on"':''}></i>\`).join('')}</div>
+        <p class="c-sub\${bas?' alerte':''}">\${bas?\`Sous ton seuil de \${seuilC} mois : remets de côté dans l’enveloppe Trésorerie.\`:\`Au-dessus de \${seuilC} mois : tout va bien.\`}</p>\`;
+    }else{
+      cC.innerHTML=\`<p class="c-label">Ton coussin</p><p class="c-mid">À calculer</p><p class="c-sub">\${tre?'Ajoute tes charges fixes pour savoir combien de mois ta trésorerie couvre.':'L’enveloppe Trésorerie n’est pas encore disponible.'}</p>\`;
+    }
   }
-  s+='</svg>';
-  box.innerHTML=s;
-  const tip=q('#dash-chart-tip');
-  box.onmousemove=e=>{
-    const t=e.target.closest('[data-i]');
-    if(!t||!tip){tip&&tip.classList.remove('on');return;}
-    const i=+t.dataset.i,v=vals[i];
-    tip.textContent=\`\${MOIS_LONG[i]} · \${_fmt0(v)}\${i<=current?(v>=target?' · objectif atteint':\` · \${_fmt0(target-v)} sous l'objectif\`):''}\`;
-    tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-34)+'px';tip.classList.add('on');
+
+  // L'année et ses seuils
+  const encAn=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(String(y))).reduce((t,f)=>t+(f.montant||0),0);
+  const joursMois=new Date(y,m,0).getDate();
+  const moisEcoules=(m-1)+now.getDate()/joursMois, moisRestants=12-moisEcoules;
+  const moyen=moisEcoules>0?encAn/moisEcoules:0, projection=encAn+moyen*moisRestants;
+  const objectif=s.objectifCA||0, rythme=objectif*moisEcoules/12;
+  const lignes=[];
+  if(objectif>0){
+    const retard=rythme-encAn;
+    lignes.push({l:'Ton objectif',seuil:objectif,alerte:false,phrase:encAn>=objectif?'Objectif atteint.'
+      :retard>0?\`\${_fmt0(retard)} de retard sur le rythme, soit \${_fmt0((objectif-encAn)/Math.max(1,moisRestants))} par mois d’ici décembre\`
+      :\`\${_fmt0(-retard)} d’avance sur le rythme\`});
+  }
+  const phraseSeuil=seuil=>{
+    if(encAn>=seuil)return{alerte:true,phrase:'Seuil dépassé cette année : parles-en à ta comptable.'};
+    if(projection>seuil&&moyen>0){
+      const k=Math.min(12,Math.ceil(moisEcoules+(seuil-encAn)/moyen));
+      return{alerte:true,phrase:\`Au rythme actuel, tu le dépasses en \${MOIS_LONG[k-1].toLowerCase()}.\${k-1>m?\` À surveiller dès \${MOIS_LONG[k-2].toLowerCase()}.\`:''}\`};
+    }
+    return{alerte:false,phrase:projection>seuil*.85?\`Tu t’en approches : environ \${_fmt0(projection)} prévus en fin d’année.\`:'Large marge'};
   };
-  box.onmouseleave=()=>tip&&tip.classList.remove('on');
+  if(s.seuilTva)lignes.push({l:'Seuil de franchise de TVA',seuil:s.seuilTva,...phraseSeuil(s.seuilTva)});
+  if(s.plafondMicro)lignes.push({l:'Plafond de la micro-entreprise',seuil:s.plafondMicro,...phraseSeuil(s.plafondMicro)});
+  const cS=q('#today-seuils');
+  if(cS)cS.innerHTML=\`<div class="card-h2"><h2>L’année et ses seuils</h2><a href="#" class="lien" onclick="navigate('rapport-annuel');return false;">Voir le bilan</a></div>\`+
+    lignes.map(li=>\`<div class="seuil\${li.alerte?' alerte':''}">
+      <div class="seuil-top"><span>\${li.l}</span><span class="num"><b>\${_fmt0(encAn)}</b> sur \${_fmt0(li.seuil)}</span></div>
+      <div class="barre"><i style="width:\${Math.min(100,encAn/li.seuil*100)}%"></i></div>
+      <p>\${li.phrase}</p></div>\`).join('');
+
+  // Listes « À faire » et « En cours », triées par urgence
+  const faire=[],cours=[];
+  retards.forEach(({f,j})=>faire.push({u:300+j,t:\`Relancer \${f.client}\`,d:\`\${f.numero||'Facture'}, \${j} jour\${j>1?'s':''} de retard\`,ch:['terra','en retard'],a:_fmt0(f.montant),b:['Relancer',\`relancerFacture('\${f.id}')\`]}));
+  const charges=_enveloppes.find(e=>e.id==='charges');
+  const urssaf=dbGetObj('urssaf'),taux=((s.tauxUrssaf||0)+(s.tauxCfp||0))/100;
+  Object.keys(DASH_URSSAF_ECH).forEach(tq=>{
+    if((urssaf[\`\${tq}-\${y}\`]||{}).statut==='paye')return;
+    const ech=DASH_URSSAF_ECH[tq],j=_joursEntre(todayStr,ech);
+    if(j>60)return;
+    const du=DASH_URSSAF_MOIS[tq].reduce((t,mi)=>t+encaisseDuMois(y,mi),0)*taux;
+    const manque=charges?du-Math.max(0,charges.solde):0;
+    if(j<0)faire.push({u:250-j,t:\`URSSAF du \${DASH_URSSAF_LBL[tq]}\`,d:\`échéance du \${fmtDate(ech)} passée, pas encore marquée payée\`,ch:['terra','en retard'],a:_fmt0(du),b:['Vérifier',"navigate('charges-urssaf')"]});
+    else faire.push({u:200-j,t:\`Déclarer l’URSSAF du \${DASH_URSSAF_LBL[tq]}\`,d:\`avant le \${new Date(ech+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'})}, \${manque>0?\`il manque \${_fmt0(manque)} de provision\`:'la provision est prête'}\`,ch:manque>0?['terra','provision']:['dark','à toi'],a:_fmt0(du),b:['Déclarer',"navigate('charges-urssaf')"]});
+  });
+  _enveloppes.filter(e=>!['qonto','salaire'].includes(e.id)&&e.virer&&e.pct!=null&&e.pct<100).forEach(e=>
+    faire.push({u:100,t:\`Virer \${_fmt0(e.virer)} vers \${e.nom}\`,d:'pour tenir l’objectif de l’année',ch:['dark','à toi'],a:_fmt0(e.virer),b:['Virer',\`virerVers('\${e.id}',\${e.virer})\`]}));
+  (typeof _prospectsCache!=='undefined'?_prospectsCache:[]).forEach(p=>{const r=prochaineRelance(p);if(r&&r<=todayStr)
+    faire.push({u:150+_joursEntre(r,todayStr),t:\`Relancer \${p.entreprise||p.nom}\`,d:\`relance prévue le \${fmtDate(r)}\`,ch:['terra','à relancer'],a:'',b:['Relancer',\`relancerProspect('\${p.id}')\`]});});
+  dbGet('factures').filter(f=>f.statut!=='payee'&&f.statut!=='retard'&&!(f.dateEcheance&&f.dateEcheance<todayStr)).forEach(f=>
+    cours.push({u:-(f.dateEcheance?_joursEntre(todayStr,f.dateEcheance):99),t:\`\${f.numero||'Facture'} attend son paiement\`,d:\`\${f.client||''}\${f.dateEcheance?\`, échéance le \${fmtDate(f.dateEcheance)}\`:''}\`,ch:['ciel','en attente'],a:_fmt0(f.montant),b:['Voir',"navigate('factures')"]}));
+  devisAttente.forEach(d=>cours.push({u:-(d.dateExpiration?_joursEntre(todayStr,d.dateExpiration):99),t:\`Devis \${d.client||''} envoyé\`,d:d.dateExpiration?\`expire le \${fmtDate(d.dateExpiration)}\`:\`envoyé le \${fmtDate(d.date)}\`,ch:['ciel','envoyé'],a:_fmt0(d.montant),b:['Voir',"navigate('devis')"]}));
+  faire.sort((a,b)=>b.u-a.u);cours.sort((a,b)=>b.u-a.u);
+
+  if(q('#today-hello'))q('#today-hello').textContent=\`Bonjour \${s.nom||''}\`.trim();
+  if(q('#today-sub'))q('#today-sub').textContent=!faire.length?'Rien ne t’attend aujourd’hui.':faire.length===1?'Une chose t’attend.':\`\${faire.length} choses t’attendent.\`;
+  if(q('#today-tab-faire'))q('#today-tab-faire').textContent=\`À faire · \${faire.length}\`;
+  if(q('#today-tab-cours'))q('#today-tab-cours').textContent=\`En cours · \${cours.length}\`;
+  const renderListe=()=>{
+    const l=_todayListe==='faire'?faire:cours;
+    qa('#section-dashboard .pill-tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.liste===_todayListe));
+    const box=q('#today-list');if(!box)return;
+    box.innerHTML=l.length?l.map(it=>\`<div class="ligne">
+      <div class="ligne-t"><p class="t">\${_dashEsc(it.t)}</p><p class="d">\${_dashEsc(it.d)}</p></div>
+      <span class="pastille \${it.ch[0]}">\${it.ch[1]}</span>
+      <span class="ligne-a num">\${it.a}</span>
+      <button type="button" class="btn-contour" onclick="\${it.b[1]}">\${it.b[0]}</button>
+    </div>\`).join(''):\`<p class="vide">\${_todayListe==='faire'?'Rien à faire pour l’instant.':'Rien en cours.'}</p>\`;
+  };
+  qa('#section-dashboard .pill-tab').forEach(b=>b.onclick=()=>{_todayListe=b.dataset.liste;renderListe();});
+  renderListe();
+  updateNavCounts();updateSyncInfo();
 }
 
 /* --- Qonto Sync ------------------------------------------------------- */
@@ -4649,7 +4611,7 @@ async function syncQonto(silent=false){
       return;
     }
     // Met à jour le cache settings avec le vrai solde
-    _lastQontoSync=Date.now();
+    _lastQontoSync=Date.now();updateSyncInfo();
     if(res.solde!==undefined){
       _cache.settings=_cache.settings||{};
       _cache.settings.qontoSoldeReel=res.solde;
@@ -7174,12 +7136,9 @@ async function init(){
   // Navigation sidebar
   document.addEventListener('click',e=>{
     const nav=e.target.closest('[data-section]');
-    if(nav&&nav.classList.contains('nav-item'))navigate(nav.dataset.section);
+    if(nav&&nav.classList.contains('nav-item')){e.preventDefault();navigate(nav.dataset.section);}
   });
 
-  // Dashboard
-  q('#dash-refresh-btn')?.addEventListener('click',()=>loadDashboard());
-  q('#dash-new-facture-btn')?.addEventListener('click',()=>{navigate('factures');openFactureModal();});
 
   // Factures
   q('#btn-new-facture')?.addEventListener('click',()=>openFactureModal());

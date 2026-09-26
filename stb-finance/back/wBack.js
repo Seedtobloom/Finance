@@ -179,6 +179,8 @@ const SETTINGS_DEFAUT = {
   nom:'Cindy', entreprise:'Seed to Bloom', email:'contact@seedtobloom.fr',
   tauxUrssaf:25.6, tauxCfp:0.2, pasFixe:40, cfeAnnuelle:0, objectifCA:60000,
   pctVersement:65, pctEpargne:15, pctTresorerie:20, delaiPaiement:30,
+  // Seuils légaux : valeurs à confirmer chaque année avec la comptable (modifiables dans Réglages)
+  seuilTva:37500, plafondMicro:77700, coussinMois:3,
 };
 async function settingsGet(env, uid) {
   const s = await kvLire(env, `${uid}:settings`);
