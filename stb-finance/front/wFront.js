@@ -454,22 +454,18 @@ const HTML = `<!DOCTYPE html>
       <!-- 4 KPIs -->
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-trending-up"></i></div>
           <span class="kpi-label">CA total importé</span>
           <span class="kpi-value" id="fac-kpi-total">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
           <span class="kpi-label">Montant payé</span>
           <span class="kpi-value green" id="fac-kpi-paye">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
           <span class="kpi-label">Montant en attente</span>
           <span class="kpi-value warning" id="fac-kpi-attente">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-percentage"></i></div>
           <span class="kpi-label">Taux de recouvrement</span>
           <span class="kpi-value" id="fac-kpi-taux">—</span>
         </div>
@@ -538,17 +534,14 @@ const HTML = `<!DOCTYPE html>
 
       <div class="kpi-grid kpi-grid-3 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
           <span class="kpi-label">Clients enregistrés</span>
           <span class="kpi-value" id="tiers-kpi-clients">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-trending-up"></i></div>
           <span class="kpi-label">CA total encaissé</span>
           <span class="kpi-value" id="tiers-kpi-ca">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-star"></i></div>
           <span class="kpi-label">Meilleur client</span>
           <span class="kpi-value" style="font-size:18px;" id="tiers-kpi-top">—</span>
         </div>
@@ -606,31 +599,27 @@ const HTML = `<!DOCTYPE html>
       <!-- KPIs -->
       <div class="kpi-grid kpi-grid-4 mb-16">
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
           <span class="kpi-label">Contacts total</span>
           <span class="kpi-value" id="crm-kpi-total">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-thumb-up"></i></div>
           <span class="kpi-label">Taux de réponse</span>
           <span class="kpi-value" id="crm-kpi-reponse">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-trophy"></i></div>
           <span class="kpi-label">Taux de conversion</span>
           <span class="kpi-value" id="crm-kpi-conversion">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
           <span class="kpi-label">En attente / relance</span>
           <span class="kpi-value" id="crm-kpi-attente">—</span>
         </div>
       </div>
 
       <!-- Relances à faire -->
-      <div id="crm-relances-banner" class="card mb-16" style="display:none;border-left:4px solid var(--warning);">
+      <div id="crm-relances-banner" class="card mb-16" style="display:none;background:var(--terracotta-clair);box-shadow:none;">
         <div style="display:flex;align-items:center;gap:12px;padding:4px 0;">
-          <i class="ti ti-bell" style="font-size:20px;color:var(--warning);"></i>
+          <i class="ti ti-bell" style="font-size:20px;color:var(--terre);" aria-hidden="true"></i>
           <div id="crm-relances-banner-text" style="font-size:14px;"></div>
         </div>
       </div>
@@ -799,22 +788,18 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-signature"></i></div>
           <span class="kpi-label">Devis signés</span>
           <span class="kpi-value green" id="dv-kpi-signes">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-send"></i></div>
           <span class="kpi-label">En attente de réponse</span>
           <span class="kpi-value" id="dv-kpi-envoyes">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-trending-up"></i></div>
           <span class="kpi-label" id="dv-kpi-ca-label">CA signé total</span>
           <span class="kpi-value" id="dv-kpi-ca">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-percentage"></i></div>
           <span class="kpi-label">Taux de conversion</span>
           <span class="kpi-value" id="dv-kpi-taux">—</span>
         </div>
@@ -884,22 +869,18 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-folders"></i></div>
           <span class="kpi-label">Projets en cours</span>
           <span class="kpi-value" id="proj-kpi-actifs">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-file-invoice"></i></div>
           <span class="kpi-label">CA contractualisé</span>
           <span class="kpi-value" id="proj-kpi-contrat">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
           <span class="kpi-label">CA facturé</span>
           <span class="kpi-value green" id="proj-kpi-facture">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
           <span class="kpi-label">Reste à facturer</span>
           <span class="kpi-value warning" id="proj-kpi-reste">—</span>
         </div>
@@ -936,22 +917,18 @@ const HTML = `<!DOCTYPE html>
 
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon red"><i class="ti ti-receipt"></i></div>
           <span class="kpi-label">Total ce mois</span>
           <span class="kpi-value danger" id="dep-kpi-mois">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-calendar"></i></div>
           <span class="kpi-label">Total YTD</span>
           <span class="kpi-value" id="dep-kpi-ytd">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon blue"><i class="ti ti-chart-bar"></i></div>
           <span class="kpi-label">Moyenne mensuelle</span>
           <span class="kpi-value" id="dep-kpi-moyenne">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon violet"><i class="ti ti-tag"></i></div>
           <span class="kpi-label">Catégorie principale</span>
           <span class="kpi-value" style="font-size:20px;" id="dep-kpi-cat">—</span>
         </div>
@@ -1003,23 +980,19 @@ const HTML = `<!DOCTYPE html>
 
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
-          <div class="kpi-icon red"><i class="ti ti-calendar-repeat"></i></div>
           <span class="kpi-label">Total / mois</span>
           <span class="kpi-value danger" id="abo-kpi-mensuel">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon navy"><i class="ti ti-calendar"></i></div>
           <span class="kpi-label">Total / an</span>
           <span class="kpi-value" id="abo-kpi-annuel">—</span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange"><i class="ti ti-clock"></i></div>
           <span class="kpi-label">Prochain prélèvement dans</span>
           <span class="kpi-value warning" id="abo-kpi-prochain">—</span>
           <span class="kpi-sub" id="abo-kpi-prochain-sub"></span>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon green"><i class="ti ti-check"></i></div>
           <span class="kpi-label">Abonnements actifs</span>
           <span class="kpi-value green" id="abo-kpi-count">—</span>
         </div>
@@ -1145,7 +1118,6 @@ const HTML = `<!DOCTYPE html>
               <option value="12">Décembre</option>
             </select>
             <select id="rm-annee" class="form-select" style="width:100px;"></select>
-            <button class="btn btn-secondary" id="btn-rm-gen"><i class="ti ti-refresh"></i> Générer</button>
           </div>
         </div>
       </div>
@@ -1163,7 +1135,6 @@ const HTML = `<!DOCTYPE html>
         </div>
         <div class="page-header-right">
           <select id="ra-annee" class="form-select" style="width:100px;"></select>
-          <button class="btn btn-secondary" id="btn-ra-gen"><i class="ti ti-refresh"></i> Générer</button>
         </div>
       </div>
       <div id="rapport-annuel-content"></div>
@@ -1181,7 +1152,6 @@ const HTML = `<!DOCTYPE html>
         </div>
         <div class="page-header-right">
           <select id="rf-annee" class="form-select" style="width:100px;"></select>
-          <button class="btn btn-secondary" id="btn-rf-gen"><i class="ti ti-refresh"></i> Générer</button>
         </div>
       </div>
       <div id="rapport-fiscal-content"></div>
@@ -2284,7 +2254,7 @@ const CSS  = `/* =============================================
   --text:       rgba(17,7,4,0.78);
   --text-strong:#110704;
   --text-2:     rgba(17,7,4,0.68);
-  --text-3:     rgba(17,7,4,0.55);
+  --text-3:     rgba(17,7,4,0.62);
   --text-on-dark: rgba(230,229,178,0.72);
   --border:     rgba(17,7,4,0.10);
   --border-2:   rgba(17,7,4,0.18);
@@ -2639,25 +2609,6 @@ html, body {
   position: relative;
   overflow: hidden;
 }
-.kpi-icon {
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 17px;
-}
-.kpi-icon.blue   { background: var(--blue-10);    color: #4a78d9; }
-.kpi-icon.violet { background: var(--violet-10);  color: #8e68d5; }
-.kpi-icon.green  { background: var(--success-10); color: var(--success); }
-.kpi-icon.orange { background: var(--warning-10); color: var(--warning); }
-.kpi-icon.red    { background: var(--danger-10);  color: var(--danger); }
-.kpi-icon.navy   { background: var(--navy-10);    color: var(--navy); }
-.kpi-icon.cream  { background: var(--cream-10);   color: var(--brown); }
 
 .kpi-label {
   font-size: 11px;
@@ -3812,7 +3763,7 @@ h1, h2, h3, h4, .modal-title { text-wrap: balance; }
 #sidebar { background: var(--bg); }
 .nav-item { color: var(--text-2); transition: background-color .12s ease, color .12s ease; }
 .nav-item:hover { background: var(--inset); color: var(--text-strong); }
-.nav-item.active { background: var(--ciel-pale); color: var(--text-strong); border-left-color: var(--ebene); font-weight: 600; }
+.nav-item.active { background: var(--ciel-pale); color: var(--text-strong); border-left-color: transparent; font-weight: 600; }
 .nav-item.active .ti { color: var(--text-strong); }
 .nav-count { margin-left: auto; min-width: 18px; padding: 0 6px; border-radius: 9px; font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; background: var(--danger-10); color: var(--danger); }
 .nav-count[hidden] { display: none; }
@@ -3832,7 +3783,6 @@ h1, h2, h3, h4, .modal-title { text-wrap: balance; }
 /* Rangées de KPI → une bande de stats unique */
 .kpi-grid { gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
 .kpi-grid .kpi-card { border-radius: 0; box-shadow: none; padding: 16px 20px; }
-.kpi-icon { display: none; }
 .kpi-label { padding-right: 0; font-size: 11px; letter-spacing: .08em; margin-bottom: 6px; }
 .kpi-value { font-family: var(--font-num); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; color: var(--text-strong); }
 .kpi-value.blue, .kpi-value.green, .kpi-value.violet, .kpi-value.warning, .kpi-value.danger { color: var(--text-strong); }
@@ -3930,10 +3880,10 @@ tbody tr:hover td { background: var(--inset); }
 .pace-hint { font-size: 12px; color: var(--text-3); }
 .pace-hint b { color: var(--terre); font-weight: 600; }
 .todo { display: grid; }
-.todo-it { display: grid; grid-template-columns: 4px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.todo-it { display: grid; grid-template-columns: 8px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--border); cursor: pointer; }
 .todo-it:first-child { border-top: 0; padding-top: 2px; }
 .todo-it:hover .todo-t { text-decoration: underline; text-underline-offset: 3px; }
-.todo-sev { align-self: stretch; border-radius: 2px; }
+.todo-sev { width: 8px; height: 8px; border-radius: 50%; align-self: start; margin-top: 7px; }
 .todo-t { font-weight: 500; color: var(--text-strong); }
 .todo-d { font-size: 12px; color: var(--text-3); }
 .todo-amt { text-align: right; font-weight: 600; color: var(--text-strong); white-space: nowrap; }
@@ -3998,6 +3948,7 @@ tbody tr:hover td { background: var(--inset); }
   .dash-grid.hero-row, .dash-grid.main-row, .dash-grid.foot-row { grid-template-columns: 1fr; }
   .pipe { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .kpi-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .urssaf-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
   .section { padding: 24px 16px; }
@@ -4031,6 +3982,23 @@ tbody td.td-muted, tbody td.td-wrap { white-space: normal; }
   .nav-item.active { border-left: 0; }
   #main { flex: 1; min-height: 0; }
   .page-header-right { justify-content: flex-start; }
+}
+
+/* Surfaces du navigateur */
+::selection { background: var(--ciel); color: var(--ebene); }
+input, textarea { caret-color: var(--terracotta); }
+::-webkit-scrollbar-thumb { background: var(--terre-clair); }
+::-webkit-scrollbar-thumb:hover { background: var(--terracotta); }
+html { scrollbar-color: var(--terre-clair) transparent; }
+a { text-underline-offset: 3px; }
+.todo-it:focus-visible, .lead:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 8px; }
+@media (max-width: 760px) { .nav-item { min-height: 40px; } }
+
+@media (max-width: 640px) {
+  .urssaf-grid { grid-template-columns: 1fr; }
+  .equation { gap: 12px 22px; }
+  .equation .op { display: none; }
+  .equation .aside { margin-left: 0; }
 }
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
@@ -4383,39 +4351,6 @@ function drawBarChart(canvas,labels,datasets,opts={}){
   labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,pad.top+cH+16));
 }
 
-function drawGroupedBarChart(canvas,labels,datasets){
-  drawBarChart(canvas,labels,datasets);
-}
-
-function drawLineChart(canvas,labels,data,color=COLORS.navy,dashed=false){
-  if(!canvas)return;
-  const{ctx,W,H}=setupCanvas(canvas);
-  ctx.clearRect(0,0,W,H);
-  const pad={top:16,right:12,bottom:36,left:52};
-  const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
-  const maxVal=Math.max(...data,1);
-  const step=niceStep(maxVal);
-  const yMax=Math.ceil(maxVal/step)*step;
-  drawGrid(ctx,pad,cW,cH,yMax,step);
-  const n=data.length-1||1;
-  const pts=data.map((v,i)=>({x:pad.left+(i/n)*cW,y:pad.top+cH-(v/yMax)*cH}));
-  if(!dashed){
-    const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
-    grad.addColorStop(0,color+'30');grad.addColorStop(1,color+'00');
-    ctx.beginPath();
-    pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-    ctx.lineTo(pts[pts.length-1].x,pad.top+cH);ctx.lineTo(pts[0].x,pad.top+cH);
-    ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  }
-  ctx.save();if(dashed)ctx.setLineDash([5,5]);
-  ctx.strokeStyle=color;ctx.lineWidth=2;
-  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
-  ctx.stroke();ctx.restore();
-  if(!dashed)pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();});
-  ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
-  labels.forEach((l,i)=>ctx.fillText(l,pad.left+(i/n)*cW,pad.top+cH+16));
-}
-
 function drawDonutChart(canvas,labels,data,colors){
   if(!canvas)return;
   const{ctx,W,H}=setupCanvas(canvas);
@@ -4439,37 +4374,6 @@ function drawDonutChart(canvas,labels,data,colors){
     ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='left';
     ctx.fillText(l.slice(0,16),lx+14,ly+9);
   });
-}
-
-function drawStackedBarChart(canvas,labels,datasets){
-  if(!canvas)return;
-  const{ctx,W,H}=setupCanvas(canvas);
-  ctx.clearRect(0,0,W,H);
-  const pad={top:16,right:12,bottom:36,left:52};
-  const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
-  const totals=labels.map((_,i)=>datasets.reduce((s,ds)=>s+(ds.data[i]||0),0));
-  const maxVal=Math.max(...totals,1);
-  const step=niceStep(maxVal);
-  const yMax=Math.ceil(maxVal/step)*step;
-  drawGrid(ctx,pad,cW,cH,yMax,step);
-  const groupW=cW/labels.length;
-  const bw=Math.max(6,groupW*0.6);
-  const bx=(groupW-bw)/2;
-  labels.forEach((_,i)=>{
-    let base=0;
-    datasets.forEach(ds=>{
-      const v=ds.data[i]||0;
-      if(!v)return;
-      const bH=(v/yMax)*cH;
-      const x=pad.left+i*groupW+bx;
-      const y=pad.top+cH-(base+v)/yMax*cH;
-      ctx.fillStyle=ds.color||COLORS.blue;
-      ctx.beginPath();ctx.rect(x,y,bw,bH);ctx.fill();
-      base+=v;
-    });
-  });
-  ctx.fillStyle=COLORS.text2;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
-  labels.forEach((l,i)=>ctx.fillText(l,pad.left+i*groupW+groupW/2,pad.top+cH+16));
 }
 
 /* ─── 9. MODULES ─────────────────────────────────────────────────────── */
@@ -4693,7 +4597,7 @@ function renderDashChart(vals,target,current){
   const max=Math.ceil(maxV/step)*step;
   const yy=v=>pt+ch-(v/max)*ch;
   const kfmt=v=>v>=1000?(Math.round(v/100)/10).toString().replace('.',',')+' k':String(v);
-  let s=\`<svg viewBox="0 0 \${W} \${H}" role="img" aria-label="CA encaissé par mois">\`;
+  let s=\`<svg viewBox="0 0 \${W} \${H}" role="img" aria-label="CA encaissé par mois : \${vals.map((v,i)=>MOIS_LONG[i]+' '+_fmt0(v)).join(', ')}">\`;
   for(let v=0;v<=max;v+=step){
     s+=\`<line x1="\${pl}" x2="\${W-pr}" y1="\${yy(v)}" y2="\${yy(v)}" stroke="var(--border)"/>\`;
     s+=\`<text x="\${pl-8}" y="\${yy(v)+4}" text-anchor="end">\${kfmt(v)}</text>\`;
@@ -4767,7 +4671,6 @@ async function syncQonto(silent=false){
 }
 
 /* --- Enveloppes ------------------------------------------------------- */
-const ENVELOPPES_COULEURS={qonto:'#1A2E5A',charges:'#E8A838',formations:'#7C3AED',tresorerie:'#4CAF82',salaire:'#E05252'};
 const ENVELOPPES_ICONES={qonto:'ti-building-bank',charges:'ti-receipt',formations:'ti-school',tresorerie:'ti-safe',salaire:'ti-user'};
 let _enveloppes=[];
 
@@ -5357,8 +5260,8 @@ function renderTransactions(){
   tbody.innerHTML=list.length?list.map(t=>\`<tr>
     <td>\${fmtDate(t.date)}</td><td>\${t.libelle||'—'}</td>
     <td>\${getN(t.compte)}</td>
-    <td><span class="badge badge-\${t.type==='credit'?'success':t.type==='debit'?'danger':'neutral'}">\${t.type}</span></td>
-    <td class="td-amount" style="color:\${t.type==='credit'?'var(--success)':'var(--danger)'};">\${t.type==='credit'?'+':'−'}\${fmt(t.montant||0)}</td>
+    <td><span class="badge badge-\${t.type==='credit'?'success':'neutral'}">\${t.type==='credit'?'Crédit':t.type==='debit'?'Débit':t.type}</span></td>
+    <td class="td-amount" style="color:\${t.type==='credit'?'var(--success)':'var(--text-strong)'};">\${t.type==='credit'?'+':'−'}\${fmt(t.montant||0)}</td>
     <td><button class="btn btn-ghost btn-xs" onclick="deleteTxn('\${t.id}')"><i class="ti ti-trash"></i></button></td>
   </tr>\`).join(''):'<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-2);">Aucune transaction</td></tr>';
 }
@@ -5814,56 +5717,6 @@ function renderCrmCharts(){
     </div>\`;
   }).join('');
   if(typeof updateNavCounts==='function')updateNavCounts();
-}
-
-function _drawDonutChart(canvas,labels,vals,colors){
-  const {ctx,W,H}=setupCanvas(canvas);
-  if(!ctx)return;
-  ctx.clearRect(0,0,W,H);
-  const total=vals.reduce((s,v)=>s+v,0);
-  if(total===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
-  const cx=W*0.38,cy=H/2,r=Math.min(cx,cy)-20,ri=r*0.55;
-  let angle=-Math.PI/2;
-  vals.forEach((v,i)=>{
-    const slice=v/total*2*Math.PI;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length];ctx.fill();
-    angle+=slice;
-  });
-  ctx.beginPath();ctx.arc(cx,cy,ri,0,2*Math.PI);ctx.fillStyle='#fff';ctx.fill();
-  // Légende
-  const legendX=W*0.72,legendStep=18,legendY0=Math.max(12,cy-vals.length*legendStep/2);
-  labels.forEach((l,i)=>{
-    const y=legendY0+i*legendStep;
-    ctx.fillStyle=colors[i%colors.length];
-    ctx.fillRect(legendX-20,y-8,12,12);
-    ctx.fillStyle='#222';ctx.font="12px DM Sans";ctx.textAlign="left";
-    ctx.fillText(l+" ("+vals[i]+")",legendX-4,y+2);
-  });
-}
-
-function _drawBarChartCRM(canvas,labels,vals,colors){
-  const {ctx,W,H}=setupCanvas(canvas);
-  if(!ctx)return;
-  ctx.clearRect(0,0,W,H);
-  if(vals.length===0){ctx.fillStyle='#ccc';ctx.font="14px DM Sans";ctx.textAlign="center";ctx.fillText("Aucune donnée",W/2,H/2);return;}
-  const maxV=Math.max(...vals)||1;
-  const pad={l:10,r:10,t:10,b:50};
-  const bw=Math.max(16,Math.floor((W-pad.l-pad.r)/labels.length*0.6));
-  const gap=Math.floor((W-pad.l-pad.r)/labels.length);
-  const chartH=H-pad.t-pad.b;
-  labels.forEach((label,i)=>{
-    const x=pad.l+i*gap+gap/2-bw/2;
-    const bh=Math.round(vals[i]/maxV*chartH);
-    const y=pad.t+chartH-bh;
-    ctx.fillStyle=colors[i%colors.length];
-    ctx.beginPath();ctx.roundRect(x,y,bw,bh,4);ctx.fill();
-    ctx.fillStyle='#222';ctx.font="bold 12px DM Sans";ctx.textAlign="center";
-    ctx.fillText(vals[i],x+bw/2,y-4);
-    ctx.fillStyle='#555';ctx.font="11px DM Sans";
-    const short=label.length>10?label.slice(0,9)+"…":label;
-    ctx.fillText(short,x+bw/2,H-pad.b+14);
-  });
 }
 
 function renderCrmTable(){
@@ -6828,6 +6681,7 @@ function loadRapportMensuel(){
   const selA=q('#rm-annee');
   if(selA&&!selA.options.length){for(let i=y;i>=y-3;i--)selA.add(new Option(i,i));selA.value=y;}
   if(q('#rm-mois'))q('#rm-mois').value=new Date().getMonth()+1;
+  renderRapportMensuel();
 }
 function renderRapportMensuel(){
   const mois=parseInt(q('#rm-mois')?.value||new Date().getMonth()+1);
@@ -6891,6 +6745,7 @@ function loadRapportAnnuel(){
   const y=new Date().getFullYear();
   const sel=q('#ra-annee');
   if(sel&&!sel.options.length){for(let i=y;i>=y-3;i--)sel.add(new Option(i,i));sel.value=y;}
+  renderRapportAnnuel();
 }
 function renderRapportAnnuel(){
   const annee=parseInt(q('#ra-annee')?.value||new Date().getFullYear());
@@ -6950,6 +6805,7 @@ function loadRapportFiscal(){
   const y=new Date().getFullYear();
   const sel=q('#rf-annee');
   if(sel&&!sel.options.length){for(let i=y;i>=y-3;i--)sel.add(new Option(i,i));sel.value=y;}
+  renderRapportFiscal();
 }
 function renderRapportFiscal(){
   const annee=parseInt(q('#rf-annee')?.value||new Date().getFullYear());
@@ -7407,9 +7263,9 @@ async function init(){
 
 
   // Rapports
-  q('#btn-rm-gen')?.addEventListener('click',renderRapportMensuel);
-  q('#btn-ra-gen')?.addEventListener('click',renderRapportAnnuel);
-  q('#btn-rf-gen')?.addEventListener('click',renderRapportFiscal);
+  qa('#section-rapport-mensuel select').forEach(x=>x.addEventListener('change',renderRapportMensuel));
+  qa('#section-rapport-annuel select').forEach(x=>x.addEventListener('change',renderRapportAnnuel));
+  qa('#section-rapport-fiscal select').forEach(x=>x.addEventListener('change',renderRapportFiscal));
 
   // Simulateur
   q('#sim-versement-slider')?.addEventListener('input',function(){
