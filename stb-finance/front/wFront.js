@@ -5375,7 +5375,8 @@ function buCatAuto(o){
   if(o.m>0){
     for(const r of BU.rentrees)if(buMotif(r.motif,txt))return 'rentree:'+r.id;
     if(k&&BU.regles[k])return BU.regles[k];
-    if(/ei - |annul|avoir/.test(txt))return 'ignore';
+    if(/ei - /.test(txt))return 'rembourse';
+    if(/annul|avoir/.test(txt))return 'ignore';
     if(/mutuelle|harmonie/.test(txt))return env('env:sante');
     if(/paypal/.test(txt))return env('env:plaisirs');
     return null;
@@ -5407,11 +5408,11 @@ function buCatNom(c){
   if(t==='env'){const e=BU.enveloppes.find(x=>x.id===id);return e?e.nom:'Enveloppe';}
   if(t==='fixe'){const f=BU.fixes.find(x=>x.id===id);return f?f.nom:'Charge';}
   if(t==='rentree'){const r=BU.rentrees.find(x=>x.id===id);return r?r.nom:'Rentrée';}
-  return {projets:'Projets de vie',decote:'De côté',pro:'Pro, pas pour le budget',ignore:'Pas pour le budget'}[c]||c;
+  return {projets:'Projets de vie',decote:'De côté',pro:'Pro, pour Seed to Bloom',rembourse:'Remboursé par Seed to Bloom',ignore:'Pas pour le budget'}[c]||c;
 }
 function buChoix(credit){
   const l=credit?BU.rentrees.map(r=>['rentree:'+r.id,r.nom]):BU.fixes.map(f=>['fixe:'+f.id,f.nom]);
-  return BU.enveloppes.map(e=>['env:'+e.id,e.nom]).concat([['projets','Projets de vie'],['decote','De côté']],l,[['ignore','Pas pour le budget']]);
+  return BU.enveloppes.map(e=>['env:'+e.id,e.nom]).concat([['projets','Projets de vie'],['decote','De côté']],l,[credit?['rembourse','Remboursé par Seed to Bloom']:['pro','Pro, pour Seed to Bloom'],['ignore','Pas pour le budget']]);
 }
 /* ── Le relevé : format Crédit Agricole, avec ou sans virgule dans les montants ── */
 function buLireCSV(txt){
@@ -5529,7 +5530,7 @@ function renderBudget(){
   el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mon budget</h1><p class="fa-sous">'+buMaj1(nom)+', en trois temps.</p></div><div class="ap-btns"><button class="fa-btn fa-btn--c" onclick="buDeposer()">Déposer un relevé</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Changer la répartition</button></div></div>'+buPillsMois(k)+
     action+cartes+
     '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Tes enveloppes</span><span class="fin-cl__s fv-g__e">'+buTotal(st)+'</span></div>'+env+'</div>'+
-    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Pour plus tard</span></div>'+plus+'</div>'+
+    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Pour plus tard</span></div>'+plus+'</div>'+buCartePro()+
     '<p class="fin-cl__s bu-pied">Clique sur une ligne pour voir le détail.'+(BU.dernierImport?' Dernier relevé déposé le '+fmtDate(BU.dernierImport.le)+', jusqu’au '+fmtDate(BU.dernierImport.au)+'.':'')+'</p>';
 }
 /* Le total du mois : dans tes enveloppes, et en tout avec ce qui part tout seul */
@@ -5542,6 +5543,32 @@ function buPillsMois(k){
   const mois=[...new Set(buMoisAvecOps().concat([buMk()]))].sort().slice(-12);
   const an=mois.some(m=>m.slice(0,4)!==buMk().slice(0,4));
   return '<div class="fin-pills bu-mois">'+mois.map(m=>'<button class="fin-onglet'+(m===k?' on':'')+'" data-k="'+m+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(m))+(an?' '+m.slice(2,4):'')+'</button>').join('')+'</div>';
+}
+/* Le matériel pro payé avec ton compte perso : ce que Seed to Bloom te doit */
+function buPro(){
+  const pro=BU.ops.filter(o=>o.m<0&&buCat(o)==='pro'),remb=BU.ops.filter(o=>o.m>0&&buCat(o)==='rembourse');
+  const du=Math.round((pro.reduce((s,o)=>s-o.m,0)-remb.reduce((s,o)=>s+o.m,0))*100)/100;
+  return {pro:pro,du:du,aNoter:pro.filter(o=>!o.noteFinance)};
+}
+function buLib(o){const p=(o.l||o.t).split(' | '),a=p[0].replace(/x[0-9]{3,} /i,'').trim();return /^(vir|web)/i.test(a)&&p.length>1?a+' · '+p[p.length-1]:a;}
+function buCartePro(){
+  const p=buPro();if(p.du<1)return '';
+  const der=p.pro.slice(0,3).map(o=>faEsc(buLib(o))+' '+fmt0(-o.m)).join(', ');
+  return '<div class="fa-creme bu-une"><div><span class="fa-k">payé avec ton compte perso pour Seed to Bloom</span><b>Seed to Bloom te doit '+fmt0(p.du)+'</b><span class="fa-k fa-k--f">'+der+(p.pro.length>3?'…':'')+'. Ce n’est pas compté dans ton budget.</span></div><div class="ap-btns">'+(p.aNoter.length?'<button class="fa-btn" onclick="buNoterFinance()">Le noter dans Finance</button>':'')+'<button class="fa-btn fa-btn--c" onclick="buDetailPro()">Voir le détail</button></div></div>';
+}
+function buDetailPro(){
+  q('#bu-modal-titre').textContent='Payé pour Seed to Bloom';
+  q('#bu-modal-corps').innerHTML='<p class="fin-cl__s">Ce que tu as payé avec ton compte perso pour ton activité, et ce que Seed to Bloom t’a déjà remboursé. Quand tu te rembourses depuis Qonto, range ce virement en remboursement dans Mouvements.</p>'+
+    BU.ops.filter(o=>['pro','rembourse'].indexOf(buCat(o))>=0).slice(0,60).map(o=>'<div class="bu-r"><div class="bu-r__t"><span class="fin-cl__s">'+fmtDate(o.d)+'</span><span>'+faEsc(buLib(o))+(o.noteFinance?' <span class="fa-pas fa-p-n">noté dans Finance</span>':'')+'</span><b class="fa-n">'+fmt(o.m)+'</b></div><div class="bu-r__p"><select class="form-select bu-r__s" data-id="'+faEsc(o.id)+'" onchange="buDeplacerPro(this.dataset.id,this.value)">'+buChoix(o.m>0).map(c=>'<option value="'+c[0]+'"'+(c[0]===buCat(o)?' selected':'')+'>'+faEsc(c[1])+'</option>').join('')+'</select></div></div>').join('');
+  openModal('modal-budget');
+}
+async function buDeplacerPro(id,c){const o=BU.ops.find(x=>x.id===id);if(!o)return;o.c=c;BU_CATS=null;await buSauver();buDetailPro();renderBudget();}
+async function buNoterFinance(){
+  const p=buPro();let n=0;
+  for(const o of p.aNoter){
+    try{await dbCreate('depenses',{date:o.d,montant:-o.m,description:buLib(o)+' (payé avec le compte perso, à te rembourser)',categorie:'Matériel'});o.noteFinance=true;n++;}catch(e){toast(e.message,'error');break;}
+  }
+  await buSauver();toast(n+' dépense'+(n>1?'s':'')+' notée'+(n>1?'s':'')+' dans Finance','success');renderBudget();
 }
 function buAller(k){BU_MOIS=k===buMk()?null:k;renderBudget();}
 /* ── Ranger en un clic ── */
