@@ -120,6 +120,7 @@ const HTML = `<!DOCTYPE html>
       </div>
 
       <div id="enveloppes-banner" style="margin-bottom:20px;"></div>
+      <div id="fq-salaire" class="fa-creme fq-salaire"></div>
       <div id="enveloppes-grid" class="fa-blanc fin-liste"></div>
 
       <div class="card" style="margin-top:24px;">
@@ -3894,6 +3895,10 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fq-opt { display:grid; grid-template-columns:minmax(0,1fr) 150px auto; gap:18px; align-items:center; padding:12px 16px; border-radius:14px; box-shadow:inset 0 0 0 1px #e3ded3; }
 .fq-opt.fq-best { box-shadow:inset 0 0 0 1.5px #110704; }
 
+.fq-salaire { flex-direction:row; align-items:center; gap:30px; margin-bottom:16px; }
+.fq-salaire > div:first-child { flex:1; }
+@media (max-width: 900px) { .fq-salaire { flex-direction:column; align-items:stretch; } }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4171,7 +4176,7 @@ function finJours(d){return Math.max(0,Math.round((new Date()-new Date(d))/86400
 function finCompte(sec){
   if(sec==='factures')return dbGet('factures').length;
   if(sec==='devis')return dbGet('devis').length;
-  if(sec==='enveloppes')return (_enveloppes||[]).filter(e=>e.id!=='qonto').length;
+  if(sec==='enveloppes')return (_enveloppes||[]).filter(e=>e.id!=='qonto'&&e.id!=='salaire').length;
   if(sec==='abonnements')return dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).length;
   if(sec==='depenses'){const k=finAuj().slice(0,7);return dbGet('depenses').filter(d=>(d.date||'').startsWith(k)).length;}
   return 0;
@@ -4272,7 +4277,7 @@ function finHeroBilans(sec){
 }
 function finProposition(){
   const E=_enveloppes||[],qo=E.find(e=>e.id==='qonto');let reste=qo?Math.floor(qo.solde||0):0;const out=[];
-  ['charges','tresorerie','salaire','formations'].forEach(id=>{
+  ['charges','tresorerie','formations'].forEach(id=>{
     const e=E.find(x=>x.id===id);if(!e||reste<1||e.objectif==null)return;
     const manque=Math.max(0,e.objectif-Math.max(0,e.solde||0));if(manque<1)return;
     const m=Math.round(Math.min(reste,manque,e.virer||manque));
@@ -4535,6 +4540,28 @@ function fqRenderRegles(){
     (r.length?r.map((x,i)=>'<div class="fq-r"><span class="fq-n">'+faEsc(x.m)+'</span><span class="fq-s">'+(FQ_TYPES[x.t]||FQ_TYPES.entree)[0]+'</span><button class="fin-lien" data-i="'+i+'" onclick="fqOublier(+this.dataset.i)">Oublier</button></div>').join(''):'<p class="fa-vide">Rien pour l’instant.</p>');
 }
 /* À te verser : un plafond, pas une obligation */
+function fqPlafond(){
+  const now=new Date(),mKey=now.toISOString().slice(0,7),S=dbGetObj('settings');
+  const tU=(S.tauxUrssaf||25.6)/100,tC=(S.tauxCfp||0.2)/100,pas=S.pasFixe||40,pct=S.pctVersement||65;
+  const ca=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(mKey)).reduce((s,f)=>s+(f.montant||0),0);
+  const dep=dbGet('depenses').filter(d=>(d.date||'').startsWith(mKey)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
+  const abo=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montantMensuel||a.montant||0),0);
+  const plafond=Math.round(Math.max(0,ca-ca*(tU+tC)-pas-dep-abo)*pct/100);
+  const deja=fqVersements(mKey).reduce((s,d)=>s+(d.montant||0),0);
+  return {mKey:mKey,plafond:plafond,deja:deja,reste:Math.max(0,plafond-deja),clos:!!(S.versementClos||{})[mKey],nomMois:now.toLocaleDateString('fr-FR',{month:'long'})};
+}
+/* Trésorerie : ton salaire en carte à part, sans objectif */
+function fqCarteSalaire(){
+  const el=q('#fq-salaire');if(!el)return;
+  const e=(_enveloppes||[]).find(x=>x.id==='salaire'),P=fqPlafond();FQ_VERSER={reste:P.reste};
+  const cote=e?Math.round(e.solde||0):0;
+  const phrase=P.clos?'En '+P.nomMois+', '+fmt0(P.deja)+' pour toi et '+fmt0(P.reste)+' gardés de côté.'
+    :P.deja>P.plafond&&P.deja>0?fmt0(P.deja)+' versés ce mois-ci, '+fmt0(P.deja-P.plafond)+' de plus que prévu.'
+    :(P.deja>0?'Ce mois-ci, tu peux encore te verser jusqu’à '+fmt0(P.reste)+' ('+fmt0(P.deja)+' déjà versés).':'Ce mois-ci, tu peux te verser jusqu’à '+fmt0(P.plafond)+'.')+' Ce que tu ne prends pas reste dans ta trésorerie.';
+  el.innerHTML='<div><span class="fa-k">ton salaire</span><b class="fa-gros">'+fmt0(cote)+' de côté</b><span class="fa-k fa-k--f">'+phrase+'</span></div>'+
+    (P.clos?'<button class="fin-lien" data-m="'+P.mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button>'
+      :'<div class="fin-btns"><button class="fa-btn" onclick="fqVerserOuvrir()">Me verser</button><button class="fa-btn fa-btn--c" data-m="'+P.mKey+'" onclick="fqGarder(this.dataset.m,true)">Garder de côté</button></div>');
+}
 let FQ_VERSER=null;
 function fqVersements(mKey){return dbGet('depenses').filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(mKey)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));}
 function fqDeQonto(depId){return Object.values(fqLiens()).some(x=>x.t==='versement'&&x.id===depId);}
@@ -4556,13 +4583,13 @@ function fqVerserFermer(){const m=q('#fq-verser');if(m)m.style.display='none';}
 async function fqVerserOk(){
   const v=parseFloat(q('#fq-v-m').value)||0,d=q('#fq-v-d').value||finAuj();
   if(v<=0){toast('Indique un montant','error');return;}
-  try{await dbCreate('depenses',{date:d,description:'Versement perso',categorie:'Versement perso',montant:v});fqVerserFermer();toast('Versement enregistré','success');loadAujourdhui();}
+  try{await dbCreate('depenses',{date:d,description:'Versement perso',categorie:'Versement perso',montant:v});fqVerserFermer();toast('Versement enregistré','success');if(q('#section-enveloppes.active'))fqCarteSalaire();else loadAujourdhui();}
   catch(e){toast('Erreur : '+e.message,'error');}
 }
 async function fqGarder(mKey,oui){
   const s=Object.assign({},dbGetObj('settings'));const c=Object.assign({},s.versementClos||{});
   if(oui)c[mKey]=true;else delete c[mKey];
-  await dbSet('settings',Object.assign(s,{versementClos:c}));loadAujourdhui();
+  await dbSet('settings',Object.assign(s,{versementClos:c}));if(q('#section-enveloppes.active'))fqCarteSalaire();else loadAujourdhui();
 }
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
@@ -5062,7 +5089,7 @@ async function loadEnveloppes(){
     renderEnveloppes();
     renderVirements();
     finHeroMaj('tresorerie');
-    const o=q('.fin-onglets .fin-onglet.on');if(o&&q('#section-enveloppes.active'))o.textContent='Enveloppes · '+_enveloppes.filter(e=>e.id!=='qonto').length;
+    const o=q('.fin-onglets .fin-onglet.on');if(o&&q('#section-enveloppes.active'))o.textContent='Enveloppes · '+_enveloppes.filter(e=>e.id!=='qonto'&&e.id!=='salaire').length;
   }catch(e){toast('Erreur chargement enveloppes','error');}
 }
 
@@ -5096,12 +5123,13 @@ function renderEnveloppes(){
     </div>\`;
   }
 
-  const liste=_enveloppes.filter(e=>e.id!=='qonto');
+  const liste=_enveloppes.filter(e=>e.id!=='qonto'&&e.id!=='salaire');
+  fqCarteSalaire();
   g.innerHTML=liste.length?liste.map(e=>{
     const obj=e.objectif,solde=e.solde||0;
     const atteint=obj!=null&&solde>=obj,manque=obj!=null?Math.max(0,obj-Math.max(0,solde)):0;
     const n=obj>0?Math.min(12,Math.round(Math.max(0,solde)/obj*12)):(solde>0?12:0);
-    const sous=obj==null?'sans objectif':(atteint?'objectif '+fmt0(obj):'objectif '+fmt0(obj)+', il manque '+fmt0(manque));
+    const sous=(e.id==='tresorerie'?'ton coussin : ':'')+(obj==null?'sans objectif':(atteint?'objectif '+fmt0(obj):'objectif '+fmt0(obj)+', il manque '+fmt0(manque)));
     const act=atteint?'<span class="fa-pas fa-p-n">atteint</span>':(e.virer?'<button class="fa-btn fa-btn--c" data-id="'+e.id+'" data-m="'+Math.round(Math.min(e.virer,manque||e.virer))+'" onclick="finVirerVers(this.dataset.id,this.dataset.m)">Virer '+fmt0(Math.min(e.virer,manque||e.virer))+' par mois</button>':'');
     return '<div class="fin-env">'+
       '<div><span class="fin-env__n">'+faEsc(e.nom)+'</span><span class="fin-env__l"><button class="fin-lien" data-id="'+e.id+'" onclick="openVirementModal(this.dataset.id)">Virer</button><button class="fin-lien" data-id="'+e.id+'" data-o="'+(obj==null?'':obj)+'" onclick="openObjectifModal(this.dataset.id,this.dataset.o?Number(this.dataset.o):null)">Objectif</button></span></div>'+
