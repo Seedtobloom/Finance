@@ -3944,6 +3944,17 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fc-bgo { background:#C5DEFF; color:#110704; }
 @media (max-width: 1100px) { .fc-grille { grid-template-columns:1fr; } .fc-bandeau { flex-direction:column; align-items:stretch; } .fc-bas { flex-direction:column; align-items:stretch; } }
 
+/* Formulaires et fenêtres, dans la DA */
+.form-label { font-family:'Inter Tight',sans-serif; font-size:13.5px; font-weight:500; letter-spacing:0; text-transform:none; color:rgba(17,7,4,.64); display:block; margin-bottom:6px; }
+.form-input, .form-select, .form-textarea, .form-control { width:100%; box-sizing:border-box; background:#fff; border:none; box-shadow:inset 0 0 0 1px #e3ded3; border-radius:10px; color:#110704; font-family:'Inter Tight',sans-serif; font-size:15px; padding:11px 14px; outline:none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus, .form-control:focus { box-shadow:inset 0 0 0 1.5px #110704; }
+.modal { border-radius:20px; font-family:'Inter Tight',sans-serif; }
+.modal-title { font-family:'Cormorant Garamond',serif; font-size:26px; font-weight:400; color:#110704; }
+.modal .btn { font-family:'Inter Tight',sans-serif; font-size:14px; font-weight:600; border-radius:999px; padding:10px 20px; }
+.modal .btn .ti { display:none; }
+.modal .btn-primary { background:#110704; color:#F8F6F2; }
+.modal .btn-outline, .modal .btn-secondary { background:transparent; color:#110704; border:none; box-shadow:inset 0 0 0 1px #110704; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4355,7 +4366,11 @@ async function finAppliquer(){
   try{for(const x of p){await api('POST','/api/virements',{de:'qonto',vers:x.id,montant:x.m,date:date,motif:'Répartition'});}toast('Répartition enregistrée','success');await loadEnveloppes();}
   catch(e){toast('Erreur : '+e.message,'error');}
 }
-function finVirerVers(id,m){openVirementModal('qonto');q('#virement-vers').value=id;if(m)q('#virement-montant').value=m;}
+async function finVirerVers(id,m){
+  if(!(_enveloppes||[]).length){try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){toast('Enveloppes introuvables, réessaie','error');return;}}
+  openVirementModal('qonto');q('#virement-vers').value=id;if(m)q('#virement-montant').value=m;
+  if(id==='tresorerie'&&!q('#virement-motif').value)q('#virement-motif').value='Trésorerie';
+}
 function finFactFiltre(st){
   const sel=q('#factures-filter-statut');
   if(!q('#section-factures.active'))navigate('factures');
@@ -5410,6 +5425,7 @@ async function saveVirement(){
     closeVirementModal();
     toast('Virement enregistré','success');
     await loadEnveloppes();
+    if(q('#section-cloture.active'))loadCloture();
   }catch(e){toast('Erreur : '+e.message,'error');}
 }
 
