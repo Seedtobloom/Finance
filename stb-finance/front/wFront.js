@@ -3890,6 +3890,10 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fq-ar .fq-g { gap:8px; }
 .fq-ar .fq-gl { min-width:0; }
 
+.fq-ouv { grid-column:2 / -1; display:flex; flex-direction:column; gap:8px; }
+.fq-opt { display:grid; grid-template-columns:minmax(0,1fr) 150px auto; gap:18px; align-items:center; padding:12px 16px; border-radius:14px; box-shadow:inset 0 0 0 1px #e3ded3; }
+.fq-opt.fq-best { box-shadow:inset 0 0 0 1.5px #110704; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4313,9 +4317,9 @@ function finFactPlus(){const s=q('#section-factures');const on=s.classList.toggl
 /* ─── Qonto relié partout : chaque mouvement est rattaché à ce qu'il représente ───
    Les liens (mouvement → facture, trimestre URSSAF, charge fixe, dépense, versement)
    et les règles apprises vivent dans les réglages : qontoLiens, qontoRegles. */
-const FQ_TYPES={facture:['facture payée','fa-p-a'],client:['paiement client','fa-p-a'],urssaf:['URSSAF','fa-p-n'],charge:['abonnement','fa-p-n'],depense:['dépense','fa-p-n'],versement:['mon salaire','fa-p-m'],epargne:['mis de côté','fa-p-n'],remboursement:['remboursement','fa-p-n'],apport:['apport perso','fa-p-n'],entree:['entrée','fa-p-n'],ignore:['pas pro','fa-p-n']};
+const FQ_TYPES={facture:['facture','fa-p-a'],devis:['devis','fa-p-a'],client:['paiement client','fa-p-a'],urssaf:['URSSAF','fa-p-n'],charge:['abonnement','fa-p-n'],depense:['dépense','fa-p-n'],versement:['mon salaire','fa-p-m'],epargne:['mis de côté','fa-p-n'],remboursement:['remboursement','fa-p-n'],apport:['apport perso','fa-p-n'],entree:['entrée','fa-p-n'],ignore:['pas pro','fa-p-n']};
 const FQ_DIACR=new RegExp('['+String.fromCharCode(768)+'-'+String.fromCharCode(879)+']','g');
-let FQ_MOUV=null,FQ_EN_COURS=false,FQ_DERNIER=0,FQ_CREE=false;
+let FQ_MOUV=null,FQ_EN_COURS=false,FQ_DERNIER=0,FQ_CREE=false,FQ_FACT=null;
 function fqNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(FQ_DIACR,'').split(' ').filter(Boolean).join(' ');}
 function fqLiens(){const s=dbGetObj('settings');return s.qontoLiens&&typeof s.qontoLiens==='object'?s.qontoLiens:{};}
 function fqRegles(){const s=dbGetObj('settings');return Array.isArray(s.qontoRegles)?s.qontoRegles:[];}
@@ -4327,11 +4331,34 @@ function fqEch(k){const t=k.slice(0,2),y=+k.slice(3);return {T1:y+'-04-30',T2:y+
 function fqNomT(k){return {T1:'1er trimestre',T2:'2e trimestre',T3:'3e trimestre',T4:'4e trimestre'}[k.slice(0,2)]+' '+k.slice(3);}
 function fqRegle(tx){const l=fqNorm(tx.libelle);return fqRegles().find(r=>r.m&&l.indexOf(r.m)>=0&&(!r.sens||r.sens===tx.type));}
 function fqMots(s){return fqNorm(s).split(' ').filter(w=>w.length>=4);}
+/* Ce qui a déjà été reçu sur une facture ou un devis, d'après les mouvements reliés */
+function fqRecu(t,id){return Object.values(fqLiens()).filter(x=>x.t===t&&x.id===id).reduce((s,x)=>s+(x.m||0),0);}
+function fqReste(f){return Math.max(0,(f.montant||0)-fqRecu('facture',f.id));}
+function fqDevisRecu(d){const r=fqRecu('devis',d.id);return r?'<span class="fin-cl__s">'+fmt0(r)+' reçus</span>':'';}
+function fqMemeClient(a,b){const nb=fqNorm(b);return !!a&&!!b&&(fqNorm(a)===nb||fqMots(a).some(w=>nb.indexOf(w)>=0));}
 function fqFactures(tx){
-  const l=fqNorm(tx.libelle),dejaPayees={};Object.values(fqLiens()).forEach(x=>{if(x.t==='facture')dejaPayees[x.id]=1;});
-  const c=dbGet('factures').filter(f=>f.statut!=='payee'&&!dejaPayees[f.id]&&Math.abs((f.montant||0)-tx.montant)<0.5);
+  const l=fqNorm(tx.libelle);
+  const c=dbGet('factures').filter(f=>f.statut!=='payee'&&Math.abs(fqReste(f)-tx.montant)<0.5);
   const nom=c.filter(f=>fqMots(f.client).some(w=>l.indexOf(w)>=0));
   return {toutes:c,parNom:nom};
+}
+/* Tout ce qui est ouvert chez le client reconnu : factures en attente, devis signés. Le plus probable d'abord. */
+function fqOuvert(tx){
+  if(tx.type!=='credit')return [];
+  const client=fqClientNom(tx),out=[],m=tx.montant;
+  if(!dbGet('factures').concat(dbGet('devis')).some(x=>fqMemeClient(x.client,tx.libelle)))return [];
+  dbGet('factures').filter(f=>f.statut!=='payee'&&fqMemeClient(f.client,client)).forEach(f=>{
+    const r=fqReste(f),recu=(f.montant||0)-r;if(r<0.5)return;
+    const pile=Math.abs(r-m)<0.5;
+    out.push({t:'facture',id:f.id,titre:'Facture '+(f.numero||'')+(f.description?', '+f.description:''),sous:'en attente'+(f.date?' depuis le '+fqJour(f.date):'')+(recu>0.5?', '+fmt0(recu)+' déjà reçus':''),mt:fmt0(r),btn:pile?'C’est ça':(m<r?'Payée en partie':'C’est ça'),score:pile?0:2});
+  });
+  dbGet('devis').filter(d=>d.statut==='signe'&&fqMemeClient(d.client,client)).forEach(d=>{
+    const recu=fqRecu('devis',d.id),r=(d.montant||0)-recu;if(r<0.5)return;
+    const pile=Math.abs(r-m)<0.5,pct=Math.round(m/(d.montant||1)*100),acompte=!recu&&[20,25,30,33,40,50].indexOf(pct)>=0;
+    const quoi=pile?(recu?'Solde du devis ':'Paiement du devis '):(acompte?'Acompte du devis ':'Paiement du devis ');
+    out.push({t:'devis',id:d.id,titre:quoi+(d.numero||'')+(d.description?', '+d.description:''),sous:'devis signé'+(d.date?' le '+fqJour(d.date):'')+(acompte?', '+pct+' % de '+fmt0(d.montant):'')+(recu?', '+fmt0(recu)+' déjà reçus':''),mt:recu?'reste '+fmt0(r):fmt0(d.montant),btn:'C’est ça',score:pile?0:acompte?1:2});
+  });
+  return out.sort((a,b)=>a.score-b.score);
 }
 function fqUrssaf(tx){
   const U=dbGetObj('urssaf'),y=+tx.date.slice(0,4),cles=[];
@@ -4347,10 +4374,9 @@ function fqAbo(tx){
 /* Ce que l'outil propose pour un mouvement qu'il ne sait pas relier seul, par groupes */
 function fqChoix(tx){
   if(tx.type==='credit'){
-    const f=fqFactures(tx).toutes.slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+fmt0(x.montant)}));
-    const g=[];if(f.length)g.push(['Une facture',f]);
-    g.push(['Un client',[{t:'client',l:'Paiement client'}]]);
-    g.push(['Autre',[{t:'remboursement',l:'Remboursement'},{t:'apport',l:'Apport perso'},{t:'entree',l:'Autre entrée'}]]);
+    const g=[];
+    if(!fqOuvert(tx).length){const f=fqFactures(tx).toutes.slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+fmt0(x.montant)}));if(f.length)g.push(['Une facture',f]);}
+    g.push([g.length||fqOuvert(tx).length?'Sinon':'',[{t:'client',l:'Paiement sans facture'},{t:'remboursement',l:'Remboursement'},{t:'apport',l:'Apport perso'},{t:'entree',l:'Autre entrée'}]]);
     return g;
   }
   return [['Pour toi',[{t:'versement',l:'Mon salaire'},{t:'epargne',l:'Mis de côté'}]],
@@ -4360,7 +4386,8 @@ function fqChoix(tx){
 /* Le nom du client : celui d'une facture ou d'un tiers qui partage un mot avec le libellé, sinon le libellé */
 function fqClientNom(tx){
   const l=fqNorm(tx.libelle);
-  const connus=[...new Set(dbGet('factures').map(f=>f.client).concat(dbGet('tiers').map(t=>t.nom)).filter(Boolean))];
+  // Les noms des devis, des tiers et des vraies factures d'abord : ceux des encaissements sans facture viennent du libellé de la banque
+  const connus=[...new Set(dbGet('devis').map(d=>d.client).concat(dbGet('tiers').map(t=>t.nom),dbGet('factures').filter(f=>f.typeFacture!=='qonto').map(f=>f.client),dbGet('factures').map(f=>f.client)).filter(Boolean))];
   const c=connus.find(n=>fqMots(n).some(w=>l.indexOf(w)>=0));
   if(c)return c;
   return String(tx.libelle||'Client').toLowerCase().split(' ').filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
@@ -4370,14 +4397,21 @@ function fqAutresFactures(tx){
   return dbGet('factures').filter(f=>f.statut!=='payee'&&!pris[f.id]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 }
 function fqQuestion(tx){
+  if(tx.type==='credit'&&fqOuvert(tx).length)return 'Reconnu : '+faEsc(fqClientNom(tx));
   if(tx.type==='credit'){const n=fqFactures(tx).toutes.length;return n>1?n+' factures possibles':n?'Une facture possible':'Aucune facture en attente à ce montant';}
   return 'C’est quoi ?';
 }
 /* Les effets d'un lien sur le reste de l'outil. Renvoie la cible reliée. */
 async function fqAppliquer(tx,t,id){
-  FQ_CREE=false;
+  FQ_CREE=false;FQ_FACT=null;
   if(t==='client'){const f=await dbCreate('factures',{client:id||fqClientNom(tx),montant:tx.montant,date:tx.date,datePaiement:tx.date,statut:'payee',typeFacture:'qonto',description:'Encaissé sur Qonto'});FQ_CREE=true;return f.id;}
-  if(t==='facture'){const f=dbGet('factures').find(x=>x.id===id);if(f&&f.statut!=='payee')await dbUpdate('factures',Object.assign({},f,{statut:'payee',datePaiement:tx.date}));return id;}
+  if(t==='facture'){const f=dbGet('factures').find(x=>x.id===id);if(f&&f.statut!=='payee'&&fqReste(f)-tx.montant<0.5)await dbUpdate('factures',Object.assign({},f,{statut:'payee',datePaiement:tx.date}));return id;}
+  if(t==='devis'){
+    const d=dbGet('devis').find(x=>x.id===id);if(!d)return null;
+    const recu=fqRecu('devis',d.id),solde=Math.abs((d.montant||0)-recu-tx.montant)<0.5;
+    const f=await dbCreate('factures',{client:d.client,montant:tx.montant,date:tx.date,datePaiement:tx.date,statut:'payee',typeFacture:'qonto',description:(solde&&recu?'Solde':recu?'Paiement':'Acompte')+' du devis '+(d.numero||'')});
+    FQ_FACT=f.id;return id;
+  }
   if(t==='urssaf'){const k=id||fqUrssaf(tx);if(!k)return null;await api('PUT','/api/urssaf/'+k,{statut:'paye',montantPaye:tx.montant,datePaye:tx.date});_cache.urssaf=await api('GET','/api/urssaf');return k;}
   if(t==='versement'){
     const pris={};Object.values(fqLiens()).forEach(x=>{if(x.t==='versement')pris[x.id]=1;});
@@ -4393,7 +4427,7 @@ async function fqAppliquer(tx,t,id){
   }
   return id||null;
 }
-function fqLien(tx,t,id,auto){const c=FQ_CREE;FQ_CREE=false;return {t:t,id:id||null,d:tx.date,m:tx.montant,l:tx.libelle||'',s:tx.type,a:auto?1:0,c:c?1:0};}
+function fqLien(tx,t,id,auto){const c=FQ_CREE,f=FQ_FACT;FQ_CREE=false;FQ_FACT=null;return {t:t,id:id||null,d:tx.date,m:tx.montant,l:tx.libelle||'',s:tx.type,a:auto?1:0,c:c?1:0,f:f||null};}
 /* Récupère les mouvements Qonto et relie tout seul ce qui est sûr */
 async function fqRelier(force){
   if(FQ_EN_COURS)return false;
@@ -4407,6 +4441,7 @@ async function fqRelier(force){
     for(const tx of fqMouvements()){
       if(liens[tx.qontoId]||tx.date<limite)continue;
       const r=fqRegle(tx);let t=null,id=null;
+      if(r&&r.t==='client'&&fqOuvert(tx).length)continue;
       if(r){t=r.t;id=r.t==='charge'?r.id:r.t==='depense'?(r.cat||'Autre'):r.t==='client'?(r.client||null):null;}
       else if(tx.type==='credit'){const f=fqFactures(tx);if(f.parNom.length===1){t='facture';id=f.parNom[0].id;}else if(f.toutes.length===1&&f.parNom.length===0&&fqNorm(tx.libelle).length<3){t='facture';id=f.toutes[0].id;}}
       else if(fqNorm(tx.libelle).indexOf('urssaf')>=0){t='urssaf';}
@@ -4442,6 +4477,7 @@ async function fqDelier(qid){
   try{
     if(x.c&&(x.t==='depense'||x.t==='versement')&&x.id&&dbGet('depenses').some(v=>v.id===x.id))await dbDelete('depenses',x.id);
     if(x.c&&x.t==='client'&&x.id&&dbGet('factures').some(v=>v.id===x.id))await dbDelete('factures',x.id);
+    if(x.t==='devis'&&x.f&&dbGet('factures').some(v=>v.id===x.f))await dbDelete('factures',x.f);
     if(x.t==='facture'&&x.id){const f=dbGet('factures').find(v=>v.id===x.id);if(f&&f.statut==='payee'&&f.datePaiement===x.d)await dbUpdate('factures',Object.assign({},f,{statut:'attente',datePaiement:''}));}
     delete liens[qid];await fqEnregistrer(liens,fqRegles());
   }catch(e){toast('Erreur : '+e.message,'error');}
@@ -4460,7 +4496,8 @@ function fqRafraichir(){
 }
 /* Ce que dit un lien, en une phrase, avec un lien vers l'écran concerné */
 function fqQuoi(x){
-  if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button> passée en payée';}
+  if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);const lien='<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button>';return f&&f.statut!=='payee'?lien+' payée en partie, reste '+fmt0(fqReste(f)):lien+' passée en payée';}
+  if(x.t==='devis'){const d=dbGet('devis').find(v=>v.id===x.id);return d?'<button class="fin-lien" data-s="devis" onclick="finGo(this)">Devis '+faEsc(d.numero||'')+'</button>, '+fmt0(fqRecu('devis',d.id))+' reçus sur '+fmt0(d.montant):'devis';}
   if(x.t==='urssaf')return x.id?'<button class="fin-lien" data-s="charges-urssaf" onclick="finGo(this)">'+fqNomT(x.id)+'</button> marqué payé':'URSSAF';
   if(x.t==='charge'){const a=dbGet('abonnements').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="abonnements" onclick="finGo(this)">Abonnements</button>'+(a?', '+faEsc(a.nom):'');}
   if(x.t==='versement')return 'ton salaire, compté dans <button class="fin-lien" data-s="dashboard" onclick="finGo(this)">à te verser</button>';
@@ -4478,7 +4515,8 @@ function fqRender(){
   const liens=fqLiens(),ranger=fqARanger();
   const bouton=(tx,c)=>'<button class="fin-onglet" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id||'')+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+faEsc(c.l)+'</button>';
   const autres=tx=>{const l=fqAutresFactures(tx);return l.length?'<select class="form-select fq-sel" aria-label="Une autre facture" data-q="'+faEsc(tx.qontoId)+'" onchange="if(this.value)fqRanger(this.dataset.q,&quot;facture&quot;,this.value)"><option value="">Une autre facture…</option>'+l.map(f=>'<option value="'+faEsc(f.id)+'">'+faEsc((f.numero||'Facture')+', '+(f.client||'')+', '+fmt0(f.montant))+'</option>').join('')+'</select>':'';};
-  const ligneR=tx=>'<div class="fq-l fq-ar"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-gr">'+
+  const ouvertHtml=tx=>{const o=fqOuvert(tx);if(!o.length)return '';return '<div class="fq-ouv"><p class="fq-gl">Ouvert chez '+faEsc(fqClientNom(tx))+'</p>'+o.slice(0,4).map((c,i)=>'<div class="fq-opt'+(i===0&&c.score<2?' fq-best':'')+'"><div><div class="fq-n">'+faEsc(c.titre)+'</div><div class="fq-s">'+faEsc(c.sous)+'</div></div><span class="fa-n fq-m">'+c.mt+'</span><button class="fa-btn'+(i===0&&c.score<2?'':' fa-btn--c')+'" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id)+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+c.btn+'</button></div>').join('')+'</div>';};
+  const ligneR=tx=>'<div class="fq-l fq-ar"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span>'+ouvertHtml(tx)+'<div class="fq-gr">'+
     fqChoix(tx).map(g=>'<div class="fq-g">'+(g[0]?'<span class="fq-gl">'+g[0]+'</span>':'')+'<div class="fq-ch">'+g[1].map(c=>bouton(tx,c)).join('')+'</div></div>').join('')+
     (tx.type==='credit'?'<div class="fq-g">'+autres(tx)+'</div>':'')+'</div></div>';
   const relies=fqMouvements().filter(t=>liens[t.qontoId]).slice(0,40);
@@ -5699,7 +5737,7 @@ function renderFactures(){
       const j=Math.round((new Date(f.dateEcheance)-new Date(finAuj()))/86400000);
       ech=enR?'<span class="fin-retard">'+dm(f.dateEcheance)+', '+finJours(f.dateEcheance)+' jours de retard</span>':dm(f.dateEcheance)+(f.statut==='attente'?(j===0?', aujourd’hui':', dans '+j+' jour'+(j>1?'s':'')):'');
     }
-    const etat=f.statut==='payee'?'<span class="fa-pas fa-p-n">payée'+(f.datePaiement?' le '+dm(f.datePaiement):'')+'</span>'+(vuesQonto[f.id]?'<span class="fin-cl__s">vue sur Qonto</span>':''):enR?'<span class="fa-pas fa-p-r">en retard</span>':'<span class="fa-pas fa-p-a">en attente</span>';
+    const etat=f.statut==='payee'?'<span class="fa-pas fa-p-n">payée'+(f.datePaiement?' le '+dm(f.datePaiement):'')+'</span>'+(vuesQonto[f.id]?'<span class="fin-cl__s">vue sur Qonto</span>':''):fqRecu('facture',f.id)>0.5?'<span class="fa-pas fa-p-a">payée en partie</span><span class="fin-cl__s">reste '+fmt0(fqReste(f))+'</span>':enR?'<span class="fa-pas fa-p-r">en retard</span>':'<span class="fa-pas fa-p-a">en attente</span>';
     return '<tr>'+
       '<td class="td-mono">'+(f.typeFacture==='qonto'?'<span class="fin-cl__s">sans facture</span>':faEsc(f.numero||'—'))+'</td>'+
       '<td><span class="fin-cl">'+faEsc(f.client||'—')+'</span>'+(sousTitre||dv?'<span class="fin-cl__s">'+faEsc(sousTitre)+(dv?(sousTitre?' · ':'')+'<button class="fin-lien" data-id="'+dv.id+'" onclick="finVoirDevis(this.dataset.id)">devis '+faEsc(dv.numero)+'</button>':'')+'</span>':'')+'</td>'+
@@ -6281,7 +6319,7 @@ function renderDevis(){
       <td class="td-mono">\${d.numero||'—'}</td>
       <td>\${d.client||'—'}</td>
       <td class="td-muted">\${d.description||'—'}</td>
-      <td class="td-amount">\${fmt(d.montant||0)}</td>
+      <td class="td-amount">\${fmt(d.montant||0)}\${fqDevisRecu(d)}</td>
       <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:11px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
       <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
       <td style="white-space:nowrap;">
