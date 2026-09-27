@@ -4150,6 +4150,8 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .bu-ajout { align-self:flex-start; }
 .bu-r__s { width:auto; padding:5px 10px; font-size:13.5px; border-radius:999px; }
 
+.bu-tot { color:#110704; font-weight:600; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -5511,8 +5513,8 @@ function renderBudget(){
     buCarte('2','Ce qui part tout seul','− '+fmt0(st.partTout),st.fixes.slice(0,5).map(x=>x.f.nom.toLowerCase()).join(', '))+
     buCarte('3','Pour vivre ce mois-ci',fmt0(st.pourVivre),'réparti dans tes enveloppes ci-dessous')+'</div>';
   const env=st.envs.map(x=>{
-    const n=x.prevu>0?Math.max(0,Math.min(12,Math.round(x.dep/x.prevu*12))):0,dep=x.dep>x.prevu+0.5;
-    return '<button class="bu-l" data-c="env:'+x.e.id+'" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">'+faEsc(x.e.nom)+'</span><span><b class="fa-n">'+fmt0(Math.max(0,x.reste))+'</b><span class="fin-cl__s"> sur '+fmt0(x.prevu)+'</span>'+(dep?' <span class="fa-pas fa-p-r">dépassé de '+fmt0(x.dep-x.prevu)+'</span>':'')+'</span>'+buTirets(n)+'</button>';
+    const n=x.prevu>0?Math.max(0,Math.min(12,Math.round(x.reste/x.prevu*12))):0,dep=x.dep>x.prevu+0.5;
+    return '<button class="bu-l" data-c="env:'+x.e.id+'" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">'+faEsc(x.e.nom)+'</span><span><b class="fa-n">'+fmt0(Math.max(0,x.reste))+'</b><span class="fin-cl__s"> sur '+fmt0(x.prevu)+', '+fmt0(Math.max(0,x.dep))+' dépensés</span>'+(dep?' <span class="fa-pas fa-p-r">dépassé de '+fmt0(x.dep-x.prevu)+'</span>':'')+'</span>'+buTirets(n)+'</button>';
   }).join('');
   const pj=BU.projets.liste.map(x=>faEsc(x.nom)+' '+fmt0(x.cumul||0)+' sur '+fmt0(x.objectif||0)).join(' · ');
   const plus='<button class="bu-l" data-c="projets" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">Projets de vie</span><span><b class="fa-n">'+fmt0(st.projets.prevu)+'</b><span class="fin-cl__s">'+(st.projets.verse>0?' viré':' à virer')+'</span></span><span class="fin-cl__s">'+(pj||'ajoute tes projets dans Changer la répartition')+'</span></button>'+
@@ -5520,9 +5522,14 @@ function renderBudget(){
   const moisD=buMoisPlus(k,-1),moisS=buMoisPlus(k,1);
   el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mon budget</h1><p class="fa-sous">'+buMaj1(nom)+', en trois temps. <button class="fin-lien" data-k="'+moisD+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisD))+'</button>'+(k<buMk()?' <button class="fin-lien" data-k="'+moisS+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisS))+'</button>':'')+'</p></div><div class="ap-btns"><button class="fa-btn fa-btn--c" onclick="buDeposer()">Déposer un relevé</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Changer la répartition</button></div></div>'+
     action+cartes+
-    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Tes enveloppes</span><span class="fin-cl__s fv-g__e">ce qu’il te reste dans chacune</span></div>'+env+'</div>'+
+    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Tes enveloppes</span><span class="fin-cl__s fv-g__e">'+buTotal(st)+'</span></div>'+env+'</div>'+
     '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Pour plus tard</span></div>'+plus+'</div>'+
     '<p class="fin-cl__s bu-pied">Clique sur une ligne pour voir le détail.'+(BU.dernierImport?' Dernier relevé déposé le '+fmtDate(BU.dernierImport.le)+', jusqu’au '+fmtDate(BU.dernierImport.au)+'.':'')+'</p>';
+}
+/* Le total du mois : dans tes enveloppes, et en tout avec ce qui part tout seul */
+function buTotal(st){
+  const env=st.envs.reduce((s,x)=>s+Math.max(0,x.dep),0),prevu=st.envs.reduce((s,x)=>s+x.prevu,0),fixes=st.fixes.reduce((s,x)=>s+Math.max(0,x.paye),0);
+  return 'dépensé ce mois-ci : <b class="fa-n bu-tot">'+fmt0(env)+'</b> sur '+fmt0(prevu)+', <b class="fa-n bu-tot">'+fmt0(env+fixes)+'</b> en tout avec ce qui part tout seul';
 }
 function buAller(k){BU_MOIS=k===buMk()?null:k;renderBudget();}
 /* ── Ranger en un clic ── */
