@@ -4751,11 +4751,14 @@ function fqCarteSalaire(){
   const el=q('#fq-salaire');if(!el)return;
   const e=(_enveloppes||[]).find(x=>x.id==='salaire'),P=fqPlafond();FQ_VERSER={reste:P.reste};
   const cote=e?Math.round(e.solde||0):0;
-  const phrase=P.clos?'En '+P.nomMois+', '+fmt0(P.deja)+' pour toi et '+fmt0(P.reste)+' gardés de côté.'+fqOuGarde(P.mKey)
+  const fini=fcEtat(P.mKey).fini,NomM=P.nomMois.charAt(0).toUpperCase()+P.nomMois.slice(1);
+  const phrase=fini?NomM+' clôturé, '+fmt0(P.reste)+' gardés de côté.'
+    :P.clos?'En '+P.nomMois+', '+fmt0(P.deja)+' pour toi et '+fmt0(P.reste)+' gardés de côté.'+fqOuGarde(P.mKey)
     :P.deja>P.plafond&&P.deja>0?fmt0(P.deja)+' versés ce mois-ci, '+fmt0(P.deja-P.plafond)+' de plus que prévu.'
     :(P.deja>0?'Ce mois-ci, tu peux encore te verser jusqu’à '+fmt0(P.reste)+' ('+fmt0(P.deja)+' déjà versés).':'Ce mois-ci, tu peux te verser jusqu’à '+fmt0(P.plafond)+'.')+' Ce que tu ne prends pas reste dans ta trésorerie.';
   el.innerHTML='<div><span class="fa-k">ton salaire</span><b class="fa-gros">'+fmt0(cote)+' de côté</b><span class="fa-k fa-k--f">'+phrase+'</span></div>'+
-    (P.clos?'<button class="fin-lien" data-m="'+P.mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button>'
+    (fini?'<div class="fin-liens"><button class="fin-lien" onclick="fcOuvrir()">Revoir</button><button class="fin-lien" data-k="'+P.mKey+'" onclick="fcRouvrir(this.dataset.k)">Rouvrir</button></div>'
+      :P.clos?'<button class="fin-lien" data-m="'+P.mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button>'
       :'<div class="fin-btns"><button class="fa-btn" onclick="fqVerserOuvrir()">Me verser</button><button class="fa-btn fa-btn--c" data-m="'+P.mKey+'" onclick="fqGarder(this.dataset.m,true)">Garder de côté</button></div>');
 }
 let FQ_VERSER=null;
@@ -4869,13 +4872,14 @@ function fcCorps(k,i){
   // D'où virer : Qonto non rangé s'il a assez, sinon l'enveloppe salaire, sans jamais dépasser ce qui est disponible
   if(!(_enveloppes||[]).length&&!fcCorps._env){fcCorps._env=1;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];if(q('#section-cloture.active'))loadCloture();}).catch(()=>{});}
   const dispo=id=>{const e=(_enveloppes||[]).find(x=>x.id===id);return e?Math.max(0,Math.floor(e.solde||0)):0;};
-  const dQ=dispo('qonto'),dS=dispo('salaire');
-  const src=!(_enveloppes||[]).length?null:dQ>=reste?['qonto',reste,'ton compte Qonto']:dS>=1?['salaire',Math.min(reste,dS),'ton enveloppe salaire']:dQ>=1?['qonto',Math.min(reste,dQ),'ton compte Qonto']:null;
+  // Qonto : seulement l'argent vraiment libre (solde moins abonnements restants, impôts, URSSAF, enveloppes et paiements réservés)
+  const dQ=(_enveloppes||[]).length?apEtat().libre:0,dS=dispo('salaire'),plaf=Math.max(0,Math.round(P.reste));
+  const src=!(_enveloppes||[]).length?null:dQ>=reste?['qonto',reste,'ton compte Qonto']:dS>=1?['salaire',Math.min(reste,dS),'ton enveloppe salaire',dS<reste]:Math.min(dQ,plaf)>=1?['qonto',Math.min(dQ,plaf),'ce qui est libre sur ton compte Qonto',dQ<plaf]:null;
   if(fcEtat(k).fini)return '<h2 class="fa-h2 fc-h">Mettre de côté</h2><div class="fa-creme fc-bas"><div><b>'+nom.charAt(0).toUpperCase()+nom.slice(1)+' est clôturé</b><span class="fa-k fa-k--f">Tout est réglé pour ce mois-ci.</span></div><button class="fin-lien" data-k="'+k+'" onclick="fcRouvrir(this.dataset.k)">Rouvrir le mois</button></div>';
   return '<h2 class="fa-h2 fc-h">Mettre de côté</h2>'+
     fcLigne('Provision URSSAF pour '+nom,fmt0(P.cot))+'<p class="fq-s fc-note">À déclarer avec le '+fqNomT(t)+', avant le '+fqJour(fqEch(t))+'. Laisse-la sur ton compte Qonto : elle n’est pas à toi.</p>'+
     fcLigne('Ce qui reste pour ta trésorerie',fmt0(reste))+'<p class="fq-s fc-note">Ce que tu ne t’es pas versé. Le virer vers l’enveloppe Trésorerie remplit ton coussin.</p>'+
-    (reste>0?(!(_enveloppes||[]).length?'<p class="fq-s">Lecture de tes enveloppes…</p>':src?'<div class="fc-actions"><button class="fa-btn fa-btn--c" data-m="'+src[1]+'" data-de="'+src[0]+'" onclick="finVirerVers(&quot;tresorerie&quot;,this.dataset.m,this.dataset.de)">Virer '+fmt0(src[1])+' vers Trésorerie</button></div><p class="fq-s fc-note">Depuis '+src[2]+(src[1]<reste?', tout ce qui y reste':'')+'.</p>':'<p class="fq-s fc-note">Ton argent est déjà rangé ailleurs, rien à virer ce mois-ci.</p>'):'')+
+    (reste>0?(!(_enveloppes||[]).length?'<p class="fq-s">Lecture de tes enveloppes…</p>':src?'<div class="fc-actions"><button class="fa-btn fa-btn--c" data-m="'+src[1]+'" data-de="'+src[0]+'" onclick="finVirerVers(&quot;tresorerie&quot;,this.dataset.m,this.dataset.de)">Virer '+fmt0(src[1])+' vers Trésorerie</button></div><p class="fq-s fc-note">Depuis '+src[2]+(src[3]?', tout ce qui y reste':'')+'.</p>':'<p class="fq-s fc-note">Rien à virer ce mois-ci : ton argent est déjà rangé ou réservé.</p>'):'')+
     '<div class="fa-creme fc-bas"><div><span class="fa-k">c’est tout pour '+nom+'</span><span class="fa-k fa-k--f">Le mois passe en clôturé. Tu peux le rouvrir à tout moment.</span></div><button class="fa-btn" data-k="'+k+'" onclick="fcFinir(this.dataset.k)">Clôturer '+nom+'</button></div>';
 }
 async function fcSynchro(){try{await syncQonto(false);}catch(e){}FQ_DERNIER=0;await fqRelier(true);loadCloture();}
@@ -5288,7 +5292,9 @@ function loadAujourdhui(){
   const dernier=vers[vers.length-1];
   const btnsV='<div class="fin-btns"><button class="fa-btn" onclick="fqVerserOuvrir()">Me verser</button><button class="fa-btn fa-btn--c" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,true)">Garder de côté</button></div>';
   let carteVerser;
-  if(clos)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+fmt0(deja)+' pour toi, '+fmt0(reste)+' de côté</b>'+faTirets(verser>0?Math.min(12,Math.round(deja/verser*12)):0,12)+'<span class="fa-k fa-k--f">'+(fqOuGarde(mKey).trim()||'Ce que tu ne t’es pas versé reste dans ta trésorerie.')+'</span></div><button class="fin-lien" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button></div>';
+  const fcFini=fcEtat(mKey).fini,NomM=nomMois.charAt(0).toUpperCase()+nomMois.slice(1);
+  if(fcFini)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+NomM+' clôturé, '+fmt0(reste)+' gardés de côté</b><span class="fa-k fa-k--f">'+(deja?fmt0(deja)+' versés pour toi.':'Rien versé pour toi ce mois-ci.')+'</span></div><div class="fin-liens"><button class="fin-lien" onclick="fcOuvrir()">Revoir</button><button class="fin-lien" data-k="'+mKey+'" onclick="fcRouvrir(this.dataset.k)">Rouvrir</button></div></div>';
+  else if(clos)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+fmt0(deja)+' pour toi, '+fmt0(reste)+' de côté</b>'+faTirets(verser>0?Math.min(12,Math.round(deja/verser*12)):0,12)+'<span class="fa-k fa-k--f">'+(fqOuGarde(mKey).trim()||'Ce que tu ne t’es pas versé reste dans ta trésorerie.')+'</span></div><button class="fin-lien" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button></div>';
   else if(deja>verser&&deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, versé</span><b class="fa-gros">'+fmt0(deja)+'</b><span class="fa-k fa-k--f">'+fmt0(deja-verser)+' de plus que prévu ce mois-ci.</span></div><button class="fin-lien" data-s="depenses" onclick="finGo(this)">Voir mes versements</button></div>';
   else if(deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, tu peux encore te verser jusqu’à</span><b class="fa-gros">'+fmt0(reste)+'</b>'+faTirets(Math.min(12,Math.round(deja/Math.max(1,verser)*12)),12)+
     '<div class="fa-l fq-l2"><span>Possible en '+nomMois+'</span><span class="fa-n">'+fmt0(verser)+'</span></div>'+
