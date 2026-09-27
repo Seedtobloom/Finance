@@ -793,6 +793,8 @@ const HTML = `<!DOCTYPE html>
             <option value="Communication">Communication</option>
             <option value="Déplacement">Déplacement</option>
             <option value="Comptabilité">Comptabilité</option>
+            <option value="Prestataires">Prestataires</option>
+            <option value="Impôts et taxes">Impôts et taxes</option>
             <option value="Versement perso">Versement perso</option>
             <option value="Autre">Autre</option>
           </select>
@@ -1817,6 +1819,8 @@ const HTML = `<!DOCTYPE html>
         <option>Communication</option>
         <option>Déplacement</option>
         <option>Comptabilité</option>
+        <option>Prestataires</option>
+        <option>Impôts et taxes</option>
         <option>Versement perso</option>
         <option>Autre</option>
       </select>
@@ -3875,6 +3879,17 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fq-bas { display:flex; justify-content:flex-end; gap:10px; margin-top:6px; }
 @media (max-width: 1100px) { .fq-l { grid-template-columns:56px minmax(0,1fr) auto; } .fq-ch, .fq-q { grid-column:1 / -1; } }
 
+.fq-gr { display:flex; flex-direction:column; gap:8px; }
+.fq-g { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.fq-gl { font-size:13px; color:rgba(17,7,4,.58); min-width:84px; }
+.fq-sel { max-width:320px; border-radius:999px; font-size:14px; padding:7px 13px; }
+.fq-l { grid-template-columns:64px minmax(0,1fr) 120px minmax(0,1.6fr); }
+
+.fq-l.fq-ar { grid-template-columns:64px minmax(0,1fr) 140px; row-gap:12px; }
+.fq-ar .fq-gr { grid-column:2 / -1; flex-direction:row; flex-wrap:wrap; gap:10px 26px; }
+.fq-ar .fq-g { gap:8px; }
+.fq-ar .fq-gl { min-width:0; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4298,7 +4313,7 @@ function finFactPlus(){const s=q('#section-factures');const on=s.classList.toggl
 /* ─── Qonto relié partout : chaque mouvement est rattaché à ce qu'il représente ───
    Les liens (mouvement → facture, trimestre URSSAF, charge fixe, dépense, versement)
    et les règles apprises vivent dans les réglages : qontoLiens, qontoRegles. */
-const FQ_TYPES={facture:['facture payée','fa-p-a'],urssaf:['URSSAF','fa-p-n'],charge:['charge fixe','fa-p-n'],depense:['dépense','fa-p-n'],versement:['pour toi','fa-p-m'],epargne:['mis de côté','fa-p-n'],entree:['entrée','fa-p-n'],ignore:['pas pro','fa-p-n']};
+const FQ_TYPES={facture:['facture payée','fa-p-a'],urssaf:['URSSAF','fa-p-n'],charge:['abonnement','fa-p-n'],depense:['dépense','fa-p-n'],versement:['mon salaire','fa-p-m'],epargne:['mis de côté','fa-p-n'],remboursement:['remboursement','fa-p-n'],apport:['apport perso','fa-p-n'],entree:['entrée','fa-p-n'],ignore:['pas pro','fa-p-n']};
 const FQ_DIACR=new RegExp('['+String.fromCharCode(768)+'-'+String.fromCharCode(879)+']','g');
 let FQ_MOUV=null,FQ_EN_COURS=false,FQ_DERNIER=0,FQ_CREE=false;
 function fqNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(FQ_DIACR,'').split(' ').filter(Boolean).join(' ');}
@@ -4329,13 +4344,21 @@ function fqAbo(tx){
   const l=fqNorm(tx.libelle);
   return dbGet('abonnements').find(a=>(a.statut==='actif'||!a.statut)&&fqMots(a.nom).some(w=>l.indexOf(w)>=0)&&Math.abs((a.montant||0)-tx.montant)<=Math.max(2,(a.montant||0)*0.15));
 }
-/* Ce que l'outil propose pour un mouvement qu'il ne sait pas relier seul */
+/* Ce que l'outil propose pour un mouvement qu'il ne sait pas relier seul, par groupes */
 function fqChoix(tx){
   if(tx.type==='credit'){
     const f=fqFactures(tx).toutes.slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+fmt0(x.montant)}));
-    return f.concat([{t:'entree',l:'Autre entrée'}]);
+    const g=[];if(f.length)g.push(['Une facture',f]);
+    g.push(['Autre',[{t:'remboursement',l:'Remboursement'},{t:'apport',l:'Apport perso'},{t:'entree',l:'Autre entrée'}]]);
+    return g;
   }
-  return [{t:'versement',l:'Pour toi'},{t:'epargne',l:'Mis de côté'},{t:'charge',l:'Charge fixe'},{t:'depense',l:'Dépense du mois'},{t:'ignore',l:'Pas pro'}];
+  return [['Pour toi',[{t:'versement',l:'Mon salaire'},{t:'epargne',l:'Mis de côté'}]],
+    ['Pour ta boîte',[{t:'charge',l:'Abonnement'},{t:'depense',id:'Prestataires',l:'Prestataire'},{t:'depense',id:'Impôts et taxes',l:'Impôts'},{t:'urssaf',l:'URSSAF'},{t:'depense',id:'Matériel',l:'Achat'},{t:'depense',id:'Autre',l:'Autre dépense'}]],
+    ['',[{t:'ignore',l:'Pas pro'}]]];
+}
+function fqAutresFactures(tx){
+  const pris={};Object.values(fqLiens()).forEach(x=>{if(x.t==='facture')pris[x.id]=1;});
+  return dbGet('factures').filter(f=>f.statut!=='payee'&&!pris[f.id]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 }
 function fqQuestion(tx){
   if(tx.type==='credit'){const n=fqFactures(tx).toutes.length;return n>1?n+' factures possibles':n?'Une facture possible':'Aucune facture à ce montant';}
@@ -4352,7 +4375,7 @@ async function fqAppliquer(tx,t,id){
     if(manuel)return manuel.id;
     const d=await dbCreate('depenses',{date:tx.date,description:'Versement perso',categorie:'Versement perso',montant:tx.montant});FQ_CREE=true;return d.id;
   }
-  if(t==='depense'){const d=await dbCreate('depenses',{date:tx.date,description:tx.libelle||'Dépense',categorie:'Autre',montant:tx.montant});FQ_CREE=true;return d.id;}
+  if(t==='depense'){const d=await dbCreate('depenses',{date:tx.date,description:tx.libelle||'Dépense',categorie:id||'Autre',montant:tx.montant});FQ_CREE=true;return d.id;}
   if(t==='charge'){
     if(id)return id;
     const a=fqAbo(tx);if(a)return a.id;
@@ -4374,7 +4397,7 @@ async function fqRelier(force){
     for(const tx of fqMouvements()){
       if(liens[tx.qontoId]||tx.date<limite)continue;
       const r=fqRegle(tx);let t=null,id=null;
-      if(r){t=r.t;id=r.t==='charge'?r.id:null;}
+      if(r){t=r.t;id=r.t==='charge'?r.id:r.t==='depense'?(r.cat||'Autre'):null;}
       else if(tx.type==='credit'){const f=fqFactures(tx);if(f.parNom.length===1){t='facture';id=f.parNom[0].id;}else if(f.toutes.length===1&&f.parNom.length===0&&fqNorm(tx.libelle).length<3){t='facture';id=f.toutes[0].id;}}
       else if(fqNorm(tx.libelle).indexOf('urssaf')>=0){t='urssaf';}
       else{const a=fqAbo(tx);if(a){t='charge';id=a.id;}}
@@ -4395,7 +4418,7 @@ async function fqRanger(qid,t,id){
     const cible=await fqAppliquer(tx,t,id);
     const liens=Object.assign({},fqLiens());liens[qid]=fqLien(tx,t,cible,false);
     let regles=fqRegles();
-    if(t!=='facture'&&t!=='entree'){const m=fqNorm(tx.libelle);if(m.length>=3){regles=regles.filter(r=>r.m!==m);regles.push({m:m,t:t,id:t==='charge'?cible:null,sens:tx.type});}}
+    if(t!=='facture'&&t!=='entree'&&t!=='remboursement'&&t!=='apport'){const m=fqNorm(tx.libelle);if(m.length>=3){regles=regles.filter(r=>r.m!==m);regles.push({m:m,t:t,id:t==='charge'?cible:null,cat:t==='depense'?(id||'Autre'):null,sens:tx.type});}}
     await fqEnregistrer(liens,regles);
     toast('Mouvement rangé','success');
   }catch(e){toast('Erreur : '+e.message,'error');}
@@ -4426,9 +4449,11 @@ function fqRafraichir(){
 function fqQuoi(x){
   if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button> passée en payée';}
   if(x.t==='urssaf')return x.id?'<button class="fin-lien" data-s="charges-urssaf" onclick="finGo(this)">'+fqNomT(x.id)+'</button> marqué payé':'URSSAF';
-  if(x.t==='charge'){const a=dbGet('abonnements').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="abonnements" onclick="finGo(this)">Charges fixes</button>'+(a?', '+faEsc(a.nom):'');}
-  if(x.t==='versement')return 'compté dans <button class="fin-lien" data-s="dashboard" onclick="finGo(this)">à te verser</button>';
-  if(x.t==='depense')return '<button class="fin-lien" data-s="depenses" onclick="finGo(this)">Dépenses du mois</button>';
+  if(x.t==='charge'){const a=dbGet('abonnements').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="abonnements" onclick="finGo(this)">Abonnements</button>'+(a?', '+faEsc(a.nom):'');}
+  if(x.t==='versement')return 'ton salaire, compté dans <button class="fin-lien" data-s="dashboard" onclick="finGo(this)">à te verser</button>';
+  if(x.t==='depense'){const d=dbGet('depenses').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="depenses" onclick="finGo(this)">Dépenses du mois</button>'+(d?', '+faEsc(d.categorie):'');}
+  if(x.t==='remboursement')return 'remboursement';
+  if(x.t==='apport')return 'apport perso';
   if(x.t==='epargne')return 'gardé de côté';
   if(x.t==='ignore')return 'hors activité';
   return 'entrée hors facture';
@@ -4437,8 +4462,11 @@ function fqRender(){
   const el=q('#fq-zone');if(!el)return;
   if(!FQ_MOUV){el.innerHTML='<p class="fa-vide">Lecture de tes mouvements Qonto…</p>';fqRelier(true).then(()=>fqRender());return;}
   const liens=fqLiens(),ranger=fqARanger();
-  const ligneR=tx=>'<div class="fq-l"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-ch">'+
-    fqChoix(tx).map(c=>'<button class="fin-onglet" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id||'')+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+faEsc(c.l)+'</button>').join('')+'</div></div>';
+  const bouton=(tx,c)=>'<button class="fin-onglet" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id||'')+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+faEsc(c.l)+'</button>';
+  const autres=tx=>{const l=fqAutresFactures(tx);return l.length?'<select class="form-select fq-sel" aria-label="Une autre facture" data-q="'+faEsc(tx.qontoId)+'" onchange="if(this.value)fqRanger(this.dataset.q,&quot;facture&quot;,this.value)"><option value="">Une autre facture…</option>'+l.map(f=>'<option value="'+faEsc(f.id)+'">'+faEsc((f.numero||'Facture')+', '+(f.client||'')+', '+fmt0(f.montant))+'</option>').join('')+'</select>':'';};
+  const ligneR=tx=>'<div class="fq-l fq-ar"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-gr">'+
+    fqChoix(tx).map(g=>'<div class="fq-g">'+(g[0]?'<span class="fq-gl">'+g[0]+'</span>':'')+'<div class="fq-ch">'+g[1].map(c=>bouton(tx,c)).join('')+'</div></div>').join('')+
+    (tx.type==='credit'?'<div class="fq-g">'+autres(tx)+'</div>':'')+'</div></div>';
   const relies=fqMouvements().filter(t=>liens[t.qontoId]).slice(0,40);
   const ligneL=tx=>{const x=liens[tx.qontoId],ty=FQ_TYPES[x.t]||FQ_TYPES.entree;return '<div class="fq-l"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-q"><span class="fa-pas '+ty[1]+'">'+ty[0]+'</span><span class="fq-s">'+fqQuoi(x)+'</span><button class="fin-lien fq-chg" data-q="'+faEsc(tx.qontoId)+'" onclick="fqDelier(this.dataset.q)">Changer</button></div></div>';};
   const sync=dbGetObj('settings').qontoSyncAt;
