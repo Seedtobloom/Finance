@@ -4157,6 +4157,15 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 
 .bu-mois { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
 
+.bu-besoin { margin-top:20px; }
+.bu-besoin__g { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:34px; margin-top:12px; }
+.bu-besoin__c { display:flex; flex-direction:column; gap:6px; }
+.bu-besoin__t { font-family:'Cormorant Garamond',serif; font-size:24px; }
+.bu-besoin__c > b { font-family:'Cormorant Garamond',serif; font-weight:400; font-size:40px; line-height:1.05; }
+.bu-besoin__s { font-size:14.5px; margin-top:6px; }
+.bu-besoin__s b { font-weight:600; }
+.bu-besoin__p { margin:18px 0 0; font-size:15px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -5650,6 +5659,7 @@ function renderBudgetBilan(){
     kpi('Part fixe',pctFixe+' %','de ce qui rentre part tout seul',Math.min(12,Math.round(pctFixe/100*12)))+
     kpi('Pour vivre',parJour+' € <em>par jour</em>','en moyenne, sur '+(n>1?n+' mois':'un mois'),Math.min(12,Math.round(parJour/60*12)))+
     kpi('Enveloppes tenues',tenues.length+' sur '+der.envs.length,hors.length?hors.join(' et ')+' dépasse'+(hors.length>1?'nt':'')+' en '+noms[n-1]:'toutes tenues en '+noms[n-1],Math.round(tenues.length/Math.max(1,der.envs.length)*12))+'</div>';
+  const besoin=buBesoin(E);
   const rows=BU.enveloppes.map(e=>{const d=E.map(x=>(x.envs.find(y=>y.e.id===e.id)||{dep:0}).dep);return {e:e,d:d,moy:d.reduce((a,b)=>a+b,0)/n};});
   const M=Math.max(1,...rows.map(r=>Math.max(r.moy,r.e.prevu)))*1.05,pc=v=>(v/M*100).toFixed(2)+'%';
   const barres=rows.slice().sort((a,b)=>b.moy-a.moy).map(r=>{
@@ -5671,10 +5681,31 @@ function renderBudgetBilan(){
   const phrase=(()=>{const d=rows.filter(r=>r.moy>r.e.prevu+5).map(r=>r.e.nom),t=rows.filter(r=>r.moy<r.e.prevu-5).map(r=>r.e.nom);return (d.length?'Tu dépasses souvent en '+buEt(d)+'. ':'')+(t.length?'Tu prévois trop pour '+buEt(t)+'. ':'')+(d.length||t.length?'Voici une répartition qui colle à ta vie.':'Ta répartition colle déjà à ta vie.');})();
   el.innerHTML='<h1 class="fa-titre">Bilan des trois mois</h1><p class="fa-sous">'+noms.map(buMaj1).join(', ')+'.</p>'+
     '<div class="fa-creme bu-une"><div><span class="fa-k">d’après tes derniers mois</span><b>'+(rows.some(r=>Math.abs(r.moy-r.e.prevu)>5)?'Ta répartition peut s’ajuster':'Tout est bien réglé')+'</b><span class="fa-k fa-k--f">'+phrase+'</span></div>'+(rows.some(r=>Math.abs(r.moy-r.e.prevu)>5)?'<button class="fa-btn" onclick="buAppliquerBilan()">Appliquer pour '+buNomMois(buMoisPlus(buMk(),0))+'</button>':'')+'</div>'+
-    kpis+'<div class="fa-blanc bu-graph"><div class="fv-g"><span class="fv-g__t">Où part ton argent</span><span class="fin-cl__s fv-g__e">moyenne sur '+n+' mois, de la plus grosse enveloppe à la plus petite</span></div>'+barres+leg+'</div>'+
+    besoin+kpis+'<div class="fa-blanc bu-graph"><div class="fv-g"><span class="fv-g__t">Où part ton argent</span><span class="fin-cl__s fv-g__e">moyenne sur '+n+' mois, de la plus grosse enveloppe à la plus petite</span></div>'+barres+leg+'</div>'+
     '<div class="fa-blanc fin-liste bu-bloc"><div class="bu-t bu-t--h"><span>Enveloppe</span><span class="fv-r">Prévu</span><span>Dépensé</span><span>Ce que ça dit</span><span class="fv-r">Proposé</span></div>'+tab+'</div>';
 }
 let BU_PROP=null;
+/* Ce qu'il te faut par mois : l'essentiel, vivre confortablement, et en mettant de côté */
+function buBesoin(E){
+  const n=E.length,moy=f=>E.reduce((s,x)=>s+f(x),0)/n,r10=v=>Math.round(v/10)*10;
+  const fixes=moy(x=>x.fixes.reduce((a,f)=>a+Math.max(0,f.paye),0));
+  const env=id=>moy(x=>{const e=x.envs.find(y=>y.e.id===id);return e?Math.max(0,e.dep):0;});
+  const tous=moy(x=>x.envs.reduce((a,e)=>a+Math.max(0,e.dep),0));
+  const autres=moy(x=>x.rentrees.filter(r=>r.r.id!=='salaire').reduce((a,r)=>a+Math.max(0,r.recu),0));
+  const salaires=moy(x=>Math.max(0,(x.rentrees.find(r=>r.r.id==='salaire')||{recu:0}).recu));
+  const niv=[['L’essentiel',r10(fixes+env('nourriture')+env('sante')),'loyer, factures, abonnements, nourriture, santé'],
+    ['Vivre confortablement',r10(fixes+tous),'l’essentiel, plus tes plaisirs, le restau, les imprévus, comme tu vis aujourd’hui'],
+    ['En mettant aussi de côté',r10(fixes+tous+BU.projets.versement+BU.decote),'tout ça, plus tes projets de vie et ton épargne']];
+  const max=Math.max(1,niv[2][1]),sal=salaires||BU.salaire;
+  const cols=niv.map(v=>{const s=Math.max(0,r10(v[1]-autres));return '<div class="bu-besoin__c"><span class="bu-besoin__t">'+v[0]+'</span><b class="fa-n">'+fmt0(v[1])+'</b>'+buTirets(Math.round(v[1]/max*12))+'<span class="fin-cl__s">'+v[2]+'</span><span class="bu-besoin__s">Seed to Bloom doit te verser <b class="fa-n">'+fmt0(s)+'</b></span></div>';}).join('');
+  const besoin=i=>Math.max(0,niv[i][1]-autres);
+  let phrase;
+  if(sal>=besoin(2))phrase='Tu te verses '+fmt0(sal)+' en moyenne : tu vis confortablement et tu mets de côté comme prévu'+(sal-besoin(2)>=10?', avec '+fmt0(r10(sal-besoin(2)))+' de marge':'')+'.';
+  else if(sal>=besoin(1))phrase='Tu te verses '+fmt0(sal)+' en moyenne : tu vis confortablement, et il manque '+fmt0(r10(besoin(2)-sal))+' par mois pour mettre de côté comme prévu.';
+  else if(sal>=besoin(0))phrase='Tu te verses '+fmt0(sal)+' en moyenne : l’essentiel est couvert, il manque '+fmt0(r10(besoin(1)-sal))+' par mois pour vivre comme aujourd’hui.';
+  else phrase='Tu te verses '+fmt0(sal)+' en moyenne : il manque '+fmt0(r10(besoin(0)-sal))+' par mois pour couvrir l’essentiel.';
+  return '<div class="fa-blanc bu-besoin"><div class="fv-g"><span class="fv-g__t">Ce qu’il te faut par mois</span><span class="fin-cl__s fv-g__e">d’après tes '+(n>1?n+' derniers mois':'dernier mois')+(autres>0?', CAF comprise':'')+'</span></div><div class="bu-besoin__g">'+cols+'</div><p class="bu-besoin__p">'+phrase+'</p></div>';
+}
 async function buAppliquerBilan(){
   if(!BU_PROP)return;
   BU_PROP.env.forEach(x=>{const e=BU.enveloppes.find(y=>y.id===x[0]);if(e)e.prevu=x[1];});BU.decote=BU_PROP.decote;
