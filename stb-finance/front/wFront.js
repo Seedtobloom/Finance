@@ -48,6 +48,10 @@ const HTML = `<!DOCTYPE html>
         <a class="nav-item" data-section="abonnements" data-groupe="charges">Charges et URSSAF</a>
         <a class="nav-item" data-section="rapport-annuel" data-groupe="bilans">Bilans</a>
       </div>
+      <div class="nav-group">
+        <span class="nav-group-label">Ma vie</span>
+        <a class="nav-item" data-section="budget" data-groupe="budget">Mon budget</a>
+      </div>
     </nav><!-- /nav -->
 
     <div class="sidebar-footer">
@@ -75,6 +79,13 @@ const HTML = `<!DOCTYPE html>
       </div>
       <div class="fa-onglets" id="fa-onglets"></div>
       <div class="fa-blanc fa-liste" id="fa-liste"></div>
+    </section>
+
+    <section id="section-budget" class="section">
+      <div id="bu-zone"></div>
+    </section>
+    <section id="section-budget-bilan" class="section">
+      <div id="bu-bilan"></div>
     </section>
 
     <section id="section-apayer" class="section">
@@ -1957,6 +1968,15 @@ const HTML = `<!DOCTYPE html>
 </div>
 
 <!-- Modal Dépense prévue -->
+<div id="modal-budget" class="modal-overlay">
+  <div class="modal bu-modal">
+    <div class="modal-header">
+      <span class="modal-title" id="bu-modal-titre">Mon budget</span>
+      <button class="modal-close" data-close-modal="modal-budget" aria-label="Fermer"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="bu-modal-corps"></div>
+  </div>
+</div>
 <div id="modal-apayer" class="modal-overlay">
   <div class="modal ap-modal">
     <div class="modal-header">
@@ -4083,6 +4103,53 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .ap-apercu__l:first-of-type { margin-top:6px; }
 .ap-sous { display:block; margin-top:4px; }
 
+/* Mon budget */
+.bu-tete { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; }
+.bu-une { display:flex !important; flex-direction:row !important; align-items:center; justify-content:space-between; gap:24px; margin-top:26px; }
+.bu-action { margin-top:26px; }
+.bu-temps3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; margin-top:20px; }
+.bu-temps { display:flex; flex-direction:column; gap:6px; }
+.bu-temps__t { font-family:'Cormorant Garamond',serif; font-size:26px; }
+.bu-temps b { font-family:'Cormorant Garamond',serif; font-weight:400; font-size:40px; line-height:1.05; }
+.bu-bloc { margin-top:20px; }
+.bu-l { display:grid; grid-template-columns:minmax(0,1fr) 230px minmax(0,1.4fr); gap:16px; align-items:center; width:100%; padding:16px 0; border:none; border-top:1px solid #efeae1; background:none; text-align:left; font:inherit; color:inherit; cursor:pointer; }
+.fv-g + .bu-l { border-top:none; }
+.bu-l:hover .bu-l__n { text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1px; }
+.bu-l__n { font-family:'Cormorant Garamond',serif; font-size:25px; }
+.bu-l b { font-size:19px; font-weight:600; }
+.bu-dash { display:flex; gap:4px; }
+.bu-dash i { flex:1; height:6px; border-radius:99px; background:#e6e0d4; }
+.bu-dash i.on { background:#110704; }
+.bu-pied { margin:18px 0 0; }
+.bu-modal { max-width:720px; }
+.bu-r { padding:12px 0; border-top:1px solid #efeae1; }
+.bu-r__t { display:grid; grid-template-columns:90px minmax(0,1fr) auto; gap:12px; align-items:baseline; }
+.bu-r__p { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.bu-r__p .fin-onglet { padding:5px 12px; font-size:13.5px; }
+.bu-f { display:flex; gap:10px; align-items:center; margin-bottom:8px; }
+.bu-f > span { flex:1; }
+.bu-f .form-input:first-child { flex:1; }
+.bu-f__m { max-width:150px; }
+.bu-kpi { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; margin-top:20px; }
+.bu-graph { margin-top:20px; }
+.bu-b { display:grid; grid-template-columns:130px minmax(0,1fr) 230px; gap:18px; align-items:center; padding:9px 0; }
+.bu-b__n { font-family:'Cormorant Garamond',serif; font-size:21px; }
+.bu-b__z { position:relative; height:22px; }
+.bu-b__z i { position:absolute; top:4px; height:14px; border-radius:0 4px 4px 0; }
+.bu-b__d { left:0; background:#110704; }
+.bu-b__x { background:#CD8F6E; }
+.bu-b__m { background:#e6e0d4; }
+.bu-b__z .bu-b__p { top:0; height:22px; width:2px; border-radius:0; background:#110704; }
+.bu-leg { display:flex; gap:22px; flex-wrap:wrap; font-size:13.5px; color:rgba(17,7,4,.64); margin-top:10px; }
+.bu-leg span { display:flex; align-items:center; gap:8px; }
+.bu-leg i { display:inline-block; width:18px; height:10px; border-radius:3px; }
+.bu-leg i.bu-b__p { width:2px; height:16px; border-radius:0; }
+.bu-t { display:grid; grid-template-columns:minmax(0,1.2fr) 90px minmax(0,1.4fr) minmax(0,1.2fr) 110px; gap:16px; align-items:center; padding:15px 0; border-top:1px solid #efeae1; font-size:15px; }
+.bu-t--h { font-size:13.5px; color:rgba(17,7,4,.58); border-top:none; }
+
+.bu-ajout { align-self:flex-start; }
+.bu-r__s { width:auto; padding:5px 10px; font-size:13.5px; border-radius:999px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4332,7 +4399,8 @@ const FIN_GROUPES={
   factures:[['factures','Factures'],['devis','Devis'],['projets','Projets'],['tiers','Clients']],
   charges:[['abonnements','Charges fixes'],['depenses','Dépenses du mois'],['charges-urssaf','Déclarations']],
   bilans:[['rapport-annuel','L’année'],['rapport-mensuel','Le mois'],['rapport-fiscal','Fiscal'],['simulateur','Simulateur']],
-  reglages:[['options','Réglages'],['import-export','Import et export']]
+  reglages:[['options','Réglages'],['import-export','Import et export']],
+  budget:[['budget','Ce mois-ci'],['budget-bilan','Bilan des trois mois']]
 };
 function finGroupeDe(sec){for(const g in FIN_GROUPES){if(FIN_GROUPES[g].some(x=>x[0]===sec))return g;}return null;}
 function finOnglets(sec){
@@ -5260,6 +5328,312 @@ function apJoindre(id,e){
   inp.click();
 }
 function apVoirFichier(id,e){window.open('/api/depenses-prevues/'+id+'/fichier'+(apQs(e)?'?'+apQs(e):''),'_blank');}
+/* ─── MON BUDGET : ton argent perso, rangé depuis le relevé de ta banque ───
+   Tes charges passent d'abord, puis tes enveloppes, puis tes projets et ton épargne.
+   Le salaire suit ce que Finance dit que Seed to Bloom peut te verser. */
+let BU=null,BU_MOIS=null,BU_CATS=null;
+const BU_NL=String.fromCharCode(10),BU_CR=String.fromCharCode(13);
+const BU_DEF={
+  salaire:1200,
+  enveloppes:[{id:'nourriture',nom:'Nourriture',prevu:290},{id:'plaisirs',nom:'Plaisirs',prevu:250},{id:'restau',nom:'Restau',prevu:100},{id:'sante',nom:'Santé',prevu:60},{id:'imprevus',nom:'Imprévus',prevu:100}],
+  fixes:[{id:'loyer',nom:'Loyer',motif:'loyer',montant:0,tous:1},{id:'edf',nom:'EDF',motif:'edf',montant:0,tous:2},{id:'mutuelle',nom:'Mutuelle',motif:'mutuelle',montant:0,tous:1},{id:'tel',nom:'Téléphone',motif:'bouygues|orange|sfr|free mobile|cdiscount mobile|telecom',montant:0,tous:1},{id:'impots',nom:'Impôts',motif:'finances publiques|dgfip|direction generale des finances',montant:0,tous:1},{id:'banque',nom:'Frais de compte',motif:'^cotisation',montant:0,tous:1},{id:'abos',nom:'Abonnements perso',motif:'netflix|spotify|deezer|disney',montant:0,tous:1}],
+  rentrees:[{id:'salaire',nom:'Mon salaire',motif:'salaire|recette'},{id:'caf',nom:'CAF, logement et prime d’activité',motif:'caf '}],
+  projets:{versement:200,liste:[]},decote:100,regles:{},ops:[],ajust:{}
+};
+const BU_AUTO=[
+  ['pro','adobe|anthropic|claude[.]ai|indy compta|aws emea|urssaf|notion|qonto|raison creative|kittl|higgsfield|gumroad|create-for-good'],
+  ['env:nourriture','course|intermarch|interm |carrefour|auchan|leclerc|lidl|aldi|biocoop|boulang|match |casino|spar |monoprix|franprix|too good|tgtg|jow|equeurdrevil|fresh'],
+  ['env:restau','restau|resto |pizza|kfc|quick|mcdo|burger|uber [*]eats|deliveroo|cafe|coffee|sushi|wok|brasserie|kebab|food'],
+  ['env:sante','phcie|pharmacie|doctolib|dr |medecin|laboratoire|biopath|naturopath|dentiste|opticien'],
+  ['env:plaisirs','vinted|amazon|amz |primark|hetm|zara|fnac|cultura|steam|airbnb|coiffure|hollister|bershka|youtube'],
+  ['env:imprevus','sncf|transdev|ilevia|totalenergies|total |sanef|sapn|essence']
+];
+function buMk(){return finAuj().slice(0,7);}
+function buNomMois(k){return new Date(k+'-15T12:00:00').toLocaleDateString('fr-FR',{month:'long'});}
+function buMaj1(t){return t.charAt(0).toUpperCase()+t.slice(1);}
+function buMoisPlus(k,n){const d=new Date(k+'-15T12:00:00');d.setMonth(d.getMonth()+n);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function buTexte(o){return ((o.t||'')+' | '+(o.l||'')).toLowerCase();}
+/* Le nom du commerçant, pour retenir ta réponse et ranger les suivants tout seuls */
+function buCle(o){
+  let s=(o.l||'').split(' | ')[0].toLowerCase();
+  if(s.indexOf(' - ')>=0&&/^x[0-9]{3,}/.test(s))s=s.split(' - ').pop();
+  s=s.replace(/x[0-9]{3,}/g,' ').replace(/[0-9]+/g,' ').replace(/[^a-zà-ÿ* ]+/g,' ').replace(/ +/g,' ').trim();
+  return s.split(' ').slice(0,4).join(' ');
+}
+function buMotif(m,txt){if(!m)return false;try{return new RegExp(m,'i').test(txt);}catch(e){return false;}}
+function buCatAuto(o){
+  const txt=buTexte(o),k=buCle(o);
+  if(o.c)return o.c;
+  const env=c=>c==='pro'||BU.enveloppes.some(e=>'env:'+e.id===c)?c:null;
+  if(o.m>0){
+    for(const r of BU.rentrees)if(buMotif(r.motif,txt))return 'rentree:'+r.id;
+    if(k&&BU.regles[k])return BU.regles[k];
+    if(/ei - |annul|avoir/.test(txt))return 'ignore';
+    if(/mutuelle|harmonie/.test(txt))return env('env:sante');
+    if(/paypal/.test(txt))return env('env:plaisirs');
+    return null;
+  }
+  for(const f of BU.fixes)if(buMotif(f.motif,txt))return 'fixe:'+f.id;
+  // un virement dit souvent ce qu'il paie dans sa note (course, mcdo)
+  if(/virement|^web |vir inst/.test(txt)){const note=(o.l||'').split(' | ').slice(1).join(' ').toLowerCase();for(const r of BU_AUTO)if(note&&buMotif(r[1],note)&&env(r[0]))return r[0];}
+  if(k&&BU.regles[k])return BU.regles[k];
+  for(const r of BU_AUTO)if(buMotif(r[1],txt))return env(r[0]);
+  return null;
+}
+/* Range toutes les opérations : règles, puis abonnements qui reviennent chaque mois */
+function buRanger(){
+  const cats={},montants={};
+  BU.ops.forEach(o=>{cats[o.id]=buCatAuto(o);});
+  BU.ops.forEach(o=>{if(!cats[o.id]&&o.m<0&&o.m>-60){const a=Math.round(-o.m*100);(montants[a]=montants[a]||new Set()).add(o.d.slice(0,7));}});
+  BU.ops.forEach(o=>{
+    if(cats[o.id]||o.m>=0)return;
+    const a=Math.round(-o.m*100);
+    if(montants[a]&&montants[a].size>=3&&BU.fixes.some(f=>f.id==='abos'))cats[o.id]='fixe:abos';
+    else if(/paypal/.test(buTexte(o))&&-o.m<50&&BU.enveloppes.some(e=>e.id==='plaisirs'))cats[o.id]='env:plaisirs';
+  });
+  BU_CATS=cats;return cats;
+}
+function buCat(o){return (BU_CATS||buRanger())[o.id]||null;}
+function buCatNom(c){
+  if(!c)return 'à ranger';
+  const [t,id]=c.split(':');
+  if(t==='env'){const e=BU.enveloppes.find(x=>x.id===id);return e?e.nom:'Enveloppe';}
+  if(t==='fixe'){const f=BU.fixes.find(x=>x.id===id);return f?f.nom:'Charge';}
+  if(t==='rentree'){const r=BU.rentrees.find(x=>x.id===id);return r?r.nom:'Rentrée';}
+  return {projets:'Projets de vie',decote:'De côté',pro:'Pro, pas pour le budget',ignore:'Pas pour le budget'}[c]||c;
+}
+function buChoix(credit){
+  const l=credit?BU.rentrees.map(r=>['rentree:'+r.id,r.nom]):BU.fixes.map(f=>['fixe:'+f.id,f.nom]);
+  return BU.enveloppes.map(e=>['env:'+e.id,e.nom]).concat([['projets','Projets de vie'],['decote','De côté']],l,[['ignore','Pas pour le budget']]);
+}
+/* ── Le relevé : format Crédit Agricole, avec ou sans virgule dans les montants ── */
+function buLireCSV(txt){
+  const out=[],recs=txt.split(new RegExp('['+BU_CR+']?'+BU_NL+'(?=[0-9]{2}/[0-9]{2}/[0-9]{4};)'));
+  recs.forEach(r=>{
+    const m=r.match(/^([0-9]{2})[/]([0-9]{2})[/]([0-9]{4});"([^"]*)";([^]*)$/);if(!m)return;
+    const f=m[5].split(BU_CR).join('').split(BU_NL).join('').split(';').map(v=>v.trim().split(' ').join('').split(String.fromCharCode(160)).join(''));
+    let mt;
+    if(f.slice(0,2).some(v=>v.indexOf(',')>=0)){const deb=f[0]?parseFloat(f[0].replace(',','.')):0,cre=f[1]?parseFloat(f[1].replace(',','.')):0;mt=cre-deb;}
+    else if(f[0]!=='')mt=-parseFloat(f[0]+'.'+(f[1]||'0'));
+    else mt=parseFloat((f[1]||'0')+'.'+(f[2]||'0'));
+    if(isNaN(mt))return;
+    const lignes=m[4].split(BU_CR).join('').split(BU_NL).map(x=>x.trim()).filter(Boolean);
+    const d=m[3]+'-'+m[2]+'-'+m[1],l=lignes.slice(1).join(' | '),mm=Math.round(mt*100)/100;
+    out.push({id:d+'|'+mm+'|'+l.slice(0,80),d:d,t:lignes[0]||'',l:l,m:mm});
+  });
+  return out;
+}
+async function buImporter(f){
+  if(!f)return;
+  const buf=await f.arrayBuffer();let txt=new TextDecoder('utf-8').decode(buf);
+  const mauvais=t=>t.split(String.fromCharCode(65533)).length;
+  if(mauvais(txt)>5){try{const t2=new TextDecoder('windows-1252').decode(buf);if(mauvais(t2)<mauvais(txt))txt=t2;}catch(e){}}
+  const ops=buLireCSV(txt);
+  if(!ops.length){toast('Je n’ai pas reconnu ce relevé. Envoie le CSV de ta banque tel quel.','error');return;}
+  const deja={};BU.ops.forEach(o=>{deja[o.id]=1;});
+  const neufs=ops.filter(o=>!deja[o.id]);
+  BU.ops=BU.ops.concat(neufs).sort((a,b)=>b.d.localeCompare(a.d));BU_CATS=null;
+  BU.dernierImport={le:finAuj(),n:neufs.length,du:ops[ops.length-1].d,au:ops[0].d};
+  await buSauver();
+  toast(neufs.length+' opération'+(neufs.length>1?'s':'')+' ajoutée'+(neufs.length>1?'s':''),'success');
+  renderBudget();
+}
+function buDeposer(){const i=document.createElement('input');i.type='file';i.accept='.csv,text/csv';i.onchange=()=>buImporter(i.files[0]);i.click();}
+async function buCharger(){
+  if(BU)return BU;
+  let r={};try{r=await api('GET','/api/budget');}catch(e){}
+  BU=Object.assign(JSON.parse(JSON.stringify(BU_DEF)),r&&typeof r==='object'?r:{});
+  if(!BU.projets||!Array.isArray(BU.projets.liste))BU.projets={versement:200,liste:[]};
+  BU_CATS=null;return BU;
+}
+async function buSauver(){try{await api('PUT','/api/budget',BU);}catch(e){toast(e.message,'error');}}
+/* ── Les calculs d'un mois ── */
+function buOpsMois(k){return BU.ops.filter(o=>o.d.slice(0,7)===k);}
+function buARanger(){const m=buMoisAvecOps();if(!m.length)return [];const lim=buMoisPlus(m[m.length-1],-2);return BU.ops.filter(o=>o.d.slice(0,7)>=lim&&!buCat(o));}
+function buMoisAvecOps(){return [...new Set(BU.ops.map(o=>o.d.slice(0,7)))].sort();}
+function buFixeMensuel(f){
+  if(f.montant>0)return f.montant/(f.tous||1);
+  const mois=buMoisAvecOps().slice(-6);if(!mois.length)return 0;
+  const tot=BU.ops.filter(o=>mois.indexOf(o.d.slice(0,7))>=0&&buCat(o)==='fixe:'+f.id).reduce((s,o)=>s-o.m,0);
+  return Math.max(0,Math.round(tot/mois.length*100)/100);
+}
+function buSalairePrevu(k){try{const p=fqPlafond(k);return p&&p.plafond>0?p.plafond:0;}catch(e){return 0;}}
+function buEtat(k){
+  const ops=buOpsMois(k),somme=c=>ops.filter(o=>buCat(o)===c).reduce((s,o)=>s+o.m,0);
+  const rentrees=BU.rentrees.map(r=>({r:r,recu:somme('rentree:'+r.id)}));
+  const salRecu=(rentrees.find(x=>x.r.id==='salaire')||{recu:0}).recu,salFin=buSalairePrevu(k),estCourant=k===buMk();
+  const salaire=salRecu>0?salRecu:(salFin||BU.salaire);
+  let rentre=rentrees.reduce((s,x)=>s+Math.max(0,x.recu),0);if(!salRecu&&estCourant)rentre+=salaire;
+  const fixes=BU.fixes.map(f=>({f:f,mensuel:buFixeMensuel(f),paye:-somme('fixe:'+f.id)})).filter(x=>x.mensuel>0||x.paye>0);
+  const partTout=fixes.reduce((s,x)=>s+Math.max(x.mensuel,x.paye),0);
+  const aj=BU.ajust[k]||{};
+  const envs=BU.enveloppes.map(e=>{const prevu=aj.env&&aj.env[e.id]!=null?aj.env[e.id]:e.prevu,dep=-somme('env:'+e.id);return {e:e,prevu:prevu,dep:dep,reste:prevu-dep};});
+  const projetsPrevu=aj.projets!=null?aj.projets:BU.projets.versement,decotePrevu=aj.decote!=null?aj.decote:BU.decote;
+  return {k:k,ops:ops,rentrees:rentrees,salaire:salaire,salRecu:salRecu,salFin:salFin,rentre:rentre,fixes:fixes,partTout:partTout,pourVivre:rentre-partTout,envs:envs,
+    projets:{prevu:projetsPrevu,verse:-somme('projets')},decote:{prevu:decotePrevu,verse:-somme('decote')},aRanger:buARanger().length,ajuste:!!BU.ajust[k]};
+}
+/* Ton pro verse moins : on baisse d'abord plaisirs, restau, imprévus, puis projets et épargne.
+   Il verse plus : le supplément va dans De côté. */
+function buProposition(st){
+  const diff=Math.round(st.salaire-BU.salaire);
+  if(st.ajuste||Math.abs(diff)<20)return null;
+  if(diff>0)return {diff:diff,lignes:[['decote','De côté',st.decote.prevu,st.decote.prevu+diff]]};
+  const souples=st.envs.filter(x=>['plaisirs','restau','imprevus'].indexOf(x.e.id)>=0).map(x=>['env:'+x.e.id,x.e.nom,x.prevu]).concat([['projets','Projets de vie',st.projets.prevu],['decote','De côté',st.decote.prevu]]);
+  const tot=souples.reduce((s,x)=>s+x[2],0);if(tot<=0)return null;
+  let reste=Math.min(-diff,tot);
+  const l=souples.map(x=>{const c=Math.min(x[2],Math.round(reste*x[2]/tot/10)*10);return [x[0],x[1],x[2],x[2]-c];});
+  let fait=l.reduce((s,x)=>s+(x[2]-x[3]),0),i=0;
+  while(fait<reste&&i<l.length*20){const x=l[i%l.length];if(x[3]>=10){x[3]-=10;fait+=10;}i++;}
+  return {diff:diff,lignes:l.filter(x=>x[2]!==x[3])};
+}
+async function buAppliquer(){
+  const k=BU_MOIS||buMk(),st=buEtat(k),p=buProposition(st);if(!p)return;
+  const aj={env:{}};p.lignes.forEach(x=>{if(x[0].indexOf('env:')===0)aj.env[x[0].slice(4)]=x[3];else aj[x[0]]=x[3];});
+  BU.ajust[k]=aj;await buSauver();toast('Ton budget suit ton salaire de '+buNomMois(k),'success');renderBudget();
+}
+async function buGarder(){const k=BU_MOIS||buMk();BU.ajust[k]={env:{}};await buSauver();renderBudget();}
+/* ── La page du mois ── */
+function buTirets(n){let h='<div class="bu-dash">';for(let i=0;i<12;i++)h+='<i'+(i<n?' class="on"':'')+'></i>';return h+'</div>';}
+function buCarte(n,t,m,s){return '<div class="fa-blanc bu-temps"><span class="fin-cl__s">'+n+'</span><span class="bu-temps__t">'+t+'</span><b class="fa-n">'+m+'</b><span class="fin-cl__s">'+s+'</span></div>';}
+async function loadBudget(){const el=q('#bu-zone');if(el&&!BU)el.innerHTML='<p class="fa-vide">Chargement de ton budget…</p>';await buCharger();renderBudget();}
+function renderBudget(){
+  const el=q('#bu-zone');if(!el||!BU)return;
+  buRanger();
+  const k=BU_MOIS||buMk(),st=buEtat(k),nom=buNomMois(k),p=buProposition(st);
+  let action='';
+  if(p){
+    const lignes=p.lignes.map(x=>'<div class="ap-calc__l"><span>'+x[1]+'</span><span class="fa-n"><s class="fin-cl__s">'+fmt0(x[2])+'</s> '+fmt0(x[3])+'</span></div>').join('');
+    action='<div class="fa-creme ap-creme bu-action"><div class="ap-creme__g"><div><span class="fa-k">'+(p.diff<0?'ton pro a moins rentré en ':'ton pro a bien rentré en ')+nom+'</span><b>Ton salaire sera de '+fmt0(st.salaire)+'</b><span class="fa-k fa-k--f">'+(p.diff<0?'D’après Finance, Seed to Bloom peut te verser '+fmt0(st.salaire)+' au lieu de '+fmt0(BU.salaire)+'. Tes charges, la nourriture et la santé ne bougent pas, le reste baisse un peu.':'C’est '+fmt0(p.diff)+' de plus que d’habitude. Tout le supplément va dans De côté.')+'</span></div><div class="ap-btns"><button class="fa-btn" onclick="buAppliquer()">Appliquer</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Ajuster moi-même</button></div></div><div class="ap-calc">'+lignes+'<div class="ap-calc__l ap-calc__l--f"><span>'+(p.diff<0?'en moins':'en plus')+'</span><span class="fa-n">'+fmt0(Math.abs(p.diff))+'</span></div></div></div>';
+  }else if(st.aRanger)action='<div class="fa-creme bu-une"><div><span class="fa-k">une chose à faire</span><b>'+st.aRanger+' dépense'+(st.aRanger>1?'s':'')+' de ton relevé à ranger</b></div><button class="fa-btn" onclick="buOuvrirRanger()">Les ranger</button></div>';
+  else if(!BU.ops.length)action='<div class="fa-creme bu-une"><div><span class="fa-k">pour commencer</span><b>Dépose le relevé CSV de ta banque</b><span class="fa-k fa-k--f">Tes dépenses se rangent toutes seules dans tes enveloppes. Tu n’as rien à noter à la main.</span></div><button class="fa-btn" onclick="buDeposer()">Déposer un relevé</button></div>';
+  const salTxt=st.salRecu>0?'salaire reçu':(k===buMk()?'salaire de '+fmt0(st.salaire)+' à venir, d’après Finance':'pas de salaire reçu');
+  const cartes='<div class="bu-temps3">'+buCarte('1','Ce qui rentre',fmt0(st.rentre),salTxt+(st.rentrees.some(x=>x.r.id==='caf'&&x.recu>0)?', CAF reçue':''))+
+    buCarte('2','Ce qui part tout seul','− '+fmt0(st.partTout),st.fixes.slice(0,5).map(x=>x.f.nom.toLowerCase()).join(', '))+
+    buCarte('3','Pour vivre ce mois-ci',fmt0(st.pourVivre),'réparti dans tes enveloppes ci-dessous')+'</div>';
+  const env=st.envs.map(x=>{
+    const n=x.prevu>0?Math.max(0,Math.min(12,Math.round(x.dep/x.prevu*12))):0,dep=x.dep>x.prevu+0.5;
+    return '<button class="bu-l" data-c="env:'+x.e.id+'" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">'+faEsc(x.e.nom)+'</span><span><b class="fa-n">'+fmt0(Math.max(0,x.reste))+'</b><span class="fin-cl__s"> sur '+fmt0(x.prevu)+'</span>'+(dep?' <span class="fa-pas fa-p-r">dépassé de '+fmt0(x.dep-x.prevu)+'</span>':'')+'</span>'+buTirets(n)+'</button>';
+  }).join('');
+  const pj=BU.projets.liste.map(x=>faEsc(x.nom)+' '+fmt0(x.cumul||0)+' sur '+fmt0(x.objectif||0)).join(' · ');
+  const plus='<button class="bu-l" data-c="projets" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">Projets de vie</span><span><b class="fa-n">'+fmt0(st.projets.prevu)+'</b><span class="fin-cl__s">'+(st.projets.verse>0?' viré':' à virer')+'</span></span><span class="fin-cl__s">'+(pj||'ajoute tes projets dans Changer la répartition')+'</span></button>'+
+    '<button class="bu-l" data-c="decote" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">De côté</span><span><b class="fa-n">'+fmt0(st.decote.prevu)+'</b><span class="fin-cl__s">'+(st.decote.verse>0?' mis de côté':' à mettre de côté')+'</span></span><span class="fin-cl__s">pour les coups durs</span></button>';
+  const moisD=buMoisPlus(k,-1),moisS=buMoisPlus(k,1);
+  el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mon budget</h1><p class="fa-sous">'+buMaj1(nom)+', en trois temps. <button class="fin-lien" data-k="'+moisD+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisD))+'</button>'+(k<buMk()?' <button class="fin-lien" data-k="'+moisS+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisS))+'</button>':'')+'</p></div><div class="ap-btns"><button class="fa-btn fa-btn--c" onclick="buDeposer()">Déposer un relevé</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Changer la répartition</button></div></div>'+
+    action+cartes+
+    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Tes enveloppes</span><span class="fin-cl__s fv-g__e">ce qu’il te reste dans chacune</span></div>'+env+'</div>'+
+    '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Pour plus tard</span></div>'+plus+'</div>'+
+    '<p class="fin-cl__s bu-pied">Clique sur une ligne pour voir le détail.'+(BU.dernierImport?' Dernier relevé déposé le '+fmtDate(BU.dernierImport.le)+', jusqu’au '+fmtDate(BU.dernierImport.au)+'.':'')+'</p>';
+}
+function buAller(k){BU_MOIS=k===buMk()?null:k;renderBudget();}
+/* ── Ranger en un clic ── */
+function buOuvrirRanger(){
+  const l=buARanger().slice(0,40);
+  const b=q('#bu-modal-corps');
+  q('#bu-modal-titre').textContent=l.length?'À ranger':'Tout est rangé';
+  b.innerHTML=l.length?'<p class="fin-cl__s">Un clic chacune. Ta réponse sert pour les suivantes du même nom.</p>'+l.map(o=>'<div class="bu-r"><div class="bu-r__t"><span class="fin-cl__s">'+fmtDate(o.d)+'</span><span>'+faEsc((o.l||o.t).split(' | ')[0])+'</span><b class="fa-n">'+fmt(o.m)+'</b></div><div class="bu-r__p">'+buChoix(o.m>0).filter(c=>c[0].indexOf('fixe:')<0).map(c=>'<button class="fin-onglet" data-id="'+faEsc(o.id)+'" data-c="'+c[0]+'" onclick="buRangerOp(this.dataset.id,this.dataset.c)">'+faEsc(c[1])+'</button>').join('')+(o.m<0?'<select class="form-select bu-r__s" data-id="'+faEsc(o.id)+'" onchange="if(this.value)buRangerOp(this.dataset.id,this.value)" aria-label="Une charge"><option value="">Une charge…</option>'+BU.fixes.map(f=>'<option value="fixe:'+f.id+'">'+faEsc(f.nom)+'</option>').join('')+'</select>':'')+'</div></div>').join(''):'<p class="fa-vide">Toutes tes opérations sont rangées.</p>';
+  openModal('modal-budget');
+}
+async function buRangerOp(id,c){
+  const o=BU.ops.find(x=>x.id===id);if(!o)return;
+  const k=buCle(o);
+  if(k&&!/paypal|^vir inst$|^virement$/.test(k))BU.regles[k]=c;else o.c=c;
+  BU_CATS=null;await buSauver();
+  if(q('#bu-modal-titre').textContent==='À ranger')buOuvrirRanger();else buDetailMaj();
+  renderBudget();
+}
+/* ── Le détail d'une ligne, pour déplacer une opération ── */
+let BU_DET=null;
+function buDetail(c){BU_DET=c;buDetailMaj();openModal('modal-budget');}
+function buDetailMaj(){
+  const k=BU_MOIS||buMk(),l=buOpsMois(k).filter(o=>buCat(o)===BU_DET);
+  q('#bu-modal-titre').textContent=buCatNom(BU_DET)+', '+buNomMois(k);
+  q('#bu-modal-corps').innerHTML=l.length?l.map(o=>'<div class="bu-r"><div class="bu-r__t"><span class="fin-cl__s">'+fmtDate(o.d)+'</span><span>'+faEsc((o.l||o.t).split(' | ')[0])+'</span><b class="fa-n">'+fmt(o.m)+'</b></div><div class="bu-r__p"><select class="form-select" data-id="'+faEsc(o.id)+'" onchange="buDeplacer(this.dataset.id,this.value)">'+buChoix(o.m>0).map(c=>'<option value="'+c[0]+'"'+(c[0]===BU_DET?' selected':'')+'>'+faEsc(c[1])+'</option>').join('')+'</select></div></div>').join(''):'<p class="fa-vide">Rien ce mois-ci pour l’instant.</p>';
+}
+async function buDeplacer(id,c){const o=BU.ops.find(x=>x.id===id);if(!o)return;o.c=c;BU_CATS=null;await buSauver();buDetailMaj();renderBudget();}
+/* ── Changer la répartition : enveloppes, charges, projets ── */
+function buReglages(){
+  const k=BU_MOIS||buMk(),st=buEtat(k);
+  const env=BU.enveloppes.map((e,i)=>'<div class="bu-f"><input class="form-input" data-t="env-nom" data-i="'+i+'" value="'+faEsc(e.nom)+'" aria-label="Nom de l’enveloppe"><input class="form-input bu-f__m" type="number" data-t="env-prevu" data-i="'+i+'" value="'+e.prevu+'" aria-label="Prévu par mois"><button class="fin-lien" data-i="'+i+'" onclick="buRetirer(&quot;enveloppes&quot;,this.dataset.i)">Retirer</button></div>').join('');
+  const fx=BU.fixes.map((f,i)=>'<div class="bu-f"><input class="form-input" data-t="fx-nom" data-i="'+i+'" value="'+faEsc(f.nom)+'" aria-label="Nom"><input class="form-input bu-f__m" type="number" data-t="fx-m" data-i="'+i+'" value="'+(f.montant||'')+'" placeholder="'+Math.round(buFixeMensuel(f)*(f.tous||1))+'" aria-label="Montant"><select class="form-select bu-f__m" data-t="fx-tous" data-i="'+i+'" aria-label="Tous les combien"><option value="1"'+((f.tous||1)==1?' selected':'')+'>chaque mois</option><option value="2"'+(f.tous==2?' selected':'')+'>tous les 2 mois</option><option value="12"'+(f.tous==12?' selected':'')+'>une fois par an</option></select><button class="fin-lien" data-i="'+i+'" onclick="buRetirer(&quot;fixes&quot;,this.dataset.i)">Retirer</button></div>').join('');
+  const pj=BU.projets.liste.map((p,i)=>'<div class="bu-f"><input class="form-input" data-t="pj-nom" data-i="'+i+'" value="'+faEsc(p.nom)+'" aria-label="Projet"><input class="form-input bu-f__m" type="number" data-t="pj-obj" data-i="'+i+'" value="'+(p.objectif||'')+'" placeholder="objectif" aria-label="Objectif"><input class="form-input bu-f__m" type="number" data-t="pj-cum" data-i="'+i+'" value="'+(p.cumul||'')+'" placeholder="déjà de côté" aria-label="Déjà de côté"><button class="fin-lien" data-i="'+i+'" onclick="buRetirer(&quot;projets&quot;,this.dataset.i)">Retirer</button></div>').join('');
+  q('#bu-modal-titre').textContent='Changer la répartition';
+  q('#bu-modal-corps').innerHTML='<div class="form-group"><label class="form-label" for="bu-sal">Ton salaire habituel</label><input id="bu-sal" class="form-input bu-f__m" type="number" value="'+BU.salaire+'"><span class="fin-cl__s">Finance dit que tu peux te verser '+fmt0(st.salFin||0)+' en '+buNomMois(k)+'.</span></div>'+
+    '<div class="form-group"><span class="form-label">Tes enveloppes, par mois</span>'+env+'<button class="fin-lien bu-ajout" onclick="buAjouter(&quot;enveloppes&quot;)">Ajouter une enveloppe</button></div>'+
+    '<div class="form-group"><span class="form-label">Pour plus tard, par mois</span><div class="bu-f"><span>Projets de vie</span><input id="bu-pv" class="form-input bu-f__m" type="number" value="'+BU.projets.versement+'"></div><div class="bu-f"><span>De côté</span><input id="bu-dc" class="form-input bu-f__m" type="number" value="'+BU.decote+'"></div></div>'+
+    '<div class="form-group"><span class="form-label">Tes projets de vie</span>'+pj+'<button class="fin-lien bu-ajout" onclick="buAjouter(&quot;projets&quot;)">Ajouter un projet</button></div>'+
+    '<div class="form-group"><span class="form-label">Ce qui part tout seul</span><span class="fin-cl__s">Laisse le montant vide, il est calculé depuis ton relevé.</span>'+fx+'<button class="fin-lien bu-ajout" onclick="buAjouter(&quot;fixes&quot;)">Ajouter un prélèvement</button></div>'+
+    '<div class="modal-footer"><button class="btn btn-ghost" data-close-modal="modal-budget">Annuler</button><button class="btn btn-primary" onclick="buEnregistrer()">Enregistrer</button></div>';
+  openModal('modal-budget');
+}
+function buLireForm(){
+  qa('#bu-modal-corps [data-t]').forEach(x=>{const i=+x.dataset.i,t=x.dataset.t,v=x.value;
+    if(t==='env-nom')BU.enveloppes[i].nom=v;if(t==='env-prevu')BU.enveloppes[i].prevu=parseFloat(v)||0;
+    if(t==='fx-nom')BU.fixes[i].nom=v;if(t==='fx-m')BU.fixes[i].montant=parseFloat(v)||0;if(t==='fx-tous')BU.fixes[i].tous=parseInt(v,10)||1;
+    if(t==='pj-nom')BU.projets.liste[i].nom=v;if(t==='pj-obj')BU.projets.liste[i].objectif=parseFloat(v)||0;if(t==='pj-cum')BU.projets.liste[i].cumul=parseFloat(v)||0;});
+  const s=q('#bu-sal');if(s)BU.salaire=parseFloat(s.value)||0;
+  const pv=q('#bu-pv');if(pv)BU.projets.versement=parseFloat(pv.value)||0;
+  const dc=q('#bu-dc');if(dc)BU.decote=parseFloat(dc.value)||0;
+}
+function buAjouter(t){
+  buLireForm();const id='x'+Date.now().toString(36);
+  if(t==='enveloppes')BU.enveloppes.push({id:id,nom:'Nouvelle enveloppe',prevu:0});
+  if(t==='fixes')BU.fixes.push({id:id,nom:'Nouveau prélèvement',motif:'',montant:0,tous:1});
+  if(t==='projets')BU.projets.liste.push({id:id,nom:'Nouveau projet',objectif:0,cumul:0});
+  buReglages();
+}
+function buRetirer(t,i){buLireForm();(t==='projets'?BU.projets.liste:BU[t]).splice(+i,1);BU_CATS=null;buReglages();}
+async function buEnregistrer(){buLireForm();BU_CATS=null;await buSauver();closeModal('modal-budget');toast('Enregistré','success');renderBudget();}
+/* ── Bilan des trois mois : chiffres clés, où part l'argent, la répartition proposée ── */
+async function loadBudgetBilan(){const el=q('#bu-bilan');if(el&&!BU)el.innerHTML='<p class="fa-vide">Chargement…</p>';await buCharger();renderBudgetBilan();}
+function renderBudgetBilan(){
+  const el=q('#bu-bilan');if(!el||!BU)return;
+  buRanger();
+  const mois=buMoisAvecOps().filter(k=>k<buMk()).slice(-3);
+  if(!mois.length){el.innerHTML='<h1 class="fa-titre">Bilan des trois mois</h1><div class="fa-blanc fin-liste"><p class="fa-vide">Dépose un relevé pour voir ton bilan.</p></div>';return;}
+  const E=mois.map(buEtat),n=mois.length,noms=mois.map(buNomMois);
+  const rentre=E.reduce((s,x)=>s+x.rentrees.reduce((a,r)=>a+Math.max(0,r.recu),0),0);
+  const cote=E.map(x=>x.projets.verse+x.decote.verse),rentreM=E.map(x=>x.rentrees.reduce((a,r)=>a+Math.max(0,r.recu),0));
+  const pctCote=rentre>0?Math.round(cote.reduce((a,b)=>a+b,0)/rentre*100):0;
+  const p0=rentreM[0]>0?Math.round(cote[0]/rentreM[0]*100):0;
+  const fixesP=E.reduce((s,x)=>s+x.fixes.reduce((a,f)=>a+f.paye,0),0),pctFixe=rentre>0?Math.round(fixesP/rentre*100):0;
+  const jours=mois.reduce((s,k)=>s+new Date(+k.slice(0,4),+k.slice(5,7),0).getDate(),0);
+  const depEnv=E.reduce((s,x)=>s+x.envs.reduce((a,e)=>a+Math.max(0,e.dep),0),0),parJour=Math.round(depEnv/jours);
+  const der=E[n-1],tenues=der.envs.filter(e=>e.dep<=e.prevu+0.5),hors=der.envs.filter(e=>e.dep>e.prevu+0.5).map(e=>e.e.nom);
+  const kpi=(k,v,s,t)=>'<div class="fa-blanc"><div class="fa-k2">'+k+'</div><div class="fa-gros2">'+v+'</div>'+faTirets(t,12)+'<p class="fa-p">'+s+'</p></div>';
+  const kpis='<div class="bu-kpi">'+kpi('Mis de côté',pctCote+' %',n>1?'de ce qui rentre, '+(pctCote===p0?'comme en '+noms[0]:pctCote>p0?(pctCote-p0)+' point'+(pctCote-p0>1?'s':'')+' de plus qu’en '+noms[0]:(p0-pctCote)+' point'+(p0-pctCote>1?'s':'')+' de moins qu’en '+noms[0]):'de ce qui rentre',Math.min(12,Math.round(pctCote/100*12*3)))+
+    kpi('Part fixe',pctFixe+' %','de ce qui rentre part tout seul',Math.min(12,Math.round(pctFixe/100*12)))+
+    kpi('Pour vivre',parJour+' € <em>par jour</em>','en moyenne, sur '+(n>1?n+' mois':'un mois'),Math.min(12,Math.round(parJour/60*12)))+
+    kpi('Enveloppes tenues',tenues.length+' sur '+der.envs.length,hors.length?hors.join(' et ')+' dépasse'+(hors.length>1?'nt':'')+' en '+noms[n-1]:'toutes tenues en '+noms[n-1],Math.round(tenues.length/Math.max(1,der.envs.length)*12))+'</div>';
+  const rows=BU.enveloppes.map(e=>{const d=E.map(x=>(x.envs.find(y=>y.e.id===e.id)||{dep:0}).dep);return {e:e,d:d,moy:d.reduce((a,b)=>a+b,0)/n};});
+  const M=Math.max(1,...rows.map(r=>Math.max(r.moy,r.e.prevu)))*1.05,pc=v=>(v/M*100).toFixed(2)+'%';
+  const barres=rows.slice().sort((a,b)=>b.moy-a.moy).map(r=>{
+    const p=r.e.prevu,d=r.moy,base=Math.min(d,p);
+    let b='<i class="bu-b__d" style="width:'+pc(base)+'"></i>';
+    if(d>p+0.5)b+='<i class="bu-b__x" style="left:calc('+pc(p)+' + 2px);width:calc('+pc(d-p)+' - 2px)"></i>';
+    else if(p>d+0.5)b+='<i class="bu-b__m" style="left:calc('+pc(d)+' + 2px);width:calc('+pc(p-d)+' - 2px)"></i>';
+    b+='<i class="bu-b__p" style="left:'+pc(p)+'"></i>';
+    return '<div class="bu-b" title="'+faEsc(r.d.map((v,i)=>noms[i]+' '+fmt0(v)).join(', '))+'"><span class="bu-b__n">'+faEsc(r.e.nom)+'</span><div class="bu-b__z">'+b+'</div><span class="fa-n fin-cl__s">'+(Math.abs(d-p)>2?fmt0(d)+' pour '+fmt0(p)+' prévus':fmt0(d)+', comme prévu')+'</span></div>';
+  }).join('');
+  const leg='<div class="bu-leg"><span><i class="bu-b__d"></i>dépensé en moyenne</span><span><i class="bu-b__x"></i>au-dessus de ce que tu avais prévu</span><span><i class="bu-b__m"></i>prévu mais pas dépensé</span><span><i class="bu-b__p"></i>ce que tu avais prévu</span></div>';
+  let totalAvant=0,totalApres=0;
+  const prop=rows.map(r=>{const p=r.e.prevu,prop=Math.max(0,Math.ceil(r.moy/10)*10);totalAvant+=p;totalApres+=prop;return {r:r,prop:prop};});
+  const decoteProp=Math.max(0,BU.decote+totalAvant-totalApres);
+  BU_PROP={env:prop.map(x=>[x.r.e.id,x.prop]),decote:decoteProp};
+  const tab=prop.map(x=>{const r=x.r,e=r.moy-r.e.prevu;return '<div class="bu-t"><span class="bu-l__n">'+faEsc(r.e.nom)+'</span><span class="fa-n fv-r">'+fmt0(r.e.prevu)+'</span><span><span class="fa-n">'+fmt0(r.moy)+' en moyenne</span><span class="fin-cl__s fa-n" style="display:block">'+r.d.map((v,i)=>noms[i]+' '+Math.round(v)).join(' · ')+'</span></span><span>'+(e>5?'<span class="fa-pas fa-p-r">tu dépasses de '+fmt0(e)+'</span>':e<-5?'<span class="fa-pas fa-p-n">'+fmt0(-e)+' de trop</span>':'<span class="fin-cl__s">juste ce qu’il faut</span>')+'</span><span class="fv-r"><b class="fa-n">'+fmt0(x.prop)+'</b>'+(x.prop!==r.e.prevu?'<span class="fin-cl__s" style="display:block">'+(x.prop>r.e.prevu?'+ ':'− ')+fmt0(Math.abs(x.prop-r.e.prevu))+'</span>':'')+'</span></div>';}).join('')+
+    '<div class="bu-t"><span class="bu-l__n">De côté</span><span class="fa-n fv-r">'+fmt0(BU.decote)+'</span><span></span><span class="fin-cl__s">'+(decoteProp>BU.decote?'ce que tu dépenses en moins':decoteProp<BU.decote?'pour que tout tienne':'')+'</span><span class="fv-r"><b class="fa-n">'+fmt0(decoteProp)+'</b></span></div>';
+  const buEt=l=>l.length>1?l.slice(0,-1).join(', ')+' et '+l[l.length-1]:l.join('');
+  const phrase=(()=>{const d=rows.filter(r=>r.moy>r.e.prevu+5).map(r=>r.e.nom),t=rows.filter(r=>r.moy<r.e.prevu-5).map(r=>r.e.nom);return (d.length?'Tu dépasses souvent en '+buEt(d)+'. ':'')+(t.length?'Tu prévois trop pour '+buEt(t)+'. ':'')+(d.length||t.length?'Voici une répartition qui colle à ta vie.':'Ta répartition colle déjà à ta vie.');})();
+  el.innerHTML='<h1 class="fa-titre">Bilan des trois mois</h1><p class="fa-sous">'+noms.map(buMaj1).join(', ')+'.</p>'+
+    '<div class="fa-creme bu-une"><div><span class="fa-k">d’après tes derniers mois</span><b>'+(rows.some(r=>Math.abs(r.moy-r.e.prevu)>5)?'Ta répartition peut s’ajuster':'Tout est bien réglé')+'</b><span class="fa-k fa-k--f">'+phrase+'</span></div>'+(rows.some(r=>Math.abs(r.moy-r.e.prevu)>5)?'<button class="fa-btn" onclick="buAppliquerBilan()">Appliquer pour '+buNomMois(buMoisPlus(buMk(),0))+'</button>':'')+'</div>'+
+    kpis+'<div class="fa-blanc bu-graph"><div class="fv-g"><span class="fv-g__t">Où part ton argent</span><span class="fin-cl__s fv-g__e">moyenne sur '+n+' mois, de la plus grosse enveloppe à la plus petite</span></div>'+barres+leg+'</div>'+
+    '<div class="fa-blanc fin-liste bu-bloc"><div class="bu-t bu-t--h"><span>Enveloppe</span><span class="fv-r">Prévu</span><span>Dépensé</span><span>Ce que ça dit</span><span class="fv-r">Proposé</span></div>'+tab+'</div>';
+}
+let BU_PROP=null;
+async function buAppliquerBilan(){
+  if(!BU_PROP)return;
+  BU_PROP.env.forEach(x=>{const e=BU.enveloppes.find(y=>y.id===x[0]);if(e)e.prevu=x[1];});BU.decote=BU_PROP.decote;
+  await buSauver();toast('Nouvelle répartition appliquée','success');renderBudgetBilan();
+}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}
@@ -5403,7 +5777,7 @@ function navigate(section){
 }
 function loadSection(s){
   const map={
-    'dashboard':loadAujourdhui,'cloture':loadCloture,'apayer':loadAPayer,
+    'dashboard':loadAujourdhui,'cloture':loadCloture,'apayer':loadAPayer,'budget':loadBudget,'budget-bilan':loadBudgetBilan,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':()=>{loadTransactions();fqRender();},
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,

@@ -33,6 +33,8 @@ async function router(request, env) {
   const method = request.method;
   const uid    = USER_ID;
 
+  if (method === 'GET'  && path === '/api/budget')         return jsonOk(await kvLire(env, `${uid}:budget`) || {});
+  if (method === 'PUT'  && path === '/api/budget')         { const b = await parseJSON(request); if (!b || typeof b !== 'object') return jsonErr(400, 'Body invalide.'); await kvEcrire(env, `${uid}:budget`, b); return jsonOk({ ok: true }); }
   if (method === 'GET'  && path === '/api/settings')       return settingsGet(env, uid);
   if (method === 'PUT'  && path === '/api/settings')       return settingsPut(request, env, uid);
   if (method === 'GET'  && path === '/api/dashboard')      return dashboard(env, uid);
