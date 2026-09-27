@@ -3955,6 +3955,8 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .modal .btn-primary { background:#110704; color:#F8F6F2; }
 .modal .btn-outline, .modal .btn-secondary { background:transparent; color:#110704; border:none; box-shadow:inset 0 0 0 1px #110704; }
 
+.fc-clos { margin-top:18px; display:flex; gap:18px; align-items:baseline; flex-wrap:wrap; font-size:15px; color:rgba(17,7,4,.7); }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4762,12 +4764,16 @@ function fcCorps(k,i){
 async function fcSynchro(){try{await syncQonto(false);}catch(e){}FQ_DERNIER=0;await fqRelier(true);loadCloture();}
 async function fcImporte(k){await fcNoter(k,{importe:true});fcAller(1);}
 async function fcFinir(k){await fcNoter(k,{fini:true,le:finAuj()});toast(fcNom(k).charAt(0).toUpperCase()+fcNom(k).slice(1)+' est clôturé','success');FC_ETAPE=null;navigate('dashboard');}
-async function fcRouvrir(k){await fcNoter(k,{fini:false});loadCloture();}
+async function fcRouvrir(k){await fcNoter(k,{fini:false});toast(fcNom(k).charAt(0).toUpperCase()+fcNom(k).slice(1)+' est rouvert','success');if(q('#section-cloture.active'))loadCloture();else{FC_ETAPE=3;navigate('cloture');}}
 /* Le bandeau d'Aujourd'hui : en fin de mois, et jusqu'au 10 du mois suivant */
 function fcBandeau(){
   const el=q('#fa-cloture');if(!el)return;
   const k=fcMois(),j=new Date().getDate();
-  if(fcEtat(k).fini||(j<25&&j>10)){el.innerHTML='';el.style.display='none';return;}
+  if(j<25&&j>10){el.innerHTML='';el.style.display='none';el.className='fc-bandeau';return;}
+  // Mois déjà clôturé : une ligne discrète pour le revoir ou le rouvrir
+  if(fcEtat(k).fini){const e=fcEtat(k);el.style.display='';el.className='fc-clos';
+    el.innerHTML='<span>'+fcNom(k).charAt(0).toUpperCase()+fcNom(k).slice(1)+' est clôturé'+(e.le?' depuis le '+fqJour(e.le):'')+'.</span><button class="fin-lien" onclick="fcOuvrir()">Revoir la clôture</button><button class="fin-lien" data-k="'+k+'" onclick="fcRouvrir(this.dataset.k)">Rouvrir '+fcNom(k)+'</button>';return;}
+  el.className='fc-bandeau';
   const f=fcFaits(k),titres=['Importer','Vérifier','Te verser','Mettre de côté'];
   el.style.display='';
   el.innerHTML='<div><div class="fc-bk">Fin '+fcNom(k)+'</div><div class="fc-bt">Clôture ton mois en 4 étapes, environ 10 minutes</div></div>'+
