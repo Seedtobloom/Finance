@@ -99,14 +99,6 @@ const HTML = `<!DOCTYPE html>
 
       <div class="comptes-grid" id="comptes-grid"></div>
 
-      <!-- Dépenses prévues -->
-      <div class="card" style="margin-top:24px;">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span><i class="ti ti-calendar-stats"></i> Dépenses prévues</span>
-          <button class="btn btn-primary btn-sm" onclick="openDepensePrevueModal()"><i class="ti ti-plus"></i> Ajouter</button>
-        </div>
-        <div id="depenses-prevues-list"></div>
-      </div>
     </section><!-- /comptes -->
 
 
@@ -396,6 +388,14 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
+      <div class="fin-barre">
+        <div class="fin-pills" id="tiers-pills">
+          <button class="fin-onglet on" data-s="" onclick="fvFiltre(&quot;tiers&quot;,this.dataset.s)">Tous</button>
+          <button class="fin-onglet" data-s="devis" onclick="fvFiltre(&quot;tiers&quot;,this.dataset.s)">Avec un devis en cours</button>
+          <button class="fin-onglet" data-s="retard" onclick="fvFiltre(&quot;tiers&quot;,this.dataset.s)">En retard</button>
+        </div>
+        <button class="fa-btn" onclick="q(&quot;#btn-new-tiers&quot;).click()">Nouveau client</button>
+      </div>
       <div class="kpi-grid kpi-grid-3 mb-24">
         <div class="kpi-card">
           <div class="kpi-icon blue"><i class="ti ti-users"></i></div>
@@ -414,24 +414,7 @@ const HTML = `<!DOCTYPE html>
         </div>
       </div>
 
-      <div class="card">
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Type</th>
-                <th>Email</th>
-                <th>CA encaissé</th>
-                <th>Factures</th>
-                <th>Dernière facture</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="tiers-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+      <div class="fa-blanc fin-liste" id="fv-clients"></div>
     </section><!-- /tiers -->
 
 
@@ -670,6 +653,15 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-new-devis"><i class="ti ti-plus"></i> Nouveau devis</button>
         </div>
       </div>
+      <div class="fin-barre">
+        <div class="fin-pills" id="devis-pills">
+          <button class="fin-onglet on" data-s="" onclick="fvFiltre(&quot;devis&quot;,this.dataset.s)">Tous</button>
+          <button class="fin-onglet" data-s="envoye" onclick="fvFiltre(&quot;devis&quot;,this.dataset.s)">Envoyés</button>
+          <button class="fin-onglet" data-s="signe" onclick="fvFiltre(&quot;devis&quot;,this.dataset.s)">Signés</button>
+          <button class="fin-onglet" data-s="refuse" onclick="fvFiltre(&quot;devis&quot;,this.dataset.s)">Refusés</button>
+        </div>
+        <button class="fa-btn" onclick="q(&quot;#btn-new-devis&quot;).click()">Nouveau devis</button>
+      </div>
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
           <div class="kpi-icon green"><i class="ti ti-signature"></i></div>
@@ -697,13 +689,12 @@ const HTML = `<!DOCTYPE html>
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>N° Devis</th>
+                <th>Devis</th>
                 <th>Client</th>
-                <th>Description</th>
-                <th>Montant HT</th>
-                <th>Expiration</th>
-                <th>Statut</th>
+                <th>Envoyé</th>
+                <th>Expire</th>
+                <th class="fin-droite">Montant HT</th>
+                <th>Où ça en est</th>
                 <th></th>
               </tr>
             </thead>
@@ -754,6 +745,13 @@ const HTML = `<!DOCTYPE html>
           </select>
           <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
         </div>
+      </div>
+      <div class="fin-barre">
+        <div class="fin-pills" id="projets-pills">
+          <button class="fin-onglet on" data-s="" onclick="fvFiltre(&quot;projets&quot;,this.dataset.s)">En cours</button>
+          <button class="fin-onglet" data-s="termine" onclick="fvFiltre(&quot;projets&quot;,this.dataset.s)">Terminés</button>
+        </div>
+        <button class="fa-btn" onclick="q(&quot;#btn-new-projet&quot;).click()">Nouveau projet</button>
       </div>
       <div class="kpi-grid kpi-grid-4 mb-24">
         <div class="kpi-card">
@@ -858,6 +856,14 @@ const HTML = `<!DOCTYPE html>
           <div class="card-title"><i class="ti ti-chart-bar"></i> Évolution mensuelle</div>
           <div class="chart-wrap"><canvas id="chart-dep-mois" height="200"></canvas></div>
         </div>
+      </div>
+      <!-- Dépenses prévues -->
+      <div class="card" style="margin-top:24px;">
+        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="ti ti-calendar-stats"></i> Dépenses prévues</span>
+          <button class="btn btn-primary btn-sm" onclick="openDepensePrevueModal()"><i class="ti ti-plus"></i> Ajouter</button>
+        </div>
+        <div id="depenses-prevues-list"></div>
       </div>
     </section><!-- /depenses -->
 
@@ -3957,6 +3963,22 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 
 .fc-clos { margin-top:18px; display:flex; gap:18px; align-items:baseline; flex-wrap:wrap; font-size:15px; color:rgba(17,7,4,.7); }
 
+/* Devis, Projets, Clients */
+#section-devis .page-header, #section-projets .page-header, #section-tiers .page-header { display:none; }
+#section-projets > .kpi-grid, #section-tiers > .kpi-grid { display:none; }
+.fv-mini { display:flex; gap:3px; margin-top:6px; }
+.fv-mini i { width:14px; height:5px; border-radius:9px; background:#e6e0d4; }
+.fv-mini i.on { background:#110704; }
+.fv-ou .fin-cl__s { margin-top:4px; }
+.fv-p { display:grid; grid-template-columns:minmax(0,1.3fr) 150px minmax(0,1.2fr) 170px 330px; gap:18px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
+.fv-c { display:grid; grid-template-columns:minmax(0,1.3fr) 130px 90px 140px minmax(0,1.5fr) 90px; gap:18px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
+.fv-h { font-size:13.5px; color:rgba(17,7,4,.58); border-top:none; padding:12px 0; }
+.fv-h + div { border-top:none; }
+.fv-pn { display:block; font-family:'Cormorant Garamond',serif; font-size:23px; line-height:1.2; }
+.fv-r { text-align:right; white-space:nowrap; }
+.fv-notes { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.fv-p .fin-act { display:flex; justify-content:flex-end; align-items:center; gap:4px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4202,8 +4224,8 @@ async function dbSet(col, val){
    aucune donnée n'est supprimé. */
 const FIN_GROUPES={
   aujourdhui:[['dashboard','Aujourd’hui']],
-  tresorerie:[['enveloppes','Enveloppes'],['comptes','Comptes'],['transactions','Mouvements'],['objectifs-epargne','Objectifs d’épargne']],
-  factures:[['factures','Factures'],['devis','Devis'],['projets','Projets'],['tiers','Clients'],['crm','Prospects']],
+  tresorerie:[['enveloppes','Enveloppes'],['transactions','Mouvements']],
+  factures:[['factures','Factures'],['devis','Devis'],['projets','Projets'],['tiers','Clients']],
   charges:[['abonnements','Charges fixes'],['depenses','Dépenses du mois'],['charges-urssaf','Déclarations']],
   bilans:[['rapport-annuel','L’année'],['rapport-mensuel','Le mois'],['rapport-fiscal','Fiscal'],['simulateur','Simulateur']],
   reglages:[['options','Réglages'],['import-export','Import et export']]
@@ -4234,6 +4256,8 @@ function finJours(d){return Math.max(0,Math.round((new Date()-new Date(d))/86400
 function finCompte(sec){
   if(sec==='factures')return dbGet('factures').length;
   if(sec==='devis')return dbGet('devis').length;
+  if(sec==='projets')return dbGet('projets').filter(p=>p.statut!=='termine').length;
+  if(sec==='tiers')return fvClients().length;
   if(sec==='enveloppes')return (_enveloppes||[]).filter(e=>e.id!=='qonto'&&e.id!=='salaire').length;
   if(sec==='abonnements')return dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).length;
   if(sec==='depenses'){const k=finAuj().slice(0,7);return dbGet('depenses').filter(d=>(d.date||'').startsWith(k)).length;}
@@ -4402,7 +4426,6 @@ function fqMots(s){return fqNorm(s).split(' ').map(w=>w.replace(/[.,()]/g,'')).f
 /* Ce qui a déjà été reçu sur une facture ou un devis, d'après les mouvements reliés */
 function fqRecu(t,id){return Object.values(fqLiens()).filter(x=>x.t===t&&x.id===id).reduce((s,x)=>s+(x.m||0),0);}
 function fqReste(f){return Math.max(0,(f.montant||0)-fqRecu('facture',f.id));}
-function fqDevisRecu(d){const r=fqRecu('devis',d.id);return r?'<span class="fin-cl__s">'+fmt0(r)+' reçus</span>':'';}
 function fqRelieeFacture(id){return Object.values(fqLiens()).some(x=>(x.t==='facture'||x.t==='client')&&x.id===id);}
 function fqPayeesLibres(){return dbGet('factures').filter(f=>f.statut==='payee'&&f.typeFacture!=='qonto'&&!fqRelieeFacture(f.id));}
 function fqMemeClient(a,b){const nb=fqNorm(b);return !!a&&!!b&&(fqNorm(a)===nb||fqMots(a).some(w=>nb.indexOf(w)>=0));}
@@ -4781,6 +4804,98 @@ function fcBandeau(){
     '<button class="fa-btn fc-bgo" onclick="fcOuvrir()">'+(f.some(x=>x)?'Continuer':'Commencer')+'</button>';
 }
 function fqOuGarde(mKey){const v=(dbGetObj('settings').versementClos||{})[mKey];return v==='salaire'?' Ce que tu ne prends pas reste de côté dans ton salaire.':v==='tresorerie'?' Le reste est parti dans ta trésorerie.':'';}
+/* ─── Factures et devis : Devis, Projets, Clients (maquettes validées) ─── */
+let FV_CLIENTS='';
+function fvMini(n,tot){let h='<span class="fv-mini">';for(let i=0;i<tot;i++)h+='<i class="'+(i<n?'on':'')+'"></i>';return h+'</span>';}
+/* Reçu sur un devis : les factures payées de ses projets, ou les virements Qonto reliés au devis */
+function fvRecuDevis(d){
+  const p=dbGet('projets').filter(x=>x.devisId===d.id).map(x=>x.id);
+  const viaProjet=dbGet('factures').filter(f=>f.statut==='payee'&&p.indexOf(f.projetId)>=0).reduce((s,f)=>s+(f.montant||0),0);
+  return Math.max(viaProjet,fqRecu('devis',d.id));
+}
+function fvFiltre(sec,st){
+  if(sec==='tiers')FV_CLIENTS=st;else{const sel=q('#'+sec+'-filter-statut');if(sel)sel.value=st;}
+  qa('#'+sec+'-pills .fin-onglet').forEach(b=>b.classList.toggle('on',b.dataset.s===st));
+  ({devis:renderDevis,projets:renderProjets,tiers:renderTiers})[sec]();
+}
+function fvLignesDevis(list){
+  const auj=finAuj(),dm=x=>x?fmtDate(x).slice(0,5):'—';
+  return list.length?list.map(d=>{
+    const recu=d.statut==='signe'?fvRecuDevis(d):0,reste=Math.max(0,(d.montant||0)-recu);
+    const expire=d.statut==='envoye'&&d.dateExpiration&&d.dateExpiration<auj;
+    let ou;
+    if(d.statut==='signe')ou='<span class="fa-pas fa-p-m">signé</span><span class="fin-cl__s">'+(recu?(reste<0.5?'tout est reçu':fmt0(recu)+' reçus, reste '+fmt0(reste)):'rien reçu pour l’instant')+'</span>'+fvMini(Math.min(12,Math.round(recu/(d.montant||1)*12)),12);
+    else if(expire)ou='<span class="fa-pas fa-p-n">expiré</span>';
+    else if(d.statut==='envoye')ou='<span class="fa-pas fa-p-a">envoyé</span>'+(d.date?'<span class="fin-cl__s">sans réponse depuis '+finJours(d.date)+' jours</span>':'');
+    else if(d.statut==='refuse')ou='<span class="fa-pas fa-p-n">refusé</span>';
+    else ou='<span class="fa-pas fa-p-n">brouillon</span>';
+    return '<tr><td class="td-mono">'+faEsc(d.numero||'—')+'</td><td><span class="fin-cl">'+faEsc(d.client||'—')+'</span>'+(d.description?'<span class="fin-cl__s">'+faEsc(d.description)+'</span>':'')+'</td><td>'+dm(d.date)+'</td><td>'+dm(d.dateExpiration)+'</td><td class="td-amount">'+fmt(d.montant||0)+'</td><td class="fv-ou">'+ou+'</td><td class="fin-act">'+
+      (d.pdfKey?'<button class="fin-lien" data-id="'+d.id+'" data-n="'+faEsc(d.numero||'')+'" onclick="previewDevisPDF(this.dataset.id,this.dataset.n)">PDF</button>':'')+
+      (d.statut==='signe'&&!dbGet('projets').some(p=>p.devisId===d.id)?'<button class="fin-lien" data-id="'+d.id+'" onclick="creerProjetDepuisDevis(this.dataset.id)">Créer le projet</button>':'')+
+      '<button class="fin-lien" data-id="'+d.id+'" onclick="editDevis(this.dataset.id)">Modifier</button><button class="fin-lien" data-id="'+d.id+'" onclick="deleteDevis(this.dataset.id)">Supprimer</button></td></tr>';
+  }).join(''):'<tr><td colspan="7" class="fin-vide">Aucun devis</td></tr>';
+}
+function renderProjets(){
+  const st=q('#projets-filter-statut')?.value||'';
+  const factures=dbGet('factures'),mk=finAuj().slice(0,7),nomMois=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  let list=dbGet('projets').filter(p=>st==='termine'?p.statut==='termine':p.statut!=='termine');
+  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  const el=q('#projets-list');if(!el)return;
+  if(!list.length){el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">'+(st==='termine'?'Aucun projet terminé.':'Aucun projet en cours. Crée ton premier projet, ou pars d’un devis signé.')+'</p></div>';return;}
+  el.innerHTML='<div class="fa-blanc fin-liste"><div class="fv-p fv-h"><span>Projet</span><span>Facturation</span><span>Encaissé</span><span class="fv-r">Reste à facturer</span><span></span></div>'+list.map(p=>{
+    const lies=factures.filter(f=>f.projetId===p.id),facture=lies.reduce((s,f)=>s+(f.montant||0),0),payees=lies.filter(f=>f.statut==='payee'),dv=p.devisId&&dbGet('devis').find(d=>d.id===p.devisId),encaisse=Math.max(payees.reduce((s,f)=>s+(f.montant||0),0),dv?fvRecuDevis(dv):0);
+    const total=p.montantTotal||0,mensuel=p.type==='mensuel';
+    let mode,enc,n,reste,act='';
+    if(mensuel){
+      const parMois=p.dureeIndeterminee?total:(p.nombreMois?Math.round(total/p.nombreMois*100)/100:total);
+      const ceMois=lies.some(f=>(f.date||'').startsWith(mk));
+      mode=fmt0(parMois)+' par mois';enc=fmt0(encaisse)+' encaissés';n=Math.min(12,payees.length);
+      reste=ceMois?nomMois+' facturé':fmt0(parMois)+' en '+nomMois;
+      if(!ceMois&&p.statut!=='termine')act=fvBtnFacturer(p,parMois,'mensuel','Facturer '+nomMois);
+    }else{
+      const r=Math.max(0,total-Math.max(facture,encaisse));
+      mode=p.type==='echelonne'?'acompte et solde':'en une fois';
+      enc=fmt0(encaisse)+' sur '+fmt0(total);n=total>0?Math.min(12,Math.round(encaisse/total*12)):0;
+      reste=r>=0.5?fmt0(r):'—';
+      if(r>=0.5&&p.statut!=='termine'){
+        const acompte=p.type==='echelonne'&&!lies.some(f=>f.typeFacture==='acompte');
+        act=fvBtnFacturer(p,acompte?Math.round(total*0.3):r,p.type==='echelonne'?(acompte?'acompte':'solde'):'standard',p.type==='echelonne'?(acompte?'Facturer l’acompte':'Facturer le solde'):'Facturer');
+      }
+    }
+    if(!act)act=p.statut==='termine'||(!mensuel&&total>0&&encaisse>=total-0.5)?'<span class="fa-pas fa-p-n">terminé</span>':(facture>encaisse?'<span class="fin-cl__s">en attente de paiement</span>':'');
+    return '<div class="fv-p"><span><span class="fv-pn">'+faEsc(p.nom||'Projet')+'</span><span class="fin-cl__s">'+faEsc(p.client||'')+'</span></span><span class="fin-cl__s">'+mode+'</span><span><span class="fa-n">'+enc+'</span>'+fvMini(n,12)+'</span><span class="fa-n fv-r">'+reste+'</span><span class="fin-act">'+act+'<button class="fin-lien" data-id="'+p.id+'" onclick="editProjet(this.dataset.id)">Modifier</button><button class="fin-lien" data-id="'+p.id+'" onclick="deleteProjet(this.dataset.id)">Supprimer</button></span></div>';
+  }).join('')+'</div>';
+}
+function fvBtnFacturer(p,m,type,l){return '<button class="fa-btn fa-btn--c" data-id="'+p.id+'" data-m="'+Math.round(m)+'" data-t="'+type+'" onclick="fvFacturer(this.dataset.id,this.dataset.m,this.dataset.t)">'+l+'</button>';}
+function fvFacturer(id,m,t){const p=dbGet('projets').find(x=>x.id===id);if(!p)return;openFactureModal({client:p.client,projetId:p.id,montant:+m,typeFacture:t,statut:'attente'});}
+/* Clients : tous ceux des factures, des devis et des tiers, par encaissé de l'année */
+function fvClients(){
+  const noms={};const add=n=>{if(n&&String(n).trim())noms[String(n).trim()]=1;};
+  dbGet('factures').forEach(f=>add(f.client));dbGet('devis').forEach(d=>add(d.client));dbGet('tiers').filter(t=>!t.type||t.type==='client').forEach(t=>add(t.nom));
+  return Object.keys(noms);
+}
+function renderTiers(){
+  const el=q('#fv-clients');if(!el)return;
+  const y=String(new Date().getFullYear()),F=dbGet('factures'),Dv=dbGet('devis'),T=dbGet('tiers');
+  let rows=fvClients().map(nom=>{
+    const fs=F.filter(f=>f.client===nom),enc=fs.filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(y)).reduce((s,f)=>s+(f.montant||0),0);
+    const der=fs.map(f=>f.date||'').filter(Boolean).sort().pop();
+    const retard=fs.filter(finEnRetard).reduce((s,f)=>s+(f.montant||0),0);
+    const envoyes=Dv.filter(d=>d.client===nom&&d.statut==='envoye'),signes=Dv.filter(d=>d.client===nom&&d.statut==='signe'&&fvRecuDevis(d)<(d.montant||0)-0.5);
+    const alias=fqRegles().filter(r=>r.t==='alias'&&r.client===nom).map(r=>r.m.toUpperCase());
+    const notes=[];
+    if(retard)notes.push('<span class="fa-pas fa-p-r">'+fmt0(retard)+' en retard</span>');
+    envoyes.forEach(d=>notes.push('<span class="fa-pas fa-p-a">devis envoyé, '+fmt0(d.montant)+'</span>'));
+    signes.forEach(d=>notes.push('<span class="fin-cl__s">devis '+faEsc(d.numero||'')+' en cours</span>'));
+    if(alias.length)notes.push('<span class="fin-cl__s">payé par '+faEsc(alias.join(', '))+'</span>');
+    const t=T.find(x=>x.nom===nom);
+    return {nom:nom,enc:enc,retard:retard,devis:envoyes.length+signes.length,html:'<div class="fv-c"><span class="fv-pn">'+faEsc(nom)+'</span><span class="fa-n fv-r">'+(enc?fmt0(enc):'—')+'</span><span class="fa-n fv-r">'+(fs.length||'—')+'</span><span class="fa-n">'+(der?fmtDate(der):'—')+'</span><span class="fv-notes">'+notes.join('')+'</span><span class="fin-act">'+(t?'<button class="fin-lien" data-id="'+t.id+'" onclick="editTiers(this.dataset.id)">Modifier</button>':'')+'</span></div>'};
+  });
+  if(FV_CLIENTS==='devis')rows=rows.filter(r=>r.devis);
+  if(FV_CLIENTS==='retard')rows=rows.filter(r=>r.retard);
+  rows.sort((a,b)=>b.enc-a.enc||a.nom.localeCompare(b.nom));
+  el.innerHTML='<div class="fv-c fv-h"><span>Client</span><span class="fv-r">Encaissé '+y+'</span><span class="fv-r">Factures</span><span>Dernière facture</span><span>À savoir</span><span></span></div>'+(rows.length?rows.map(r=>r.html).join(''):'<p class="fa-vide">Aucun client ici.</p>');
+}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}
@@ -6150,39 +6265,6 @@ function loadTiers(){
   if(q('#tiers-kpi-top'))q('#tiers-kpi-top').textContent=top?.nom||'—';
   renderTiers();
 }
-function renderTiers(){
-  const search=q('#tiers-search')?.value.toLowerCase()||'';
-  const type=q('#tiers-filter-type')?.value||'';
-  const factures=dbGet('factures');
-  const payees=factures.filter(f=>f.statut==='payee');
-  let list=[...tiersData];
-  if(search)list=list.filter(t=>((t.nom||'')+(t.email||'')+(t.notes||'')).toLowerCase().includes(search));
-  if(type)list=list.filter(t=>t.type===type);
-  // Trier par CA décroissant pour les clients
-  const caParNom={};payees.forEach(f=>{caParNom[f.client]=(caParNom[f.client]||0)+(f.montant||0);});
-  list.sort((a,b)=>(caParNom[b.nom]||0)-(caParNom[a.nom]||0)||(a.nom||'').localeCompare(b.nom||''));
-  const tbody=q('#tiers-tbody');
-  if(!tbody)return;
-  const typeLabel={client:'Client',fournisseur:'Fournisseur',prestataire:'Prestataire'};
-  const typeBadge={client:'payee',fournisseur:'attente',prestataire:'retard'};
-  tbody.innerHTML=list.length?list.map(t=>{
-    const facs=factures.filter(f=>f.client===t.nom);
-    const ca=payees.filter(f=>f.client===t.nom).reduce((s,f)=>s+(f.montant||0),0);
-    const derniere=facs.sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
-    return\`<tr>
-      <td><strong>\${t.nom}</strong></td>
-      <td><span class="badge badge-\${typeBadge[t.type]||'attente'}">\${typeLabel[t.type]||t.type}</span></td>
-      <td class="td-muted">\${t.email||'—'}</td>
-      <td class="td-amount">\${ca>0?fmt(ca):'—'}</td>
-      <td style="text-align:center;">\${facs.length||'—'}</td>
-      <td>\${derniere?fmtDate(derniere.date):'—'}</td>
-      <td style="white-space:nowrap;">
-        <button class="btn btn-ghost btn-xs" onclick="editTiers('\${t.id}')">Modifier</button>
-        <button class="btn btn-ghost btn-xs" onclick="deleteTiers('\${t.id}')">Supprimer</button>
-      </td>
-    </tr>\`;
-  }).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-2);">Aucun tiers enregistré</td></tr>';
-}
 function openModalTiers(data={}){
   q('#modal-tiers-title').textContent=data.id?'Modifier le tiers':'Nouveau tiers';
   q('#ti-nom').value=data.nom||'';q('#ti-type').value=data.type||'client';
@@ -6556,27 +6638,7 @@ function renderDevis(){
     selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
   }
   const tbody=q('#devis-tbody');if(!tbody)return;
-  const sttBadge={brouillon:'attente',envoye:'attente',signe:'payee',refuse:'retard'};
-  const sttLabel={brouillon:'Brouillon',envoye:'Envoyé',signe:'Signé',refuse:'Refusé'};
-  const today=new Date().toISOString().slice(0,10);
-  tbody.innerHTML=list.length?list.map(d=>{
-    const expire=d.dateExpiration&&d.dateExpiration<today&&d.statut==='envoye';
-    return\`<tr>
-      <td>\${fmtDate(d.date)}</td>
-      <td class="td-mono">\${d.numero||'—'}</td>
-      <td>\${d.client||'—'}</td>
-      <td class="td-muted">\${d.description||'—'}</td>
-      <td class="td-amount">\${fmt(d.montant||0)}\${fqDevisRecu(d)}</td>
-      <td>\${d.dateExpiration?fmtDate(d.dateExpiration)+(expire?' <span style="color:var(--danger);font-size:11px;">expiré</span>':''):'<span style="color:var(--text-2);">—</span>'}</td>
-      <td><span class="badge badge-\${sttBadge[d.statut]||'attente'}">\${sttLabel[d.statut]||d.statut}</span></td>
-      <td style="white-space:nowrap;">
-        \${d.pdfKey?\`<button class="btn btn-sm" title="Voir PDF" onclick="previewDevisPDF('\${d.id}','\${d.numero}')"><i class="ti ti-file-filled"></i> PDF</button>\`:\`<span style="font-size:11px;color:var(--text-2);padding:2px 6px;">—</span>\`}
-        \${d.statut==='signe'?\`<button class="btn btn-sm" title="Créer un projet depuis ce devis" onclick="creerProjetDepuisDevis('\${d.id}')">Créer le projet</button>\`:''}
-        <button class="btn btn-ghost btn-xs" onclick="editDevis('\${d.id}')">Modifier</button>
-        <button class="btn btn-ghost btn-xs" onclick="deleteDevis('\${d.id}')">Supprimer</button>
-      </td>
-    </tr>\`;
-  }).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-2);">Aucun devis</td></tr>';
+  tbody.innerHTML=fvLignesDevis(list);
 }
 function openDevisModal(data={}){
   q('#modal-devis-title').textContent=data.id?'Modifier le devis':'Nouveau devis';
@@ -6670,157 +6732,6 @@ function loadProjets(){
   if(q('#proj-kpi-facture'))q('#proj-kpi-facture').textContent=fmt(totalFacture);
   if(q('#proj-kpi-reste'))q('#proj-kpi-reste').textContent=fmt(totalReste);
   renderProjets();
-}
-function renderProjets(){
-  const search=q('#projets-search')?.value.toLowerCase()||'';
-  const statut=q('#projets-filter-statut')?.value||'';
-  const client=q('#projets-filter-client')?.value||'';
-  const annee=q('#projets-filter-annee')?.value||'';
-  const mois=q('#projets-filter-mois')?.value||'';
-  const factures=dbGet('factures');
-  let list=[...dbGet('projets')];
-  if(search)list=list.filter(p=>((p.nom||'')+(p.client||'')).toLowerCase().includes(search));
-  if(statut)list=list.filter(p=>p.statut===statut);
-  if(client)list=list.filter(p=>p.client===client);
-  if(annee)list=list.filter(p=>(p.dateDebut||'').startsWith(annee));
-  if(mois)list=list.filter(p=>(p.dateDebut||'').slice(5,7)===mois);
-  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  // Mise à jour filtre années
-  const selAnnee=q('#projets-filter-annee');
-  if(selAnnee){
-    const all=dbGet('projets');
-    const annees=[...new Set(all.map(p=>(p.dateDebut||'').slice(0,4)).filter(Boolean))].sort().reverse();
-    const curA=selAnnee.value;
-    selAnnee.innerHTML=\`<option value="">Toutes années</option>\`+annees.map(a=>\`<option value="\${a}" \${a===curA?'selected':''}>\${a}</option>\`).join('');
-  }
-  // Mise à jour filtre clients
-  const selClient=q('#projets-filter-client');
-  if(selClient){
-    const all=dbGet('projets');
-    const clients=[...new Set(all.map(p=>p.client).filter(Boolean))].sort();
-    const curC=selClient.value;
-    selClient.innerHTML=\`<option value="">Tous clients</option>\`+clients.map(c=>\`<option value="\${c}" \${c===curC?'selected':''}>\${c}</option>\`).join('');
-  }
-  const container=q('#projets-list');if(!container)return;
-  if(!list.length){
-    container.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-2);">Aucun projet. Crée ton premier projet pour suivre ta facturation.</div>';
-    return;
-  }
-  const typeLabel={unique:'Unique',echelonne:'Échelonné',mensuel:'Mensuel'};
-  const typeIcon={unique:'ti-file-invoice',echelonne:'ti-stairs',mensuel:'ti-calendar-repeat'};
-  const sttBadge={en_cours:'payee',termine:'attente',pause:'retard'};
-  const sttLabel={en_cours:'En cours',termine:'Terminé',pause:'En pause'};
-  const typeFacLabel={standard:'Standard',acompte:'Acompte',intermediaire:'Intermédiaire',solde:'Solde',mensuel:'Mensuel'};
-  const statIcon={payee:'✅',attente:'⏳',retard:'🔴'};
-  function facRow(f,extra=''){
-    const badge=f.typeFacture&&f.typeFacture!=='standard'?\`<span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;margin-left:4px;">\${typeFacLabel[f.typeFacture]||f.typeFacture}</span>\`:'';
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;">
-      <span>\${statIcon[f.statut]||'⏳'}</span>
-      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${fmtDate(f.date)}</span>
-      <span style="font-size:12px;flex:1;">\${f.numero||'—'}\${badge}</span>
-      <span style="font-size:12px;font-weight:500;">\${fmt(f.montant||0)}</span>
-      <span class="badge badge-\${f.statut==='payee'?'payee':f.statut==='retard'?'retard':'attente'}" style="font-size:10px;">\${f.statut==='payee'?'Payée':f.statut==='retard'?'Retard':'Attente'}</span>
-      \${extra}
-    </div>\`;
-  }
-  function emptyRow(label,montant){
-    return\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;">
-      <span>📋</span>
-      <span style="font-size:12px;color:#6B6B6B;min-width:80px;">\${label}</span>
-      <span style="font-size:12px;flex:1;font-style:italic;">À émettre</span>
-      \${montant?'<span style="font-size:12px;font-weight:500;">'+fmt(montant)+'</span>':''}
-      <span></span>
-    </div>\`;
-  }
-  container.innerHTML=list.map(p=>{
-    const linked=factures.filter(f=>f.projetId===p.id);
-    const montantFacture=linked.reduce((s,f)=>s+(f.montant||0),0);
-    const pct=p.montantTotal>0?Math.min(100,Math.round(montantFacture/p.montantTotal*100)):0;
-    const reste=Math.max(0,(p.montantTotal||0)-montantFacture);
-    let facsHtml='';
-    if(p.type==='mensuel'&&p.dureeIndeterminee){
-      // Durée indéterminée : on affiche toutes les factures liées + 1 slot vide pour le prochain mois
-      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-      facsHtml=sorted.map(f=>facRow(f)).join('');
-      const mm=p.montantTotal||0;
-      facsHtml+=emptyRow('Prochain mois',mm);
-    }else if(p.type==='mensuel'&&p.nombreMois&&p.dateDebut){
-      const montantMensuel=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
-      for(let i=0;i<p.nombreMois;i++){
-        const slotDate=new Date(p.dateDebut+'T00:00:00');
-        slotDate.setMonth(slotDate.getMonth()+i);
-        const slotYM=slotDate.toISOString().slice(0,7);
-        const slotFacs=linked.filter(f=>(f.date||'').slice(0,7)===slotYM);
-        const dateLabel=MOIS_COURT[slotDate.getMonth()]+' '+slotDate.getFullYear();
-        if(slotFacs.length===0){
-          facsHtml+=emptyRow(dateLabel,montantMensuel);
-        }else if(slotFacs.length===1){
-          facsHtml+=facRow(slotFacs[0]);
-        }else{
-          // Doublon détecté
-          facsHtml+=\`<div style="background:#FFF3CD;border-left:3px solid #E8A838;border-radius:4px;padding:4px 8px;margin:2px 0;font-size:11px;color:#8a6508;"><i class="ti ti-alert-triangle"></i> ⚠️ \${slotFacs.length} factures sur \${dateLabel} — doublon probable</div>\`;
-          slotFacs.forEach(f=>facsHtml+=facRow(f));
-        }
-      }
-      // Factures hors-calendrier (date ne correspond à aucun slot)
-      linked.forEach(f=>{
-        const ym=(f.date||'').slice(0,7);
-        let inSlot=false;
-        for(let i=0;i<p.nombreMois;i++){
-          const sd=new Date(p.dateDebut+'T00:00:00');
-          sd.setMonth(sd.getMonth()+i);
-          if(sd.toISOString().slice(0,7)===ym){inSlot=true;break;}
-        }
-        if(!inSlot)facsHtml+=facRow(f);
-      });
-    }else if(p.type==='mensuel'&&p.nombreMois){
-      // Pas de dateDebut : affichage séquentiel
-      const mm=Math.round((p.montantTotal||0)/p.nombreMois*100)/100;
-      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-      facsHtml=sorted.map(f=>facRow(f)).join('');
-      const restantMois=Math.max(0,p.nombreMois-sorted.length);
-      for(let i=0;i<restantMois;i++)facsHtml+=emptyRow('—',mm);
-    }else if(p.type==='echelonne'){
-      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-      facsHtml=sorted.map(f=>facRow(f)).join('');
-      const hasAcompte=linked.some(f=>f.typeFacture==='acompte');
-      const hasSolde=linked.some(f=>f.typeFacture==='solde');
-      if(!hasAcompte)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Acompte</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
-      if(!hasSolde)facsHtml+=\`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #E8E8E4;opacity:0.6;"><span>📋</span><span style="font-size:10px;background:#E8E8E4;padding:1px 5px;border-radius:4px;">Solde</span><span style="font-size:12px;flex:1;font-style:italic;">À émettre</span><span></span></div>\`;
-    }else{
-      const sorted=linked.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-      facsHtml=sorted.map(f=>facRow(f)).join('');
-      if(!sorted.length)facsHtml=emptyRow('—',p.montantTotal);
-    }
-    return\`<div class="card mb-16" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #E8E8E4;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div class="kpi-icon blue" style="width:36px;height:36px;font-size:16px;flex-shrink:0;"><i class="ti \${typeIcon[p.type]||'ti-folder'}"></i></div>
-          <div>
-            <div style="font-weight:600;font-size:15px;">\${p.nom}</div>
-            <div style="font-size:12px;color:#6B6B6B;">\${p.client||'—'} · \${typeLabel[p.type]||p.type}\${p.type==='mensuel'?(p.dureeIndeterminee?' · indéterminé':' · '+p.nombreMois+' mois'):''}\${p.devisId?(' · <span style="color:#4CAF82;">📄 '+((dbGet("devis").find(x=>x.id===p.devisId))||{}).numero+'</span>'):''}
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="badge badge-\${sttBadge[p.statut]||'attente'}">\${sttLabel[p.statut]||p.statut}</span>
-          <button class="btn btn-ghost btn-xs" onclick="editProjet('\${p.id}')">Modifier</button>
-          <button class="btn btn-ghost btn-xs" onclick="deleteProjet('\${p.id}')">Supprimer</button>
-        </div>
-      </div>
-      <div style="padding:16px 20px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:#6B6B6B;margin-bottom:6px;">
-          <span>\${fmt(montantFacture)} facturé</span>
-          <span style="font-weight:500;">\${fmt(p.montantTotal||0)} total · <span style="color:\${reste>0?'var(--warning)':'var(--success)'};">\${reste>0?fmt(reste)+' restant':'✓ Complet'}</span></span>
-        </div>
-        <div style="background:#E8E8E4;border-radius:4px;height:8px;overflow:hidden;margin-bottom:\${facsHtml?16:4}px;">
-          <div style="background:\${pct>=100?'var(--success)':'#BAD1FD'};height:100%;width:\${pct}%;border-radius:4px;"></div>
-        </div>
-        \${facsHtml?'<div>'+facsHtml+'</div>':''}
-        \${p.notes?'<div style="margin-top:10px;font-size:12px;color:#6B6B6B;font-style:italic;">'+p.notes+'</div>':''}
-      </div>
-    </div>\`;
-  }).join('');
 }
 function openProjetModal(data={}){
   q('#modal-projet-title').textContent=data.id?'Modifier le projet':'Nouveau projet';
@@ -6944,6 +6855,7 @@ function deleteFacture(id){
 /* --- Dépenses --------------------------------------------------------- */
 let depensesData=[];
 function loadDepenses(){
+  renderDepensesPrevues();
   depensesData=dbGet('depenses');
   const y=new Date().getFullYear(),m=new Date().getMonth()+1;
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;
