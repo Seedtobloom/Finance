@@ -1393,6 +1393,27 @@ const HTML = `<!DOCTYPE html>
           </div>
         </div>
 
+        <!-- Seuils : rien en dur, valeurs légales à confirmer avec la comptable -->
+        <div class="card">
+          <div class="card-title">Seuils et objectifs</div>
+          <div class="form-group">
+            <label class="form-label">Seuil de franchise de TVA (€)</label>
+            <input type="number" id="opt-seuil-tva" class="form-input" value="37500" step="100" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Alerte si la projection de l’année le dépasse. Valeur à confirmer avec ta comptable.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plafond micro-entreprise (€)</label>
+            <input type="number" id="opt-plafond-micro" class="form-input" value="77700" step="100" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Valeur à confirmer avec ta comptable.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seuil du coussin (mois de charges fixes)</label>
+            <input type="number" id="opt-seuil-coussin" class="form-input" value="3" step="0.5" min="0" />
+            <span style="font-size:12px;color:var(--text-2);">Alerte si l’enveloppe Trésorerie couvre moins de mois que ce seuil.</span>
+          </div>
+          <p style="font-size:13px;color:var(--text-2);margin:0;">L’objectif annuel se règle dans Profil, la part trésorerie en % dans la répartition.</p>
+        </div>
+
         <!-- Charges fixes -->
         <div class="card">
           <div class="card-title"><i class="ti ti-repeat"></i> Charges fixes mensuelles</div>
@@ -3712,6 +3733,38 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fin-hero { margin-bottom:34px; }
 .fin-hero .fa-cartes { margin-top:30px; }
 .fa-cartes--2 { grid-template-columns:minmax(0,2fr) minmax(0,1fr); }
+.fin-bt { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; }
+.fin-bt > div:first-child { flex:1 1 420px; min-width:0; }
+#section-rapport-annuel.fin-h .page-header::before { content:'Le détail, mois par mois'; font:400 28px 'Cormorant Garamond', serif; margin-right:auto; }
+#section-rapport-mensuel.fin-h .page-header::before { content:'Le détail d’un autre mois'; font:400 28px 'Cormorant Garamond', serif; margin-right:auto; }
+.fin-bt__d { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.fin-bt__d .fa-btn { margin-left:14px; }
+#section-rapport-annuel .fin-onglets, #section-rapport-mensuel .fin-onglets { display:none; }
+.fin-b3 { grid-template-columns:repeat(3, minmax(0,1fr)); }
+.fin-bp { margin-top:10px; }
+.fin-bg { margin-top:22px; padding:28px 34px; }
+.fin-bg__h { display:flex; justify-content:space-between; align-items:baseline; gap:16px; flex-wrap:wrap; }
+.fin-bg__h .fa-mut { font-size:14px; }
+.fin-bars { position:relative; display:flex; align-items:flex-end; gap:12px; height:330px; margin-top:18px; }
+.fin-bars::before { content:''; position:absolute; left:0; right:0; bottom:calc(28px + var(--obj)); border-top:1px dashed #CD8F6E; }
+.fin-bc { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; position:relative; height:100%; }
+.fin-bc i { display:block; width:min(48px, 70%); border-radius:8px 8px 3px 3px; background:#DCD1C9; position:relative; z-index:1; }
+.fin-bc i.n { background:#110704; } .fin-bc i.c { background:#C5DEFF; }
+.fin-bc__v { font-size:12px; color:rgba(17,7,4,.6); margin-bottom:6px; min-height:15px; white-space:nowrap; }
+.fin-bc__m { font-size:12px; color:rgba(17,7,4,.6); margin-top:8px; height:20px; white-space:nowrap; }
+.fin-bc--c .fin-bc__m { color:#110704; font-weight:600; }
+.fin-bl { display:grid; grid-template-columns:minmax(0,1fr) auto 120px; gap:24px; align-items:baseline; padding:14px 0; border-top:1px solid #efeae1; font-size:16px; }
+.fin-bl .fa-n { text-align:right; }
+.fa-h2 + .fin-bl { border-top:none; }
+#section-rapport-annuel.fin-h .page-header, #section-rapport-mensuel.fin-h .page-header { justify-content:flex-start; }
+@media (max-width: 900px) {
+  .fin-b3 { grid-template-columns:1fr; }
+  .fin-bg { padding:22px 20px; }
+  .fin-bars { gap:6px; height:260px; }
+  .fin-bc__v { font-size:10px; }
+  .fin-bl { grid-template-columns:minmax(0,1fr) auto; }
+  .fin-bl .fa-mut { display:none; }
+}
 .fa-sous .fin-lien { font-size:17px; }
 .fin-btns { display:flex; gap:10px; flex-wrap:wrap; }
 .fin-lien { border:none; background:none; padding:0; cursor:pointer; font:500 14px 'Inter Tight',sans-serif; color:#110704; text-decoration:underline; text-underline-offset:3px; text-decoration-color:rgba(17,7,4,.35); }
@@ -4062,6 +4115,7 @@ function finOnglets(sec){
 const FIN_TITRES={
   factures:['Factures et devis',''],
   tresorerie:['Trésorerie','Ton argent Qonto, rangé en enveloppes.'],
+  bilans:['Bilans','Ce que l’année raconte, et ce qu’il faut à ta comptable.'],
   charges:['Charges et URSSAF','Ce qui sort chaque mois, abonnements compris, et ce que tu dois déclarer.']
 };
 function finAuj(){return new Date().toISOString().slice(0,10);}
@@ -4081,6 +4135,7 @@ function finHeroMaj(g){
   const h=q('.fin-hero[data-groupe="'+g+'"]');if(!h)return;
   if(g==='factures')h.innerHTML=finHeroFactures();
   else if(g==='charges')h.innerHTML=finHeroCharges();
+  else if(g==='bilans')h.innerHTML=finHeroBilans((h.closest('.section')||{}).id.replace('section-',''));
   else if(g==='tresorerie'){
     if((_enveloppes||[]).length||FIN_ENV_CHARGE)h.innerHTML=finHeroTreso();
     else{h.innerHTML=finTete(g);FIN_ENV_CHARGE=true;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];finHeroMaj('tresorerie');}).catch(()=>{});}
@@ -4127,6 +4182,48 @@ function finHeroCharges(){
   const tot=payes.reduce((s,k)=>s+((U[k+'-'+y]||{}).montantPaye||0),0);
   const blanc='<div class="fa-blanc"><div class="fa-k2">Déclarations '+y+'</div><div class="fa-gros2">'+payes.length+' <em>sur 4 payées</em></div>'+faTirets(payes.length,4)+'<p class="fa-p">'+(tot?fmt0(tot)+' versés à l’URSSAF cette année.':'Rien de payé pour l’instant cette année.')+'</p></div>';
   return finTete('charges')+'<div class="fa-cartes fa-cartes--2">'+carte+blanc+'</div>';
+}
+/* Bilans (maquette p6) : quatre chiffres, les mois en barres, les clients */
+function finExportCompta(){exportCSV('factures');setTimeout(()=>exportCSV('depenses'),500);toast('Factures et dépenses exportées en CSV','success');}
+function finHeroBilans(sec){
+  const S=dbGetObj('settings'),U=dbGetObj('urssaf'),F=dbGet('factures'),D=dbGet('depenses'),now=new Date(),y=now.getFullYear(),mc=now.getMonth()+1,mois=sec==='rapport-mensuel';
+  const aussi=' Voir aussi <button class="fin-lien" data-s="rapport-fiscal" onclick="finGo(this)">le bilan fiscal</button> et <button class="fin-lien" data-s="simulateur" onclick="finGo(this)">le simulateur</button>.';
+  const pil=(s2,t)=>'<button class="fin-onglet'+(sec===s2?' on':'')+'" data-s="'+s2+'" onclick="finGo(this)">'+t+'</button>';
+  const tete='<div class="fin-bt"><div>'+finTete('bilans',(mois?'Ce que le mois raconte':'Ce que l’année raconte')+', et ce qu’il faut à ta comptable.'+aussi)+'</div><div class="fin-bt__d">'+pil('rapport-mensuel',MOIS_LONG[mc-1])+pil('rapport-annuel',String(y))+'<button class="fa-btn" onclick="finExportCompta()">Export pour la comptable</button></div></div>';
+  if(sec!=='rapport-annuel'&&!mois)return tete;
+  if(!(_enveloppes||[]).length&&!finHeroBilans._env){finHeroBilans._env=1;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];finHeroMaj('bilans');}).catch(()=>{});}
+  const dp=f=>f.datePaiement||f.date||'';
+  const cle=m=>y+'-'+String(m).padStart(2,'0');
+  const pref=mois?cle(mc):String(y);
+  const somme=(l,v)=>l.reduce((s,x)=>s+(v(x)||0),0);
+  const payees=F.filter(f=>f.statut==='payee'&&dp(f).startsWith(String(y)));
+  const parMois=[];for(let m=1;m<=mc;m++)parMois.push(somme(payees.filter(f=>dp(f).startsWith(cle(m))),f=>f.montant));
+  const obj=S.objectifCA||60000,objM=Math.round(obj/12);
+  const periode=payees.filter(f=>dp(f).startsWith(pref));
+  const enc=somme(periode,f=>f.montant);
+  const au=parMois.filter(v=>v>=objM).length;
+  const sal=(_enveloppes||[]).find(e=>e.id==='salaire');
+  const verse=somme(sal?(sal.transactions||[]).filter(t=>t.type==='credit'&&(t.date||'').startsWith(pref)):[],t=>t.montant)+somme(D.filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(pref)),d=>d.montant);
+  const decl=['T1','T2','T3','T4'].map(k=>U[k+'-'+y]||{}).filter(d=>d.statut==='paye'&&(!mois||(d.datePaye||'').startsWith(pref)));
+  const urs=somme(decl,d=>d.montantPaye);
+  const carte=(k,v,p)=>'<div class="fa-blanc"><div class="fa-k2">'+k+'</div><div class="fa-gros2 fa-n">'+v+'</div><p class="fa-p fin-bp">'+p+'</p></div>';
+  const cartes='<div class="fa-cartes fin-b3">'+
+    carte('Encaissé',fmt0(enc),mois?(enc>=objM?'objectif du mois atteint, '+fmt0(objM):'objectif du mois '+fmt0(objM)+', il manque '+fmt0(objM-enc)):mc+' mois, '+(au?au+' mois au-dessus de l’objectif':'aucun mois au-dessus de l’objectif'))+
+    carte('Versé à toi',fmt0(verse),mois?'depuis l’enveloppe Salaire':fmt0(verse/mc)+' par mois en moyenne')+
+    carte('URSSAF payée',fmt0(urs),mois?(decl.length?decl.length+' déclaration payée ce mois-ci':'rien de payé ce mois-ci'):decl.length+' déclaration'+(decl.length>1?'s':'')+' sur 4')+
+  '</div>';
+  const max=Math.max(objM,...parMois)||1,H=250;
+  let barres='';
+  parMois.forEach((v,i)=>{
+    const m=i+1,cour=m===mc,noir=v>=objM,h=Math.max(v>0?4:0,Math.round(v/max*H));
+    barres+='<div class="fin-bc'+(cour?' fin-bc--c':'')+'" title="'+MOIS_LONG[i]+' : '+fmt0(v)+'"><span class="fin-bc__v fa-n">'+(noir||cour?fmt0(v).replace(/\s?€/,''):'')+'</span><i class="'+(cour?'c':noir?'n':'')+'" style="height:'+h+'px"></i><span class="fin-bc__m">'+new Date(y,i,1).toLocaleDateString('fr-FR',{month:'short'})+'</span></div>';
+  });
+  const graph='<div class="fa-blanc fin-bg"><div class="fin-bg__h"><h2 class="fa-h2">Encaissé chaque mois</h2><span class="fa-mut">en noir, les mois où l’objectif de '+fmt0(objM)+' est atteint</span></div>'+
+    '<div class="fin-bars" style="--obj:'+Math.round(objM/max*H)+'px">'+barres+'</div></div>';
+  const cl={};periode.forEach(f=>{const n=f.client||'Sans client';cl[n]=cl[n]||{m:0,n:0};cl[n].m+=f.montant||0;cl[n].n++;});
+  const lignes=Object.keys(cl).sort((a,b)=>cl[b].m-cl[a].m).map(n=>'<div class="fin-bl"><span class="fa-ligne__t">'+faEsc(n)+'</span><span class="fa-mut">'+cl[n].n+' facture'+(cl[n].n>1?'s':'')+'</span><span class="fa-n">'+fmt0(cl[n].m)+'</span></div>').join('');
+  const clients='<div class="fa-blanc fin-bg"><h2 class="fa-h2">Par client</h2>'+(lignes||'<p class="fa-vide">Aucune facture encaissée '+(mois?'ce mois-ci':'cette année')+'.</p>')+'</div>';
+  return tete+cartes+graph+clients;
 }
 function finProposition(){
   const E=_enveloppes||[],qo=E.find(e=>e.id==='qonto');let reste=qo?Math.floor(qo.solde||0):0;const out=[];
@@ -7094,6 +7191,9 @@ function loadOptions(){
   if(q('#opt-versement'))q('#opt-versement').value=s.pctVersement||65;
   if(q('#opt-epargne-pct'))q('#opt-epargne-pct').value=s.pctEpargne||15;
   if(q('#opt-tresorerie-pct'))q('#opt-tresorerie-pct').value=s.pctTresorerie||20;
+  if(q('#opt-seuil-tva'))q('#opt-seuil-tva').value=s.seuilTva||37500;
+  if(q('#opt-plafond-micro'))q('#opt-plafond-micro').value=s.plafondMicro||77700;
+  if(q('#opt-seuil-coussin'))q('#opt-seuil-coussin').value=s.seuilCoussin||3;
   updateOptTotal();
 }
 function updateOptTotal(){
@@ -7110,6 +7210,7 @@ async function saveOptions(){
   const t=parseFloat(q('#opt-tresorerie-pct')?.value)||20;
   if(v+e+t!==100){toast('Versement + Épargne + Trésorerie doit être égal à 100%','error');return;}
   const body={
+    ...dbGetObj('settings'),
     nom:q('#opt-nom').value.trim(),
     entreprise:q('#opt-entreprise').value.trim(),
     email:q('#opt-email').value.trim(),
@@ -7122,7 +7223,10 @@ async function saveOptions(){
     qontoDateDebut:q('#opt-qonto-date-debut')?.value||'2026-01-01',
     pctFormation:parseFloat(q('#opt-pct-formation')?.value)||10,
     cfe:parseFloat(q('#opt-cfe').value)||0,
-    pctVersement:v,pctEpargne:e,pctTresorerie:t
+    pctVersement:v,pctEpargne:e,pctTresorerie:t,
+    seuilTva:parseFloat(q('#opt-seuil-tva')?.value)||37500,
+    plafondMicro:parseFloat(q('#opt-plafond-micro')?.value)||77700,
+    seuilCoussin:parseFloat(q('#opt-seuil-coussin')?.value)||3
   };
   try{
     await dbSet('settings',body);
