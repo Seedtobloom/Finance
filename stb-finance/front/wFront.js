@@ -190,6 +190,7 @@ const HTML = `<!DOCTYPE html>
          TRANSACTIONS
          ═══════════════════════════ -->
     <section id="section-transactions" class="section">
+      <div id="fq-zone"></div>
       <div class="page-header">
         <div class="page-header-left">
           <h1>Transactions</h1>
@@ -1326,6 +1327,7 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-save-options"><i class="ti ti-check"></i> Enregistrer</button>
         </div>
       </div>
+      <div class="fa-blanc fq-regles" id="fq-regles"></div>
 
       <div class="grid-2">
         <!-- Profil -->
@@ -3847,6 +3849,32 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 #main .urssaf-card, #main .urssaf-card.alerte-rouge, #main .urssaf-card.alerte-orange { background:#fff; border:none; border-radius:18px; box-shadow:0 0 0 1px rgba(17,7,4,.07), 0 2px 6px rgba(17,7,4,.08); }
 #main .urssaf-countdown, #main .urssaf-countdown.rouge, #main .urssaf-countdown.orange { color:#5A2A11; }
 
+/* Qonto relié partout */
+#section-transactions .page-header, #section-transactions > .card { display:none; }
+.fq-tete { flex-direction:row; align-items:center; }
+.fq-bloc { margin-top:14px; }
+.fq-h { display:flex; justify-content:space-between; align-items:baseline; margin-top:34px; }
+.fq-l { display:grid; grid-template-columns:64px minmax(0,1fr) 120px minmax(0,1.25fr); gap:20px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
+.fq-l:first-child { border-top:none; }
+.fq-d { font-size:13.5px; color:rgba(17,7,4,.58); }
+.fq-n { font-weight:500; overflow-wrap:anywhere; }
+.fq-s { font-size:13.5px; color:rgba(17,7,4,.58); }
+.fq-s .fin-lien { font-size:13.5px; }
+.fq-m { text-align:right; font-weight:500; }
+.fq-ch { display:flex; gap:8px; flex-wrap:wrap; }
+.fq-ch .fin-onglet { padding:7px 13px; font-size:14px; }
+.fq-q { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.fq-chg { margin-left:auto; font-size:13px; color:rgba(17,7,4,.6); }
+.fq-l2 { font-size:14px; border-top-color:rgba(90,42,17,.15); padding:9px 0; }
+.fq-regles { margin-bottom:24px; }
+.fq-r { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; gap:16px; align-items:center; padding:12px 0; border-top:1px solid #efeae1; font-size:15px; }
+.fq-modale { position:fixed; inset:0; z-index:9000; background:rgba(17,7,4,.45); display:none; align-items:center; justify-content:center; padding:20px; }
+.fq-fen { background:#fff; border-radius:20px; padding:28px 30px; width:100%; max-width:460px; display:flex; flex-direction:column; gap:12px; }
+.fq-champs { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fq-champs label { display:flex; flex-direction:column; gap:6px; font-size:13.5px; }
+.fq-bas { display:flex; justify-content:flex-end; gap:10px; margin-top:6px; }
+@media (max-width: 1100px) { .fq-l { grid-template-columns:56px minmax(0,1fr) auto; } .fq-ch, .fq-q { grid-column:1 / -1; } }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4186,12 +4214,11 @@ function finHeroCharges(){
 /* Bilans (maquette p6) : quatre chiffres, les mois en barres, les clients */
 function finExportCompta(){exportCSV('factures');setTimeout(()=>exportCSV('depenses'),500);toast('Factures et dépenses exportées en CSV','success');}
 function finHeroBilans(sec){
-  const S=dbGetObj('settings'),U=dbGetObj('urssaf'),F=dbGet('factures'),D=dbGet('depenses'),now=new Date(),y=now.getFullYear(),mc=now.getMonth()+1,mois=sec==='rapport-mensuel';
+  const S=dbGetObj('settings'),U=dbGetObj('urssaf'),F=dbGet('factures'),now=new Date(),y=now.getFullYear(),mc=now.getMonth()+1,mois=sec==='rapport-mensuel';
   const aussi=' Voir aussi <button class="fin-lien" data-s="rapport-fiscal" onclick="finGo(this)">le bilan fiscal</button> et <button class="fin-lien" data-s="simulateur" onclick="finGo(this)">le simulateur</button>.';
   const pil=(s2,t)=>'<button class="fin-onglet'+(sec===s2?' on':'')+'" data-s="'+s2+'" onclick="finGo(this)">'+t+'</button>';
   const tete='<div class="fin-bt"><div>'+finTete('bilans',(mois?'Ce que le mois raconte':'Ce que l’année raconte')+', et ce qu’il faut à ta comptable.'+aussi)+'</div><div class="fin-bt__d">'+pil('rapport-mensuel',MOIS_LONG[mc-1])+pil('rapport-annuel',String(y))+'<button class="fa-btn" onclick="finExportCompta()">Export pour la comptable</button></div></div>';
   if(sec!=='rapport-annuel'&&!mois)return tete;
-  if(!(_enveloppes||[]).length&&!finHeroBilans._env){finHeroBilans._env=1;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];finHeroMaj('bilans');}).catch(()=>{});}
   const dp=f=>f.datePaiement||f.date||'';
   const cle=m=>y+'-'+String(m).padStart(2,'0');
   const pref=mois?cle(mc):String(y);
@@ -4202,14 +4229,13 @@ function finHeroBilans(sec){
   const periode=payees.filter(f=>dp(f).startsWith(pref));
   const enc=somme(periode,f=>f.montant);
   const au=parMois.filter(v=>v>=objM).length;
-  const sal=(_enveloppes||[]).find(e=>e.id==='salaire');
-  const verse=somme(sal?(sal.transactions||[]).filter(t=>t.type==='credit'&&(t.date||'').startsWith(pref)):[],t=>t.montant)+somme(D.filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(pref)),d=>d.montant);
+  const verse=somme(fqVersements(pref),d=>d.montant);
   const decl=['T1','T2','T3','T4'].map(k=>U[k+'-'+y]||{}).filter(d=>d.statut==='paye'&&(!mois||(d.datePaye||'').startsWith(pref)));
   const urs=somme(decl,d=>d.montantPaye);
   const carte=(k,v,p)=>'<div class="fa-blanc"><div class="fa-k2">'+k+'</div><div class="fa-gros2 fa-n">'+v+'</div><p class="fa-p fin-bp">'+p+'</p></div>';
   const cartes='<div class="fa-cartes fin-b3">'+
     carte('Encaissé',fmt0(enc),mois?(enc>=objM?'objectif du mois atteint, '+fmt0(objM):'objectif du mois '+fmt0(objM)+', il manque '+fmt0(objM-enc)):mc+' mois, '+(au?au+' mois au-dessus de l’objectif':'aucun mois au-dessus de l’objectif'))+
-    carte('Versé à toi',fmt0(verse),mois?'depuis l’enveloppe Salaire':fmt0(verse/mc)+' par mois en moyenne')+
+    carte('Versé à toi',fmt0(verse),mois?'tes versements du mois':fmt0(verse/mc)+' par mois en moyenne')+
     carte('URSSAF payée',fmt0(urs),mois?(decl.length?decl.length+' déclaration payée ce mois-ci':'rien de payé ce mois-ci'):decl.length+' déclaration'+(decl.length>1?'s':'')+' sur 4')+
   '</div>';
   const max=Math.max(objM,...parMois)||1,H=250;
@@ -4269,12 +4295,202 @@ function finFactFiltre(st){
   renderFactures();
 }
 function finFactPlus(){const s=q('#section-factures');const on=s.classList.toggle('fin-plus');q('#fac-plus').textContent=on?'Moins de filtres':'Plus de filtres';}
+/* ─── Qonto relié partout : chaque mouvement est rattaché à ce qu'il représente ───
+   Les liens (mouvement → facture, trimestre URSSAF, charge fixe, dépense, versement)
+   et les règles apprises vivent dans les réglages : qontoLiens, qontoRegles. */
+const FQ_TYPES={facture:['facture payée','fa-p-a'],urssaf:['URSSAF','fa-p-n'],charge:['charge fixe','fa-p-n'],depense:['dépense','fa-p-n'],versement:['pour toi','fa-p-m'],epargne:['mis de côté','fa-p-n'],entree:['entrée','fa-p-n'],ignore:['pas pro','fa-p-n']};
+const FQ_DIACR=new RegExp('['+String.fromCharCode(768)+'-'+String.fromCharCode(879)+']','g');
+let FQ_MOUV=null,FQ_EN_COURS=false,FQ_DERNIER=0,FQ_CREE=false;
+function fqNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(FQ_DIACR,'').split(' ').filter(Boolean).join(' ');}
+function fqLiens(){const s=dbGetObj('settings');return s.qontoLiens&&typeof s.qontoLiens==='object'?s.qontoLiens:{};}
+function fqRegles(){const s=dbGetObj('settings');return Array.isArray(s.qontoRegles)?s.qontoRegles:[];}
+async function fqEnregistrer(liens,regles){await dbSet('settings',Object.assign({},dbGetObj('settings'),{qontoLiens:liens,qontoRegles:regles}));}
+function fqMouvements(){return (FQ_MOUV||[]).filter(t=>t&&t.qontoId&&t.date).sort((a,b)=>b.date.localeCompare(a.date));}
+function fqDm(d){return d?d.slice(8,10)+'/'+d.slice(5,7):'';}
+function fqJour(d){return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'});}
+function fqEch(k){const t=k.slice(0,2),y=+k.slice(3);return {T1:y+'-04-30',T2:y+'-07-31',T3:y+'-11-02',T4:(y+1)+'-02-01'}[t];}
+function fqNomT(k){return {T1:'1er trimestre',T2:'2e trimestre',T3:'3e trimestre',T4:'4e trimestre'}[k.slice(0,2)]+' '+k.slice(3);}
+function fqRegle(tx){const l=fqNorm(tx.libelle);return fqRegles().find(r=>r.m&&l.indexOf(r.m)>=0&&(!r.sens||r.sens===tx.type));}
+function fqMots(s){return fqNorm(s).split(' ').filter(w=>w.length>=4);}
+function fqFactures(tx){
+  const l=fqNorm(tx.libelle),dejaPayees={};Object.values(fqLiens()).forEach(x=>{if(x.t==='facture')dejaPayees[x.id]=1;});
+  const c=dbGet('factures').filter(f=>f.statut!=='payee'&&!dejaPayees[f.id]&&Math.abs((f.montant||0)-tx.montant)<0.5);
+  const nom=c.filter(f=>fqMots(f.client).some(w=>l.indexOf(w)>=0));
+  return {toutes:c,parNom:nom};
+}
+function fqUrssaf(tx){
+  const U=dbGetObj('urssaf'),y=+tx.date.slice(0,4),cles=[];
+  ['T1','T2','T3','T4'].forEach(t=>{cles.push(t+'-'+y);});cles.push('T4-'+(y-1));
+  const libres=cles.filter(k=>(U[k]||{}).statut!=='paye');
+  libres.sort((a,b)=>Math.abs(new Date(fqEch(a))-new Date(tx.date))-Math.abs(new Date(fqEch(b))-new Date(tx.date)));
+  return libres[0]||null;
+}
+function fqAbo(tx){
+  const l=fqNorm(tx.libelle);
+  return dbGet('abonnements').find(a=>(a.statut==='actif'||!a.statut)&&fqMots(a.nom).some(w=>l.indexOf(w)>=0)&&Math.abs((a.montant||0)-tx.montant)<=Math.max(2,(a.montant||0)*0.15));
+}
+/* Ce que l'outil propose pour un mouvement qu'il ne sait pas relier seul */
+function fqChoix(tx){
+  if(tx.type==='credit'){
+    const f=fqFactures(tx).toutes.slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+fmt0(x.montant)}));
+    return f.concat([{t:'entree',l:'Autre entrée'}]);
+  }
+  return [{t:'versement',l:'Pour toi'},{t:'epargne',l:'Mis de côté'},{t:'charge',l:'Charge fixe'},{t:'depense',l:'Dépense du mois'},{t:'ignore',l:'Pas pro'}];
+}
+function fqQuestion(tx){
+  if(tx.type==='credit'){const n=fqFactures(tx).toutes.length;return n>1?n+' factures possibles':n?'Une facture possible':'Aucune facture à ce montant';}
+  return 'C’est quoi ?';
+}
+/* Les effets d'un lien sur le reste de l'outil. Renvoie la cible reliée. */
+async function fqAppliquer(tx,t,id){
+  FQ_CREE=false;
+  if(t==='facture'){const f=dbGet('factures').find(x=>x.id===id);if(f&&f.statut!=='payee')await dbUpdate('factures',Object.assign({},f,{statut:'payee',datePaiement:tx.date}));return id;}
+  if(t==='urssaf'){const k=id||fqUrssaf(tx);if(!k)return null;await api('PUT','/api/urssaf/'+k,{statut:'paye',montantPaye:tx.montant,datePaye:tx.date});_cache.urssaf=await api('GET','/api/urssaf');return k;}
+  if(t==='versement'){
+    const pris={};Object.values(fqLiens()).forEach(x=>{if(x.t==='versement')pris[x.id]=1;});
+    const manuel=dbGet('depenses').find(d=>d.categorie==='Versement perso'&&!pris[d.id]&&Math.abs((d.montant||0)-tx.montant)<0.5&&Math.abs(new Date(d.date)-new Date(tx.date))<=7*86400000);
+    if(manuel)return manuel.id;
+    const d=await dbCreate('depenses',{date:tx.date,description:'Versement perso',categorie:'Versement perso',montant:tx.montant});FQ_CREE=true;return d.id;
+  }
+  if(t==='depense'){const d=await dbCreate('depenses',{date:tx.date,description:tx.libelle||'Dépense',categorie:'Autre',montant:tx.montant});FQ_CREE=true;return d.id;}
+  if(t==='charge'){
+    if(id)return id;
+    const a=fqAbo(tx);if(a)return a.id;
+    const n=await dbCreate('abonnements',{nom:tx.libelle||'Charge fixe',montantMensuel:tx.montant,jourPrelevement:+tx.date.slice(8,10)||1,statut:'actif'});return n.id;
+  }
+  return id||null;
+}
+function fqLien(tx,t,id,auto){const c=FQ_CREE;FQ_CREE=false;return {t:t,id:id||null,d:tx.date,m:tx.montant,l:tx.libelle||'',s:tx.type,a:auto?1:0,c:c?1:0};}
+/* Récupère les mouvements Qonto et relie tout seul ce qui est sûr */
+async function fqRelier(force){
+  if(FQ_EN_COURS)return false;
+  if(!force&&FQ_MOUV&&Date.now()-FQ_DERNIER<60000)return false;
+  FQ_EN_COURS=true;let change=false;
+  try{
+    try{await syncQonto(true);}catch(e){}
+    try{const r=await api('GET','/api/qonto/mouvements');FQ_MOUV=Array.isArray(r)?r:[];}catch(e){FQ_MOUV=FQ_MOUV||[];}
+    FQ_DERNIER=Date.now();
+    const liens=Object.assign({},fqLiens()),limite=new Date(Date.now()-120*86400000).toISOString().slice(0,10);
+    for(const tx of fqMouvements()){
+      if(liens[tx.qontoId]||tx.date<limite)continue;
+      const r=fqRegle(tx);let t=null,id=null;
+      if(r){t=r.t;id=r.t==='charge'?r.id:null;}
+      else if(tx.type==='credit'){const f=fqFactures(tx);if(f.parNom.length===1){t='facture';id=f.parNom[0].id;}else if(f.toutes.length===1&&f.parNom.length===0&&fqNorm(tx.libelle).length<3){t='facture';id=f.toutes[0].id;}}
+      else if(fqNorm(tx.libelle).indexOf('urssaf')>=0){t='urssaf';}
+      else{const a=fqAbo(tx);if(a){t='charge';id=a.id;}}
+      if(!t)continue;
+      try{const cible=await fqAppliquer(tx,t,id);liens[tx.qontoId]=fqLien(tx,t,cible,true);change=true;}catch(e){}
+    }
+    if(change)await fqEnregistrer(liens,fqRegles());
+  }finally{FQ_EN_COURS=false;}
+  return change;
+}
+function fqARanger(){
+  const liens=fqLiens(),limite=new Date(Date.now()-60*86400000).toISOString().slice(0,10);
+  return fqMouvements().filter(t=>!liens[t.qontoId]&&t.date>=limite);
+}
+async function fqRanger(qid,t,id){
+  const tx=fqMouvements().find(x=>x.qontoId===qid);if(!tx)return;
+  try{
+    const cible=await fqAppliquer(tx,t,id);
+    const liens=Object.assign({},fqLiens());liens[qid]=fqLien(tx,t,cible,false);
+    let regles=fqRegles();
+    if(t!=='facture'&&t!=='entree'){const m=fqNorm(tx.libelle);if(m.length>=3){regles=regles.filter(r=>r.m!==m);regles.push({m:m,t:t,id:t==='charge'?cible:null,sens:tx.type});}}
+    await fqEnregistrer(liens,regles);
+    toast('Mouvement rangé','success');
+  }catch(e){toast('Erreur : '+e.message,'error');}
+  fqRafraichir();
+}
+async function fqDelier(qid){
+  const liens=Object.assign({},fqLiens()),x=liens[qid];if(!x)return;
+  if(!await confirmDialog('Changer ce mouvement ?','Il repasse dans « à ranger ».'))return;
+  try{
+    if(x.c&&(x.t==='depense'||x.t==='versement')&&x.id&&dbGet('depenses').some(v=>v.id===x.id))await dbDelete('depenses',x.id);
+    if(x.t==='facture'&&x.id){const f=dbGet('factures').find(v=>v.id===x.id);if(f&&f.statut==='payee'&&f.datePaiement===x.d)await dbUpdate('factures',Object.assign({},f,{statut:'attente',datePaiement:''}));}
+    delete liens[qid];await fqEnregistrer(liens,fqRegles());
+  }catch(e){toast('Erreur : '+e.message,'error');}
+  fqRafraichir();
+}
+async function fqOublier(i){
+  const r=fqRegles().slice();r.splice(i,1);await fqEnregistrer(fqLiens(),r);toast('Règle oubliée');fqRenderRegles();
+}
+function fqRafraichir(){
+  const s=q('.section.active');const id=s?s.id.replace('section-',''):'';
+  if(id==='transactions')fqRender();
+  else if(id==='dashboard')loadAujourdhui();
+  else if(id==='factures')loadFactures();
+  else if(id==='abonnements')loadAbonnements();
+  else if(id==='options')fqRenderRegles();
+}
+/* Ce que dit un lien, en une phrase, avec un lien vers l'écran concerné */
+function fqQuoi(x){
+  if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button> passée en payée';}
+  if(x.t==='urssaf')return x.id?'<button class="fin-lien" data-s="charges-urssaf" onclick="finGo(this)">'+fqNomT(x.id)+'</button> marqué payé':'URSSAF';
+  if(x.t==='charge'){const a=dbGet('abonnements').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="abonnements" onclick="finGo(this)">Charges fixes</button>'+(a?', '+faEsc(a.nom):'');}
+  if(x.t==='versement')return 'compté dans <button class="fin-lien" data-s="dashboard" onclick="finGo(this)">à te verser</button>';
+  if(x.t==='depense')return '<button class="fin-lien" data-s="depenses" onclick="finGo(this)">Dépenses du mois</button>';
+  if(x.t==='epargne')return 'gardé de côté';
+  if(x.t==='ignore')return 'hors activité';
+  return 'entrée hors facture';
+}
+function fqRender(){
+  const el=q('#fq-zone');if(!el)return;
+  if(!FQ_MOUV){el.innerHTML='<p class="fa-vide">Lecture de tes mouvements Qonto…</p>';fqRelier(true).then(()=>fqRender());return;}
+  const liens=fqLiens(),ranger=fqARanger();
+  const ligneR=tx=>'<div class="fq-l"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-ch">'+
+    fqChoix(tx).map(c=>'<button class="fin-onglet" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id||'')+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+faEsc(c.l)+'</button>').join('')+'</div></div>';
+  const relies=fqMouvements().filter(t=>liens[t.qontoId]).slice(0,40);
+  const ligneL=tx=>{const x=liens[tx.qontoId],ty=FQ_TYPES[x.t]||FQ_TYPES.entree;return '<div class="fq-l"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span><div class="fq-q"><span class="fa-pas '+ty[1]+'">'+ty[0]+'</span><span class="fq-s">'+fqQuoi(x)+'</span><button class="fin-lien fq-chg" data-q="'+faEsc(tx.qontoId)+'" onclick="fqDelier(this.dataset.q)">Changer</button></div></div>';};
+  const sync=dbGetObj('settings').qontoSyncAt;
+  el.innerHTML=
+    (ranger.length?'<div class="fa-creme fq-tete"><div><span class="fa-k">à ranger</span><b>'+ranger.length+' mouvement'+(ranger.length>1?'s':'')+' que l’outil ne connaît pas encore</b><span class="fa-k fa-k--f">Un clic chacun. Ta réponse sert aussi pour les suivants du même nom.</span></div></div><div class="fa-blanc fin-liste fq-bloc">'+ranger.map(ligneR).join('')+'</div>'
+      :'<div class="fa-creme fq-tete"><div><span class="fa-k">à ranger</span><b>Tout est rangé</b><span class="fa-k fa-k--f">Chaque mouvement Qonto des deux derniers mois est relié.</span></div></div>')+
+    '<div class="fq-h"><h2 class="fa-h2">Reliés</h2><span class="fq-s">'+(sync?'synchronisé le '+fqDm(sync.slice(0,10))+' à '+sync.slice(11,16).replace(':',' h '):'')+'</span></div>'+
+    '<div class="fa-blanc fin-liste fq-bloc">'+(relies.length?relies.map(ligneL).join(''):'<p class="fa-vide">Aucun mouvement relié pour l’instant.</p>')+'</div>';
+}
+function fqRenderRegles(){
+  const el=q('#fq-regles');if(!el)return;
+  const r=fqRegles();
+  el.innerHTML='<h2 class="fa-h2">Ce que l’outil a appris</h2><p class="fq-s" style="margin:0 0 8px">Tes réponses aux mouvements Qonto. Les suivants du même nom sont rangés tout seuls.</p>'+
+    (r.length?r.map((x,i)=>'<div class="fq-r"><span class="fq-n">'+faEsc(x.m)+'</span><span class="fq-s">'+(FQ_TYPES[x.t]||FQ_TYPES.entree)[0]+'</span><button class="fin-lien" data-i="'+i+'" onclick="fqOublier(+this.dataset.i)">Oublier</button></div>').join(''):'<p class="fa-vide">Rien pour l’instant.</p>');
+}
+/* À te verser : un plafond, pas une obligation */
+let FQ_VERSER=null;
+function fqVersements(mKey){return dbGet('depenses').filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(mKey)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));}
+function fqDeQonto(depId){return Object.values(fqLiens()).some(x=>x.t==='versement'&&x.id===depId);}
+function fqVerserOuvrir(){
+  const r=FQ_VERSER||{reste:0};
+  let m=q('#fq-verser');
+  if(!m){m=document.createElement('div');m.id='fq-verser';m.className='fq-modale';document.body.appendChild(m);}
+  m.innerHTML='<div class="fq-fen" role="dialog" aria-modal="true" aria-labelledby="fq-verser-t"><h2 class="fa-h2" id="fq-verser-t">Combien tu te verses ?</h2>'+
+    '<p class="fq-s">Jusqu’à '+fmt0(r.reste)+' ce mois-ci. Moins, c’est très bien aussi : le reste part en trésorerie.</p>'+
+    '<div class="fq-champs"><label>Montant<input type="number" min="0" step="1" id="fq-v-m" class="form-input" value="'+Math.round(r.reste)+'" oninput="fqVerserCalc()"></label><label>Date<input type="date" id="fq-v-d" class="form-input" value="'+finAuj()+'"></label></div>'+
+    '<div class="fa-l"><span>Gardé de côté</span><span class="fa-n" id="fq-v-c">'+fmt0(0)+'</span></div>'+
+    '<p class="fq-s">Fait depuis Qonto, le virement est reconnu tout seul. Depuis une autre banque, enregistre-le ici.</p>'+
+    '<div class="fq-bas"><button class="fa-btn fa-btn--c" onclick="fqVerserFermer()">Annuler</button><button class="fa-btn" onclick="fqVerserOk()">Enregistrer</button></div></div>';
+  m.onclick=e=>{if(e.target===m)fqVerserFermer();};m.onkeydown=e=>{if(e.key==='Escape')fqVerserFermer();};
+  m.style.display='flex';fqVerserCalc();q('#fq-v-m').focus();
+}
+function fqVerserCalc(){const r=FQ_VERSER||{reste:0},v=parseFloat(q('#fq-v-m').value)||0;q('#fq-v-c').textContent=fmt0(Math.max(0,r.reste-v));}
+function fqVerserFermer(){const m=q('#fq-verser');if(m)m.style.display='none';}
+async function fqVerserOk(){
+  const v=parseFloat(q('#fq-v-m').value)||0,d=q('#fq-v-d').value||finAuj();
+  if(v<=0){toast('Indique un montant','error');return;}
+  try{await dbCreate('depenses',{date:d,description:'Versement perso',categorie:'Versement perso',montant:v});fqVerserFermer();toast('Versement enregistré','success');loadAujourdhui();}
+  catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function fqGarder(mKey,oui){
+  const s=Object.assign({},dbGetObj('settings'));const c=Object.assign({},s.versementClos||{});
+  if(oui)c[mKey]=true;else delete c[mKey];
+  await dbSet('settings',Object.assign(s,{versementClos:c}));loadAujourdhui();
+}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}
 let FA_ONGLET='afaire';
 function faOnglet(o){FA_ONGLET=o;loadAujourdhui();}
 function loadAujourdhui(){
+  if(!FQ_MOUV&&!FQ_EN_COURS)fqRelier().then(()=>{if(q('#section-dashboard.active'))loadAujourdhui();});
   const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;
   const mKey=y+'-'+String(m).padStart(2,'0');
   const auj=now.toISOString().slice(0,10);
@@ -4291,12 +4507,6 @@ function loadAujourdhui(){
   const net=Math.max(0,caMois-urssafM-pas-depM-aboM);
   const pct=settings.pctVersement||65;
   const verser=Math.round(net*pct/100);
-  // Déjà versé ce mois-ci : virements vers l'enveloppe Mon salaire et dépenses « Versement perso »
-  if(!_enveloppes.length&&!loadAujourdhui._env){loadAujourdhui._env=1;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];if(q('#section-dashboard.active'))loadAujourdhui();}).catch(()=>{});}
-  const sal=_enveloppes.find(e=>e.id==='salaire');
-  const dejaVerse=(sal?(sal.transactions||[]).filter(t=>t.type==='credit'&&(t.date||'').startsWith(mKey)).reduce((s,t)=>s+(t.montant||0),0):0)
-    +depenses.filter(d=>d.categorie==='Versement perso'&&(d.date||'').startsWith(mKey)).reduce((s,d)=>s+(d.montant||0),0);
-  const resteAVerser=Math.max(0,verser-dejaVerse);
   // Moyenne mensuelle d'encaissement depuis janvier, pour les projections
   const moisEcoules=Math.max(1,(m-1)+now.getDate()/new Date(y,m,0).getDate());
   const projection=caYTD/moisEcoules*12;
@@ -4322,6 +4532,8 @@ function loadAujourdhui(){
   if(urs&&urs.jours<=45)afaire.push({t:'Déclarer l’URSSAF du '+urs.nom,s:'avant le '+fmtDate(urs.ech)+', dans '+urs.jours+' jours',m:null,p:['fa-p-m','à toi'],b:['Déclarer','charges-urssaf'],o:1});
   devisEnvoyes.filter(d=>d.date&&joursDe(d.date)>=10).forEach(d=>afaire.push({t:'Relancer '+d.client+' pour son devis',s:(d.numero||'')+', envoyé il y a '+joursDe(d.date)+' jours',m:d.montant,p:['fa-p-r','sans réponse'],b:['Voir le devis','devis'],o:2}));
   if(coussin<seuilCoussin)afaire.push({t:'Renforcer ta trésorerie',s:'le coussin est à '+coussin+' mois de charges',m:null,p:['fa-p-m','à toi'],b:['Voir','enveloppes'],o:3});
+  const nRanger=FQ_MOUV?fqARanger().length:0;
+  if(nRanger)afaire.push({t:'Ranger '+nRanger+' mouvement'+(nRanger>1?'s':'')+' Qonto',s:'un clic chacun',m:null,p:['fa-p-m','à toi'],b:['Ranger','transactions'],o:0.5});
   afaire.sort((a,b)=>a.o-b.o);
   const encours=[];
   attente.forEach(f=>encours.push({t:f.client+' doit régler '+(f.numero||'sa facture'),s:f.dateEcheance?'échéance le '+fmtDate(f.dateEcheance):'sans échéance',m:f.montant,p:['fa-p-a','en attente'],b:['Voir','factures']}));
@@ -4331,10 +4543,22 @@ function loadAujourdhui(){
   q('#fa-sous').textContent=n?(n===1?'Une chose t’attend.':n+' choses t’attendent.'):'Rien ne t’attend, tout est à jour.';
   // Cartes
   const r0=retard[0];
+  // À te verser : un plafond. On retire ce qui est déjà versé ce mois (dépenses « Versement perso », virements Qonto compris).
+  const nomMois=now.toLocaleDateString('fr-FR',{month:'long'});
+  const vers=fqVersements(mKey),deja=vers.reduce((s,d)=>s+(d.montant||0),0),reste=Math.max(0,verser-deja);
+  const clos=!!(settings.versementClos||{})[mKey];
+  FQ_VERSER={reste:reste};
+  const dernier=vers[vers.length-1];
+  const btnsV='<div class="fin-btns"><button class="fa-btn" onclick="fqVerserOuvrir()">Me verser</button><button class="fa-btn fa-btn--c" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,true)">Garder de côté</button></div>';
+  let carteVerser;
+  if(clos)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+fmt0(deja)+' pour toi, '+fmt0(reste)+' de côté</b>'+faTirets(verser>0?Math.min(12,Math.round(deja/verser*12)):0,12)+'<span class="fa-k fa-k--f">Ce que tu ne t’es pas versé reste dans ta trésorerie.</span></div><button class="fin-lien" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button></div>';
+  else if(deja>verser&&deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, versé</span><b class="fa-gros">'+fmt0(deja)+'</b><span class="fa-k fa-k--f">'+fmt0(deja-verser)+' de plus que prévu ce mois-ci.</span></div><button class="fin-lien" data-s="depenses" onclick="finGo(this)">Voir mes versements</button></div>';
+  else if(deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, tu peux encore te verser jusqu’à</span><b class="fa-gros">'+fmt0(reste)+'</b>'+faTirets(Math.min(12,Math.round(deja/Math.max(1,verser)*12)),12)+
+    '<div class="fa-l fq-l2"><span>Possible en '+nomMois+'</span><span class="fa-n">'+fmt0(verser)+'</span></div>'+
+    '<div class="fa-l fq-l2"><span>Déjà versé'+(dernier?(fqDeQonto(dernier.id)?', virement Qonto du ':', le ')+fqJour(dernier.date):'')+'</span><span class="fa-n">'+fmt0(deja)+'</span></div></div>'+btnsV+'</div>';
+  else carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, tu peux te verser jusqu’à</span><b class="fa-gros">'+fmt0(verser)+'</b><span class="fa-k fa-k--f">'+pct+' % de ce qui reste sur '+fmt0(caMois)+' encaissés. Ce que tu ne te verses pas reste dans ta trésorerie.</span></div>'+btnsV+'</div>';
   q('#fa-cartes').innerHTML=
-    (dejaVerse>0
-      ?(resteAVerser>0?'<div class="fa-creme"><div><span class="fa-k">ce mois-ci, déjà versé</span><b class="fa-gros">'+fmt0(dejaVerse)+'</b><span class="fa-k fa-k--f">':'<div class="fa-blanc"><div><div class="fa-k2">ce mois-ci, déjà versé</div><div class="fa-gros2">'+fmt0(dejaVerse)+'</div><p class="fa-p" style="margin-top:12px">')+(resteAVerser>0?'Le calcul du mois prévoit '+fmt0(verser)+' : il te reste '+fmt0(resteAVerser)+' à te verser.':dejaVerse>verser?'Le calcul du mois prévoyait '+fmt0(verser)+' : '+fmt0(dejaVerse-verser)+' de plus, pris sur ta trésorerie.':'C’est ce que prévoyait le calcul du mois.')+(resteAVerser>0?'</span>':'</p>')+'</div>'+(resteAVerser>0?'<button class="fa-btn" onclick="finVirerVers(\\'salaire\\','+resteAVerser+')">Verser le reste</button>':'')+'</div>'
-      :'<div class="fa-creme"><div><span class="fa-k">ce mois-ci, à te verser</span><b class="fa-gros">'+fmt0(verser)+'</b><span class="fa-k fa-k--f">'+pct+' % de ce qui reste sur '+fmt0(caMois)+' encaissés</span></div><button class="fa-btn" onclick="navigate(\\'enveloppes\\')">Faire le virement</button></div>')+
+    carteVerser+
     (r0?'<div class="fa-creme"><div><span class="fa-k">à relancer</span><b>'+faEsc(r0.client)+', '+fmt0(r0.montant)+'</b><span class="fa-k fa-k--f">'+joursDe(r0.dateEcheance||r0.date)+' jours de retard'+(retard.length>1?', et '+(retard.length-1)+' autre'+(retard.length>2?'s':''):'')+'</span></div><button class="fa-btn" onclick="navigate(\\'factures\\')">Relancer</button></div>'
        :'<div class="fa-creme"><div><span class="fa-k">tes factures</span><b>Rien à relancer</b><span class="fa-k fa-k--f">Tout est payé à temps.</span></div><button class="fa-btn fa-btn--c" onclick="navigate(\\'factures\\')">Voir les factures</button></div>')+
     '<div class="fa-blanc"><div class="fa-k2">Ton coussin</div><div class="fa-gros2">'+String(coussin).replace('.',',')+' <em>mois de charges</em></div>'+faTirets(Math.min(6,Math.round(coussin)),6,coussin<seuilCoussin?'r':'')+'<p class="fa-p">'+(coussin<seuilCoussin?'Sous '+seuilCoussin+' mois : à renforcer.':'Au-dessus de '+seuilCoussin+' mois : tout va bien.')+'</p></div>';
@@ -4374,14 +4598,14 @@ function navigate(section){
 function loadSection(s){
   const map={
     'dashboard':loadAujourdhui,
-    'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':loadTransactions,
+    'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':()=>{loadTransactions();fqRender();},
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
     'depenses':loadDepenses,'abonnements':loadAbonnements,
     'charges-urssaf':loadChargesURSSAF,
     'objectifs-epargne':loadObjectifsEpargne,'rapport-mensuel':loadRapportMensuel,
     'rapport-annuel':loadRapportAnnuel,'rapport-fiscal':loadRapportFiscal,
-    'simulateur':loadSimulateur,'import-export':initImportExport,'options':loadOptions,
+    'simulateur':loadSimulateur,'import-export':initImportExport,'options':()=>{loadOptions();fqRenderRegles();},
   };
   if(map[s])map[s]();
 }
@@ -5355,6 +5579,7 @@ function loadFactures(){
   if(q('#fac-kpi-taux'))q('#fac-kpi-taux').textContent=\`\${taux}%\`;
   renderFactures();
   finHeroMaj('factures');
+  if(!FQ_MOUV&&!FQ_EN_COURS)fqRelier().then(c=>{if(c){facturesData=dbGet('factures');renderFactures();finHeroMaj('factures');}});
   // Graphiques
   const y=new Date().getFullYear();
   const payees=facturesData.filter(f=>f.statut==='payee');
@@ -5421,6 +5646,7 @@ function renderFactures(){
   const tbody=q('#factures-tbody');
   if(!tbody)return;
   const dm=d=>d?fmtDate(d).slice(0,5):'';
+  const vuesQonto={};Object.values(fqLiens()).forEach(x=>{if(x.t==='facture')vuesQonto[x.id]=1;});
   tbody.innerHTML=list.length?list.map(f=>{
     const proj=f.projetId?dbGet('projets').find(x=>x.id===f.projetId):null;
     const dv=proj&&proj.devisId?dbGet('devis').find(x=>x.id===proj.devisId):null;
@@ -5431,7 +5657,7 @@ function renderFactures(){
       const j=Math.round((new Date(f.dateEcheance)-new Date(finAuj()))/86400000);
       ech=enR?'<span class="fin-retard">'+dm(f.dateEcheance)+', '+finJours(f.dateEcheance)+' jours de retard</span>':dm(f.dateEcheance)+(f.statut==='attente'?(j===0?', aujourd’hui':', dans '+j+' jour'+(j>1?'s':'')):'');
     }
-    const etat=f.statut==='payee'?'<span class="fa-pas fa-p-n">payée'+(f.datePaiement?' le '+dm(f.datePaiement):'')+'</span>':enR?'<span class="fa-pas fa-p-r">en retard</span>':'<span class="fa-pas fa-p-a">en attente</span>';
+    const etat=f.statut==='payee'?'<span class="fa-pas fa-p-n">payée'+(f.datePaiement?' le '+dm(f.datePaiement):'')+'</span>'+(vuesQonto[f.id]?'<span class="fin-cl__s">vue sur Qonto</span>':''):enR?'<span class="fa-pas fa-p-r">en retard</span>':'<span class="fa-pas fa-p-a">en attente</span>';
     return '<tr>'+
       '<td class="td-mono">'+faEsc(f.numero||'—')+'</td>'+
       '<td><span class="fin-cl">'+faEsc(f.client||'—')+'</span>'+(sousTitre||dv?'<span class="fin-cl__s">'+faEsc(sousTitre)+(dv?(sousTitre?' · ':'')+'<button class="fin-lien" data-id="'+dv.id+'" onclick="finVoirDevis(this.dataset.id)">devis '+faEsc(dv.numero)+'</button>':'')+'</span>':'')+'</td>'+
@@ -6510,6 +6736,7 @@ function loadAbonnements(){
   renderAbonnements();
   drawAboTimeline();
   finHeroMaj('charges');
+  if(!FQ_MOUV&&!FQ_EN_COURS)fqRelier().then(()=>renderAbonnements());
 }
 function renderAbonnements(){
   const el=q('#abonnements-liste');if(!el)return;
@@ -6517,9 +6744,13 @@ function renderAbonnements(){
   const mt=a=>a.montant||a.montantMensuel||0;
   const liste=aboData.filter(actif).concat(aboData.filter(a=>!actif(a)));
   const total=aboData.filter(actif).reduce((s,a)=>s+mt(a),0);
+  // Prélèvements vus sur Qonto ce mois-ci
+  const mk=finAuj().slice(0,7),jourAuj=+finAuj().slice(8,10),vus={};
+  Object.values(fqLiens()).forEach(x=>{if(x.t==='charge'&&x.id&&(x.d||'').startsWith(mk))vus[x.id]=x.d;});
+  const quand=a=>a.statut==='pause'?'en pause':a.statut&&!actif(a)?'arrêtée':vus[a.id]?'prélevée le '+fqJour(vus[a.id]):(FQ_MOUV&&(+a.jour||1)<jourAuj-2)?'<span class="fin-retard">pas encore vue ce mois</span>':'chaque mois, le '+(Number(a.jour)===1?'1er':(a.jour||'1er'));
   el.innerHTML=(liste.length?liste.map(a=>'<div class="fin-ch'+(actif(a)?'':' fin-ch--off')+'">'+
       '<span class="fin-ch__n">'+faEsc(a.nom)+'</span>'+
-      '<span class="fin-ch__j">'+(a.statut==='pause'?'en pause':a.statut&&!actif(a)?'arrêtée':'chaque mois, le '+(Number(a.jour)===1?'1er':(a.jour||'1er')))+'</span>'+
+      '<span class="fin-ch__j">'+quand(a)+'</span>'+
       '<span class="fin-ch__m fa-n">'+fmt(mt(a))+'</span>'+
       '<span class="fin-act"><button class="fin-lien" data-id="'+a.id+'" onclick="editAbonnement(this.dataset.id)">Modifier</button><button class="fin-lien" data-id="'+a.id+'" onclick="deleteAbonnement(this.dataset.id)">Supprimer</button></span></div>').join('')
     :'<p class="fa-vide">Aucune charge fixe pour l’instant.</p>')+

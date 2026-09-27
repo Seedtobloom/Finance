@@ -154,6 +154,7 @@ async function router(request, env) {
   if (method === 'GET'  && path === '/api/qonto/solde')        return qontoSolde(env);
   if (method === 'GET'  && path === '/api/qonto/transactions') return qontoTransactions(env, url);
   if (method === 'POST' && path === '/api/qonto/sync')         return qontoSync(env, uid);
+  if (method === 'GET'  && path === '/api/qonto/mouvements')   return jsonOk(await kvTableau(env, `user:${uid}:transactions`));
 
   // Enveloppes / virements
   if (method === 'GET'  && path === '/api/enveloppes')         return getEnveloppes(env, uid);
@@ -904,7 +905,7 @@ async function getEnveloppes(env, uid) {
   const [virements, settings, abonnements, depensesPrevues] = await Promise.all([
     kvTableau(env, `user:${uid}:virements`),
     kvLire(env,    `user:${uid}:settings`) || {},
-    kvTableau(env, `user:${uid}:abonnements`),
+    kvTableau(env, `user:${uid}:abonnements`).then(async l => l.length ? l : kvTableau(env, `${uid}:abonnements`)),
     kvTableau(env, `user:${uid}:depenses-prevues`),
   ]);
 
