@@ -1977,10 +1977,6 @@ const HTML = `<!DOCTYPE html>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label" for="ap-projet">Pour quel projet</label>
-      <select id="ap-projet" class="form-select"></select>
-    </div>
-    <div class="form-group">
       <span class="form-label">Tu paies</span>
       <div class="ap-seg" id="ap-mode">
         <button type="button" data-v="une" onclick="apMode(this.dataset.v)">En une fois</button>
@@ -5101,7 +5097,7 @@ function apLignes(st){
     let plus='';const ek=e.date.slice(0,7);
     if(ek>k2&&e.montant-e.res>0.5){const mois=Math.max(1,(+ek.slice(0,4)-d.getFullYear())*12+(+ek.slice(5,7))-(d.getMonth()+1));if(mois>=3)plus=', '+fmt0(Math.ceil((e.montant-e.res)/mois))+' par mois d’ici '+apNomMois(ek);}
     const manque=e.montant-e.res;
-    L.push({x:x,genre:x.genre,nom:x.p.description||'Paiement',id:x.p.id,sous:AP_GENRES[x.genre]+(x.projet?', projet '+x.projet:'')+rang+plus,date:e.date,quand:(e.date<finAuj()?'depuis le ':'le ')+apDateFr(e.date),montant:e.montant,res:e.res,
+    L.push({x:x,genre:x.genre,nom:x.p.description||'Paiement',id:x.p.id,sous:AP_GENRES[x.genre]+rang+plus,date:e.date,quand:(e.date<finAuj()?'depuis le ':'le ')+apDateFr(e.date),montant:e.montant,res:e.res,
       doc:x.p.fichierNom?'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(x.p.fichierType||'devis ou facture')+'</button>':'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apJoindre(this.dataset.id)">Ajouter</button>',
       act:manque<0.5?'<span class="fa-pas fa-p-n">réservé</span>':(st.libre>=1?'<button class="fa-btn fa-btn--c" data-id="'+x.p.id+'" onclick="apReserver(this.dataset.id)">Réserver</button>':'<span class="fin-cl__s">au prochain paiement client</span>'),
       manque:manque});
@@ -5177,7 +5173,6 @@ function apOuvrir(id){
   q('#ap-titre').textContent=p?'Modifier le paiement prévu':'Nouveau paiement prévu';
   q('#ap-desc').value=p?p.description||'':'';
   apSeg('ap-genre',p?apGenre(p):'prestataire');
-  const pj=q('#ap-projet');pj.innerHTML='<option value="">Aucun</option>'+dbGet('projets').filter(x=>x.statut!=='termine'||(p&&x.id===p.projetId)).map(x=>'<option value="'+x.id+'">'+faEsc((x.nom||'Projet')+(x.client?', '+x.client:''))+'</option>').join('');pj.value=p&&p.projetId?p.projetId:'';
   const ech=p?apEcheances(p):[];
   q('#ap-montant').value=p?(ech.length>1?'':(ech[0]?ech[0].montant:p.montant)):'';q('#ap-date').value=ech.length===1?ech[0].date:'';
   q('#ap-echs').innerHTML=ech.length>1?ech.map(e=>apEchLigne(e.montant,e.date)).join(''):'';
@@ -5199,7 +5194,7 @@ async function apEnregistrer(){
   const vieux=AP_ID?dbGet('depenses_prevues').find(x=>x.id===AP_ID):null;
   if(vieux){const avant=apEcheances(vieux);ech.forEach(e=>{const a=avant.find(x=>x.date===e.date&&Math.abs(x.montant-e.montant)<0.5&&x.payeLe);if(a)e.payeLe=a.payeLe;});}
   const total=ech.reduce((s,e)=>s+e.montant,0),genre=apSegVal('ap-genre');
-  const data={description:desc,genre:genre,categorie:{prestataire:'Prestataire',materiel:'Matériel & équipement',outil:'Logiciels & abonnements',charge:'Charges sociales'}[genre]||'Autre',montant:total,type:'ponctuel',dateDebut:ech[0].date,dateFin:ech[ech.length-1].date,echeances:ech,projetId:q('#ap-projet').value||null,statut:'active'};
+  const data={description:desc,genre:genre,categorie:{prestataire:'Prestataire',materiel:'Matériel & équipement',outil:'Logiciels & abonnements',charge:'Charges sociales'}[genre]||'Autre',montant:total,type:'ponctuel',dateDebut:ech[0].date,dateFin:ech[ech.length-1].date,echeances:ech,statut:'active'};
   try{
     let p;
     if(vieux)p=await dbUpdate('depenses_prevues',Object.assign({},vieux,data));
