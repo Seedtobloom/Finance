@@ -4386,24 +4386,30 @@ function fqDm(d){return d?d.slice(8,10)+'/'+d.slice(5,7):'';}
 function fqJour(d){return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'});}
 function fqEch(k){const t=k.slice(0,2),y=+k.slice(3);return {T1:y+'-04-30',T2:y+'-07-31',T3:y+'-11-02',T4:(y+1)+'-02-01'}[t];}
 function fqNomT(k){return {T1:'1er trimestre',T2:'2e trimestre',T3:'3e trimestre',T4:'4e trimestre'}[k.slice(0,2)]+' '+k.slice(3);}
-function fqRegle(tx){const l=fqNorm(tx.libelle);return fqRegles().find(r=>r.m&&l.indexOf(r.m)>=0&&(!r.sens||r.sens===tx.type));}
-function fqMots(s){return fqNorm(s).split(' ').filter(w=>w.length>=4);}
+function fqRegle(tx){const l=fqNorm(tx.libelle);return fqRegles().find(r=>r.t!=='alias'&&r.m&&l.indexOf(r.m)>=0&&(!r.sens||r.sens===tx.type));}
+const FQ_COMMUNS=['sarl','sasu','s.a.s.','eurl','societe','atelier','studio','maison','agence','cabinet','boutique','groupe','france','services','service','conseil','conseils','association','entreprise','virement','sepa','prlv'];
+function fqMots(s){return fqNorm(s).split(' ').map(w=>w.replace(/[.,()]/g,'')).filter(w=>w.length>=4&&FQ_COMMUNS.indexOf(w)<0);}
 /* Ce qui a déjà été reçu sur une facture ou un devis, d'après les mouvements reliés */
 function fqRecu(t,id){return Object.values(fqLiens()).filter(x=>x.t===t&&x.id===id).reduce((s,x)=>s+(x.m||0),0);}
 function fqReste(f){return Math.max(0,(f.montant||0)-fqRecu('facture',f.id));}
 function fqDevisRecu(d){const r=fqRecu('devis',d.id);return r?'<span class="fin-cl__s">'+fmt0(r)+' reçus</span>':'';}
+function fqRelieeFacture(id){return Object.values(fqLiens()).some(x=>(x.t==='facture'||x.t==='client')&&x.id===id);}
+function fqPayeesLibres(){return dbGet('factures').filter(f=>f.statut==='payee'&&f.typeFacture!=='qonto'&&!fqRelieeFacture(f.id));}
 function fqMemeClient(a,b){const nb=fqNorm(b);return !!a&&!!b&&(fqNorm(a)===nb||fqMots(a).some(w=>nb.indexOf(w)>=0));}
 function fqFactures(tx){
   const l=fqNorm(tx.libelle);
   const c=dbGet('factures').filter(f=>f.statut!=='payee'&&Math.abs(fqReste(f)-tx.montant)<0.5);
   const nom=c.filter(f=>fqMots(f.client).some(w=>l.indexOf(w)>=0));
-  return {toutes:c,parNom:nom};
+  // Déjà payée dans Indy, au même montant et au nom du client, pas encore reliée : le virement est sa trace
+  const payees=fqPayeesLibres().filter(f=>Math.abs((f.montant||0)-tx.montant)<0.5&&fqMots(f.client).some(w=>l.indexOf(w)>=0));
+  const memeMontant=c.concat(fqPayeesLibres().filter(f=>Math.abs((f.montant||0)-tx.montant)<0.5));
+  return {toutes:c,parNom:nom,payees:payees,memeMontant:memeMontant};
 }
 /* Tout ce qui est ouvert chez le client reconnu : factures en attente, devis signés. Le plus probable d'abord. */
 function fqOuvert(tx){
   if(tx.type!=='credit')return [];
   const client=fqClientNom(tx),out=[],m=tx.montant;
-  if(!dbGet('factures').concat(dbGet('devis')).some(x=>fqMemeClient(x.client,tx.libelle)))return [];
+  if(!fqAlias(tx)&&!dbGet('factures').concat(dbGet('devis')).some(x=>fqMemeClient(x.client,tx.libelle)))return [];
   dbGet('factures').filter(f=>f.statut!=='payee'&&fqMemeClient(f.client,client)).forEach(f=>{
     const r=fqReste(f),recu=(f.montant||0)-r;if(r<0.5)return;
     const pile=Math.abs(r-m)<0.5;
@@ -4414,6 +4420,10 @@ function fqOuvert(tx){
     const pile=Math.abs(r-m)<0.5,pct=Math.round(m/(d.montant||1)*100),acompte=!recu&&[20,25,30,33,40,50].indexOf(pct)>=0;
     const quoi=pile?(recu?'Solde du devis ':'Paiement du devis '):(acompte?'Acompte du devis ':'Paiement du devis ');
     out.push({t:'devis',id:d.id,titre:quoi+(d.numero||'')+(d.description?', '+d.description:''),sous:'devis signé'+(d.date?' le '+fqJour(d.date):'')+(acompte?', '+pct+' % de '+fmt0(d.montant):'')+(recu?', '+fmt0(recu)+' déjà reçus':''),mt:recu?'reste '+fmt0(r):fmt0(d.montant),btn:'C’est ça',score:pile?0:acompte?1:2});
+  });
+  fqPayeesLibres().filter(f=>fqMemeClient(f.client,client)).forEach(f=>{
+    const pile=Math.abs((f.montant||0)-m)<0.5,proche=f.datePaiement&&Math.abs(new Date(f.datePaiement)-new Date(tx.date))<=20*86400000;
+    out.push({t:'facture',id:f.id,titre:'Facture '+(f.numero||'')+(f.description?', '+f.description:''),sous:'déjà payée'+(f.datePaiement?' le '+fqJour(f.datePaiement):'')+', pas encore reliée à un virement',mt:fmt0(f.montant),btn:'C’est ça',score:pile?(proche?0:1):3});
   });
   return out.sort((a,b)=>a.score-b.score);
 }
@@ -4432,7 +4442,8 @@ function fqAbo(tx){
 function fqChoix(tx){
   if(tx.type==='credit'){
     const g=[];
-    if(!fqOuvert(tx).length){const f=fqFactures(tx).toutes.slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+fmt0(x.montant)}));if(f.length)g.push(['Une facture',f]);}
+    const dejaVus=fqOuvert(tx).map(o=>o.id);
+    const f=fqFactures(tx).memeMontant.filter(x=>dejaVus.indexOf(x.id)<0).slice(0,3).map(x=>({t:'facture',id:x.id,l:(x.numero||'Facture')+', '+(x.client||'')+', '+fmt0(x.montant)}));if(f.length)g.push(['Au même montant',f]);
     g.push([g.length||fqOuvert(tx).length?'Sinon':'',[{t:'client',l:'Paiement sans facture'},{t:'remboursement',l:'Remboursement'},{t:'apport',l:'Apport perso'},{t:'entree',l:'Autre entrée'}]]);
     return g;
   }
@@ -4441,7 +4452,9 @@ function fqChoix(tx){
     ['',[{t:'ignore',l:'Pas pro'}]]];
 }
 /* Le nom du client : celui d'une facture ou d'un tiers qui partage un mot avec le libellé, sinon le libellé */
+function fqAlias(tx){const l=fqNorm(tx.libelle);const a=fqRegles().find(r=>r.t==='alias'&&r.m&&l.indexOf(r.m)>=0);return a?a.client:null;}
 function fqClientNom(tx){
+  const al=fqAlias(tx);if(al)return al;
   const l=fqNorm(tx.libelle);
   // Les noms des devis, des tiers et des vraies factures d'abord : ceux des encaissements sans facture viennent du libellé de la banque
   const connus=[...new Set(dbGet('devis').map(d=>d.client).concat(dbGet('tiers').map(t=>t.nom),dbGet('factures').filter(f=>f.typeFacture!=='qonto').map(f=>f.client),dbGet('factures').map(f=>f.client)).filter(Boolean))];
@@ -4450,19 +4463,18 @@ function fqClientNom(tx){
   return String(tx.libelle||'Client').toLowerCase().split(' ').filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
 }
 function fqAutresFactures(tx){
-  const pris={};Object.values(fqLiens()).forEach(x=>{if(x.t==='facture')pris[x.id]=1;});
-  return dbGet('factures').filter(f=>f.statut!=='payee'&&!pris[f.id]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return dbGet('factures').filter(f=>f.typeFacture!=='qonto'&&(f.statut!=='payee'?fqReste(f)>=0.5:!fqRelieeFacture(f.id))).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 }
 function fqQuestion(tx){
   if(tx.type==='credit'&&fqOuvert(tx).length)return 'Reconnu : '+faEsc(fqClientNom(tx));
-  if(tx.type==='credit'){const n=fqFactures(tx).toutes.length;return n>1?n+' factures possibles':n?'Une facture possible':'Aucune facture en attente à ce montant';}
+  if(tx.type==='credit'){const n=fqFactures(tx).memeMontant.length;return n>1?n+' factures à ce montant':n?'Une facture à ce montant':'Aucune facture à ce montant';}
   return 'C’est quoi ?';
 }
 /* Les effets d'un lien sur le reste de l'outil. Renvoie la cible reliée. */
 async function fqAppliquer(tx,t,id){
   FQ_CREE=false;FQ_FACT=null;
   if(t==='client'){const f=await dbCreate('factures',{client:id||fqClientNom(tx),montant:tx.montant,date:tx.date,datePaiement:tx.date,statut:'payee',typeFacture:'qonto',description:'Encaissé sur Qonto'});FQ_CREE=true;return f.id;}
-  if(t==='facture'){const f=dbGet('factures').find(x=>x.id===id);if(f&&f.statut!=='payee'&&fqReste(f)-tx.montant<0.5)await dbUpdate('factures',Object.assign({},f,{statut:'payee',datePaiement:tx.date}));return id;}
+  if(t==='facture'){const f=dbGet('factures').find(x=>x.id===id);if(f&&f.statut!=='payee'&&fqReste(f)-tx.montant<0.5){await dbUpdate('factures',Object.assign({},f,{statut:'payee',datePaiement:tx.date}));FQ_CREE=true;}return id;}
   if(t==='devis'){
     const d=dbGet('devis').find(x=>x.id===id);if(!d)return null;
     const recu=fqRecu('devis',d.id),solde=Math.abs((d.montant||0)-recu-tx.montant)<0.5;
@@ -4500,7 +4512,7 @@ async function fqRelier(force){
       const r=fqRegle(tx);let t=null,id=null;
       if(r&&r.t==='client'&&fqOuvert(tx).length)continue;
       if(r){t=r.t;id=r.t==='charge'?r.id:r.t==='depense'?(r.cat||'Autre'):r.t==='client'?(r.client||null):null;}
-      else if(tx.type==='credit'){const f=fqFactures(tx);if(f.parNom.length===1){t='facture';id=f.parNom[0].id;}else if(f.toutes.length===1&&f.parNom.length===0&&fqNorm(tx.libelle).length<3){t='facture';id=f.toutes[0].id;}}
+      else if(tx.type==='credit'){const f=fqFactures(tx);if(f.parNom.length===1){t='facture';id=f.parNom[0].id;}else if(!f.parNom.length&&f.payees.length===1){t='facture';id=f.payees[0].id;}else if(f.toutes.length===1&&f.parNom.length===0&&fqNorm(tx.libelle).length<3){t='facture';id=f.toutes[0].id;}}
       else if(fqNorm(tx.libelle).indexOf('urssaf')>=0){t='urssaf';}
       else{const a=fqAbo(tx);if(a){t='charge';id=a.id;}}
       if(!t)continue;
@@ -4520,7 +4532,11 @@ async function fqRanger(qid,t,id){
     const cible=await fqAppliquer(tx,t,id);
     const liens=Object.assign({},fqLiens());liens[qid]=fqLien(tx,t,cible,false);
     let regles=fqRegles();
-    if(t!=='facture'&&t!=='entree'&&t!=='remboursement'&&t!=='apport'){const m=fqNorm(tx.libelle);if(m.length>=3){regles=regles.filter(r=>r.m!==m);const fc=t==='client'?dbGet('factures').find(f=>f.id===cible):null;regles.push({m:m,t:t,id:t==='charge'?cible:null,cat:t==='depense'?(id||'Autre'):null,client:fc?fc.client:null,sens:tx.type});}}
+    if(t==='facture'||t==='devis'){
+      const cible2=t==='facture'?dbGet('factures').find(f=>f.id===id):dbGet('devis').find(d=>d.id===id);const m=fqNorm(tx.libelle);
+      if(cible2&&cible2.client&&m.length>=3&&!fqMemeClient(cible2.client,tx.libelle)){regles=regles.filter(r=>!(r.t==='alias'&&r.m===m));regles.push({m:m,t:'alias',client:cible2.client});}
+    }
+    if(t!=='facture'&&t!=='devis'&&t!=='entree'&&t!=='remboursement'&&t!=='apport'){const m=fqNorm(tx.libelle);if(m.length>=3){regles=regles.filter(r=>r.m!==m);const fc=t==='client'?dbGet('factures').find(f=>f.id===cible):null;regles.push({m:m,t:t,id:t==='charge'?cible:null,cat:t==='depense'?(id||'Autre'):null,client:fc?fc.client:null,sens:tx.type});}}
     await fqEnregistrer(liens,regles);
     // La règle apprise range aussitôt les mouvements du même nom
     await fqRelier(true);
@@ -4535,7 +4551,7 @@ async function fqDelier(qid){
     if(x.c&&(x.t==='depense'||x.t==='versement')&&x.id&&dbGet('depenses').some(v=>v.id===x.id))await dbDelete('depenses',x.id);
     if(x.c&&x.t==='client'&&x.id&&dbGet('factures').some(v=>v.id===x.id))await dbDelete('factures',x.id);
     if(x.t==='devis'&&x.f&&dbGet('factures').some(v=>v.id===x.f))await dbDelete('factures',x.f);
-    if(x.t==='facture'&&x.id){const f=dbGet('factures').find(v=>v.id===x.id);if(f&&f.statut==='payee'&&f.datePaiement===x.d)await dbUpdate('factures',Object.assign({},f,{statut:'attente',datePaiement:''}));}
+    if(x.t==='facture'&&x.id){const f=dbGet('factures').find(v=>v.id===x.id);if(f&&x.c&&f.statut==='payee'&&f.datePaiement===x.d)await dbUpdate('factures',Object.assign({},f,{statut:'attente',datePaiement:''}));}
     delete liens[qid];await fqEnregistrer(liens,fqRegles());
   }catch(e){toast('Erreur : '+e.message,'error');}
   fqRafraichir();
@@ -4553,7 +4569,7 @@ function fqRafraichir(){
 }
 /* Ce que dit un lien, en une phrase, avec un lien vers l'écran concerné */
 function fqQuoi(x){
-  if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);const lien='<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button>';return f&&f.statut!=='payee'?lien+' payée en partie, reste '+fmt0(fqReste(f)):lien+' passée en payée';}
+  if(x.t==='facture'){const f=dbGet('factures').find(v=>v.id===x.id);const lien='<button class="fin-lien" data-s="factures" onclick="finGo(this)">'+faEsc(f?(f.numero||'La facture'):'La facture')+'</button>';return f&&f.statut!=='payee'?lien+' payée en partie, reste '+fmt0(fqReste(f)):f&&f.datePaiement&&f.datePaiement!==x.d?lien+', le virement de son paiement':lien+' passée en payée';}
   if(x.t==='devis'){const d=dbGet('devis').find(v=>v.id===x.id);return d?'<button class="fin-lien" data-s="devis" onclick="finGo(this)">Devis '+faEsc(d.numero||'')+'</button>, '+fmt0(fqRecu('devis',d.id))+' reçus sur '+fmt0(d.montant):'devis';}
   if(x.t==='urssaf')return x.id?'<button class="fin-lien" data-s="charges-urssaf" onclick="finGo(this)">'+fqNomT(x.id)+'</button> marqué payé':'URSSAF';
   if(x.t==='charge'){const a=dbGet('abonnements').find(v=>v.id===x.id);return '<button class="fin-lien" data-s="abonnements" onclick="finGo(this)">Abonnements</button>'+(a?', '+faEsc(a.nom):'');}
@@ -4571,7 +4587,7 @@ function fqRender(){
   if(!FQ_MOUV){el.innerHTML='<p class="fa-vide">Lecture de tes mouvements Qonto…</p>';fqRelier(true).then(()=>fqRender());return;}
   const liens=fqLiens(),ranger=fqARanger();
   const bouton=(tx,c)=>'<button class="fin-onglet" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id||'')+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+faEsc(c.l)+'</button>';
-  const autres=tx=>{const l=fqAutresFactures(tx);return l.length?'<select class="form-select fq-sel" aria-label="Une autre facture" data-q="'+faEsc(tx.qontoId)+'" onchange="if(this.value)fqRanger(this.dataset.q,&quot;facture&quot;,this.value)"><option value="">Une autre facture…</option>'+l.map(f=>'<option value="'+faEsc(f.id)+'">'+faEsc((f.numero||'Facture')+', '+(f.client||'')+', '+fmt0(f.montant))+'</option>').join('')+'</select>':'';};
+  const autres=tx=>{const l=fqAutresFactures(tx);return l.length?'<select class="form-select fq-sel" aria-label="Une autre facture" data-q="'+faEsc(tx.qontoId)+'" onchange="if(this.value)fqRanger(this.dataset.q,&quot;facture&quot;,this.value)"><option value="">Une autre facture…</option>'+[['En attente',l.filter(f=>f.statut!=='payee')],['Déjà payées, pas encore reliées',l.filter(f=>f.statut==='payee')]].filter(g=>g[1].length).map(g=>'<optgroup label="'+g[0]+'">'+g[1].map(f=>'<option value="'+faEsc(f.id)+'">'+faEsc((f.numero||'Facture')+', '+(f.client||'')+', '+fmt0(f.montant))+'</option>').join('')+'</optgroup>').join('')+'</select>':'';};
   const ouvertHtml=tx=>{const o=fqOuvert(tx);if(!o.length)return '';return '<div class="fq-ouv"><p class="fq-gl">Ouvert chez '+faEsc(fqClientNom(tx))+'</p>'+o.slice(0,4).map((c,i)=>'<div class="fq-opt'+(i===0&&c.score<2?' fq-best':'')+'"><div><div class="fq-n">'+faEsc(c.titre)+'</div><div class="fq-s">'+faEsc(c.sous)+'</div></div><span class="fa-n fq-m">'+c.mt+'</span><button class="fa-btn'+(i===0&&c.score<2?'':' fa-btn--c')+'" data-q="'+faEsc(tx.qontoId)+'" data-t="'+c.t+'" data-id="'+faEsc(c.id)+'" onclick="fqRanger(this.dataset.q,this.dataset.t,this.dataset.id)">'+c.btn+'</button></div>').join('')+'</div>';};
   const ligneR=tx=>'<div class="fq-l fq-ar"><span class="fq-d fa-n">'+fqDm(tx.date)+'</span><div><div class="fq-n">'+faEsc(tx.libelle||'Mouvement')+'</div><div class="fq-s">'+fqQuestion(tx)+'</div></div><span class="fq-m fa-n">'+(tx.type==='credit'?'+ ':'− ')+fmt(tx.montant)+'</span>'+ouvertHtml(tx)+'<div class="fq-gr">'+
     fqChoix(tx).map(g=>'<div class="fq-g">'+(g[0]?'<span class="fq-gl">'+g[0]+'</span>':'')+'<div class="fq-ch">'+g[1].map(c=>bouton(tx,c)).join('')+'</div></div>').join('')+
@@ -4589,7 +4605,7 @@ function fqRenderRegles(){
   const el=q('#fq-regles');if(!el)return;
   const r=fqRegles();
   el.innerHTML='<h2 class="fa-h2">Ce que l’outil a appris</h2><p class="fq-s" style="margin:0 0 8px">Tes réponses aux mouvements Qonto. Les suivants du même nom sont rangés tout seuls.</p>'+
-    (r.length?r.map((x,i)=>'<div class="fq-r"><span class="fq-n">'+faEsc(x.m)+'</span><span class="fq-s">'+(FQ_TYPES[x.t]||FQ_TYPES.entree)[0]+'</span><button class="fin-lien" data-i="'+i+'" onclick="fqOublier(+this.dataset.i)">Oublier</button></div>').join(''):'<p class="fa-vide">Rien pour l’instant.</p>');
+    (r.length?r.map((x,i)=>'<div class="fq-r"><span class="fq-n">'+faEsc(x.m)+'</span><span class="fq-s">'+(x.t==='alias'?'paie pour '+faEsc(x.client):(FQ_TYPES[x.t]||FQ_TYPES.entree)[0])+'</span><button class="fin-lien" data-i="'+i+'" onclick="fqOublier(+this.dataset.i)">Oublier</button></div>').join(''):'<p class="fa-vide">Rien pour l’instant.</p>');
 }
 /* À te verser : un plafond, pas une obligation */
 function fqPlafond(){
