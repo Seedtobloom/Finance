@@ -1976,25 +1976,31 @@ const HTML = `<!DOCTYPE html>
         <button type="button" data-v="charge" onclick="apSeg(&quot;ap-genre&quot;,this.dataset.v)">Charge</button>
       </div>
     </div>
-    <div class="form-group">
-      <span class="form-label">Tu paies</span>
-      <div class="ap-seg" id="ap-mode">
-        <button type="button" data-v="une" onclick="apMode(this.dataset.v)">En une fois</button>
-        <button type="button" data-v="plusieurs" onclick="apMode(this.dataset.v)">En plusieurs fois</button>
-      </div>
-      <div id="ap-une" class="form-grid-2 ap-mt">
-        <input type="number" id="ap-montant" class="form-input" step="0.01" min="0" placeholder="Montant" aria-label="Montant" />
-        <input type="date" id="ap-date" class="form-input" aria-label="Date" />
-      </div>
-      <div id="ap-plusieurs" class="ap-mt" style="display:none">
-        <div id="ap-echs"></div>
-        <button type="button" class="fin-lien" onclick="q(&quot;#ap-echs&quot;).insertAdjacentHTML(&quot;beforeend&quot;,apEchLigne(&quot;&quot;,&quot;&quot;))">Ajouter une échéance</button>
-      </div>
+    <div class="form-grid-2">
+      <div class="form-group"><label class="form-label" for="ap-total">Montant total</label><input type="number" id="ap-total" class="form-input" step="0.01" min="0" placeholder="1200" oninput="apApercu()" /></div>
+      <div class="form-group"><label class="form-label" for="ap-date">Premier paiement le</label><input type="date" id="ap-date" class="form-input" oninput="apApercu()" /></div>
     </div>
     <div class="form-group">
-      <label class="form-label" for="ap-fichier">Devis ou facture du prestataire</label>
+      <span class="form-label">Acompte</span>
+      <div class="ap-seg" id="ap-acompte">
+        <button type="button" data-v="aucun" onclick="apAcompte(this.dataset.v)">Aucun</button>
+        <button type="button" data-v="30" onclick="apAcompte(this.dataset.v)">30 %</button>
+        <button type="button" data-v="50" onclick="apAcompte(this.dataset.v)">50 %</button>
+        <button type="button" data-v="autre" onclick="apAcompte(this.dataset.v)">Autre</button>
+      </div>
+      <div id="ap-acompte-autre" class="ap-mt" style="display:none"><input type="number" id="ap-acompte-m" class="form-input ap-court" step="0.01" min="0" placeholder="Montant de l’acompte" aria-label="Montant de l’acompte" oninput="apApercu()" /></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="ap-mois">Le reste en combien de mois</label>
+      <input type="number" id="ap-mois" class="form-input ap-court" min="1" max="36" step="1" value="1" oninput="apApercu()" />
+      <span class="fin-cl__s">un paiement par mois, le même jour que le premier</span>
+    </div>
+    <div class="ap-apercu" id="ap-apercu"></div>
+    <div class="form-group">
+      <label class="form-label" for="ap-fichier">Facture du prestataire</label>
       <input type="file" id="ap-fichier" class="form-input" accept="application/pdf,image/*" />
       <span class="fin-cl__s" id="ap-fichier-nom"></span>
+      <span class="fin-cl__s">Tu n’as qu’un devis pour l’instant ? Joins-le, tu mettras chaque facture sur sa ligne quand elle arrive.</span>
     </div>
     <div class="form-group" id="ap-res-bloc">
       <span class="form-label">Réserver l’argent</span>
@@ -4071,6 +4077,12 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .ap-opt input { margin-top:4px; accent-color:#110704; }
 .ap-opt b { display:block; font-weight:600; }
 
+.ap-court { max-width:200px; }
+.ap-apercu { background:#F8F6F2; border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:15px; }
+.ap-apercu__l { display:grid; grid-template-columns:1fr 1fr auto; gap:16px; padding:7px 0; border-top:1px solid #efeae1; }
+.ap-apercu__l:first-of-type { margin-top:6px; }
+.ap-sous { display:block; margin-top:4px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -5041,7 +5053,7 @@ function apDateFr(d){return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{
 function apNomMois(k){return new Date(k+'-15T12:00:00').toLocaleDateString('fr-FR',{month:'long'});}
 function apGenre(p){if(p.genre)return p.genre;const c=(p.categorie||'').toLowerCase();if(c.indexOf('matériel')>=0)return 'materiel';if(c.indexOf('logiciel')>=0||c.indexOf('formation')>=0)return 'outil';if(c.indexOf('charges')>=0)return 'charge';return 'autre';}
 function apEcheances(p){
-  if(Array.isArray(p.echeances)&&p.echeances.length)return p.echeances.map((e,i)=>({i:i,montant:+e.montant||0,date:e.date||finAuj(),payeLe:e.payeLe||null}));
+  if(Array.isArray(p.echeances)&&p.echeances.length)return p.echeances.map((e,i)=>({i:i,montant:+e.montant||0,date:e.date||finAuj(),payeLe:e.payeLe||null,fichierNom:e.fichierNom||null}));
   const d0=p.dateDebut||finAuj(),debutMois=finAuj().slice(0,7)+'-01';
   if(p.type==='mensuel'){
     const out=[],d=new Date(d0+'T12:00:00'),fin=p.dateFin?p.dateFin:new Date(new Date().getFullYear(),new Date().getMonth()+5,28).toISOString().slice(0,10);
@@ -5102,11 +5114,18 @@ function apLignes(st){
     if(ek>k2&&e.montant-e.res>0.5){const mois=Math.max(1,(+ek.slice(0,4)-d.getFullYear())*12+(+ek.slice(5,7))-(d.getMonth()+1));if(mois>=3)plus=', '+fmt0(Math.ceil((e.montant-e.res)/mois))+' par mois d’ici '+apNomMois(ek);}
     const manque=e.montant-e.res;
     L.push({x:x,genre:x.genre,nom:x.p.description||'Paiement',id:x.p.id,sous:AP_GENRES[x.genre]+rang+plus,date:e.date,quand:(e.date<finAuj()?'depuis le ':'le ')+apDateFr(e.date),montant:e.montant,res:e.res,
-      doc:x.p.fichierNom?'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(x.p.fichierType||'devis ou facture')+'</button>':'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apJoindre(this.dataset.id)">Ajouter</button>',
+      doc:apDoc(x,e),
       act:manque<0.5?'<span class="fa-pas fa-p-n">réservé</span>':(st.libre>=1?'<button class="fa-btn fa-btn--c" data-id="'+x.p.id+'" onclick="apReserver(this.dataset.id)">Réserver</button>':'<span class="fin-cl__s">au prochain paiement client</span>'),
       manque:manque});
   }));
   return L;
+}
+function apDoc(x,e){
+  const id=x.p.id,parEch=x.ech.length>1&&Array.isArray(x.p.echeances);
+  if(e&&e.fichierNom)return '<button class="fin-lien" data-id="'+id+'" data-e="'+e.i+'" onclick="apVoirFichier(this.dataset.id,this.dataset.e)">facture</button>';
+  if(parEch)return '<button class="fin-lien" data-id="'+id+'" data-e="'+e.i+'" onclick="apJoindre(this.dataset.id,this.dataset.e)">Ajouter la facture</button>'+(x.p.fichierNom?'<button class="fin-lien ap-sous" data-id="'+id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(x.p.fichierType||'devis')+'</button>':'');
+  if(x.p.fichierNom)return '<button class="fin-lien" data-id="'+id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(x.p.fichierType||'facture')+'</button>';
+  return '<button class="fin-lien" data-id="'+id+'" onclick="apJoindre(this.dataset.id)">Ajouter</button>';
 }
 function apResTxt(l){return fmt0(l.res)+' sur '+fmt0(l.montant)+(l.montant-l.res>=0.5&&l.res>0?', il manque '+fmt0(l.montant-l.res):'');}
 function apLigneHtml(l){
@@ -5127,9 +5146,9 @@ function renderAPayer(){
   const pills=q('#ap-pills');
   if(pills)pills.innerHTML=[['','Tout'],['prestataire','Prestataires'],['materiel','Matériel'],['outil','Outils'],['charge','Charges'],['paye','Payés']].map(x=>'<button class="fin-onglet'+(AP_FILTRE===x[0]?' on':'')+'" data-s="'+x[0]+'" onclick="apFiltre(this.dataset.s)">'+x[1]+'</button>').join('');
   const payes=[];st.list.forEach(x=>x.ech.filter(e=>e.payeLe).forEach(e=>payes.push({x:x,e:e})));payes.sort((a,b)=>b.e.payeLe.localeCompare(a.e.payeLe));
-  const tete='<div class="ap-r ap-h"><span>Quoi</span><span>Quand</span><span class="fv-r">Montant</span><span>Réservé</span><span>Facture ou devis</span><span></span></div>';
+  const tete='<div class="ap-r ap-h"><span>Quoi</span><span>Quand</span><span class="fv-r">Montant</span><span>Réservé</span><span>Facture</span><span></span></div>';
   if(AP_FILTRE==='paye'){
-    el.innerHTML='<div class="fa-blanc fin-liste">'+(payes.length?tete+payes.map(y=>apLigneHtml({id:y.x.p.id,nom:y.x.p.description||'Paiement',sous:AP_GENRES[y.x.genre]+(y.e.qonto?', retrouvé dans Qonto':''),quand:'le '+apDateFr(y.e.date),montant:y.e.montant,res:y.e.montant,paye:y.e.payeLe,doc:y.x.p.fichierNom?'<button class="fin-lien" data-id="'+y.x.p.id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(y.x.p.fichierType||'devis ou facture')+'</button>':'',act:'<span class="fa-pas fa-p-n">payé</span>'})).join(''):'<p class="fa-vide">Rien de payé pour l’instant.</p>')+'</div>';return;
+    el.innerHTML='<div class="fa-blanc fin-liste">'+(payes.length?tete+payes.map(y=>apLigneHtml({id:y.x.p.id,nom:y.x.p.description||'Paiement',sous:AP_GENRES[y.x.genre]+(y.e.qonto?', retrouvé dans Qonto':''),quand:'le '+apDateFr(y.e.date),montant:y.e.montant,res:y.e.montant,paye:y.e.payeLe,doc:apDoc(y.x,y.e),act:'<span class="fa-pas fa-p-n">payé</span>'})).join(''):'<p class="fa-vide">Rien de payé pour l’instant.</p>')+'</div>';return;
   }
   const L=toutes.filter(l=>!AP_FILTRE||l.genre===AP_FILTRE);
   if(!L.length){el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">'+(AP_FILTRE?'Rien à payer de ce côté.':'Rien à payer pour l’instant. Ajoute un paiement prévu dès que tu signes avec un prestataire ou que tu prévois un achat.')+'</p></div>';return;}
@@ -5168,19 +5187,37 @@ async function apReserverTout(){
   apMaj();
 }
 /* La fenêtre : nouveau paiement prévu, ou modifier */
-function apEchLigne(m,d){return '<div class="ap-ech"><input type="number" class="form-input" step="0.01" min="0" placeholder="Montant" value="'+(m||'')+'" aria-label="Montant de l’échéance"><input type="date" class="form-input" value="'+(d||'')+'" aria-label="Date de l’échéance"><button type="button" class="fin-lien" onclick="this.parentNode.remove()">Retirer</button></div>';}
 function apSeg(id,v){qa('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
 function apSegVal(id){const b=q('#'+id+' button.on');return b?b.dataset.v:'';}
-function apMode(v){apSeg('ap-mode',v);q('#ap-une').style.display=v==='une'?'':'none';q('#ap-plusieurs').style.display=v==='une'?'none':'';if(v!=='une'&&!q('#ap-echs').children.length){q('#ap-echs').innerHTML=apEchLigne('','')+apEchLigne('','');}}
+function apAcompte(v){apSeg('ap-acompte',v);q('#ap-acompte-autre').style.display=v==='autre'?'':'none';apApercu();}
+function apPlusMois(d,n){const x=new Date(d+'T12:00:00'),j=x.getDate(),y=new Date(x.getFullYear(),x.getMonth()+n,1,12),dern=new Date(y.getFullYear(),y.getMonth()+1,0).getDate();y.setDate(Math.min(j,dern));return y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');}
+/* Les échéances se calculent toutes seules : l'acompte le premier jour, puis le reste en autant de mois */
+function apCalcul(){
+  const total=parseFloat(q('#ap-total').value)||0,d=q('#ap-date').value,mois=Math.max(1,Math.min(36,parseInt(q('#ap-mois').value)||1)),a=apSegVal('ap-acompte')||'aucun';
+  if(!(total>0)||!d)return null;
+  let ac=a==='30'?total*0.3:a==='50'?total*0.5:a==='autre'?Math.min(total,parseFloat(q('#ap-acompte-m').value)||0):0;
+  ac=Math.round(ac*100)/100;
+  const ech=[],k=ac>0?1:0,reste=Math.round((total-ac)*100)/100;
+  if(ac>0)ech.push({montant:ac,date:d,nom:'Acompte'});
+  if(reste>=0.01){const base=Math.floor(reste/mois*100)/100;for(let i=0;i<mois;i++){const m=i===mois-1?Math.round((reste-base*(mois-1))*100)/100:base;ech.push({montant:m,date:apPlusMois(d,i+k),nom:mois===1?(ac>0?'Solde':'Paiement'):(i+1)+(i===0?'re':'e')+' mensualité'});}}
+  return {total:total,date:d,acompte:a,acompteMontant:ac,mois:mois,ech:ech};
+}
+function apApercu(){
+  const c=apCalcul(),el=q('#ap-apercu');if(!el)return;
+  if(!c){el.innerHTML='<span class="fin-cl__s">Mets le montant total et la date du premier paiement, les échéances se calculent toutes seules.</span>';return;}
+  el.innerHTML='<span class="fin-cl__s">Ce que ça donne</span>'+c.ech.map(e=>'<div class="ap-apercu__l"><span>'+e.nom+'</span><span class="fin-cl__s">le '+apDateFr(e.date)+'</span><span class="fa-n">'+fmt(e.montant)+'</span></div>').join('');
+}
 function apOuvrir(id){
   AP_ID=id||null;const p=id?dbGet('depenses_prevues').find(x=>x.id===id):null;
   q('#ap-titre').textContent=p?'Modifier le paiement prévu':'Nouveau paiement prévu';
   q('#ap-desc').value=p?p.description||'':'';
   apSeg('ap-genre',p?apGenre(p):'prestataire');
-  const ech=p?apEcheances(p):[];
-  q('#ap-montant').value=p?(ech.length>1?'':(ech[0]?ech[0].montant:p.montant)):'';q('#ap-date').value=ech.length===1?ech[0].date:'';
-  q('#ap-echs').innerHTML=ech.length>1?ech.map(e=>apEchLigne(e.montant,e.date)).join(''):'';
-  apMode(ech.length>1?'plusieurs':'une');
+  const ech=p?apEcheances(p):[],c=p&&p.calc?p.calc:null;
+  q('#ap-total').value=p?(c?c.total:(ech.reduce((s,e)=>s+e.montant,0)||p.montant||'')):'';
+  q('#ap-date').value=c?c.date:(ech[0]?ech[0].date:'');
+  q('#ap-mois').value=c?c.mois:Math.max(1,ech.length);
+  q('#ap-acompte-m').value=c&&c.acompte==='autre'?c.acompteMontant:'';
+  apAcompte(c?c.acompte:'aucun');
   q('#ap-fichier').value='';q('#ap-fichier-nom').textContent=p&&p.fichierNom?'Joint : '+p.fichierNom:'';
   const st=apEtat();
   q('#ap-res-bloc').style.display=p?'none':'';
@@ -5191,18 +5228,16 @@ function apOuvrir(id){
 }
 async function apEnregistrer(){
   const desc=q('#ap-desc').value.trim();if(!desc){toast('Dis ce que c’est','error');return;}
-  let ech;
-  if(apSegVal('ap-mode')==='une'){const m=parseFloat(q('#ap-montant').value),d=q('#ap-date').value;if(!(m>0)||!d){toast('Montant et date requis','error');return;}ech=[{montant:m,date:d}];}
-  else{ech=qa('#ap-echs .ap-ech').map(r=>{const i=r.querySelectorAll('input');return {montant:parseFloat(i[0].value),date:i[1].value};}).filter(e=>e.montant>0&&e.date);if(!ech.length){toast('Ajoute au moins une échéance','error');return;}}
-  ech.sort((a,b)=>a.date.localeCompare(b.date));
+  const c=apCalcul();if(!c||!c.ech.length){toast('Montant total et date du premier paiement requis','error');return;}
+  const ech=c.ech.map(e=>({montant:e.montant,date:e.date}));
   const vieux=AP_ID?dbGet('depenses_prevues').find(x=>x.id===AP_ID):null;
-  if(vieux){const avant=apEcheances(vieux);ech.forEach(e=>{const a=avant.find(x=>x.date===e.date&&Math.abs(x.montant-e.montant)<0.5&&x.payeLe);if(a)e.payeLe=a.payeLe;});}
-  const total=ech.reduce((s,e)=>s+e.montant,0),genre=apSegVal('ap-genre');
-  const data={description:desc,genre:genre,categorie:{prestataire:'Prestataire',materiel:'Matériel & équipement',outil:'Logiciels & abonnements',charge:'Charges sociales'}[genre]||'Autre',montant:total,type:'ponctuel',dateDebut:ech[0].date,dateFin:ech[ech.length-1].date,echeances:ech,statut:'active'};
+  if(vieux){const avant=Array.isArray(vieux.echeances)?vieux.echeances:apEcheances(vieux);ech.forEach(e=>{const a=avant.find(x=>x.date===e.date);if(a)['payeLe','fichierKey','fichierNom','fichierMime'].forEach(k=>{if(a[k])e[k]=a[k];});});}
+  const genre=apSegVal('ap-genre');
+  const data={description:desc,genre:genre,categorie:{prestataire:'Prestataire',materiel:'Matériel & équipement',outil:'Logiciels & abonnements',charge:'Charges sociales'}[genre]||'Autre',montant:c.total,type:'ponctuel',dateDebut:ech[0].date,dateFin:ech[ech.length-1].date,echeances:ech,calc:{total:c.total,date:c.date,acompte:c.acompte,acompteMontant:c.acompteMontant,mois:c.mois},statut:'active'};
   try{
     let p;
     if(vieux)p=await dbUpdate('depenses_prevues',Object.assign({},vieux,data));
-    else{const st=apEtat();data.reserve=q('#ap-res-now').checked?Math.min(st.libre,total):0;p=await dbCreate('depenses_prevues',data);}
+    else{const st=apEtat();data.reserve=q('#ap-res-now').checked?Math.min(st.libre,c.total):0;p=await dbCreate('depenses_prevues',data);}
     const f=q('#ap-fichier').files[0];if(f&&p&&p.id)await apEnvoyerFichier(p.id,f);
     closeModal('modal-apayer');toast(vieux?'Enregistré':(data.reserve?fmt0(data.reserve)+' réservés':'Enregistré'),'success');
   }catch(e){toast(e.message,'error');}
@@ -5213,17 +5248,18 @@ async function apSupprimer(){
   try{await dbDelete('depenses_prevues',AP_ID);closeModal('modal-apayer');toast('Supprimé','success');}catch(e){toast(e.message,'error');}
   apMaj();
 }
-async function apEnvoyerFichier(id,f){
-  const r=await fetch('/api/depenses-prevues/'+id+'/fichier?nom='+encodeURIComponent(f.name),{method:'POST',body:f,headers:{'Content-Type':f.type||'application/octet-stream'}});
+function apQs(e){return e!==undefined&&e!==null&&e!==''?'e='+e:'';}
+async function apEnvoyerFichier(id,f,e){
+  const r=await fetch('/api/depenses-prevues/'+id+'/fichier?nom='+encodeURIComponent(f.name)+(apQs(e)?'&'+apQs(e):''),{method:'POST',body:f,headers:{'Content-Type':f.type||'application/octet-stream'}});
   if(!r.ok)throw new Error('Le fichier n’a pas pu être envoyé');
   const p=await r.json(),list=dbGet('depenses_prevues'),i=list.findIndex(x=>x.id===id);if(i>=0){list[i]=p;dbSet('depenses_prevues',list.slice());}
 }
-function apJoindre(id){
+function apJoindre(id,e){
   const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,image/*';
-  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{await apEnvoyerFichier(id,f);toast('Fichier joint','success');}catch(e){toast(e.message,'error');}renderAPayer();};
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{await apEnvoyerFichier(id,f,e);toast('Facture jointe','success');}catch(x){toast(x.message,'error');}renderAPayer();};
   inp.click();
 }
-function apVoirFichier(id){window.open('/api/depenses-prevues/'+id+'/fichier','_blank');}
+function apVoirFichier(id,e){window.open('/api/depenses-prevues/'+id+'/fichier'+(apQs(e)?'?'+apQs(e):''),'_blank');}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}

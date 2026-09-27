@@ -62,7 +62,7 @@ async function router(request, env) {
   const mDPF = path.match(/^\/api\/depenses-prevues\/([^/]+)\/fichier$/);
   if (mDPF) {
     if (method === 'POST') return uploadFichierPrevue(request, env, uid, mDPF[1]);
-    if (method === 'GET')  return downloadFichierPrevue(env, uid, mDPF[1]);
+    if (method === 'GET')  return downloadFichierPrevue(request, env, uid, mDPF[1]);
   }
   const mDP = path.match(/^\/api\/depenses-prevues\/([^/]+)$/);
   if (mDP && method === 'PUT')    return updateDepensePrevue(request, env, uid, mDP[1]);
@@ -322,14 +322,14 @@ async function createDepensePrevue(request,env,uid){
     categorie:body.categorie||'Autre',montant:parseFloat(body.montant),
     dateDebut:body.dateDebut||null,dateFin:body.dateFin||null,
     statut:body.statut||'active',genre:body.genre||null,projetId:body.projetId||null,
-    echeances:Array.isArray(body.echeances)?body.echeances:null,reserve:parseFloat(body.reserve)||0,createdAt:iso()};
+    echeances:Array.isArray(body.echeances)?body.echeances:null,calc:body.calc||null,reserve:parseFloat(body.reserve)||0,createdAt:iso()};
   list.push(d);await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(d,201);
 }
 async function updateDepensePrevue(request,env,uid,id){
   const body=await parseJSON(request);if(!body)return jsonErr(400,'Body invalide.');
   const list=await kvTableau(env,`${uid}:depenses_prevues`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Introuvable.');
-  ['type','description','categorie','montant','dateDebut','dateFin','statut','genre','projetId','echeances','reserve'].forEach(f=>{
+  ['type','description','categorie','montant','dateDebut','dateFin','statut','genre','projetId','echeances','calc','reserve'].forEach(f=>{
     if(body[f]!==undefined)list[idx][f]=f==='montant'||f==='reserve'?(parseFloat(body[f])||0):body[f];
   });
   list[idx].updatedAt=iso();
@@ -338,20 +338,26 @@ async function updateDepensePrevue(request,env,uid,id){
 async function uploadFichierPrevue(request,env,uid,id){
   const list=await kvTableau(env,`${uid}:depenses_prevues`);const idx=list.findIndex(x=>x.id===id);
   if(idx<0)return jsonErr(404,'Introuvable.');
+  const url=new URL(request.url),e=url.searchParams.get('e');
   const type=request.headers.get('Content-Type')||'application/octet-stream';
-  const nom=(new URL(request.url).searchParams.get('nom')||'fichier').slice(0,120);
-  const key=`${uid}/depenses-prevues/${id}`;
+  const nom=(url.searchParams.get('nom')||'fichier').slice(0,120);
+  // une facture par échéance (?e=1), sinon le devis ou la facture du paiement
+  let cible=list[idx],key=`${uid}/depenses-prevues/${id}`;
+  if(e!==null){const i=parseInt(e,10),ech=list[idx].echeances;if(!Array.isArray(ech)||!ech[i])return jsonErr(404,'Échéance introuvable.');cible=ech[i];key+=`-e${i}`;}
   await env.R2_FINANCE.put(key,await request.arrayBuffer(),{httpMetadata:{contentType:type}});
   const bas=nom.toLowerCase();
-  list[idx].fichierKey=key;list[idx].fichierNom=nom;list[idx].fichierMime=type;
-  list[idx].fichierType=bas.includes('devis')?'devis':bas.includes('fact')?'facture':'devis ou facture';
+  cible.fichierKey=key;cible.fichierNom=nom;cible.fichierMime=type;
+  cible.fichierType=bas.includes('devis')?'devis':'facture';
   list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(list[idx]);
 }
-async function downloadFichierPrevue(env,uid,id){
+async function downloadFichierPrevue(request,env,uid,id){
   const list=await kvTableau(env,`${uid}:depenses_prevues`);const d=list.find(x=>x.id===id);
-  if(!d?.fichierKey)return jsonErr(404,'Aucun fichier joint.');
-  const obj=await env.R2_FINANCE.get(d.fichierKey);if(!obj)return jsonErr(404,'Fichier introuvable.');
-  return new Response(obj.body,{headers:{'Content-Type':d.fichierMime||'application/octet-stream','Content-Disposition':`inline; filename="${encodeURIComponent(d.fichierNom||'fichier')}"`}});
+  if(!d)return jsonErr(404,'Introuvable.');
+  const e=new URL(request.url).searchParams.get('e');
+  const cible=e!==null?(Array.isArray(d.echeances)?d.echeances[parseInt(e,10)]:null):d;
+  if(!cible?.fichierKey)return jsonErr(404,'Aucun fichier joint.');
+  const obj=await env.R2_FINANCE.get(cible.fichierKey);if(!obj)return jsonErr(404,'Fichier introuvable.');
+  return new Response(obj.body,{headers:{'Content-Type':cible.fichierMime||'application/octet-stream','Content-Disposition':`inline; filename="${encodeURIComponent(cible.fichierNom||'fichier')}"`}});
 }
 async function deleteDepensePrevue(env,uid,id){
   const list=await kvTableau(env,`${uid}:depenses_prevues`);
