@@ -4152,6 +4152,11 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 
 .bu-tot { color:#110704; font-weight:600; }
 
+.bu-change { margin-top:18px; }
+.bu-apres { font-weight:600; color:#110704; }
+
+.bu-mois { display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -5464,7 +5469,7 @@ function buEtat(k){
   const ops=buOpsMois(k),somme=c=>ops.filter(o=>buCat(o)===c).reduce((s,o)=>s+o.m,0);
   const rentrees=BU.rentrees.map(r=>({r:r,recu:somme('rentree:'+r.id)}));
   const salRecu=(rentrees.find(x=>x.r.id==='salaire')||{recu:0}).recu,salFin=buSalairePrevu(k),estCourant=k===buMk();
-  const salaire=salRecu>0?salRecu:(salFin||BU.salaire);
+  const salaire=salRecu>0?salRecu:(estCourant?(salFin>0?Math.min(BU.salaire,salFin):BU.salaire):0);
   let rentre=rentrees.reduce((s,x)=>s+Math.max(0,x.recu),0);if(!salRecu&&estCourant)rentre+=salaire;
   const fixes=BU.fixes.map(f=>({f:f,mensuel:buFixeMensuel(f),paye:-somme('fixe:'+f.id)})).filter(x=>x.mensuel>0||x.paye>0);
   const partTout=fixes.reduce((s,x)=>s+Math.max(x.mensuel,x.paye),0);
@@ -5478,7 +5483,7 @@ function buEtat(k){
    Il verse plus : le supplément va dans De côté. */
 function buProposition(st){
   const diff=Math.round(st.salaire-BU.salaire);
-  if(st.ajuste||Math.abs(diff)<20)return null;
+  if(st.ajuste||Math.abs(diff)<20||(st.k!==buMk()&&!st.salRecu))return null;
   if(diff>0)return {diff:diff,lignes:[['decote','De côté',st.decote.prevu,st.decote.prevu+diff]]};
   const souples=st.envs.filter(x=>['plaisirs','restau','imprevus'].indexOf(x.e.id)>=0).map(x=>['env:'+x.e.id,x.e.nom,x.prevu]).concat([['projets','Projets de vie',st.projets.prevu],['decote','De côté',st.decote.prevu]]);
   const tot=souples.reduce((s,x)=>s+x[2],0);if(tot<=0)return null;
@@ -5504,8 +5509,10 @@ function renderBudget(){
   const k=BU_MOIS||buMk(),st=buEtat(k),nom=buNomMois(k),p=buProposition(st);
   let action='';
   if(p){
-    const lignes=p.lignes.map(x=>'<div class="ap-calc__l"><span>'+x[1]+'</span><span class="fa-n"><s class="fin-cl__s">'+fmt0(x[2])+'</s> '+fmt0(x[3])+'</span></div>').join('');
-    action='<div class="fa-creme ap-creme bu-action"><div class="ap-creme__g"><div><span class="fa-k">'+(p.diff<0?'ton pro a moins rentré en ':'ton pro a bien rentré en ')+nom+'</span><b>Ton salaire sera de '+fmt0(st.salaire)+'</b><span class="fa-k fa-k--f">'+(p.diff<0?'D’après Finance, Seed to Bloom peut te verser '+fmt0(st.salaire)+' au lieu de '+fmt0(BU.salaire)+'. Tes charges, la nourriture et la santé ne bougent pas, le reste baisse un peu.':'C’est '+fmt0(p.diff)+' de plus que d’habitude. Tout le supplément va dans De côté.')+'</span></div><div class="ap-btns"><button class="fa-btn" onclick="buAppliquer()">Appliquer</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Ajuster moi-même</button></div></div><div class="ap-calc">'+lignes+'<div class="ap-calc__l ap-calc__l--f"><span>'+(p.diff<0?'en moins':'en plus')+'</span><span class="fa-n">'+fmt0(Math.abs(p.diff))+'</span></div></div></div>';
+    const L=(a,b,f)=>'<div class="ap-calc__l'+(f?' ap-calc__l--f':'')+'"><span>'+a+'</span><span class="fa-n">'+b+'</span></div>';
+    const avant=L('Ton salaire d’habitude',fmt0(BU.salaire))+L('Ton salaire en '+nom,fmt0(st.salaire))+L(p.diff<0?'En moins':'En plus',(p.diff<0?'− ':'+ ')+fmt0(Math.abs(p.diff)),true);
+    const change='<div class="bu-change"><span class="fin-cl__s">'+(p.diff<0?'Ce qui baisse pour que tout tienne':'Où va le supplément')+'</span>'+p.lignes.map(x=>'<div class="ap-calc__l"><span>'+x[1]+'</span><span class="fa-n">'+fmt0(x[2])+' → <span class="bu-apres">'+fmt0(x[3])+'</span></span></div>').join('')+'</div>';
+    action='<div class="fa-creme ap-creme bu-action"><div class="ap-creme__g"><div><span class="fa-k">'+(p.diff<0?'ton pro a moins rentré en ':'tu t’es versé plus en ')+nom+'</span><b>'+(p.diff<0&&!st.salRecu?'Ton salaire sera de '+fmt0(st.salaire):'Tu as reçu '+fmt0(st.salaire))+'</b><span class="fa-k fa-k--f">'+(p.diff<0?(st.salRecu?'C’est '+fmt0(-p.diff)+' de moins que ton salaire habituel.':'D’après Finance, Seed to Bloom peut te verser '+fmt0(st.salaire)+' ce mois-ci au lieu de tes '+fmt0(BU.salaire)+' habituels.')+' Tes charges, la nourriture et la santé ne bougent pas, le reste baisse un peu.':'C’est '+fmt0(p.diff)+' de plus que ton salaire habituel. Tes enveloppes ne changent pas : ces '+fmt0(p.diff)+' vont dans De côté.')+'</span></div><div class="ap-btns"><button class="fa-btn" onclick="buAppliquer()">'+(p.diff<0?'Appliquer':'Les mettre de côté')+'</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Ajuster moi-même</button></div></div><div class="ap-calc">'+avant+change+'</div></div>';
   }else if(st.aRanger)action='<div class="fa-creme bu-une"><div><span class="fa-k">une chose à faire</span><b>'+st.aRanger+' dépense'+(st.aRanger>1?'s':'')+' de ton relevé à ranger</b></div><button class="fa-btn" onclick="buOuvrirRanger()">Les ranger</button></div>';
   else if(!BU.ops.length)action='<div class="fa-creme bu-une"><div><span class="fa-k">pour commencer</span><b>Dépose le relevé CSV de ta banque</b><span class="fa-k fa-k--f">Tes dépenses se rangent toutes seules dans tes enveloppes. Tu n’as rien à noter à la main.</span></div><button class="fa-btn" onclick="buDeposer()">Déposer un relevé</button></div>';
   const salTxt=st.salRecu>0?'salaire reçu':(k===buMk()?'salaire de '+fmt0(st.salaire)+' à venir, d’après Finance':'pas de salaire reçu');
@@ -5519,8 +5526,7 @@ function renderBudget(){
   const pj=BU.projets.liste.map(x=>faEsc(x.nom)+' '+fmt0(x.cumul||0)+' sur '+fmt0(x.objectif||0)).join(' · ');
   const plus='<button class="bu-l" data-c="projets" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">Projets de vie</span><span><b class="fa-n">'+fmt0(st.projets.prevu)+'</b><span class="fin-cl__s">'+(st.projets.verse>0?' viré':' à virer')+'</span></span><span class="fin-cl__s">'+(pj||'ajoute tes projets dans Changer la répartition')+'</span></button>'+
     '<button class="bu-l" data-c="decote" onclick="buDetail(this.dataset.c)"><span class="bu-l__n">De côté</span><span><b class="fa-n">'+fmt0(st.decote.prevu)+'</b><span class="fin-cl__s">'+(st.decote.verse>0?' mis de côté':' à mettre de côté')+'</span></span><span class="fin-cl__s">pour les coups durs</span></button>';
-  const moisD=buMoisPlus(k,-1),moisS=buMoisPlus(k,1);
-  el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mon budget</h1><p class="fa-sous">'+buMaj1(nom)+', en trois temps. <button class="fin-lien" data-k="'+moisD+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisD))+'</button>'+(k<buMk()?' <button class="fin-lien" data-k="'+moisS+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(moisS))+'</button>':'')+'</p></div><div class="ap-btns"><button class="fa-btn fa-btn--c" onclick="buDeposer()">Déposer un relevé</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Changer la répartition</button></div></div>'+
+  el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mon budget</h1><p class="fa-sous">'+buMaj1(nom)+', en trois temps.</p></div><div class="ap-btns"><button class="fa-btn fa-btn--c" onclick="buDeposer()">Déposer un relevé</button><button class="fa-btn fa-btn--c" onclick="buReglages()">Changer la répartition</button></div></div>'+buPillsMois(k)+
     action+cartes+
     '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Tes enveloppes</span><span class="fin-cl__s fv-g__e">'+buTotal(st)+'</span></div>'+env+'</div>'+
     '<div class="fa-blanc fin-liste bu-bloc"><div class="fv-g"><span class="fv-g__t">Pour plus tard</span></div>'+plus+'</div>'+
@@ -5530,6 +5536,12 @@ function renderBudget(){
 function buTotal(st){
   const env=st.envs.reduce((s,x)=>s+Math.max(0,x.dep),0),prevu=st.envs.reduce((s,x)=>s+x.prevu,0),fixes=st.fixes.reduce((s,x)=>s+Math.max(0,x.paye),0);
   return 'dépensé ce mois-ci : <b class="fa-n bu-tot">'+fmt0(env)+'</b> sur '+fmt0(prevu)+', <b class="fa-n bu-tot">'+fmt0(env+fixes)+'</b> en tout avec ce qui part tout seul';
+}
+/* Tous tes mois en pilules, du plus ancien au mois en cours */
+function buPillsMois(k){
+  const mois=[...new Set(buMoisAvecOps().concat([buMk()]))].sort().slice(-12);
+  const an=mois.some(m=>m.slice(0,4)!==buMk().slice(0,4));
+  return '<div class="fin-pills bu-mois">'+mois.map(m=>'<button class="fin-onglet'+(m===k?' on':'')+'" data-k="'+m+'" onclick="buAller(this.dataset.k)">'+buMaj1(buNomMois(m))+(an?' '+m.slice(2,4):'')+'</button>').join('')+'</div>';
 }
 function buAller(k){BU_MOIS=k===buMk()?null:k;renderBudget();}
 /* ── Ranger en un clic ── */
