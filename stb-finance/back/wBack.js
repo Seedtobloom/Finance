@@ -246,7 +246,9 @@ async function getFacture(env,uid,id){const list=await kvTableau(env,`${uid}:fac
 async function createFacture(request,env,uid){
   const body=await parseJSON(request);if(!validerDoc(body))return jsonErr(400,'Données invalides.');
   const list=await kvTableau(env,`${uid}:factures`);
-  const f={id:uid4(),numero:prochNumF(list),client:body.client.trim(),projet:body.projet?.trim()||'',
+  // Un encaissement Qonto sans facture ne prend pas de numéro dans la suite d'Indy
+  const numero=body.typeFacture==='qonto'?'QONTO-'+uid4().slice(0,6):prochNumF(list);
+  const f={id:uid4(),numero,client:body.client.trim(),projet:body.projet?.trim()||'',
     description:body.description?.trim()||'',montant:parseFloat(body.montant),
     date:body.date,dateEcheance:body.dateEcheance||null,datePaiement:body.datePaiement||null,
     statut:body.statut||'attente',typeFacture:body.typeFacture||'standard',projetId:body.projetId||null,
@@ -634,6 +636,13 @@ async function importFactures(request,env,uid){
   for(const ligne of body.lignes){
     if(!validerDoc(ligne))continue;
     if(nums.has(ligne.numero)){doublons++;continue;}
+    // La facture Indy d'un encaissement déjà rangé depuis Qonto le remplace, sans compter deux fois
+    const mots=String(ligne.client||'').toLowerCase().split(' ').filter(w=>w.length>=4);
+    const jour=d=>d?new Date(d).getTime():0,ref=jour(ligne.datePaiement||ligne.date);
+    const q=list.find(f=>f.typeFacture==='qonto'&&Math.abs((f.montant||0)-parseFloat(ligne.montant))<0.5&&
+      (mots.some(w=>String(f.client||'').toLowerCase().indexOf(w)>=0)||Math.abs(jour(f.datePaiement||f.date)-ref)<=60*86400000));
+    if(q){Object.assign(q,{numero:ligne.numero,client:ligne.client?.trim()||q.client,description:ligne.description?.trim()||q.description,
+      date:ligne.date||q.date,typeFacture:'standard',statut:'payee',updatedAt:iso()});nums.add(q.numero);importees++;continue;}
     const f={id:uid4(),numero:ligne.numero,client:ligne.client?.trim(),description:ligne.description?.trim()||'',
       montant:parseFloat(ligne.montant),date:ligne.date,statut:ligne.statut||'attente',
       datePaiement:ligne.datePaiement||null,pdfKey:null,createdAt:iso()};
