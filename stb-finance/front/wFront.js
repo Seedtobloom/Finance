@@ -4366,9 +4366,9 @@ async function finAppliquer(){
   try{for(const x of p){await api('POST','/api/virements',{de:'qonto',vers:x.id,montant:x.m,date:date,motif:'Répartition'});}toast('Répartition enregistrée','success');await loadEnveloppes();}
   catch(e){toast('Erreur : '+e.message,'error');}
 }
-async function finVirerVers(id,m){
+async function finVirerVers(id,m,de){
   if(!(_enveloppes||[]).length){try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){toast('Enveloppes introuvables, réessaie','error');return;}}
-  openVirementModal('qonto');q('#virement-vers').value=id;if(m)q('#virement-montant').value=m;
+  openVirementModal(de||'qonto');q('#virement-vers').value=id;if(m)q('#virement-montant').value=m;
   if(id==='tresorerie'&&!q('#virement-motif').value)q('#virement-motif').value='Trésorerie';
 }
 function finFactFiltre(st){
@@ -4747,11 +4747,16 @@ function fcCorps(k,i){
   }
   const t=['T1','T1','T1','T2','T2','T2','T3','T3','T3','T4','T4','T4'][+k.slice(5,7)-1]+'-'+k.slice(0,4);
   const reste=Math.max(0,Math.round(P.net-P.deja));
+  // D'où virer : Qonto non rangé s'il a assez, sinon l'enveloppe salaire, sans jamais dépasser ce qui est disponible
+  if(!(_enveloppes||[]).length&&!fcCorps._env){fcCorps._env=1;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];if(q('#section-cloture.active'))loadCloture();}).catch(()=>{});}
+  const dispo=id=>{const e=(_enveloppes||[]).find(x=>x.id===id);return e?Math.max(0,Math.floor(e.solde||0)):0;};
+  const dQ=dispo('qonto'),dS=dispo('salaire');
+  const src=!(_enveloppes||[]).length?null:dQ>=reste?['qonto',reste,'ton compte Qonto']:dS>=1?['salaire',Math.min(reste,dS),'ton enveloppe salaire']:dQ>=1?['qonto',Math.min(reste,dQ),'ton compte Qonto']:null;
   if(fcEtat(k).fini)return '<h2 class="fa-h2 fc-h">Mettre de côté</h2><div class="fa-creme fc-bas"><div><b>'+nom.charAt(0).toUpperCase()+nom.slice(1)+' est clôturé</b><span class="fa-k fa-k--f">Tout est réglé pour ce mois-ci.</span></div><button class="fin-lien" data-k="'+k+'" onclick="fcRouvrir(this.dataset.k)">Rouvrir le mois</button></div>';
   return '<h2 class="fa-h2 fc-h">Mettre de côté</h2>'+
     fcLigne('Provision URSSAF pour '+nom,fmt0(P.cot))+'<p class="fq-s fc-note">À déclarer avec le '+fqNomT(t)+', avant le '+fqJour(fqEch(t))+'. Laisse-la sur ton compte Qonto : elle n’est pas à toi.</p>'+
     fcLigne('Ce qui reste pour ta trésorerie',fmt0(reste))+'<p class="fq-s fc-note">Ce que tu ne t’es pas versé. Le virer vers l’enveloppe Trésorerie remplit ton coussin.</p>'+
-    '<div class="fc-actions">'+(reste>0?'<button class="fa-btn fa-btn--c" data-m="'+reste+'" onclick="finVirerVers(&quot;tresorerie&quot;,this.dataset.m)">Virer '+fmt0(reste)+' vers Trésorerie</button>':'')+'</div>'+
+    (reste>0?(!(_enveloppes||[]).length?'<p class="fq-s">Lecture de tes enveloppes…</p>':src?'<div class="fc-actions"><button class="fa-btn fa-btn--c" data-m="'+src[1]+'" data-de="'+src[0]+'" onclick="finVirerVers(&quot;tresorerie&quot;,this.dataset.m,this.dataset.de)">Virer '+fmt0(src[1])+' vers Trésorerie</button></div><p class="fq-s fc-note">Depuis '+src[2]+(src[1]<reste?', tout ce qui y reste':'')+'.</p>':'<p class="fq-s fc-note">Ton argent est déjà rangé ailleurs, rien à virer ce mois-ci.</p>'):'')+
     '<div class="fa-creme fc-bas"><div><span class="fa-k">c’est tout pour '+nom+'</span><span class="fa-k fa-k--f">Le mois passe en clôturé. Tu peux le rouvrir à tout moment.</span></div><button class="fa-btn" data-k="'+k+'" onclick="fcFinir(this.dataset.k)">Clôturer '+nom+'</button></div>';
 }
 async function fcSynchro(){try{await syncQonto(false);}catch(e){}FQ_DERNIER=0;await fqRelier(true);loadCloture();}
