@@ -67,14 +67,17 @@ const HTML = `<!DOCTYPE html>
         <h1 class="fa-titre">Bonjour Cindy</h1>
         <p class="fa-sous" id="fa-sous"></p>
       </div>
+      <div id="fa-cloture"></div>
       <div class="fa-cartes" id="fa-cartes"></div>
       <div class="fa-deux">
         <div class="fa-blanc" id="fa-seuils"></div>
-        <div class="fa-blanc" id="fa-mois"></div>
+        <div class="fa-pile"><div class="fa-blanc" id="fa-etsi"></div><div class="fa-blanc" id="fa-mois"></div></div>
       </div>
       <div class="fa-onglets" id="fa-onglets"></div>
       <div class="fa-blanc fa-liste" id="fa-liste"></div>
     </section><!-- /dashboard -->
+
+    <section id="section-cloture" class="section"><div id="cl-zone"></div></section>
 
 
     <!-- ═══════════════════════════
@@ -3740,6 +3743,55 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fin-hero { margin-bottom:34px; }
 .fin-hero .fa-cartes { margin-top:30px; }
 .fa-cartes--2 { grid-template-columns:minmax(0,2fr) minmax(0,1fr); }
+.fa-pile { display:flex; flex-direction:column; gap:20px; min-width:0; }
+.fa-etsi__n { margin:0 0 16px; }
+.fa-etsi__c { display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+.fa-etsi__r { margin:18px 0 0; padding-top:18px; border-top:1px solid #efeae1; font-size:15px; line-height:1.55; }
+.cl-band { background:#110704; color:#F8F6F2; border-radius:18px; padding:24px 30px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; margin-top:30px; }
+.cl-band > div:first-child { flex:1 1 300px; }
+.cl-band__k { display:block; font-size:14px; color:rgba(230,229,178,.72); }
+.cl-band b { display:block; margin-top:4px; font-family:'Cormorant Garamond', serif; font-weight:400; font-size:32px; line-height:1.15; }
+.cl-band__p { display:flex; gap:8px; flex-wrap:wrap; }
+.cl-band__p span { padding:6px 13px; border-radius:999px; background:rgba(248,246,242,.09); color:rgba(248,246,242,.82); font-size:14px; white-space:nowrap; }
+.cl-band__p span.on { background:#E6E5B2; color:#110704; }
+.cl-band__p span.ok { color:rgba(248,246,242,.5); }
+.cl-go { border:none; cursor:pointer; background:#C5DEFF; color:#110704; border-radius:999px; padding:11px 22px; font:600 15px 'Inter Tight', sans-serif; white-space:nowrap; }
+.cl-go:focus-visible, .cl-et:focus-visible { outline:2px solid #C5DEFF; outline-offset:2px; }
+.cl-fil { margin:0 0 12px; font-size:14px; color:rgba(17,7,4,.6); }
+.cl-fil .fin-lien { font-size:14px; }
+.cl-grid { display:grid; grid-template-columns:minmax(0,300px) minmax(0,1fr); gap:40px; margin-top:34px; align-items:start; }
+.cl-etapes { display:flex; flex-direction:column; gap:6px; }
+.cl-et { display:flex; gap:16px; align-items:flex-start; width:100%; border:none; background:none; text-align:left; padding:16px 18px; border-radius:14px; cursor:pointer; font-family:'Inter Tight', sans-serif; color:#110704; }
+.cl-et i { flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-size:14px; font-weight:600; background:#fff; box-shadow:inset 0 0 0 1px #d9d2c4; }
+.cl-et b { display:block; font-weight:500; font-size:16px; }
+.cl-et small { display:block; margin-top:2px; font-size:14px; color:rgba(17,7,4,.58); }
+.cl-et.ok i { background:#110704; color:#F8F6F2; box-shadow:none; }
+.cl-et.on { background:#110704; color:#F8F6F2; }
+.cl-et.on i { background:#E6E5B2; color:#110704; box-shadow:none; }
+.cl-et.on small { color:rgba(248,246,242,.7); }
+.cl-pan { padding:32px 40px; }
+.cl-k { font-size:14px; color:#7a5540; }
+.cl-h { font-family:'Cormorant Garamond', serif; font-weight:400; font-size:44px; line-height:1.1; margin:6px 0 20px; }
+.cl-tot { display:flex; justify-content:space-between; align-items:baseline; gap:16px; border-top:2px solid #110704; margin-top:6px; padding-top:18px; }
+.cl-tot span { font-family:'Cormorant Garamond', serif; font-size:30px; }
+.cl-tot b { font-family:'Cormorant Garamond', serif; font-weight:400; font-size:56px; line-height:1; }
+.cl-box { flex-direction:row; align-items:center; margin-top:26px; }
+.cl-box > div { flex:1; }
+.cl-in { display:flex; align-items:baseline; gap:6px; margin-top:6px; font-family:'Cormorant Garamond', serif; font-size:40px; }
+.cl-in input { width:6ch; field-sizing:content; min-width:2ch; max-width:8ch; border:none; border-bottom:1px solid rgba(17,7,4,.3); background:transparent; font:inherit; color:#110704; padding:0; }
+.cl-in input:focus { outline:none; border-bottom-color:#110704; }
+.cl-act { margin-top:22px; }
+.cl-liste { margin-top:14px; }
+.cl-nav { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-top:30px; flex-wrap:wrap; }
+.cl-nav .fin-lien { font-size:15px; }
+@media (max-width: 900px) {
+  .cl-grid { grid-template-columns:1fr; gap:20px; }
+  .cl-pan { padding:24px 20px; }
+  .cl-h { font-size:34px; }
+  .cl-tot b { font-size:44px; }
+  .cl-box { flex-direction:column; align-items:stretch; }
+  .cl-band b { font-size:26px; }
+}
 .fin-bt { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap; }
 .fin-bt > div:first-child { flex:1 1 420px; min-width:0; }
 #section-rapport-annuel.fin-h .page-header::before { content:'Le détail, mois par mois'; font:400 28px 'Cormorant Garamond', serif; margin-right:auto; }
@@ -4708,12 +4760,150 @@ function loadAujourdhui(){
   const l=(a,b,fort)=>'<div class="fa-l'+(fort?' fa-l--f':'')+'"><span>'+a+'</span><span class="fa-n">'+b+'</span></div>';
   q('#fa-mois').innerHTML='<h2 class="fa-h2">'+MOIS_LONG[m-1]+', le calcul</h2>'+
     l('Encaissé',fmt0(caMois))+l('URSSAF et formation','− '+fmt0(urssafM))+l('Prélèvement à la source','− '+fmt0(pas))+l('Charges fixes et dépenses','− '+fmt0(aboM+depM))+l('Il reste',fmt0(net),true)+l('Part que tu te verses, '+pct+' %',fmt0(verser),true);
+  // Et si… et bandeau de clôture
+  FA_CTX={caYTD:caYTD,moisEcoules:moisEcoules,projection:projection,objectif:objectif,tva:tva,treso:treso,chargesFixes:chargesFixes,verser:verser,reste:reste,devis:devisEnvoyes};
+  faEtSiRender();clBandeau();
   // Onglets et liste
   const liste=FA_ONGLET==='encours'?encours:afaire;
   q('#fa-onglets').innerHTML='<button class="fin-onglet'+(FA_ONGLET==='afaire'?' on':'')+'" onclick="faOnglet(\\'afaire\\')">À faire · '+afaire.length+'</button><button class="fin-onglet'+(FA_ONGLET==='encours'?' on':'')+'" onclick="faOnglet(\\'encours\\')">En cours · '+encours.length+'</button>';
   q('#fa-liste').innerHTML=liste.length?liste.map(x=>'<div class="fa-ligne"><div><div class="fa-ligne__t">'+faEsc(x.t)+'</div><div class="fa-ligne__s">'+faEsc(x.s)+'</div></div><span><span class="fa-pas '+x.p[0]+'">'+x.p[1]+'</span></span><span class="fa-n fa-ligne__m">'+(x.m!=null?fmt0(x.m):'')+'</span><span class="fa-ligne__a"><button class="fa-btn fa-btn--c" onclick="navigate(\\''+x.b[1]+'\\')">'+x.b[0]+'</button></span></div>').join('')
     :'<p class="fa-vide">'+(FA_ONGLET==='encours'?'Rien en cours.':'Rien à faire pour l’instant.')+'</p>';
   const pastille=q('#nav-pastille-factures');if(pastille)pastille.textContent=retard.length?String(retard.length):'';
+}
+
+/* ─── Clôturer le mois (maquette p2) : 4 étapes, une à la fois ───
+   Suivi dans les réglages : clotures[mois] = {e:[étapes faites], v:virements faits, fait:date}. */
+let CL_ETAPE=1,CL_MOIS=null;
+function clSuivi(k){const c=(dbGetObj('settings').clotures||{})[k];return c&&typeof c==='object'?c:{e:[]};}
+async function clMaj(k,maj){
+  const s=Object.assign({},dbGetObj('settings')),c=Object.assign({},s.clotures||{});
+  c[k]=Object.assign({e:[]},c[k]||{},maj);await dbSet('settings',Object.assign(s,{clotures:c}));
+}
+async function clFaite(k,n){const e=clSuivi(k).e.slice();if(e.indexOf(n)<0)e.push(n);await clMaj(k,{e:e});}
+function clMoisPrec(){const n=new Date(),p=new Date(n.getFullYear(),n.getMonth()-1,1);return p.getFullYear()+'-'+String(p.getMonth()+1).padStart(2,'0');}
+/* Le mois à clôturer : le précédent jusqu'au 10 s'il ne l'est pas, le mois en cours à partir du 25 */
+function clMoisAClore(){
+  const n=new Date(),cur=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'),prev=clMoisPrec();
+  if(n.getDate()<=10&&!clSuivi(prev).fait)return prev;
+  if(n.getDate()>=25&&!clSuivi(cur).fait)return cur;
+  return null;
+}
+function clNom(k){return MOIS_LONG[+k.slice(5)-1].toLowerCase();}
+function clCalc(k){
+  const S=dbGetObj('settings'),tU=(S.tauxUrssaf||25.6)/100,tC=(S.tauxCfp||0.2)/100,pas=S.pasFixe||40,pct=S.pctVersement||65,pctT=S.pctTresorerie||20;
+  const ca=dbGet('factures').filter(f=>f.statut==='payee'&&(f.datePaiement||f.date||'').startsWith(k)).reduce((s,f)=>s+(f.montant||0),0);
+  const dep=dbGet('depenses').filter(d=>(d.date||'').startsWith(k)&&d.categorie!=='Versement perso').reduce((s,d)=>s+(d.montant||0),0);
+  const abo=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).reduce((s,a)=>s+(a.montantMensuel||a.montant||0),0);
+  const urs=Math.round(ca*(tU+tC)),net=Math.max(0,ca-urs-pas-dep-abo),verser=Math.round(net*pct/100);
+  const deja=fqVersements(k).reduce((s,d)=>s+(d.montant||0),0);
+  return {ca:ca,urs:urs,tauxUC:Math.round((tU+tC)*1000)/10,pas:pas,charges:dep+abo,net:net,pct:pct,verser:verser,deja:deja,reste:Math.max(0,verser-deja),pctT:pctT,treso:Math.round(net*pctT/100)};
+}
+/* Bandeau Ébène sur Aujourd'hui */
+function clBandeau(){
+  const el=q('#fa-cloture');if(!el)return;
+  const k=clMoisAClore();if(!k){el.innerHTML='';return;}
+  const e=clSuivi(k).e,prochaine=[1,2,3,4].find(n=>e.indexOf(n)<0)||4;
+  const noms=['Importer','Vérifier','Te verser','Mettre de côté'];
+  const enCours=k===clMoisPrec()?MOIS_LONG[+k.slice(5)-1]+' n’est pas encore clôturé':'Fin '+clNom(k);
+  el.innerHTML='<div class="cl-band"><div><span class="cl-band__k">'+enCours+'</span><b>Clôture ton mois en 4 étapes, environ 10 minutes</b></div>'+
+    '<div class="cl-band__p">'+noms.map((t,i)=>'<span class="'+(i+1===prochaine?'on':e.indexOf(i+1)>=0?'ok':'')+'">'+(i+1)+' '+t+'</span>').join('')+'</div>'+
+    '<button class="cl-go" data-m="'+k+'" onclick="clOuvrir(this.dataset.m)">'+(e.length?'Reprendre':'Commencer')+'</button></div>';
+  const s=q('#fa-sous');if(s)s.textContent=s.textContent.replace(/\.$/,'')+', et '+clNom(k)+' est prêt à être clôturé.';
+}
+function clOuvrir(k){CL_MOIS=k;const e=clSuivi(k).e;CL_ETAPE=[1,2,3,4].find(n=>e.indexOf(n)<0)||4;navigate('cloture');}
+function clAller(n){CL_ETAPE=+n;loadCloture();}
+async function clSuivante(n){await clFaite(CL_MOIS,+n);CL_ETAPE=Math.min(4,+n+1);loadCloture();}
+function loadCloture(){
+  const z=q('#cl-zone');if(!z)return;
+  if(!CL_MOIS)CL_MOIS=clMoisAClore()||clMoisPrec();
+  qa('.nav-item[data-groupe]').forEach(n=>n.classList.toggle('active',n.dataset.groupe==='aujourdhui'));
+  if(!FQ_MOUV&&!FQ_EN_COURS)fqRelier().then(()=>{if(q('#section-cloture.active'))loadCloture();});
+  const k=CL_MOIS,nom=clNom(k),suivi=clSuivi(k),e=suivi.e,C=clCalc(k),nR=FQ_MOUV?fqARanger().length:null;
+  const fait=n=>e.indexOf(n)>=0;
+  const sous=[
+    fait(1)?'Indy et Qonto, fait':'Indy en CSV, Qonto',
+    (nR==null?'mouvements Qonto':nR?nR+' ligne'+(nR>1?'s':'')+' à classer':'tout est rangé')+(fait(2)?', fait':''),
+    C.deja?fmt0(C.deja)+' versés':(fait(3)?'fait':''),
+    'provision URSSAF'+(suivi.v?', fait':'')];
+  const noms=['Importer','Vérifier','Te verser','Mettre de côté'];
+  const etapes=noms.map((t,i)=>'<button class="cl-et'+(CL_ETAPE===i+1?' on':fait(i+1)?' ok':'')+'" data-n="'+(i+1)+'" onclick="clAller(this.dataset.n)"'+(CL_ETAPE===i+1?' aria-current="step"':'')+'><i>'+(i+1)+'</i><span><b>'+t+'</b>'+(sous[i]?'<small>'+sous[i]+'</small>':'')+'</span></button>').join('');
+  const l=(a,b,fort)=>'<div class="fa-l'+(fort?' fa-l--f':'')+'"><span>'+a+'</span><span class="fa-n">'+b+'</span></div>';
+  const lien=(n,t)=>'<button class="fin-lien" data-n="'+n+'" onclick="clAller(this.dataset.n)">Étape '+n+', '+t+'</button>';
+  const suivant=(n,t)=>'<button class="fa-btn" data-n="'+n+'" onclick="clSuivante(this.dataset.n)">'+t+'</button>';
+  let p='<div class="cl-k">Étape '+CL_ETAPE+' sur 4</div>';
+  if(CL_ETAPE===1){
+    p+='<h2 class="cl-h">Importer</h2><p class="fa-p">Importe l’export CSV d’Indy pour avoir toutes tes factures de '+nom+', puis synchronise Qonto pour récupérer les mouvements du mois.</p>'+
+      '<div class="fin-btns cl-act"><button class="fa-btn fa-btn--c" data-s="import-export" onclick="finGo(this)">Importer le CSV Indy</button><button class="fa-btn fa-btn--c" onclick="clSync(this)">Synchroniser Qonto</button></div>'+
+      '<div class="cl-nav"><span></span>'+suivant(1,'C’est fait, étape suivante')+'</div>';
+  }else if(CL_ETAPE===2){
+    const liste=FQ_MOUV?fqARanger():[];
+    p+='<h2 class="cl-h">Vérifier</h2>'+(nR==null?'<p class="fa-p">Récupération des mouvements Qonto…</p>':nR?
+      '<p class="fa-p">'+nR+' mouvement'+(nR>1?'s':'')+' Qonto que l’outil ne connaît pas encore. Un clic chacun.</p><div class="cl-liste">'+liste.slice(0,5).map(t=>l(fqDm(t.date)+'  '+faEsc(t.libelle||'Mouvement'),(t.type==='credit'?'+ ':'− ')+fmt0(t.montant))).join('')+'</div>'+
+      '<div class="fin-btns cl-act"><button class="fa-btn fa-btn--c" data-s="transactions" onclick="finGo(this)">Ranger les mouvements</button></div>'
+      :'<p class="fa-p">Tout est rangé : chaque mouvement Qonto des deux derniers mois est relié.</p>')+
+      '<div class="cl-nav">'+lien(1,'Importer')+suivant(2,'Étape 3, Te verser')+'</div>';
+  }else if(CL_ETAPE===3){
+    p+='<h2 class="cl-h">Ce que tu peux te verser</h2>'+
+      l('Encaissé en '+nom,fmt0(C.ca))+l('URSSAF et formation, '+String(C.tauxUC).replace('.',',')+' %','− '+fmt0(C.urs))+l('Prélèvement à la source','− '+fmt0(C.pas))+
+      l('Charges fixes et dépenses','− '+fmt0(C.charges))+l('Il reste',fmt0(C.net),true)+
+      '<div class="cl-tot"><span>À te verser, '+C.pct+' %</span><b class="fa-n">'+fmt0(C.verser)+'</b></div>'+
+      '<div class="fa-creme cl-box"><div><span class="fa-k">combien veux-tu te verser ?</span><label class="cl-in"><input type="number" min="0" step="1" id="cl-montant" value="'+C.reste+'" aria-label="Montant à te verser"><span>€</span></label>'+
+      '<span class="fa-k fa-k--f">'+(C.deja?fmt0(C.deja)+' déjà versés en '+nom+'. ':'')+'Tu peux te verser moins et garder le reste en trésorerie.</span></div>'+
+      '<button class="fa-btn" onclick="clVerser()">Me verser ce montant</button></div>'+
+      '<div class="cl-nav">'+lien(2,'Vérifier')+'<button class="fin-lien" data-n="3" onclick="clSuivante(this.dataset.n)">Étape 4, Mettre de côté</button></div>';
+  }else{
+    p+='<h2 class="cl-h">Mettre de côté</h2><p class="fa-p">Ce qui part de Qonto vers tes enveloppes pour '+nom+'.</p>'+
+      l('Provision URSSAF et formation, vers Charges fixes',fmt0(C.urs))+l('Part pour ta trésorerie, '+C.pctT+' %',fmt0(C.treso))+l('Total',fmt0(C.urs+C.treso),true)+
+      '<div class="fin-btns cl-act">'+(suivi.v?'<span class="fa-pas fa-p-n">virements faits</span>':'<button class="fa-btn fa-btn--c" onclick="clVirer()">Faire les virements</button>')+'</div>'+
+      '<div class="cl-nav">'+lien(3,'Te verser')+(suivi.fait?'<span class="fa-pas fa-p-n">'+nom+' est clôturé</span>':'<button class="fa-btn" onclick="clClore()">Clôturer '+nom+'</button>')+'</div>';
+  }
+  z.innerHTML='<p class="cl-fil"><button class="fin-lien" data-s="dashboard" onclick="finGo(this)">Aujourd’hui</button> · Clôturer '+nom+'</p>'+
+    '<h1 class="fa-titre">Clôturer '+nom+'</h1><p class="fa-sous">Une fois par mois, dans l’ordre, et c’est réglé.</p>'+
+    '<div class="cl-grid"><nav class="cl-etapes" aria-label="Étapes">'+etapes+'</nav><div class="fa-blanc cl-pan">'+p+'</div></div>';
+}
+async function clSync(b){b.disabled=true;b.textContent='Synchronisation…';try{await fqRelier(true);toast('Qonto synchronisé','success');}catch(e){toast('Qonto : '+(e.message||'erreur'),'error');}loadCloture();}
+async function clVerser(){
+  const v=parseFloat(q('#cl-montant').value)||0;
+  if(v<=0){toast('Indique un montant','error');return;}
+  try{await dbCreate('depenses',{date:finAuj(),description:'Versement perso',categorie:'Versement perso',montant:v});toast(fmt0(v)+' versés, c’est noté','success');await clSuivante(3);}
+  catch(e){toast('Erreur : '+e.message,'error');}
+}
+async function clVirer(){
+  const C=clCalc(CL_MOIS),d=finAuj(),nom=clNom(CL_MOIS);
+  try{
+    if(C.urs>0)await api('POST','/api/virements',{de:'qonto',vers:'charges',montant:C.urs,date:d,motif:'Provision URSSAF '+nom});
+    if(C.treso>0)await api('POST','/api/virements',{de:'qonto',vers:'tresorerie',montant:C.treso,date:d,motif:'Part trésorerie '+nom});
+    await clMaj(CL_MOIS,{v:true});toast('Virements enregistrés','success');
+    try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){}
+  }catch(e){toast(e.message||'Virement impossible','error');}
+  loadCloture();
+}
+async function clClore(){
+  const k=CL_MOIS,e=clSuivi(k).e.slice();if(e.indexOf(4)<0)e.push(4);
+  await clMaj(k,{e:e,fait:finAuj()});toast(MOIS_LONG[+k.slice(5)-1]+' est clôturé','success');CL_MOIS=null;navigate('dashboard');
+}
+/* ─── Et si… : trois scénarios à cliquer, rien n'est enregistré ─── */
+let FA_ETSI=0,FA_CTX=null;
+function faEtSi(i){FA_ETSI=+i;faEtSiRender();}
+function faEtSiRender(){
+  const el=q('#fa-etsi'),c=FA_CTX;if(!el||!c)return;
+  const moy=c.caYTD/c.moisEcoules,n=new Date(),S=dbGetObj('settings'),seuilC=S.seuilCoussin||3;
+  const coussin=v=>String(Math.round(v/c.chargesFixes*10)/10).replace('.',',');
+  const tvaQuand=ca=>{if(ca>=c.tva)return 'tu dépasses déjà le seuil de TVA';if(moy<=0)return 'tu restes sous le seuil de TVA';const i=n.getMonth()+Math.ceil((c.tva-ca)/moy);return i<=11?'tu passes le seuil de TVA vers <b>'+MOIS_LONG[i].toLowerCase()+'</b>':'tu restes sous le seuil de TVA cette année';};
+  const sc=[];
+  const d=c.devis.slice().sort((a,b)=>(b.montant||0)-(a.montant||0))[0];
+  if(d)sc.push(['je signe le devis '+d.client,()=>{const caN=c.caYTD+(d.montant||0),ec=Math.round(c.objectif*c.moisEcoules/12-caN);
+    return 'Avec '+faEsc(d.client)+' : <b>'+fmt0(caN)+'</b> encaissés, '+(ec>0?'ton retard tombe à <b>'+fmt0(ec)+'</b>':'tu passes en avance de <b>'+fmt0(-ec)+'</b>')+', et '+tvaQuand(caN)+'.';}]);
+  const x=Math.max(500,Math.ceil((c.verser+1)/500)*500);
+  sc.push(['je me verse '+fmt0(x)+' ce mois-ci',()=>{if(x<=c.reste)return 'Te verser <b>'+fmt0(x)+'</b> reste dans ce que permet le mois : il te resterait '+fmt0(c.reste-x)+' possibles.';
+    const plus=x-c.reste,tN=c.treso-plus,cN=coussin(tN);
+    return 'C’est <b>'+fmt0(plus)+'</b> de plus que ce que permet le mois. Pris sur ta trésorerie, ton coussin passerait à <b>'+cN+' mois</b> de charges'+(tN/c.chargesFixes<seuilC?', sous ton seuil de '+seuilC+' mois.':'.');}]);
+  sc.push(['je prends deux semaines de congés',()=>{const perte=Math.round(moy/2),pN=Math.max(0,c.projection-perte);
+    return 'Deux semaines sans facturer, c’est environ <b>'+fmt0(perte)+'</b> de moins d’ici décembre : tu finirais l’année vers '+fmt0(pN)+', soit <b>'+Math.round(pN/c.objectif*100)+' %</b> de ton objectif. Tes charges fixes, elles, continuent : '+fmt0(c.chargesFixes/2)+' sur ces deux semaines.';}]);
+  if(FA_ETSI>=sc.length)FA_ETSI=0;
+  el.innerHTML='<h2 class="fa-h2">Et si…</h2><p class="fa-note fa-etsi__n">Essaie un scénario, rien n’est enregistré.</p>'+
+    '<div class="fa-etsi__c">'+sc.map((s,i)=>'<button class="fin-onglet'+(i===FA_ETSI?' on':'')+'" data-i="'+i+'" aria-pressed="'+(i===FA_ETSI)+'" onclick="faEtSi(this.dataset.i)">'+faEsc(s[0])+'</button>').join('')+'</div>'+
+    '<p class="fa-etsi__r" aria-live="polite">'+sc[FA_ETSI][1]()+'</p>';
 }
 
 /* ─── 6. ROUTER ──────────────────────────────────────────────────────── */
@@ -4730,7 +4920,7 @@ function navigate(section){
 }
 function loadSection(s){
   const map={
-    'dashboard':loadAujourdhui,
+    'dashboard':loadAujourdhui,'cloture':loadCloture,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':()=>{loadTransactions();fqRender();},
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
