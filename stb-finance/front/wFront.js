@@ -746,6 +746,7 @@ const HTML = `<!DOCTYPE html>
           <button class="btn btn-primary" id="btn-new-projet"><i class="ti ti-plus"></i> Nouveau projet</button>
         </div>
       </div>
+      <div id="fv-guide"></div>
       <div class="fin-barre">
         <div class="fin-pills" id="projets-pills">
           <button class="fin-onglet on" data-s="" onclick="fvFiltre(&quot;projets&quot;,this.dataset.s)">En cours</button>
@@ -3970,7 +3971,7 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fv-mini i { width:14px; height:5px; border-radius:9px; background:#e6e0d4; }
 .fv-mini i.on { background:#110704; }
 .fv-ou .fin-cl__s { margin-top:4px; }
-.fv-p { display:grid; grid-template-columns:minmax(0,1.3fr) 150px minmax(0,1.2fr) 170px 330px; gap:18px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
+.fv-p { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.3fr) 200px; gap:18px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
 .fv-c { display:grid; grid-template-columns:minmax(0,1.3fr) 130px 90px 140px minmax(0,1.5fr) 90px; gap:18px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; font-size:15px; }
 .fv-h { font-size:13.5px; color:rgba(17,7,4,.58); border-top:none; padding:12px 0; }
 .fv-h + div { border-top:none; }
@@ -3978,6 +3979,22 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fv-r { text-align:right; white-space:nowrap; }
 .fv-notes { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .fv-p .fin-act { display:flex; justify-content:flex-end; align-items:center; gap:4px; }
+
+.fv-nom { border:none; background:none; padding:0; text-align:left; color:#110704; cursor:pointer; }
+.fv-nom:hover { text-decoration:underline; text-underline-offset:3px; }
+.fv-et { display:block; font-weight:500; }
+.fv-g { display:flex; align-items:baseline; gap:12px; padding:22px 0 6px; }
+.fv-g__t { font-family:'Cormorant Garamond',serif; font-size:28px; }
+.fv-g__e { margin-left:auto; }
+.fv-g + .fv-p { border-top:none; }
+.fv-pl { margin-top:18px; }
+.fv-guide { display:flex; align-items:center; gap:28px; margin:4px 0 22px; padding:20px 26px; }
+.fv-guide__g { flex:1; }
+.fv-guide__g b { display:block; margin-top:4px; font-family:'Cormorant Garamond',serif; font-weight:400; font-size:34px; line-height:1.1; }
+.fv-guide p { margin:0; max-width:360px; font-size:15px; line-height:1.5; }
+.fv-dash { display:flex; gap:4px; margin-top:12px; }
+.fv-dash i { flex:1; height:6px; border-radius:99px; background:#e6e0d4; }
+.fv-dash i.on { background:#110704; }
 
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
@@ -4814,7 +4831,7 @@ function fvRecuDevis(d){
   return Math.max(viaProjet,fqRecu('devis',d.id));
 }
 function fvFiltre(sec,st){
-  if(sec==='tiers')FV_CLIENTS=st;else{const sel=q('#'+sec+'-filter-statut');if(sel)sel.value=st;}
+  if(sec==='tiers')FV_CLIENTS=st;else if(sec==='projets')FV_PROJETS=st;else{const sel=q('#'+sec+'-filter-statut');if(sel)sel.value=st;}
   qa('#'+sec+'-pills .fin-onglet').forEach(b=>b.classList.toggle('on',b.dataset.s===st));
   ({devis:renderDevis,projets:renderProjets,tiers:renderTiers})[sec]();
 }
@@ -4835,36 +4852,75 @@ function fvLignesDevis(list){
       '<button class="fin-lien" data-id="'+d.id+'" onclick="editDevis(this.dataset.id)">Modifier</button><button class="fin-lien" data-id="'+d.id+'" onclick="deleteDevis(this.dataset.id)">Supprimer</button></td></tr>';
   }).join(''):'<tr><td colspan="7" class="fin-vide">Aucun devis</td></tr>';
 }
-function renderProjets(){
-  const st=q('#projets-filter-statut')?.value||'';
-  const factures=dbGet('factures'),mk=finAuj().slice(0,7),nomMois=new Date().toLocaleDateString('fr-FR',{month:'long'});
-  let list=dbGet('projets').filter(p=>st==='termine'?p.statut==='termine':p.statut!=='termine');
-  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  const el=q('#projets-list');if(!el)return;
-  if(!list.length){el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">'+(st==='termine'?'Aucun projet terminé.':'Aucun projet en cours. Crée ton premier projet, ou pars d’un devis signé.')+'</p></div>';return;}
-  el.innerHTML='<div class="fa-blanc fin-liste"><div class="fv-p fv-h"><span>Projet</span><span>Facturation</span><span>Encaissé</span><span class="fv-r">Reste à facturer</span><span></span></div>'+list.map(p=>{
-    const lies=factures.filter(f=>f.projetId===p.id),facture=lies.reduce((s,f)=>s+(f.montant||0),0),payees=lies.filter(f=>f.statut==='payee'),dv=p.devisId&&dbGet('devis').find(d=>d.id===p.devisId),encaisse=Math.max(payees.reduce((s,f)=>s+(f.montant||0),0),dv?fvRecuDevis(dv):0);
-    const total=p.montantTotal||0,mensuel=p.type==='mensuel';
-    let mode,enc,n,reste,act='';
-    if(mensuel){
-      const parMois=p.dureeIndeterminee?total:(p.nombreMois?Math.round(total/p.nombreMois*100)/100:total);
-      const ceMois=lies.some(f=>(f.date||'').startsWith(mk));
-      mode=fmt0(parMois)+' par mois';enc=fmt0(encaisse)+' encaissés';n=Math.min(12,payees.length);
-      reste=ceMois?nomMois+' facturé':fmt0(parMois)+' en '+nomMois;
-      if(!ceMois&&p.statut!=='termine')act=fvBtnFacturer(p,parMois,'mensuel','Facturer '+nomMois);
-    }else{
-      const r=Math.max(0,total-Math.max(facture,encaisse));
-      mode=p.type==='echelonne'?'acompte et solde':'en une fois';
-      enc=fmt0(encaisse)+' sur '+fmt0(total);n=total>0?Math.min(12,Math.round(encaisse/total*12)):0;
-      reste=r>=0.5?fmt0(r):'—';
-      if(r>=0.5&&p.statut!=='termine'){
-        const acompte=p.type==='echelonne'&&!lies.some(f=>f.typeFacture==='acompte');
-        act=fvBtnFacturer(p,acompte?Math.round(total*0.3):r,p.type==='echelonne'?(acompte?'acompte':'solde'):'standard',p.type==='echelonne'?(acompte?'Facturer l’acompte':'Facturer le solde'):'Facturer');
-      }
+/* Projets rangés par étape de paiement : à relancer, à facturer, en attente, réglés */
+let FV_PROJETS='';
+const FV_ETAPES=[['facturer','À facturer','le travail est fait ou le mois a commencé, la facture n’est pas partie'],['relancer','À relancer','la date de paiement est passée'],['attente','En attente de paiement','la facture est partie, rien à faire pour l’instant'],['regle','Réglés','tout est payé, tu peux les passer en terminés']];
+function fvEtape(p,factures,mk,nomMois){
+  const lies=factures.filter(f=>f.projetId===p.id),facture=lies.reduce((s,f)=>s+(f.montant||0),0),payees=lies.filter(f=>f.statut==='payee');
+  const dv=p.devisId&&dbGet('devis').find(d=>d.id===p.devisId),encaisse=Math.max(payees.reduce((s,f)=>s+(f.montant||0),0),dv?fvRecuDevis(dv):0);
+  const total=p.montantTotal||0,mensuel=p.type==='mensuel',ouvertes=lies.filter(f=>f.statut!=='payee');
+  const r={p,mensuel,total,encaisse,payees};
+  if(mensuel){r.enc=fmt0(encaisse)+' encaissés';r.n=Math.min(12,payees.length);}
+  else{r.enc=fmt0(encaisse)+' sur '+fmt0(total);r.n=total>0?Math.min(12,Math.round(encaisse/total*12)):0;}
+  if(p.statut==='termine'){r.e='termine';r.t='Terminé';r.s=encaisse>=total-0.5||mensuel?'tout est réglé':'reste '+fmt0(total-encaisse)+' non encaissés';return r;}
+  const retard=ouvertes.filter(finEnRetard).sort((a,b)=>(a.dateEcheance||a.date||'').localeCompare(b.dateEcheance||b.date||''))[0];
+  if(retard){r.e='relancer';r.f=retard;r.t='Relancer '+(p.client||'le client');r.s='facture '+(retard.numero||'')+', en retard depuis '+finJours(retard.dateEcheance||retard.date)+' jours';return r;}
+  if(mensuel){
+    const parMois=p.dureeIndeterminee?total:(p.nombreMois?Math.round(total/p.nombreMois*100)/100:total);
+    if(!lies.some(f=>(f.date||'').startsWith(mk))){r.e='facturer';r.m=parMois;r.ft='mensuel';r.t='Facturer '+nomMois;r.s=fmt0(parMois)+', comme chaque mois';r.b='Facturer '+nomMois;return r;}
+  }else{
+    const reste=Math.max(0,total-Math.max(facture,encaisse));
+    if(reste>=0.5&&!ouvertes.length){
+      const ech=p.type==='echelonne',acompte=ech&&!lies.some(f=>f.typeFacture==='acompte')&&encaisse<0.5;
+      r.e='facturer';r.m=acompte?Math.round(total*0.3):reste;r.ft=ech?(acompte?'acompte':'solde'):'standard';
+      r.t=ech?(acompte?'Facturer l’acompte':'Facturer le solde'):'Facturer';r.s=fmt0(r.m)+(acompte?', 30 % du projet':encaisse>=0.5?', le reste du projet':', tout le projet');r.b=r.t;return r;
     }
-    if(!act)act=p.statut==='termine'||(!mensuel&&total>0&&encaisse>=total-0.5)?'<span class="fa-pas fa-p-n">terminé</span>':(facture>encaisse?'<span class="fin-cl__s">en attente de paiement</span>':'');
-    return '<div class="fv-p"><span><span class="fv-pn">'+faEsc(p.nom||'Projet')+'</span><span class="fin-cl__s">'+faEsc(p.client||'')+'</span></span><span class="fin-cl__s">'+mode+'</span><span><span class="fa-n">'+enc+'</span>'+fvMini(n,12)+'</span><span class="fa-n fv-r">'+reste+'</span><span class="fin-act">'+act+'<button class="fin-lien" data-id="'+p.id+'" onclick="editProjet(this.dataset.id)">Modifier</button><button class="fin-lien" data-id="'+p.id+'" onclick="deleteProjet(this.dataset.id)">Supprimer</button></span></div>';
-  }).join('')+'</div>';
+  }
+  if(ouvertes.length){
+    const f=ouvertes.sort((a,b)=>(a.dateEcheance||'9').localeCompare(b.dateEcheance||'9'))[0];
+    r.e='attente';r.f=f;r.t='Attendre le paiement';r.s='facture '+(f.numero||'')+(f.dateEcheance?', échéance le '+new Date(f.dateEcheance+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'');return r;
+  }
+  const der=payees.map(f=>f.datePaiement||f.date||'').sort().pop();
+  r.e='regle';
+  if(mensuel){r.t=nomMois.charAt(0).toUpperCase()+nomMois.slice(1)+' est réglé';r.s='la prochaine facture le mois prochain';}
+  else{r.t='Tout est réglé';r.s=der?'dernier paiement le '+new Date(der+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'rien à facturer';r.b='Terminer';}
+  return r;
+}
+function fvLigneProjet(r){
+  let bt='';
+  if(r.e==='relancer')bt='<button class="fa-btn" data-id="'+r.f.id+'" onclick="fvRelancer(this.dataset.id)">Relancer</button>';
+  else if(r.e==='facturer')bt='<button class="fa-btn" data-id="'+r.p.id+'" data-m="'+Math.round(r.m)+'" data-t="'+r.ft+'" onclick="fvFacturer(this.dataset.id,this.dataset.m,this.dataset.t)">'+r.b+'</button>';
+  else if(r.e==='attente')bt='<button class="fa-btn fa-btn--c" data-id="'+r.f.id+'" onclick="editFacture(this.dataset.id)">Voir la facture</button>';
+  else if(r.b)bt='<button class="fa-btn fa-btn--c" data-id="'+r.p.id+'" onclick="fvTerminer(this.dataset.id)">Terminer</button>';
+  return '<div class="fv-p"><span><button class="fv-pn fv-nom" data-id="'+r.p.id+'" onclick="editProjet(this.dataset.id)">'+faEsc(r.p.nom||'Projet')+'</button><span class="fin-cl__s">'+faEsc(r.p.client||'')+'</span></span><span><span class="fa-n">'+r.enc+'</span>'+fvMini(r.n,12)+'</span><span><span class="fv-et">'+r.t+'</span><span class="fin-cl__s">'+r.s+'</span></span><span class="fin-act">'+bt+'</span></div>';
+}
+function renderProjets(){
+  const el=q('#projets-list');if(!el)return;
+  const factures=dbGet('factures'),mk=finAuj().slice(0,7),nomMois=new Date().toLocaleDateString('fr-FR',{month:'long'});
+  const tous=dbGet('projets').slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')).map(p=>fvEtape(p,factures,mk,nomMois));
+  const actifs=tous.filter(r=>r.e!=='termine'),nb=k=>actifs.filter(r=>r.e===k).length;
+  const pills=q('#projets-pills');
+  if(pills)pills.innerHTML=[['','Tous',actifs.length]].concat(FV_ETAPES.map(x=>[x[0],x[1]==='En attente de paiement'?'En attente':x[1],nb(x[0])]),[['termine','Terminés',0]]).map(x=>'<button class="fin-onglet'+(FV_PROJETS===x[0]?' on':'')+'" data-s="'+x[0]+'" onclick="fvFiltre(&quot;projets&quot;,this.dataset.s)">'+x[1]+(x[0]!=='termine'?' · '+x[2]:'')+'</button>').join('');
+  const aJour=nb('attente')+nb('regle'),nf=nb('facturer'),nr=nb('relancer');
+  const reste=[nf?nf+' facture'+(nf>1?'s':'')+' à faire':'',nr?nr+' relance'+(nr>1?'s':''):''].filter(Boolean).join(' et ');
+  const guide=actifs.length?'<div class="fa-blanc fv-guide"><div class="fv-guide__g"><span class="fa-k">Tes paiements en '+nomMois+'</span><b class="fa-n">'+aJour+' projet'+(aJour>1?'s':'')+' sur '+actifs.length+(aJour>1?' sont':' est')+' à jour</b><div class="fv-dash">'+actifs.map((r,i)=>'<i'+(i<aJour?' class="on"':'')+'></i>').join('')+'</div></div><p>'+(reste?'Il te reste '+reste+'. Commence par le haut, la liste se met à jour à chaque étape.':'Tout est à jour, rien à faire pour tes paiements.')+'</p></div>':'';
+  let corps;
+  if(FV_PROJETS==='termine'){const t=tous.filter(r=>r.e==='termine');corps=t.length?t.map(fvLigneProjet).join(''):'<p class="fa-vide">Aucun projet terminé.</p>';}
+  else if(!actifs.length)corps='<p class="fa-vide">Aucun projet en cours. Crée ton premier projet, ou pars d’un devis signé.</p>';
+  else corps=FV_ETAPES.filter(x=>!FV_PROJETS||FV_PROJETS===x[0]).map(x=>{const l=actifs.filter(r=>r.e===x[0]);return l.length?'<div class="fv-g"><span class="fv-g__t">'+x[1]+'</span><span class="fin-cl__s fa-n">'+l.length+'</span><span class="fin-cl__s fv-g__e">'+x[2]+'</span></div>'+l.map(fvLigneProjet).join(''):'';}).join('')||'<p class="fa-vide">Rien à cette étape.</p>';
+  const g=q('#fv-guide');if(g)g.innerHTML=guide;
+  el.innerHTML='<div class="fa-blanc fin-liste fv-pl">'+corps+'</div>';
+}
+function fvRelancer(id){
+  const f=dbGet('factures').find(x=>x.id===id);if(!f)return;
+  const t=dbGet('tiers').find(x=>(x.nom||'').trim().toLowerCase()===(f.client||'').trim().toLowerCase());
+  if(t&&t.email)window.location.href='mailto:'+t.email+'?subject='+encodeURIComponent('Facture '+(f.numero||'')+' en attente de paiement');
+  else editFacture(id);
+}
+async function fvTerminer(id){
+  const p=dbGet('projets').find(x=>x.id===id);if(!p)return;
+  try{await dbUpdate('projets',Object.assign({},p,{statut:'termine'}));toast('Projet terminé','success');}catch(e){toast(e.message,'error');}
+  renderProjets();finOnglets('projets');
 }
 function fvBtnFacturer(p,m,type,l){return '<button class="fa-btn fa-btn--c" data-id="'+p.id+'" data-m="'+Math.round(m)+'" data-t="'+type+'" onclick="fvFacturer(this.dataset.id,this.dataset.m,this.dataset.t)">'+l+'</button>';}
 function fvFacturer(id,m,t){const p=dbGet('projets').find(x=>x.id===id);if(!p)return;openFactureModal({client:p.client,projetId:p.id,montant:+m,typeFacture:t,statut:'attente'});}
