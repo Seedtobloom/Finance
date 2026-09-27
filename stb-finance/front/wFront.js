@@ -4555,7 +4555,7 @@ function fqCarteSalaire(){
   const el=q('#fq-salaire');if(!el)return;
   const e=(_enveloppes||[]).find(x=>x.id==='salaire'),P=fqPlafond();FQ_VERSER={reste:P.reste};
   const cote=e?Math.round(e.solde||0):0;
-  const phrase=P.clos?'En '+P.nomMois+', '+fmt0(P.deja)+' pour toi et '+fmt0(P.reste)+' gardés de côté.'
+  const phrase=P.clos?'En '+P.nomMois+', '+fmt0(P.deja)+' pour toi et '+fmt0(P.reste)+' gardés de côté.'+fqOuGarde(P.mKey)
     :P.deja>P.plafond&&P.deja>0?fmt0(P.deja)+' versés ce mois-ci, '+fmt0(P.deja-P.plafond)+' de plus que prévu.'
     :(P.deja>0?'Ce mois-ci, tu peux encore te verser jusqu’à '+fmt0(P.reste)+' ('+fmt0(P.deja)+' déjà versés).':'Ce mois-ci, tu peux te verser jusqu’à '+fmt0(P.plafond)+'.')+' Ce que tu ne prends pas reste dans ta trésorerie.';
   el.innerHTML='<div><span class="fa-k">ton salaire</span><b class="fa-gros">'+fmt0(cote)+' de côté</b><span class="fa-k fa-k--f">'+phrase+'</span></div>'+
@@ -4586,11 +4586,37 @@ async function fqVerserOk(){
   try{await dbCreate('depenses',{date:d,description:'Versement perso',categorie:'Versement perso',montant:v});fqVerserFermer();toast('Versement enregistré','success');if(q('#section-enveloppes.active'))fqCarteSalaire();else loadAujourdhui();}
   catch(e){toast('Erreur : '+e.message,'error');}
 }
+/* Garder de côté : propose d'abord de virer le solde de l'enveloppe salaire vers Trésorerie, puis clôt le mois.
+   versementClos[mois] vaut 'tresorerie' (viré) ou 'salaire' (resté dans l'enveloppe salaire). */
 async function fqGarder(mKey,oui){
-  const s=Object.assign({},dbGetObj('settings'));const c=Object.assign({},s.versementClos||{});
-  if(oui)c[mKey]=true;else delete c[mKey];
-  await dbSet('settings',Object.assign(s,{versementClos:c}));if(q('#section-enveloppes.active'))fqCarteSalaire();else loadAujourdhui();
+  if(!oui){await fqClore(mKey,null);return;}
+  if(!(_enveloppes||[]).length){try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){}}
+  const sal=(_enveloppes||[]).find(x=>x.id==='salaire'),solde=Math.floor(sal?sal.solde||0:0);
+  if(solde<1){await fqClore(mKey,'salaire');return;}
+  let m=q('#fq-garder');
+  if(!m){m=document.createElement('div');m.id='fq-garder';m.className='fq-modale';document.body.appendChild(m);}
+  m.innerHTML='<div class="fq-fen" role="dialog" aria-modal="true" aria-labelledby="fq-garder-t"><h2 class="fa-h2" id="fq-garder-t">Virer '+fmt0(solde)+' vers ta trésorerie ?</h2>'+
+    '<p class="fq-s">C’est ce qui reste dans ton enveloppe salaire. Dans Trésorerie, il compte pour ton coussin.</p>'+
+    '<div class="fq-bas"><button class="fa-btn fa-btn--c" data-m="'+mKey+'" onclick="fqGarderFin(this.dataset.m,0)">Pas maintenant</button><button class="fa-btn" data-m="'+mKey+'" data-v="'+solde+'" onclick="fqGarderFin(this.dataset.m,+this.dataset.v)">Oui</button></div></div>';
+  m.onclick=e=>{if(e.target===m)m.style.display='none';};m.onkeydown=e=>{if(e.key==='Escape')m.style.display='none';};
+  m.style.display='flex';m.querySelector('.fa-btn:last-child').focus();
 }
+async function fqGarderFin(mKey,montant){
+  const m=q('#fq-garder');if(m)m.style.display='none';
+  if(montant>0){
+    try{await api('POST','/api/virements',{de:'salaire',vers:'tresorerie',montant:montant,date:finAuj(),motif:'Salaire gardé de côté'});toast(fmt0(montant)+' virés vers ta trésorerie','success');}
+    catch(e){toast(e.message||'Virement impossible','error');return;}
+    try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){}
+  }
+  await fqClore(mKey,montant>0?'tresorerie':'salaire');
+}
+async function fqClore(mKey,ou){
+  const s=Object.assign({},dbGetObj('settings'));const c=Object.assign({},s.versementClos||{});
+  if(ou)c[mKey]=ou;else delete c[mKey];
+  await dbSet('settings',Object.assign(s,{versementClos:c}));
+  if(q('#section-enveloppes.active'))loadEnveloppes();else loadAujourdhui();
+}
+function fqOuGarde(mKey){const v=(dbGetObj('settings').versementClos||{})[mKey];return v==='salaire'?' Ce que tu ne prends pas reste de côté dans ton salaire.':v==='tresorerie'?' Le reste est parti dans ta trésorerie.':'';}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}
@@ -4658,7 +4684,7 @@ function loadAujourdhui(){
   const dernier=vers[vers.length-1];
   const btnsV='<div class="fin-btns"><button class="fa-btn" onclick="fqVerserOuvrir()">Me verser</button><button class="fa-btn fa-btn--c" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,true)">Garder de côté</button></div>';
   let carteVerser;
-  if(clos)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+fmt0(deja)+' pour toi, '+fmt0(reste)+' de côté</b>'+faTirets(verser>0?Math.min(12,Math.round(deja/verser*12)):0,12)+'<span class="fa-k fa-k--f">Ce que tu ne t’es pas versé reste dans ta trésorerie.</span></div><button class="fin-lien" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button></div>';
+  if(clos)carteVerser='<div class="fa-creme"><div><span class="fa-k">'+nomMois+'</span><b>'+fmt0(deja)+' pour toi, '+fmt0(reste)+' de côté</b>'+faTirets(verser>0?Math.min(12,Math.round(deja/verser*12)):0,12)+'<span class="fa-k fa-k--f">'+(fqOuGarde(mKey).trim()||'Ce que tu ne t’es pas versé reste dans ta trésorerie.')+'</span></div><button class="fin-lien" data-m="'+mKey+'" onclick="fqGarder(this.dataset.m,false)">Changer d’avis</button></div>';
   else if(deja>verser&&deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, versé</span><b class="fa-gros">'+fmt0(deja)+'</b><span class="fa-k fa-k--f">'+fmt0(deja-verser)+' de plus que prévu ce mois-ci.</span></div><button class="fin-lien" data-s="depenses" onclick="finGo(this)">Voir mes versements</button></div>';
   else if(deja>0)carteVerser='<div class="fa-creme"><div><span class="fa-k">ce mois-ci, tu peux encore te verser jusqu’à</span><b class="fa-gros">'+fmt0(reste)+'</b>'+faTirets(Math.min(12,Math.round(deja/Math.max(1,verser)*12)),12)+
     '<div class="fa-l fq-l2"><span>Possible en '+nomMois+'</span><span class="fa-n">'+fmt0(verser)+'</span></div>'+
