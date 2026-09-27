@@ -77,6 +77,14 @@ const HTML = `<!DOCTYPE html>
       <div class="fa-blanc fa-liste" id="fa-liste"></div>
     </section>
 
+    <section id="section-apayer" class="section">
+      <div class="fin-barre">
+        <div class="fin-pills" id="ap-pills"></div>
+        <button class="fa-btn" onclick="apOuvrir()">Ajouter un paiement prévu</button>
+      </div>
+      <div id="ap-liste"></div>
+    </section>
+
     <section id="section-cloture" class="section">
       <div id="fc-zone"></div>
     </section><!-- /dashboard -->
@@ -857,14 +865,6 @@ const HTML = `<!DOCTYPE html>
           <div class="card-title"><i class="ti ti-chart-bar"></i> Évolution mensuelle</div>
           <div class="chart-wrap"><canvas id="chart-dep-mois" height="200"></canvas></div>
         </div>
-      </div>
-      <!-- Dépenses prévues -->
-      <div class="card" style="margin-top:24px;">
-        <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
-          <span><i class="ti ti-calendar-stats"></i> Dépenses prévues</span>
-          <button class="btn btn-primary btn-sm" onclick="openDepensePrevueModal()"><i class="ti ti-plus"></i> Ajouter</button>
-        </div>
-        <div id="depenses-prevues-list"></div>
       </div>
     </section><!-- /depenses -->
 
@@ -1957,6 +1957,61 @@ const HTML = `<!DOCTYPE html>
 </div>
 
 <!-- Modal Dépense prévue -->
+<div id="modal-apayer" class="modal-overlay">
+  <div class="modal ap-modal">
+    <div class="modal-header">
+      <span class="modal-title" id="ap-titre">Nouveau paiement prévu</span>
+      <button class="modal-close" data-close-modal="modal-apayer" aria-label="Fermer"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="ap-desc">C’est quoi</label>
+      <input type="text" id="ap-desc" class="form-input" placeholder="Photos pour Maison Verte, écran, formation…" />
+    </div>
+    <div class="form-group">
+      <span class="form-label">Type</span>
+      <div class="ap-seg" id="ap-genre">
+        <button type="button" data-v="prestataire" onclick="apSeg(&quot;ap-genre&quot;,this.dataset.v)">Prestataire</button>
+        <button type="button" data-v="materiel" onclick="apSeg(&quot;ap-genre&quot;,this.dataset.v)">Matériel</button>
+        <button type="button" data-v="outil" onclick="apSeg(&quot;ap-genre&quot;,this.dataset.v)">Outil</button>
+        <button type="button" data-v="charge" onclick="apSeg(&quot;ap-genre&quot;,this.dataset.v)">Charge</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="ap-projet">Pour quel projet</label>
+      <select id="ap-projet" class="form-select"></select>
+    </div>
+    <div class="form-group">
+      <span class="form-label">Tu paies</span>
+      <div class="ap-seg" id="ap-mode">
+        <button type="button" data-v="une" onclick="apMode(this.dataset.v)">En une fois</button>
+        <button type="button" data-v="plusieurs" onclick="apMode(this.dataset.v)">En plusieurs fois</button>
+      </div>
+      <div id="ap-une" class="form-grid-2 ap-mt">
+        <input type="number" id="ap-montant" class="form-input" step="0.01" min="0" placeholder="Montant" aria-label="Montant" />
+        <input type="date" id="ap-date" class="form-input" aria-label="Date" />
+      </div>
+      <div id="ap-plusieurs" class="ap-mt" style="display:none">
+        <div id="ap-echs"></div>
+        <button type="button" class="fin-lien" onclick="q(&quot;#ap-echs&quot;).insertAdjacentHTML(&quot;beforeend&quot;,apEchLigne(&quot;&quot;,&quot;&quot;))">Ajouter une échéance</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="ap-fichier">Devis ou facture du prestataire</label>
+      <input type="file" id="ap-fichier" class="form-input" accept="application/pdf,image/*" />
+      <span class="fin-cl__s" id="ap-fichier-nom"></span>
+    </div>
+    <div class="form-group" id="ap-res-bloc">
+      <span class="form-label">Réserver l’argent</span>
+      <label class="ap-opt"><input type="radio" name="ap-res" id="ap-res-now" /><span><b>Tout de suite, depuis Qonto</b><span class="fin-cl__s" id="ap-res-txt"></span></span></label>
+      <label class="ap-opt"><input type="radio" name="ap-res" id="ap-res-fil" /><span><b>Au fil de mes paiements clients</b><span class="fin-cl__s">à chaque paiement, la Trésorerie te propose d’en réserver une part</span></span></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="ap-suppr" onclick="apSupprimer()">Supprimer</button>
+      <button class="btn btn-ghost" data-close-modal="modal-apayer">Annuler</button>
+      <button class="btn btn-primary" onclick="apEnregistrer()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 <div id="modal-depense-prevue" class="modal-overlay">
   <div class="modal modal-sm">
     <div class="modal-header">
@@ -3996,6 +4051,30 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .fv-dash i { flex:1; height:6px; border-radius:99px; background:#e6e0d4; }
 .fv-dash i.on { background:#110704; }
 
+/* À payer */
+.ap-cartes { display:grid; grid-template-columns:minmax(0,2.2fr) minmax(0,1fr); gap:20px; margin-top:30px; }
+.ap-creme { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:34px; align-items:start; }
+.ap-creme__g { display:flex; flex-direction:column; justify-content:space-between; gap:22px; height:100%; }
+.ap-btns { display:flex; gap:10px; flex-wrap:wrap; }
+.ap-calc { font-size:14.5px; color:#3b2a20; }
+.ap-calc__l { display:flex; justify-content:space-between; gap:20px; padding:5px 0; }
+.ap-calc__l--f { border-top:1px solid rgba(90,42,17,.25); margin-top:4px; padding-top:9px; font-weight:600; }
+.ap-r { display:grid; grid-template-columns:minmax(0,1.4fr) 140px 100px minmax(0,1fr) 150px 170px; gap:16px; align-items:center; padding:15px 0; border-top:1px solid #efeae1; font-size:15px; }
+.ap-h { font-size:13.5px; color:rgba(17,7,4,.58); border-top:none; padding:14px 0; }
+.fv-g + .ap-r { border-top:none; }
+.ap-r .fin-act { display:flex; justify-content:flex-end; }
+.ap-pied { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:18px 0 6px; border-top:1px solid #efeae1; margin-top:10px; }
+.ap-modal { max-width:640px; }
+.ap-seg { display:inline-flex; align-self:flex-start; width:fit-content; background:#fff; border-radius:999px; padding:4px; box-shadow:inset 0 0 0 1px #e3ded3; }
+.ap-seg button { border:none; background:none; padding:7px 15px; border-radius:999px; font:inherit; font-size:14.5px; color:rgba(17,7,4,.64); cursor:pointer; }
+.ap-seg button.on { background:#110704; color:#F8F6F2; font-weight:600; }
+.ap-mt { margin-top:10px; }
+.ap-ech { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:center; margin-bottom:8px; }
+.ap-opt { display:flex; gap:12px; align-items:flex-start; padding:14px 16px; border-radius:12px; border:1px solid #e3ded3; margin-top:8px; cursor:pointer; font-weight:400; }
+.ap-opt:has(input:checked) { border-color:#110704; }
+.ap-opt input { margin-top:4px; accent-color:#110704; }
+.ap-opt b { display:block; font-weight:600; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4241,7 +4320,7 @@ async function dbSet(col, val){
    aucune donnée n'est supprimé. */
 const FIN_GROUPES={
   aujourdhui:[['dashboard','Aujourd’hui']],
-  tresorerie:[['enveloppes','Enveloppes'],['transactions','Mouvements']],
+  tresorerie:[['enveloppes','Enveloppes'],['apayer','À payer'],['transactions','Mouvements']],
   factures:[['factures','Factures'],['devis','Devis'],['projets','Projets'],['tiers','Clients']],
   charges:[['abonnements','Charges fixes'],['depenses','Dépenses du mois'],['charges-urssaf','Déclarations']],
   bilans:[['rapport-annuel','L’année'],['rapport-mensuel','Le mois'],['rapport-fiscal','Fiscal'],['simulateur','Simulateur']],
@@ -4275,6 +4354,7 @@ function finCompte(sec){
   if(sec==='devis')return dbGet('devis').length;
   if(sec==='projets')return dbGet('projets').filter(p=>p.statut!=='termine').length;
   if(sec==='tiers')return fvClients().length;
+  if(sec==='apayer')return apLignes(apEtat()).length;
   if(sec==='enveloppes')return (_enveloppes||[]).filter(e=>e.id!=='qonto'&&e.id!=='salaire').length;
   if(sec==='abonnements')return dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut).length;
   if(sec==='depenses'){const k=finAuj().slice(0,7);return dbGet('depenses').filter(d=>(d.date||'').startsWith(k)).length;}
@@ -4287,6 +4367,7 @@ function finHeroMaj(g){
   if(g==='factures')h.innerHTML=finHeroFactures();
   else if(g==='charges')h.innerHTML=finHeroCharges();
   else if(g==='bilans')h.innerHTML=finHeroBilans((h.closest('.section')||{}).id.replace('section-',''));
+  else if(g==='tresorerie'&&h.closest('#section-apayer'))h.innerHTML=apHero();
   else if(g==='tresorerie'){
     if((_enveloppes||[]).length||FIN_ENV_CHARGE)h.innerHTML=finHeroTreso();
     else{h.innerHTML=finTete(g);FIN_ENV_CHARGE=true;api('GET','/api/enveloppes').then(r=>{_enveloppes=r.enveloppes||[];finHeroMaj('tresorerie');}).catch(()=>{});}
@@ -4952,6 +5033,198 @@ function renderTiers(){
   rows.sort((a,b)=>b.enc-a.enc||a.nom.localeCompare(b.nom));
   el.innerHTML='<div class="fv-c fv-h"><span>Client</span><span class="fv-r">Encaissé '+y+'</span><span class="fv-r">Factures</span><span>Dernière facture</span><span>À savoir</span><span></span></div>'+(rows.length?rows.map(r=>r.html).join(''):'<p class="fa-vide">Aucun client ici.</p>');
 }
+/* À payer : tes charges d'abord (abonnements, impôts, URSSAF), puis ce que tu dois payer,
+   avec ce qui est réservé, ce qui manque et ce qui est vraiment libre sur Qonto */
+let AP_FILTRE='',AP_ENV=false,AP_ID=null;
+const AP_GENRES={prestataire:'prestataire',materiel:'matériel',outil:'outil',charge:'charge',autre:'dépense'};
+function apDateFr(d){return new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{day:'numeric',month:'long'});}
+function apNomMois(k){return new Date(k+'-15T12:00:00').toLocaleDateString('fr-FR',{month:'long'});}
+function apGenre(p){if(p.genre)return p.genre;const c=(p.categorie||'').toLowerCase();if(c.indexOf('matériel')>=0)return 'materiel';if(c.indexOf('logiciel')>=0||c.indexOf('formation')>=0)return 'outil';if(c.indexOf('charges')>=0)return 'charge';return 'autre';}
+function apEcheances(p){
+  if(Array.isArray(p.echeances)&&p.echeances.length)return p.echeances.map((e,i)=>({i:i,montant:+e.montant||0,date:e.date||finAuj(),payeLe:e.payeLe||null}));
+  const d0=p.dateDebut||finAuj(),debutMois=finAuj().slice(0,7)+'-01';
+  if(p.type==='mensuel'){
+    const out=[],d=new Date(d0+'T12:00:00'),fin=p.dateFin?p.dateFin:new Date(new Date().getFullYear(),new Date().getMonth()+5,28).toISOString().slice(0,10);
+    for(let i=0;i<36;i++){const x=new Date(d.getFullYear(),d.getMonth()+i,Math.min(d.getDate(),28),12).toISOString().slice(0,10);if(x>fin)break;if(x>=debutMois)out.push({i:i,montant:+p.montant||0,date:x,payeLe:null});}
+    return out;
+  }
+  return [{i:0,montant:+p.montant||0,date:d0,payeLe:p.payeLe||null}];
+}
+/* Les échéances retrouvées dans Qonto (même montant, à un mois près) sont payées */
+function apEtat(){
+  const liens=fqLiens(),autres=['versement','epargne','urssaf','facture','client','devis','remboursement','apport','ignore'],projets=dbGet('projets'),pris={};
+  const tx=fqMouvements().filter(t=>t.type==='debit'&&!(liens[t.qontoId]&&autres.indexOf(liens[t.qontoId].t)>=0));
+  const list=dbGet('depenses_prevues').filter(p=>p.statut!=='terminee').map(p=>{
+    const ech=apEcheances(p),cree=new Date(new Date((p.createdAt||'2000-01-01').slice(0,10)+'T12:00:00')-7*86400000).toISOString().slice(0,10);
+    ech.forEach(e=>{if(e.payeLe)return;const d0=new Date(e.date+'T12:00:00');
+      const t=tx.find(t=>!pris[t.qontoId]&&t.date>=cree&&Math.abs(Math.abs(t.montant)-e.montant)<0.5&&Math.abs(new Date(t.date+'T12:00:00')-d0)<=31*86400000);
+      if(t){pris[t.qontoId]=1;e.payeLe=t.date;e.qonto=true;}});
+    const paye=ech.filter(e=>e.payeLe).reduce((s,e)=>s+e.montant,0),apayer=ech.filter(e=>!e.payeLe);
+    let r=Math.max(0,(+p.reserve||0)-paye);const resteReserve=r;
+    apayer.sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{e.res=Math.min(e.montant,r);r-=e.res;});
+    const pj=p.projetId&&projets.find(x=>x.id===p.projetId);
+    return {p:p,genre:apGenre(p),ech:ech,apayer:apayer,paye:paye,resteReserve:resteReserve,manque:apayer.reduce((s,e)=>s+e.montant-e.res,0),projet:pj?(pj.nom||'')+(pj.client?', '+pj.client:''):''};
+  });
+  const charges=apCharges(),E=_enveloppes||[],qo=E.find(e=>e.id==='qonto'),solde=qo?(+qo.soldeQontoReel||0):0;
+  let dispo=solde;charges.forEach(c=>{c.res=Math.max(0,Math.min(c.montant,dispo));dispo-=c.res;});
+  const env=E.filter(e=>['tresorerie','salaire','formations'].indexOf(e.id)>=0).reduce((s,e)=>s+Math.max(0,e.solde||0),0);
+  const reserve=list.reduce((s,x)=>s+x.resteReserve,0);
+  const libre=Math.max(0,Math.floor(solde-charges.reduce((s,c)=>s+c.montant,0)-env-reserve));
+  return {list:list,charges:charges,solde:solde,env:env,reserve:reserve,libre:libre,manque:list.reduce((s,x)=>s+x.manque,0)};
+}
+function apCharges(){
+  const S=dbGetObj('settings'),U=dbGetObj('urssaf'),F=dbGet('factures'),now=new Date(),y=now.getFullYear(),auj=finAuj(),mk=auj.slice(0,7),out=[];
+  const abos=dbGet('abonnements').filter(a=>a.statut==='actif'||!a.statut),aboM=Math.round(abos.reduce((s,a)=>s+(a.montantMensuel||a.montant||0),0));
+  const liens=fqLiens(),mv=fqMouvements().filter(t=>t.type==='debit');
+  const aboFait=Math.round(mv.filter(t=>t.date.startsWith(mk)&&liens[t.qontoId]&&liens[t.qontoId].t==='charge').reduce((s,t)=>s+Math.abs(t.montant),0));
+  const aboReste=Math.max(0,aboM-aboFait);
+  if(aboReste>0)out.push({k:'abos',nom:'Abonnements du mois',sous:'charge, '+(aboFait?fmt0(aboFait)+' déjà prélevés ce mois':abos.slice(0,3).map(a=>a.nom||a.description||'').join(', ')+(abos.length>3?' et '+(abos.length-3)+' autre'+(abos.length>4?'s':''):'')),date:mk+'-01',quand:'ce mois-ci',montant:aboReste,doc:abos.length+' abonnement'+(abos.length>1?'s':'')});
+  const estImpot=t=>/dgfip|imp[oô]t|finances publiques/i.test(t.libelle||'')||(liens[t.qontoId]&&liens[t.qontoId].t==='impots');
+  const imp=mv.filter(estImpot),impMois=imp.some(t=>t.date.startsWith(mk));
+  const pas=Math.round(imp.length?Math.abs(imp[0].montant):(parseFloat(S.pasFixe)||0));
+  if(pas>0&&!impMois)out.push({k:'impots',nom:'Impôts',sous:'charge, prélèvement à la source'+(imp.length?', d’après ton dernier prélèvement Qonto':''),date:mk+'-15',quand:'ce mois-ci',montant:pas,doc:imp.length?'depuis Qonto':'depuis Réglages'});
+  const tU=(S.tauxUrssaf||25.6)/100,tC=(S.tauxCfp||0.2)/100,dp=f=>f.datePaiement||f.date||'';
+  const Q={T1:[[1,2,3],y+'-04-30','1er trimestre'],T2:[[4,5,6],y+'-07-31','2e trimestre'],T3:[[7,8,9],y+'-11-02','3e trimestre'],T4:[[10,11,12],(y+1)+'-02-01','4e trimestre']};
+  ['T1','T2','T3','T4'].forEach(t=>{
+    if((U[t+'-'+y]||{}).statut==='paye'||Q[t][1]<auj)return;
+    const ca=Q[t][0].reduce((s,mi)=>{const k=y+'-'+String(mi).padStart(2,'0');return s+F.filter(f=>f.statut==='payee'&&dp(f).startsWith(k)).reduce((x,f)=>x+(f.montant||0),0);},0);
+    if(ca>0)out.push({k:'urssaf',nom:'URSSAF du '+Q[t][2],sous:'charge, à déclarer avant le '+apDateFr(Q[t][1]),date:Q[t][1],quand:'le '+apDateFr(Q[t][1]),montant:Math.round(ca*(tU+tC)),doc:'après la déclaration'});
+  });
+  return out;
+}
+function apLignes(st){
+  const L=[];
+  st.charges.forEach(c=>L.push({charge:true,genre:'charge',nom:c.nom,sous:c.sous,date:c.date,quand:c.quand,montant:c.montant,res:c.res,doc:'<span class="fin-cl__s">'+c.doc+'</span>',act:c.res>=c.montant-0.5?'<span class="fa-pas fa-p-n">réservé</span>':'<span class="fin-cl__s">il manque '+fmt0(c.montant-c.res)+'</span>'}));
+  const k1=finAuj().slice(0,7),d=new Date(),k2=new Date(d.getFullYear(),d.getMonth()+1,15).toISOString().slice(0,7);
+  st.list.forEach(x=>x.apayer.forEach(e=>{
+    const n=x.ech.length,rang=n>1?', '+(e.i+1)+(e.i===0?'re':'e')+' échéance sur '+n:'';
+    let plus='';const ek=e.date.slice(0,7);
+    if(ek>k2&&e.montant-e.res>0.5){const mois=Math.max(1,(+ek.slice(0,4)-d.getFullYear())*12+(+ek.slice(5,7))-(d.getMonth()+1));if(mois>=3)plus=', '+fmt0(Math.ceil((e.montant-e.res)/mois))+' par mois d’ici '+apNomMois(ek);}
+    const manque=e.montant-e.res;
+    L.push({x:x,genre:x.genre,nom:x.p.description||'Paiement',id:x.p.id,sous:AP_GENRES[x.genre]+(x.projet?', projet '+x.projet:'')+rang+plus,date:e.date,quand:(e.date<finAuj()?'depuis le ':'le ')+apDateFr(e.date),montant:e.montant,res:e.res,
+      doc:x.p.fichierNom?'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(x.p.fichierType||'devis ou facture')+'</button>':'<button class="fin-lien" data-id="'+x.p.id+'" onclick="apJoindre(this.dataset.id)">Ajouter</button>',
+      act:manque<0.5?'<span class="fa-pas fa-p-n">réservé</span>':(st.libre>=1?'<button class="fa-btn fa-btn--c" data-id="'+x.p.id+'" onclick="apReserver(this.dataset.id)">Réserver</button>':'<span class="fin-cl__s">au prochain paiement client</span>'),
+      manque:manque});
+  }));
+  return L;
+}
+function apResTxt(l){return fmt0(l.res)+' sur '+fmt0(l.montant)+(l.montant-l.res>=0.5&&l.res>0?', il manque '+fmt0(l.montant-l.res):'');}
+function apLigneHtml(l){
+  return '<div class="ap-r"><span>'+(l.id?'<button class="fv-pn fv-nom" data-id="'+l.id+'" onclick="apOuvrir(this.dataset.id)">'+faEsc(l.nom)+'</button>':'<span class="fv-pn">'+faEsc(l.nom)+'</span>')+'<span class="fin-cl__s">'+faEsc(l.sous)+'</span></span><span>'+l.quand+'</span><span class="fa-n fv-r">'+fmt0(l.montant)+'</span><span><span class="fa-n fin-cl__s">'+(l.paye?'payé le '+apDateFr(l.paye):apResTxt(l))+'</span>'+fvMini(l.paye?12:Math.round(Math.min(1,l.res/(l.montant||1))*12),12)+'</span><span>'+l.doc+'</span><span class="fin-act">'+l.act+'</span></div>';
+}
+function apHero(){
+  const st=apEtat(),L=apLignes(st),tot=L.reduce((s,l)=>s+l.montant,0),res=L.reduce((s,l)=>s+l.res,0);
+  const der=L.map(l=>l.date).sort().pop(),aRes=Math.min(st.libre,Math.ceil(st.manque)),apres=Math.max(0,Math.ceil(st.manque)-aRes);
+  const ligne=(a,b,f)=>'<div class="ap-calc__l'+(f?' ap-calc__l--f':'')+'"><span>'+a+'</span><span class="fa-n">'+b+'</span></div>';
+  const txt=st.manque<0.5?'Tout ce que tu dois payer est réservé. Tes charges passent d’abord, le reste est à toi.':st.libre>=1?'Tes charges passent d’abord. Ce qui reste peut être réservé pour ce que tu dois payer. '+(apres?'Il manquera ensuite '+fmt0(apres)+', à réserver au prochain paiement client.':'Tout sera alors réservé.'):'Rien n’est libre pour l’instant, tes charges passent d’abord. Il manque '+fmt0(st.manque)+', à réserver au prochain paiement client.';
+  const calc=ligne('Sur Qonto',fmt0(st.solde))+st.charges.map(c=>ligne('moins '+(c.k==='abos'?'les abonnements qui restent ce mois':c.k==='impots'?'les impôts du mois':'l’'+c.nom),fmt0(c.montant))).join('')+(st.env>0?ligne('moins tes enveloppes (coussin, salaire, formations)',fmt0(st.env)):'')+ligne('moins ce qui est déjà réservé',fmt0(st.reserve))+ligne('libre',fmt0(st.libre),true);
+  return finTete('tresorerie')+'<div class="ap-cartes"><div class="fa-creme ap-creme"><div class="ap-creme__g"><div><span class="fa-k">vraiment libre sur Qonto</span><b>'+fmt0(st.libre)+'</b><span class="fa-k fa-k--f">'+txt+'</span></div><div class="ap-btns">'+(st.libre>=1&&st.manque>=0.5?'<button class="fa-btn" onclick="apReserverTout()">Réserver '+fmt0(aRes)+'</button>':'')+'<button class="fa-btn fa-btn--c" onclick="apOuvrir()">Ajouter un paiement prévu</button></div></div><div class="ap-calc">'+calc+'</div></div>'+
+    '<div class="fa-blanc"><div class="fa-k2">À payer'+(der?' d’ici '+apNomMois(der.slice(0,7)):'')+'</div><div class="fa-gros2">'+fmt0(tot)+' <em>'+L.length+' paiement'+(L.length>1?'s':'')+'</em></div>'+faTirets(tot?Math.round(res/tot*12):0,12)+'<p class="fa-p">'+fmt0(res)+' déjà réservés, charges comprises</p></div></div>';
+}
+function renderAPayer(){
+  const el=q('#ap-liste');if(!el)return;
+  const st=apEtat(),toutes=apLignes(st);
+  const pills=q('#ap-pills');
+  if(pills)pills.innerHTML=[['','Tout'],['prestataire','Prestataires'],['materiel','Matériel'],['outil','Outils'],['charge','Charges'],['paye','Payés']].map(x=>'<button class="fin-onglet'+(AP_FILTRE===x[0]?' on':'')+'" data-s="'+x[0]+'" onclick="apFiltre(this.dataset.s)">'+x[1]+'</button>').join('');
+  const payes=[];st.list.forEach(x=>x.ech.filter(e=>e.payeLe).forEach(e=>payes.push({x:x,e:e})));payes.sort((a,b)=>b.e.payeLe.localeCompare(a.e.payeLe));
+  const tete='<div class="ap-r ap-h"><span>Quoi</span><span>Quand</span><span class="fv-r">Montant</span><span>Réservé</span><span>Facture ou devis</span><span></span></div>';
+  if(AP_FILTRE==='paye'){
+    el.innerHTML='<div class="fa-blanc fin-liste">'+(payes.length?tete+payes.map(y=>apLigneHtml({id:y.x.p.id,nom:y.x.p.description||'Paiement',sous:AP_GENRES[y.x.genre]+(y.e.qonto?', retrouvé dans Qonto':''),quand:'le '+apDateFr(y.e.date),montant:y.e.montant,res:y.e.montant,paye:y.e.payeLe,doc:y.x.p.fichierNom?'<button class="fin-lien" data-id="'+y.x.p.id+'" onclick="apVoirFichier(this.dataset.id)">'+faEsc(y.x.p.fichierType||'devis ou facture')+'</button>':'',act:'<span class="fa-pas fa-p-n">payé</span>'})).join(''):'<p class="fa-vide">Rien de payé pour l’instant.</p>')+'</div>';return;
+  }
+  const L=toutes.filter(l=>!AP_FILTRE||l.genre===AP_FILTRE);
+  if(!L.length){el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">'+(AP_FILTRE?'Rien à payer de ce côté.':'Rien à payer pour l’instant. Ajoute un paiement prévu dès que tu signes avec un prestataire ou que tu prévois un achat.')+'</p></div>';return;}
+  const d=new Date(),k1=finAuj().slice(0,7),k2=new Date(d.getFullYear(),d.getMonth()+1,15).toISOString().slice(0,7);
+  const grp=[[k1,'En '+apNomMois(k1)],[k2,'En '+apNomMois(k2)],['plus','Plus tard']];
+  const cle=l=>{const k=l.date.slice(0,7);return k<=k1?k1:k===k2?k2:'plus';};
+  const corps=grp.map(g=>{const l=L.filter(x=>cle(x)===g[0]).sort((a,b)=>(b.charge?1:0)-(a.charge?1:0)||a.date.localeCompare(b.date));if(!l.length)return '';
+    return '<div class="fv-g"><span class="fv-g__t">'+g[1]+'</span>'+(l[0].charge?'<span class="fin-cl__s">tes charges d’abord</span>':'')+'<span class="fin-cl__s fa-n fv-g__e">'+fmt0(l.reduce((s,x)=>s+x.montant,0))+'</span></div>'+l.map(apLigneHtml).join('');}).join('');
+  const ceMois=payes.filter(y=>y.e.payeLe.slice(0,7)===k1);
+  const pied=ceMois.length?'<div class="ap-pied"><span class="fin-cl__s">Payé ce mois : '+ceMois.map(y=>faEsc(y.x.p.description||'')+', '+fmt0(y.e.montant)+(y.e.qonto?', retrouvé dans Qonto le '+apDateFr(y.e.payeLe):'')).join(' ; ')+'</span><button class="fin-lien" data-s="paye" onclick="apFiltre(this.dataset.s)">Voir les payés</button></div>':'';
+  el.innerHTML='<div class="fa-blanc fin-liste">'+tete+corps+pied+'</div>';
+}
+function apFiltre(s){AP_FILTRE=s;renderAPayer();}
+async function loadAPayer(){
+  const el=q('#ap-liste');if(el&&!el.innerHTML)el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">Lecture de ton compte Qonto…</p></div>';
+  if(!(_enveloppes||[]).length){try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){}}
+  if(!FQ_MOUV){try{await fqRelier(false);}catch(e){}}
+  renderAPayer();finHeroMaj('tresorerie');
+}
+function apMaj(){renderAPayer();finHeroMaj('tresorerie');finOnglets('apayer');}
+async function apAjouterReserve(p,add){
+  if(add<0.5)return;
+  await dbUpdate('depenses_prevues',Object.assign({},p,{reserve:Math.round(((+p.reserve||0)+add)*100)/100}));
+}
+async function apReserver(id){
+  const st=apEtat(),x=st.list.find(y=>y.p.id===id);if(!x)return;
+  const add=Math.min(st.libre,x.manque);
+  if(add<0.5){toast('Rien de libre sur Qonto pour l’instant','info');return;}
+  try{await apAjouterReserve(x.p,add);toast(fmt0(add)+' réservés','success');}catch(e){toast(e.message,'error');}
+  apMaj();
+}
+async function apReserverTout(){
+  const st=apEtat();let libre=st.libre;
+  const parDate=st.list.filter(x=>x.manque>=0.5).sort((a,b)=>(a.apayer[0]?a.apayer[0].date:'9').localeCompare(b.apayer[0]?b.apayer[0].date:'9'));
+  try{for(const x of parDate){if(libre<1)break;const add=Math.min(libre,x.manque);await apAjouterReserve(x.p,add);libre-=add;}toast('C’est réservé','success');}catch(e){toast(e.message,'error');}
+  apMaj();
+}
+/* La fenêtre : nouveau paiement prévu, ou modifier */
+function apEchLigne(m,d){return '<div class="ap-ech"><input type="number" class="form-input" step="0.01" min="0" placeholder="Montant" value="'+(m||'')+'" aria-label="Montant de l’échéance"><input type="date" class="form-input" value="'+(d||'')+'" aria-label="Date de l’échéance"><button type="button" class="fin-lien" onclick="this.parentNode.remove()">Retirer</button></div>';}
+function apSeg(id,v){qa('#'+id+' button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));}
+function apSegVal(id){const b=q('#'+id+' button.on');return b?b.dataset.v:'';}
+function apMode(v){apSeg('ap-mode',v);q('#ap-une').style.display=v==='une'?'':'none';q('#ap-plusieurs').style.display=v==='une'?'none':'';if(v!=='une'&&!q('#ap-echs').children.length){q('#ap-echs').innerHTML=apEchLigne('','')+apEchLigne('','');}}
+function apOuvrir(id){
+  AP_ID=id||null;const p=id?dbGet('depenses_prevues').find(x=>x.id===id):null;
+  q('#ap-titre').textContent=p?'Modifier le paiement prévu':'Nouveau paiement prévu';
+  q('#ap-desc').value=p?p.description||'':'';
+  apSeg('ap-genre',p?apGenre(p):'prestataire');
+  const pj=q('#ap-projet');pj.innerHTML='<option value="">Aucun</option>'+dbGet('projets').filter(x=>x.statut!=='termine'||(p&&x.id===p.projetId)).map(x=>'<option value="'+x.id+'">'+faEsc((x.nom||'Projet')+(x.client?', '+x.client:''))+'</option>').join('');pj.value=p&&p.projetId?p.projetId:'';
+  const ech=p?apEcheances(p):[];
+  q('#ap-montant').value=p?(ech.length>1?'':(ech[0]?ech[0].montant:p.montant)):'';q('#ap-date').value=ech.length===1?ech[0].date:'';
+  q('#ap-echs').innerHTML=ech.length>1?ech.map(e=>apEchLigne(e.montant,e.date)).join(''):'';
+  apMode(ech.length>1?'plusieurs':'une');
+  q('#ap-fichier').value='';q('#ap-fichier-nom').textContent=p&&p.fichierNom?'Joint : '+p.fichierNom:'';
+  const st=apEtat();
+  q('#ap-res-bloc').style.display=p?'none':'';
+  q('#ap-res-txt').textContent=st.libre>=1?fmt0(st.libre)+' sont libres une fois tes abonnements, l’URSSAF, les impôts et tes enveloppes mis de côté.':'Rien n’est libre pour l’instant, tes charges passent d’abord.';
+  q('#ap-res-now').disabled=st.libre<1;q(st.libre>=1?'#ap-res-now':'#ap-res-fil').checked=true;
+  q('#ap-suppr').style.display=p?'':'none';
+  openModal('modal-apayer');
+}
+async function apEnregistrer(){
+  const desc=q('#ap-desc').value.trim();if(!desc){toast('Dis ce que c’est','error');return;}
+  let ech;
+  if(apSegVal('ap-mode')==='une'){const m=parseFloat(q('#ap-montant').value),d=q('#ap-date').value;if(!(m>0)||!d){toast('Montant et date requis','error');return;}ech=[{montant:m,date:d}];}
+  else{ech=qa('#ap-echs .ap-ech').map(r=>{const i=r.querySelectorAll('input');return {montant:parseFloat(i[0].value),date:i[1].value};}).filter(e=>e.montant>0&&e.date);if(!ech.length){toast('Ajoute au moins une échéance','error');return;}}
+  ech.sort((a,b)=>a.date.localeCompare(b.date));
+  const vieux=AP_ID?dbGet('depenses_prevues').find(x=>x.id===AP_ID):null;
+  if(vieux){const avant=apEcheances(vieux);ech.forEach(e=>{const a=avant.find(x=>x.date===e.date&&Math.abs(x.montant-e.montant)<0.5&&x.payeLe);if(a)e.payeLe=a.payeLe;});}
+  const total=ech.reduce((s,e)=>s+e.montant,0),genre=apSegVal('ap-genre');
+  const data={description:desc,genre:genre,categorie:{prestataire:'Prestataire',materiel:'Matériel & équipement',outil:'Logiciels & abonnements',charge:'Charges sociales'}[genre]||'Autre',montant:total,type:'ponctuel',dateDebut:ech[0].date,dateFin:ech[ech.length-1].date,echeances:ech,projetId:q('#ap-projet').value||null,statut:'active'};
+  try{
+    let p;
+    if(vieux)p=await dbUpdate('depenses_prevues',Object.assign({},vieux,data));
+    else{const st=apEtat();data.reserve=q('#ap-res-now').checked?Math.min(st.libre,total):0;p=await dbCreate('depenses_prevues',data);}
+    const f=q('#ap-fichier').files[0];if(f&&p&&p.id)await apEnvoyerFichier(p.id,f);
+    closeModal('modal-apayer');toast(vieux?'Enregistré':(data.reserve?fmt0(data.reserve)+' réservés':'Enregistré'),'success');
+  }catch(e){toast(e.message,'error');}
+  apMaj();
+}
+async function apSupprimer(){
+  if(!AP_ID)return;const ok=await confirmDialog('Supprimer ce paiement prévu ?','L’argent réservé redevient libre.');if(!ok)return;
+  try{await dbDelete('depenses_prevues',AP_ID);closeModal('modal-apayer');toast('Supprimé','success');}catch(e){toast(e.message,'error');}
+  apMaj();
+}
+async function apEnvoyerFichier(id,f){
+  const r=await fetch('/api/depenses-prevues/'+id+'/fichier?nom='+encodeURIComponent(f.name),{method:'POST',body:f,headers:{'Content-Type':f.type||'application/octet-stream'}});
+  if(!r.ok)throw new Error('Le fichier n’a pas pu être envoyé');
+  const p=await r.json(),list=dbGet('depenses_prevues'),i=list.findIndex(x=>x.id===id);if(i>=0){list[i]=p;dbSet('depenses_prevues',list.slice());}
+}
+function apJoindre(id){
+  const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,image/*';
+  inp.onchange=async()=>{const f=inp.files[0];if(!f)return;try{await apEnvoyerFichier(id,f);toast('Fichier joint','success');}catch(e){toast(e.message,'error');}renderAPayer();};
+  inp.click();
+}
+function apVoirFichier(id){window.open('/api/depenses-prevues/'+id+'/fichier','_blank');}
 const fmt0=v=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(Math.round(v||0));
 function faEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function faTirets(n,sur,cls){let h='<div class="fa-tirets">';for(let i=0;i<sur;i++)h+='<i class="'+(i<n?'on'+(cls?' '+cls:''):'')+'"></i>';return h+'</div>';}
@@ -5093,7 +5366,7 @@ function navigate(section){
 }
 function loadSection(s){
   const map={
-    'dashboard':loadAujourdhui,'cloture':loadCloture,
+    'dashboard':loadAujourdhui,'cloture':loadCloture,'apayer':loadAPayer,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':()=>{loadTransactions();fqRender();},
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
@@ -6911,7 +7184,6 @@ function deleteFacture(id){
 /* --- Dépenses --------------------------------------------------------- */
 let depensesData=[];
 function loadDepenses(){
-  renderDepensesPrevues();
   depensesData=dbGet('depenses');
   const y=new Date().getFullYear(),m=new Date().getMonth()+1;
   const mKey=\`\${y}-\${String(m).padStart(2,'0')}\`;

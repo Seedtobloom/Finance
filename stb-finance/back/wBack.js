@@ -59,6 +59,11 @@ async function router(request, env) {
 
   if (method === 'GET'  && path === '/api/depenses-prevues')  return listDepensesPrevues(env, uid);
   if (method === 'POST' && path === '/api/depenses-prevues')  return createDepensePrevue(request, env, uid);
+  const mDPF = path.match(/^\/api\/depenses-prevues\/([^/]+)\/fichier$/);
+  if (mDPF) {
+    if (method === 'POST') return uploadFichierPrevue(request, env, uid, mDPF[1]);
+    if (method === 'GET')  return downloadFichierPrevue(env, uid, mDPF[1]);
+  }
   const mDP = path.match(/^\/api\/depenses-prevues\/([^/]+)$/);
   if (mDP && method === 'PUT')    return updateDepensePrevue(request, env, uid, mDP[1]);
   if (mDP && method === 'DELETE') return deleteDepensePrevue(env, uid, mDP[1]);
@@ -316,18 +321,37 @@ async function createDepensePrevue(request,env,uid){
   const d={id:uid4(),type:body.type||'ponctuel',description:body.description.trim(),
     categorie:body.categorie||'Autre',montant:parseFloat(body.montant),
     dateDebut:body.dateDebut||null,dateFin:body.dateFin||null,
-    statut:body.statut||'active',createdAt:iso()};
+    statut:body.statut||'active',genre:body.genre||null,projetId:body.projetId||null,
+    echeances:Array.isArray(body.echeances)?body.echeances:null,reserve:parseFloat(body.reserve)||0,createdAt:iso()};
   list.push(d);await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(d,201);
 }
 async function updateDepensePrevue(request,env,uid,id){
   const body=await parseJSON(request);if(!body)return jsonErr(400,'Body invalide.');
   const list=await kvTableau(env,`${uid}:depenses_prevues`);
   const idx=list.findIndex(x=>x.id===id);if(idx<0)return jsonErr(404,'Introuvable.');
-  ['type','description','categorie','montant','dateDebut','dateFin','statut'].forEach(f=>{
-    if(body[f]!==undefined)list[idx][f]=f==='montant'?parseFloat(body[f]):body[f];
+  ['type','description','categorie','montant','dateDebut','dateFin','statut','genre','projetId','echeances','reserve'].forEach(f=>{
+    if(body[f]!==undefined)list[idx][f]=f==='montant'||f==='reserve'?(parseFloat(body[f])||0):body[f];
   });
   list[idx].updatedAt=iso();
   await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(list[idx]);
+}
+async function uploadFichierPrevue(request,env,uid,id){
+  const list=await kvTableau(env,`${uid}:depenses_prevues`);const idx=list.findIndex(x=>x.id===id);
+  if(idx<0)return jsonErr(404,'Introuvable.');
+  const type=request.headers.get('Content-Type')||'application/octet-stream';
+  const nom=(new URL(request.url).searchParams.get('nom')||'fichier').slice(0,120);
+  const key=`${uid}/depenses-prevues/${id}`;
+  await env.R2_FINANCE.put(key,await request.arrayBuffer(),{httpMetadata:{contentType:type}});
+  const bas=nom.toLowerCase();
+  list[idx].fichierKey=key;list[idx].fichierNom=nom;list[idx].fichierMime=type;
+  list[idx].fichierType=bas.includes('devis')?'devis':bas.includes('fact')?'facture':'devis ou facture';
+  list[idx].updatedAt=iso();await kvEcrire(env,`${uid}:depenses_prevues`,list);return jsonOk(list[idx]);
+}
+async function downloadFichierPrevue(env,uid,id){
+  const list=await kvTableau(env,`${uid}:depenses_prevues`);const d=list.find(x=>x.id===id);
+  if(!d?.fichierKey)return jsonErr(404,'Aucun fichier joint.');
+  const obj=await env.R2_FINANCE.get(d.fichierKey);if(!obj)return jsonErr(404,'Fichier introuvable.');
+  return new Response(obj.body,{headers:{'Content-Type':d.fichierMime||'application/octet-stream','Content-Disposition':`inline; filename="${encodeURIComponent(d.fichierNom||'fichier')}"`}});
 }
 async function deleteDepensePrevue(env,uid,id){
   const list=await kvTableau(env,`${uid}:depenses_prevues`);
