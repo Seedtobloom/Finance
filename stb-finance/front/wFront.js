@@ -51,6 +51,7 @@ const HTML = `<!DOCTYPE html>
       <div class="nav-group">
         <span class="nav-group-label">Ma vie</span>
         <a class="nav-item" data-section="budget" data-groupe="budget">Mon budget</a>
+        <a class="nav-item" data-section="mesprojets" data-groupe="mesprojets">Mes projets</a>
       </div>
     </nav><!-- /nav -->
 
@@ -86,6 +87,9 @@ const HTML = `<!DOCTYPE html>
     </section>
     <section id="section-budget-bilan" class="section">
       <div id="bu-bilan"></div>
+    </section>
+    <section id="section-mesprojets" class="section">
+      <div id="mp-zone"></div>
     </section>
 
     <section id="section-apayer" class="section">
@@ -4166,6 +4170,32 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .bu-besoin__s b { font-weight:600; }
 .bu-besoin__p { margin:18px 0 0; font-size:15px; }
 
+.mp-cartes { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:20px; margin-top:28px; }
+.mp-carte { display:flex; flex-direction:column; gap:8px; }
+.mp-pil { display:inline-block; align-self:flex-start; padding:3px 10px; border-radius:999px; font-size:13px; font-weight:600; color:#110704; }
+.mp-pil--pro { background:#C5DEFF; } .mp-pil--perso { background:#E6E5B2; }
+.mp-v { display:flex; align-items:center; gap:8px; } .mp-v .form-input { width:100px; }
+.mp-cls { margin-top:4px; } .mp-cl { display:flex; justify-content:space-between; align-items:baseline; gap:12px; padding:9px 0; border-top:1px solid #efeae1; font-size:15px; }
+.mp-liste { margin-top:20px; padding:6px 26px 14px; }
+.mp-lt { display:flex; justify-content:space-between; align-items:baseline; padding:16px 0 4px; }
+.mp-l { display:grid; grid-template-columns:minmax(0,1.3fr) 170px minmax(0,1fr) 170px 230px; gap:16px; align-items:center; padding:16px 0; border-top:1px solid #efeae1; }
+.mp-nom { display:block; font-family:'Cormorant Garamond',serif; font-size:25px; line-height:1.1; }
+.mp-sous { display:flex; gap:8px; align-items:center; margin-top:4px; }
+.mp-l b { font-size:19px; font-weight:600; } .mp-q { color:#110704; line-height:1.5; }
+.mp-act { display:flex; gap:14px; align-items:center; justify-content:flex-end; }
+.mp-plus { position:relative; } .mp-plus summary { list-style:none; cursor:pointer; } .mp-plus summary::-webkit-details-marker { display:none; }
+.mp-menu { position:absolute; right:0; top:28px; z-index:20; width:280px; background:#fff; border-radius:14px; padding:6px; box-shadow:0 12px 32px rgba(17,7,4,.18),0 0 0 1px rgba(17,7,4,.06); display:flex; flex-direction:column; }
+.mp-menu button { border:none; background:none; text-align:left; padding:10px 12px; border-radius:10px; font:15px 'Inter Tight',sans-serif; color:#110704; cursor:pointer; }
+.mp-menu button:hover { background:#F8F6F2; }
+.mp-edit { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:0 0 16px; font-size:15px; }
+.mp-edit .form-input { width:auto; min-width:110px; }
+.mp-l--neuf .form-input { width:100%; }
+.mp-seg { display:inline-flex; gap:2px; padding:3px; border-radius:999px; background:#F1EEE9; justify-self:start; }
+.mp-seg button { border:none; background:none; padding:5px 12px; border-radius:999px; font:13.5px 'Inter Tight',sans-serif; color:#6B5A50; cursor:pointer; }
+.mp-seg button[aria-pressed="true"] { background:#110704; color:#F8F6F2; font-weight:600; }
+.mp-finis { margin-top:20px; } .mp-finis summary { cursor:pointer; }
+.mp-aide { margin-top:20px; } .mp-aide p { margin:8px 0 0; font-size:15px; line-height:1.55; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -4416,7 +4446,8 @@ const FIN_GROUPES={
   charges:[['abonnements','Charges fixes'],['depenses','Dépenses du mois'],['charges-urssaf','Déclarations']],
   bilans:[['rapport-annuel','L’année'],['rapport-mensuel','Le mois'],['rapport-fiscal','Fiscal'],['simulateur','Simulateur']],
   reglages:[['options','Réglages'],['import-export','Import et export']],
-  budget:[['budget','Ce mois-ci'],['budget-bilan','Bilan des trois mois']]
+  budget:[['budget','Ce mois-ci'],['budget-bilan','Bilan des trois mois']],
+  mesprojets:[['mesprojets','Mes projets']]
 };
 function finGroupeDe(sec){for(const g in FIN_GROUPES){if(FIN_GROUPES[g].some(x=>x[0]===sec))return g;}return null;}
 function finOnglets(sec){
@@ -5165,7 +5196,8 @@ function apEtat(){
   let dispo=solde;charges.forEach(c=>{c.res=Math.max(0,Math.min(c.montant,dispo));dispo-=c.res;});
   const env=E.filter(e=>['tresorerie','salaire','formations'].indexOf(e.id)>=0).reduce((s,e)=>s+Math.max(0,e.solde||0),0);
   const reserve=list.reduce((s,x)=>s+x.resteReserve,0);
-  const libre=Math.max(0,Math.floor(solde-charges.reduce((s,c)=>s+c.montant,0)-env-reserve));
+  const pro=mpProDeCote();
+  const libre=Math.max(0,Math.floor(solde-charges.reduce((s,c)=>s+c.montant,0)-env-reserve-pro));
   return {list:list,charges:charges,solde:solde,env:env,reserve:reserve,libre:libre,manque:list.reduce((s,x)=>s+x.manque,0)};
 }
 function apCharges(){
@@ -5186,6 +5218,9 @@ function apCharges(){
     const ca=Q[t][0].reduce((s,mi)=>{const k=y+'-'+String(mi).padStart(2,'0');return s+F.filter(f=>f.statut==='payee'&&dp(f).startsWith(k)).reduce((x,f)=>x+(f.montant||0),0);},0);
     if(ca>0)out.push({k:'urssaf',nom:'URSSAF du '+Q[t][2],sous:'charge, à déclarer avant le '+apDateFr(Q[t][1]),date:Q[t][1],quand:'le '+apDateFr(Q[t][1]),montant:Math.round(ca*(tU+tC)),doc:'après la déclaration'});
   });
+  const ap=mpProMois();
+  if(ap>0){const noms=BU.projetsPro.liste.filter(mpActif).map(p=>p.nom).slice(0,3).join(', ');
+    out.push({k:'achats',nom:'Achats pro du mois',sous:'Mes projets'+(noms?', pour '+noms:''),date:mk+'-28',quand:'ce mois-ci',montant:ap,doc:'à mettre de côté dans Mes projets'});}
   return out;
 }
 function apLignes(st){
@@ -5250,6 +5285,7 @@ async function loadAPayer(){
   const el=q('#ap-liste');if(el&&!el.innerHTML)el.innerHTML='<div class="fa-blanc fin-liste"><p class="fa-vide">Lecture de ton compte Qonto…</p></div>';
   if(!(_enveloppes||[]).length){try{const r=await api('GET','/api/enveloppes');_enveloppes=r.enveloppes||[];}catch(e){}}
   if(!FQ_MOUV){try{await fqRelier(false);}catch(e){}}
+  try{await buCharger();mpInit();}catch(e){}
   renderAPayer();finHeroMaj('tresorerie');
 }
 function apMaj(){renderAPayer();finHeroMaj('tresorerie');finOnglets('apayer');}
@@ -5572,6 +5608,129 @@ function buDetailPro(){
   openModal('modal-budget');
 }
 async function buDeplacerPro(id,c){const o=BU.ops.find(x=>x.id===id);if(!o)return;o.c=c;BU_CATS=null;await buSauver();buDetailPro();renderBudget();}
+/* ── Mes projets : mettre de côté pour plus tard, pro (sur Qonto) ou perso (compte projets de vie) ──
+   Les projets perso sont ceux de Mon budget (BU.projets), les pro vivent à côté (BU.projetsPro).
+   Chaque mois, la part prévue (Projets de vie sur le salaire, Achats pro sur Qonto) se répartit
+   sur les projets en cours, le plus proche d'abord. */
+let MP_FILTRE='tout',MP_OUVERT=null,MP_MODE=null,MP_NEUF={genre:'pro'};
+function mpMk(){return finAuj().slice(0,7);}
+function mpInit(){
+  if(!BU.projetsPro||!Array.isArray(BU.projetsPro.liste))BU.projetsPro={versement:40,liste:[]};
+  if(!BU.projetsImport){
+    BU.projetsImport=1;
+    (dbGet('objectifs_epargne')||[]).forEach(o=>{
+      if(!o||!o.nom)return;
+      BU.projets.liste.push({id:'x'+(o.id||Date.now().toString(36)),nom:o.nom,objectif:+(o.montantCible||o.cible||0),cumul:+(o.montantActuel||o.actuel||0),date:o.dateCible||''});
+    });
+  }
+}
+function mpListe(g){return g==='pro'?BU.projetsPro.liste:BU.projets.liste;}
+function mpTous(){return BU.projetsPro.liste.map(p=>({p:p,g:'pro'})).concat(BU.projets.liste.map(p=>({p:p,g:'perso'})));}
+function mpTrouve(id){return mpTous().find(x=>x.p.id===id)||null;}
+function mpActif(p){return !p.statut||p.statut==='actif';}
+function mpMois(date){
+  if(!date)return 0;
+  const d=new Date(),y=+date.slice(0,4),m=+date.slice(5,7);
+  return Math.max(1,(y-d.getFullYear())*12+m-(d.getMonth()+1)+1);
+}
+function mpNomMois(date){return date?buNomMois(date.slice(0,7)):'';}
+/* La part du mois, répartie sur les projets en cours : le plus proche d'abord. */
+function mpRepartir(g){
+  const V=+(g==='pro'?BU.projetsPro.versement:BU.projets.versement)||0;
+  const l=mpListe(g).filter(mpActif).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
+  let reste=V;const parts={};
+  l.forEach(p=>{
+    const manque=Math.max(0,(+p.objectif||0)-(+p.cumul||0)),n=mpMois(p.date);
+    const besoin=n?Math.ceil(manque/n):manque;
+    const part=Math.max(0,Math.min(besoin,reste));parts[p.id]=part;reste-=part;
+  });
+  return {V:V,parts:parts,libre:Math.max(0,reste)};
+}
+function mpDeCote(g){return mpListe(g).filter(mpActif).reduce((s,p)=>s+(+p.cumul||0),0);}
+function mpCeMois(p){return +((p.mois||{})[mpMk()]||0);}
+async function loadMesProjets(){const el=q('#mp-zone');if(el&&!BU)el.innerHTML='<p class="fa-vide">Chargement de tes projets…</p>';await buCharger();mpInit();renderMesProjets();}
+function mpPil(g){return '<span class="mp-pil mp-pil--'+g+'">'+(g==='pro'?'Pro':'Perso')+'</span>';}
+function mpCarte(g){
+  const R=mpRepartir(g),l=mpListe(g).filter(mpActif);
+  const lignes=l.map(p=>'<div class="mp-cl"><span>'+faEsc(p.nom)+(p.date?' <span class="fin-cl__s">pour '+mpNomMois(p.date)+'</span>':'')+'</span><b class="fa-n">'+fmt0(R.parts[p.id]||0)+'</b></div>').join('')+
+    '<div class="mp-cl"><span>Pas encore attribué</span><b class="fa-n">'+fmt0(R.libre)+'</b></div>';
+  const texte=g==='pro'
+    ?'Dans ta trésorerie, une part Achats pro est gardée chaque mois sur Qonto, comme l’URSSAF. Elle se répartit sur tes achats prévus :'
+    :'Dans Mon budget, l’enveloppe Projets de vie prend sa part du salaire. Le jour du salaire, tu la vires sur ton compte projets, et elle se répartit :';
+  return '<div class="fa-blanc mp-carte">'+mpPil(g)+
+    '<span class="bu-temps__t">'+(g==='pro'?'Chaque mois, sur Qonto':'Chaque mois, sur ton salaire')+'</span>'+
+    '<label class="mp-v"><span class="fin-cl__s">Par mois</span><input class="form-input" type="number" min="0" step="10" value="'+R.V+'" data-g="'+g+'" onchange="mpVersement(this.dataset.g,this.value)" aria-label="Par mois"><span class="fin-cl__s">€</span></label>'+
+    '<span class="fin-cl__s">'+texte+'</span><div class="mp-cls">'+lignes+'</div>'+
+    '<span class="fin-cl__s">Déjà de côté : <b class="fa-n">'+fmt0(mpDeCote(g))+'</b></span></div>';
+}
+function mpLigne(x){
+  const p=x.p,g=x.g,obj=+p.objectif||0,cum=+p.cumul||0,R=mpRepartir(g),part=R.parts[p.id]||0;
+  const n=obj>0?Math.max(0,Math.min(12,Math.round(cum/obj*12))):0,ouvert=MP_OUVERT===p.id;
+  const quand=(p.date?'pour '+mpNomMois(p.date):'sans date')+(mpCeMois(p)?', '+fmt0(mpCeMois(p))+' mis ce mois-ci':'');
+  let sous='';
+  if(ouvert&&MP_MODE==='mettre')sous='<div class="mp-edit"><span>Combien mets-tu de côté ?</span><input class="form-input" id="mp-m" type="number" min="0" step="5" value="'+(part||'')+'"><button class="fa-btn" data-id="'+p.id+'" onclick="mpMettre(this.dataset.id)">Mettre de côté</button><button class="fin-lien" onclick="mpFermer()">Annuler</button></div>';
+  if(ouvert&&MP_MODE==='solde')sous='<div class="mp-edit"><span>Ce qui est vraiment de côté aujourd’hui</span><input class="form-input" id="mp-s" type="number" min="0" step="5" value="'+cum+'"><button class="fa-btn" data-id="'+p.id+'" onclick="mpSolde(this.dataset.id)">Enregistrer</button><button class="fin-lien" onclick="mpFermer()">Annuler</button></div>';
+  if(ouvert&&MP_MODE==='modifier')sous='<div class="mp-edit"><input class="form-input" id="mp-e-nom" value="'+faEsc(p.nom)+'" aria-label="Nom"><input class="form-input" id="mp-e-obj" type="number" min="0" value="'+obj+'" aria-label="Montant"><input class="form-input" id="mp-e-date" type="month" value="'+(p.date||'').slice(0,7)+'" aria-label="Pour quand"><button class="fa-btn" data-id="'+p.id+'" onclick="mpModifier(this.dataset.id)">Enregistrer</button><button class="fin-lien" onclick="mpFermer()">Annuler</button></div>';
+  if(ouvert&&MP_MODE==='achete')sous='<div class="mp-edit"><span>Tu l’as payé combien ?</span><input class="form-input" id="mp-a" type="number" min="0" value="'+(obj||cum)+'"><button class="fa-btn" data-id="'+p.id+'" onclick="mpAchete(this.dataset.id)">C’est acheté</button><button class="fin-lien" onclick="mpFermer()">Annuler</button>'+(g==='pro'?'<span class="fin-cl__s">Il sera noté en dépense Matériel dans Finance.</span>':'')+'</div>';
+  if(ouvert&&MP_MODE==='annuler')sous='<div class="mp-edit"><span>Annuler « '+faEsc(p.nom)+' » ? '+(cum?'Les '+fmt0(cum)+' de côté redeviennent libres.':'')+'</span><button class="fa-btn" data-id="'+p.id+'" onclick="mpAnnuler(this.dataset.id)">Oui, annuler le projet</button><button class="fin-lien" onclick="mpFermer()">Non</button></div>';
+  const menu='<details class="mp-plus"><summary class="fin-lien">Plus</summary><div class="mp-menu">'+
+    [['solde','Changer ce qui est de côté'],['modifier','Modifier le projet'],['achete','Acheté, terminer maintenant'],['annuler','Annuler le projet']].map(m=>'<button data-id="'+p.id+'" data-m="'+m[0]+'" onclick="mpOuvrir(this.dataset.id,this.dataset.m)">'+m[1]+'</button>').join('')+'</div></details>';
+  return '<div class="mp-l"><span><span class="mp-nom">'+faEsc(p.nom)+'</span><span class="mp-sous">'+mpPil(g)+'<span class="fin-cl__s">'+(g==='pro'?'payé avec Qonto':'compte projets de vie')+'</span></span></span>'+
+    '<span><b class="fa-n">'+fmt0(cum)+'</b><span class="fin-cl__s"> sur '+fmt0(obj)+'</span></span>'+buTirets(n)+
+    '<span class="fin-cl__s mp-q">'+(part?fmt0(part)+' par mois':(cum>=obj&&obj>0?'tout est de côté':'rien de prévu ce mois'))+'<br>'+quand+'</span>'+
+    '<span class="mp-act"><button class="fa-btn" data-id="'+p.id+'" data-m="mettre" onclick="mpOuvrir(this.dataset.id,this.dataset.m)">Mettre de côté</button>'+menu+'</span></div>'+sous;
+}
+function renderMesProjets(){
+  const el=q('#mp-zone');if(!el)return;
+  const tous=mpTous(),actifs=tous.filter(x=>mpActif(x.p)&&(MP_FILTRE==='tout'||x.g===MP_FILTRE)),finis=tous.filter(x=>!mpActif(x.p));
+  actifs.sort((a,b)=>(a.p.date||'9999').localeCompare(b.p.date||'9999'));
+  const pills='<div class="fin-pills">'+[['tout','Tout'],['pro','Pro'],['perso','Perso']].map(f=>'<button class="fin-onglet'+(MP_FILTRE===f[0]?' on':'')+'" data-f="'+f[0]+'" onclick="mpFiltre(this.dataset.f)">'+f[1]+'</button>').join('')+'</div>';
+  const cartes='<div class="mp-cartes">'+(MP_FILTRE!=='pro'?mpCarte('perso'):'')+(MP_FILTRE!=='perso'?mpCarte('pro'):'')+'</div>';
+  const neuf='<div class="mp-l mp-l--neuf"><input class="form-input" id="mp-n-nom" placeholder="Nouveau projet, par exemple Écran" aria-label="Nouveau projet">'+
+    '<span class="mp-seg">'+[['pro','Pro'],['perso','Perso']].map(o=>'<button aria-pressed="'+(MP_NEUF.genre===o[0])+'" data-g="'+o[0]+'" onclick="mpNeufGenre(this.dataset.g)">'+o[1]+'</button>').join('')+'</span>'+
+    '<input class="form-input" id="mp-n-obj" type="number" min="0" placeholder="Combien, en €" aria-label="Montant">'+
+    '<input class="form-input" id="mp-n-date" type="month" aria-label="Pour quand">'+
+    '<span class="mp-act"><button class="fa-btn" onclick="mpAjouter()">Ajouter</button></span></div>';
+  const liste='<div class="fa-blanc mp-liste"><div class="mp-lt"><span class="bu-temps__t">Tes projets</span><span class="fin-cl__s">les tirets montrent ce qui est déjà de côté</span></div>'+
+    (actifs.length?actifs.map(mpLigne).join(''):'<p class="fa-vide">Aucun projet en cours pour l’instant.</p>')+neuf+'</div>';
+  const fin=finis.length?'<details class="fa-blanc mp-finis"><summary class="fin-lien">'+finis.length+' projet'+(finis.length>1?'s':'')+' terminé'+(finis.length>1?'s':'')+' ou annulé'+(finis.length>1?'s':'')+'</summary>'+
+    finis.map(x=>'<div class="mp-cl"><span>'+faEsc(x.p.nom)+' '+mpPil(x.g)+'</span><span class="fin-cl__s">'+(x.p.statut==='fait'?'acheté'+(x.p.paye?' '+fmt0(x.p.paye):''):'annulé')+(x.p.finLe?', le '+apDateFr(x.p.finLe):'')+'</span></div>').join('')+'</details>':'';
+  el.innerHTML='<div class="bu-tete"><div><h1 class="fa-titre">Mes projets</h1><p class="fa-sous">Ce que tu mets de côté pour plus tard, pour ton travail ou pour toi.</p></div>'+pills+'</div>'+
+    cartes+liste+fin+
+    '<div class="fa-blanc mp-aide"><span class="bu-temps__t">Quand tu achètes</span><p>Tu passes par « Plus », puis « Acheté ». Un projet pro devient une dépense Matériel dans Finance. Tu peux aussi corriger à la main ce qui est de côté, terminer un projet en avance ou l’annuler : ce qui était de côté redevient libre (dans ta trésorerie pour le pro, dans « Pas encore attribué » pour le perso).</p></div>';
+}
+function mpFiltre(f){MP_FILTRE=f;renderMesProjets();}
+function mpOuvrir(id,m){MP_OUVERT=id;MP_MODE=m;renderMesProjets();const i=q('.mp-edit input');if(i)i.focus();}
+function mpFermer(){MP_OUVERT=null;MP_MODE=null;renderMesProjets();}
+function mpNeufGenre(g){const n=q('#mp-n-nom'),o=q('#mp-n-obj'),d=q('#mp-n-date'),v=[n&&n.value,o&&o.value,d&&d.value];MP_NEUF.genre=g;renderMesProjets();if(q('#mp-n-nom'))q('#mp-n-nom').value=v[0]||'';if(q('#mp-n-obj'))q('#mp-n-obj').value=v[1]||'';if(q('#mp-n-date'))q('#mp-n-date').value=v[2]||'';}
+async function mpVersement(g,v){const n=Math.max(0,parseFloat(v)||0);if(g==='pro')BU.projetsPro.versement=n;else BU.projets.versement=n;await buSauver();renderMesProjets();}
+async function mpAjouter(){
+  const nom=(q('#mp-n-nom').value||'').trim(),obj=parseFloat(q('#mp-n-obj').value)||0,date=q('#mp-n-date').value||'';
+  if(!nom){toast('Donne un nom à ton projet','error');q('#mp-n-nom').focus();return;}
+  mpListe(MP_NEUF.genre).push({id:'x'+Date.now().toString(36),nom:nom,objectif:obj,cumul:0,date:date,statut:'actif'});
+  await buSauver();toast('Projet ajouté','success');renderMesProjets();
+}
+async function mpMettre(id){
+  const x=mpTrouve(id);if(!x)return;const m=parseFloat(q('#mp-m').value)||0;if(m<=0){toast('Écris un montant','error');return;}
+  x.p.cumul=Math.round(((+x.p.cumul||0)+m)*100)/100;x.p.mois=x.p.mois||{};x.p.mois[mpMk()]=(+x.p.mois[mpMk()]||0)+m;
+  MP_OUVERT=null;MP_MODE=null;await buSauver();toast(fmt0(m)+' mis de côté','success');renderMesProjets();
+}
+async function mpSolde(id){const x=mpTrouve(id);if(!x)return;x.p.cumul=Math.max(0,parseFloat(q('#mp-s').value)||0);MP_OUVERT=null;MP_MODE=null;await buSauver();toast('Enregistré','success');renderMesProjets();}
+async function mpModifier(id){
+  const x=mpTrouve(id);if(!x)return;const nom=(q('#mp-e-nom').value||'').trim();
+  if(nom)x.p.nom=nom;x.p.objectif=Math.max(0,parseFloat(q('#mp-e-obj').value)||0);x.p.date=q('#mp-e-date').value||'';
+  MP_OUVERT=null;MP_MODE=null;await buSauver();toast('Enregistré','success');renderMesProjets();
+}
+async function mpAchete(id){
+  const x=mpTrouve(id);if(!x)return;const paye=Math.max(0,parseFloat(q('#mp-a').value)||0);
+  if(x.g==='pro'&&paye>0){try{await dbCreate('depenses',{date:finAuj(),montant:-paye,description:x.p.nom+' (Mes projets)',categorie:'Matériel'});}catch(e){toast(e.message,'error');return;}}
+  x.p.statut='fait';x.p.paye=paye;x.p.finLe=finAuj();MP_OUVERT=null;MP_MODE=null;await buSauver();
+  toast(x.g==='pro'?'Acheté, noté en dépense Matériel':'Acheté, bravo','success');renderMesProjets();
+}
+async function mpAnnuler(id){const x=mpTrouve(id);if(!x)return;x.p.statut='annule';x.p.finLe=finAuj();MP_OUVERT=null;MP_MODE=null;await buSauver();toast('Projet annulé','success');renderMesProjets();}
+/* Pour À payer : la part Achats pro du mois, et ce qui est déjà gardé pour les achats pro. */
+function mpProMois(){if(!BU||!BU.projetsPro)return 0;const R=mpRepartir('pro');const fait=BU.projetsPro.liste.reduce((s,p)=>s+mpCeMois(p),0);return Math.max(0,Math.round(R.V-R.libre-fait));}
+function mpProDeCote(){return (BU&&BU.projetsPro)?mpDeCote('pro'):0;}
 async function buNoterFinance(){
   const p=buPro();let n=0;
   for(const o of p.aNoter){
@@ -5854,7 +6013,7 @@ function navigate(section){
 }
 function loadSection(s){
   const map={
-    'dashboard':loadAujourdhui,'cloture':loadCloture,'apayer':loadAPayer,'budget':loadBudget,'budget-bilan':loadBudgetBilan,
+    'dashboard':loadAujourdhui,'cloture':loadCloture,'apayer':loadAPayer,'budget':loadBudget,'mesprojets':loadMesProjets,'budget-bilan':loadBudgetBilan,
     'comptes':loadComptes,'enveloppes':loadEnveloppes,'transactions':()=>{loadTransactions();fqRender();},
     'crm':loadCrm,
     'factures':loadFactures,'devis':loadDevis,'projets':loadProjets,'tiers':loadTiers,
