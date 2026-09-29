@@ -4196,6 +4196,11 @@ html, body { font-family:'Inter Tight', ui-sans-serif, system-ui, sans-serif; fo
 .mp-finis { margin-top:20px; } .mp-finis summary { cursor:pointer; }
 .mp-aide { margin-top:20px; } .mp-aide p { margin:8px 0 0; font-size:15px; line-height:1.55; }
 
+.mp-l.mp-l--neuf { grid-template-columns:minmax(0,1.3fr) auto 140px 140px 160px auto; }
+.mp-part { display:inline-flex; align-items:center; gap:8px; }
+.mp-part .form-input { width:90px; text-align:right; padding:6px 10px; }
+.mp-auto { font-size:13px; }
+
 `;
 const JS   = `/* ─── STB Finance — app.js — Cookie auth + service binding ──────────── */
 
@@ -5639,7 +5644,9 @@ function mpRepartir(g){
   const V=+(g==='pro'?BU.projetsPro.versement:BU.projets.versement)||0;
   const l=mpListe(g).filter(mpActif).slice().sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
   let reste=V;const parts={};
-  l.forEach(p=>{
+  /* Une part choisie à la main passe d'abord ; le reste se calcule, le plus proche d'abord. */
+  l.filter(p=>p.parMois!=null&&p.parMois!=='').forEach(p=>{const part=Math.max(0,Math.min(+p.parMois||0,reste));parts[p.id]=part;reste-=part;});
+  l.filter(p=>p.parMois==null||p.parMois==='').forEach(p=>{
     const manque=Math.max(0,(+p.objectif||0)-(+p.cumul||0)),n=mpMois(p.date);
     const besoin=n?Math.ceil(manque/n):manque;
     const part=Math.max(0,Math.min(besoin,reste));parts[p.id]=part;reste-=part;
@@ -5652,7 +5659,10 @@ async function loadMesProjets(){const el=q('#mp-zone');if(el&&!BU)el.innerHTML='
 function mpPil(g){return '<span class="mp-pil mp-pil--'+g+'">'+(g==='pro'?'Pro':'Perso')+'</span>';}
 function mpCarte(g){
   const R=mpRepartir(g),l=mpListe(g).filter(mpActif);
-  const lignes=l.map(p=>'<div class="mp-cl"><span>'+faEsc(p.nom)+(p.date?' <span class="fin-cl__s">pour '+mpNomMois(p.date)+'</span>':'')+'</span><b class="fa-n">'+fmt0(R.parts[p.id]||0)+'</b></div>').join('')+
+  const lignes=l.map(p=>{const main=p.parMois!=null&&p.parMois!=='';
+    return '<div class="mp-cl"><span>'+faEsc(p.nom)+(p.date?' <span class="fin-cl__s">pour '+mpNomMois(p.date)+'</span>':'')+'</span>'+
+      '<span class="mp-part">'+(main?'<button class="fin-lien mp-auto" data-id="'+p.id+'" onclick="mpPart(this.dataset.id,null)">calcul auto</button>':'<span class="fin-cl__s">calculé</span>')+
+      '<input class="form-input" type="number" min="0" step="5" value="'+(R.parts[p.id]||0)+'" data-id="'+p.id+'" onchange="mpPart(this.dataset.id,this.value)" aria-label="Part du mois pour '+faEsc(p.nom)+'"><span class="fin-cl__s">€</span></span></div>';}).join('')+
     '<div class="mp-cl"><span>Pas encore attribué</span><b class="fa-n">'+fmt0(R.libre)+'</b></div>';
   const texte=g==='pro'
     ?'Dans ta trésorerie, une part Achats pro est gardée chaque mois sur Qonto, comme l’URSSAF. Elle se répartit sur tes achats prévus :'
@@ -5661,7 +5671,7 @@ function mpCarte(g){
     '<span class="bu-temps__t">'+(g==='pro'?'Chaque mois, sur Qonto':'Chaque mois, sur ton salaire')+'</span>'+
     '<label class="mp-v"><span class="fin-cl__s">Par mois</span><input class="form-input" type="number" min="0" step="10" value="'+R.V+'" data-g="'+g+'" onchange="mpVersement(this.dataset.g,this.value)" aria-label="Par mois"><span class="fin-cl__s">€</span></label>'+
     '<span class="fin-cl__s">'+texte+'</span><div class="mp-cls">'+lignes+'</div>'+
-    '<span class="fin-cl__s">Déjà de côté : <b class="fa-n">'+fmt0(mpDeCote(g))+'</b></span></div>';
+    '<span class="fin-cl__s">Change un montant pour choisir toi-même la part d’un projet ; les autres se recalculent. Déjà de côté : <b class="fa-n">'+fmt0(mpDeCote(g))+'</b></span></div>';
 }
 function mpLigne(x){
   const p=x.p,g=x.g,obj=+p.objectif||0,cum=+p.cumul||0,R=mpRepartir(g),part=R.parts[p.id]||0;
@@ -5689,6 +5699,7 @@ function renderMesProjets(){
   const neuf='<div class="mp-l mp-l--neuf"><input class="form-input" id="mp-n-nom" placeholder="Nouveau projet, par exemple Écran" aria-label="Nouveau projet">'+
     '<span class="mp-seg">'+[['pro','Pro'],['perso','Perso']].map(o=>'<button aria-pressed="'+(MP_NEUF.genre===o[0])+'" data-g="'+o[0]+'" onclick="mpNeufGenre(this.dataset.g)">'+o[1]+'</button>').join('')+'</span>'+
     '<input class="form-input" id="mp-n-obj" type="number" min="0" placeholder="Combien, en €" aria-label="Montant">'+
+    '<input class="form-input" id="mp-n-cum" type="number" min="0" placeholder="Déjà de côté" aria-label="Déjà de côté">'+
     '<input class="form-input" id="mp-n-date" type="month" aria-label="Pour quand">'+
     '<span class="mp-act"><button class="fa-btn" onclick="mpAjouter()">Ajouter</button></span></div>';
   const liste='<div class="fa-blanc mp-liste"><div class="mp-lt"><span class="bu-temps__t">Tes projets</span><span class="fin-cl__s">les tirets montrent ce qui est déjà de côté</span></div>'+
@@ -5700,14 +5711,15 @@ function renderMesProjets(){
     '<div class="fa-blanc mp-aide"><span class="bu-temps__t">Quand tu achètes</span><p>Tu passes par « Plus », puis « Acheté ». Un projet pro devient une dépense Matériel dans Finance. Tu peux aussi corriger à la main ce qui est de côté, terminer un projet en avance ou l’annuler : ce qui était de côté redevient libre (dans ta trésorerie pour le pro, dans « Pas encore attribué » pour le perso).</p></div>';
 }
 function mpFiltre(f){MP_FILTRE=f;renderMesProjets();}
+async function mpPart(id,v){const x=mpTrouve(id);if(!x)return;if(v===null)delete x.p.parMois;else x.p.parMois=Math.max(0,parseFloat(v)||0);await buSauver();renderMesProjets();}
 function mpOuvrir(id,m){MP_OUVERT=id;MP_MODE=m;renderMesProjets();const i=q('.mp-edit input');if(i)i.focus();}
 function mpFermer(){MP_OUVERT=null;MP_MODE=null;renderMesProjets();}
-function mpNeufGenre(g){const n=q('#mp-n-nom'),o=q('#mp-n-obj'),d=q('#mp-n-date'),v=[n&&n.value,o&&o.value,d&&d.value];MP_NEUF.genre=g;renderMesProjets();if(q('#mp-n-nom'))q('#mp-n-nom').value=v[0]||'';if(q('#mp-n-obj'))q('#mp-n-obj').value=v[1]||'';if(q('#mp-n-date'))q('#mp-n-date').value=v[2]||'';}
+function mpNeufGenre(g){const ids=['#mp-n-nom','#mp-n-obj','#mp-n-cum','#mp-n-date'],v=ids.map(i=>q(i)?q(i).value:'');MP_NEUF.genre=g;renderMesProjets();ids.forEach((i,k)=>{if(q(i))q(i).value=v[k]||'';});}
 async function mpVersement(g,v){const n=Math.max(0,parseFloat(v)||0);if(g==='pro')BU.projetsPro.versement=n;else BU.projets.versement=n;await buSauver();renderMesProjets();}
 async function mpAjouter(){
-  const nom=(q('#mp-n-nom').value||'').trim(),obj=parseFloat(q('#mp-n-obj').value)||0,date=q('#mp-n-date').value||'';
+  const nom=(q('#mp-n-nom').value||'').trim(),obj=parseFloat(q('#mp-n-obj').value)||0,date=q('#mp-n-date').value||'',cum=Math.max(0,parseFloat((q('#mp-n-cum')||{}).value)||0);
   if(!nom){toast('Donne un nom à ton projet','error');q('#mp-n-nom').focus();return;}
-  mpListe(MP_NEUF.genre).push({id:'x'+Date.now().toString(36),nom:nom,objectif:obj,cumul:0,date:date,statut:'actif'});
+  mpListe(MP_NEUF.genre).push({id:'x'+Date.now().toString(36),nom:nom,objectif:obj,cumul:cum,date:date,statut:'actif'});
   await buSauver();toast('Projet ajouté','success');renderMesProjets();
 }
 async function mpMettre(id){
